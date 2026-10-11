@@ -1095,3 +1095,30 @@ def test_a_live_source_reencoded_in_the_document_is_quiet(tmp_path: Path) -> Non
     doc = _live_doc(LIVE_BLOB)
     download(doc, tmp_path, session=Live(buffer.getvalue()))
     assert not doc.warnings
+
+
+def test_a_live_source_docs_shrank_is_quiet(tmp_path: Path) -> None:
+    """Docs shrinks a wide paste, so its copy is the picture at a smaller size."""
+    import io
+
+    from PIL import Image as Pillow
+
+    def encoded(picture: Pillow.Image) -> bytes:
+        buffer = io.BytesIO()
+        picture.save(buffer, "PNG")
+        return buffer.getvalue()
+
+    gradient = Pillow.linear_gradient("L").convert("RGB").resize((400, 200))
+    live = encoded(gradient)
+
+    class Shrunk(Live):
+        @override
+        def get(self, url: str | bytes, **kwargs: Any) -> requests.Response:
+            response = super().get(url, **kwargs)
+            if url != LIVE_RAW:
+                response._content = encoded(gradient.resize((200, 100)))
+            return response
+
+    doc = _live_doc(LIVE_BLOB)
+    download(doc, tmp_path, session=Shrunk(live))
+    assert not doc.warnings

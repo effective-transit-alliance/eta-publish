@@ -252,24 +252,48 @@ def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, b
     return content_type, body, "", pasted_type == content_type and not _same_pixels(pasted, body)
 
 
-def _same_pixels(a: bytes, b: bytes) -> bool:
-    """Whether two files are the same picture, decoded.
+SAME_PICTURE = 8
+"""The mean difference per channel, out of 255, under which two copies are one picture.
+
+Measured on IBX's track maps: a 4764 px original against the 2048 px copy Docs
+shrank it to differs by about 3 once scaled to match, from resampling alone,
+and a different page of the same study by about 25."""
+
+ASPECT_SLACK = 0.01
+"""How far apart two aspect ratios may be and still be one picture scaled,
+since a shrunk side is rounded to whole pixels."""
+
+
+def _same_pixels(pasted: bytes, live: bytes) -> bool:
+    """Whether the document's copy is the live file's picture, decoded.
 
     Not the bytes: Docs may re-encode a file pasted into it,
-    which changes every byte and not one pixel.
+    which changes every byte and not one pixel,
+    and shrinks one wider than 2048 px, which changes every pixel slightly.
+    So the larger is scaled to the smaller, and they are compared on average.
     A file that will not decode is not said to differ, since this is only a check.
     """
-    if a == b:
+    if pasted == live:
         return True
     import io
 
     from PIL import Image as Pillow
+    from PIL import ImageChops, ImageStat
 
     try:
-        with Pillow.open(io.BytesIO(a)) as first, Pillow.open(io.BytesIO(b)) as second:
-            if first.size != second.size:
+        with Pillow.open(io.BytesIO(pasted)) as first, Pillow.open(io.BytesIO(live)) as second:
+            if first.width * first.height <= second.width * second.height:
+                small, large = first, second
+            else:
+                small, large = second, first
+            if abs(small.width / small.height - large.width / large.height) > ASPECT_SLACK * (
+                large.width / large.height
+            ):
                 return False
-            return first.convert("RGBA").tobytes() == second.convert("RGBA").tobytes()
+            a = small.convert("RGBA")
+            b = large.convert("RGBA").resize(small.size, Pillow.Resampling.LANCZOS)
+            difference = ImageStat.Stat(ImageChops.difference(a, b)).mean
+            return max(difference) < SAME_PICTURE
     except OSError:
         return True
 

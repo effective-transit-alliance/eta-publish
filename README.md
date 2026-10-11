@@ -390,6 +390,7 @@ so adding a field to a future report is safe.
   An `.svg` is taken exactly as an `SVG:` line linking it would be;
   any other file that cannot be downloaded falls back to the doc's copy with a warning.
   One whose pixels differ from the doc's copy of the same type is warned about,
+  once the larger is scaled to the smaller, since Docs shrinks a wide paste,
   since the doc is then showing its editors an outdated picture.
 - **Suggestions are rejected.**
   The doc is fetched as it currently reads, with every open suggestion rejected,
