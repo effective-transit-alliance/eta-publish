@@ -1081,3 +1081,17 @@ def test_a_release_asset_in_our_repos_is_downloaded_from_there(url: str) -> None
 )
 def test_a_release_page_or_someone_elses_asset_is_only_cited(url: str) -> None:
     assert _live_figure(url).image.live_uri == ""
+
+
+def test_a_live_source_reencoded_in_the_document_is_quiet(tmp_path: Path) -> None:
+    """Docs may rewrite a pasted file's bytes; the picture is what is compared."""
+    import io
+
+    from PIL import Image as Pillow
+
+    buffer = io.BytesIO()
+    Pillow.new("RGB", (10, 10)).save(buffer, "PNG", compress_level=0)
+    assert buffer.getvalue() != _png(10, 10)
+    doc = _live_doc(LIVE_BLOB)
+    download(doc, tmp_path, session=Live(buffer.getvalue()))
+    assert not doc.warnings

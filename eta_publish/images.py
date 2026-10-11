@@ -225,7 +225,7 @@ def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, b
 
     Last, whether the live source differs from the document's copy of the same type,
     which is the document showing its editors an outdated picture.
-    Compared only within a type: a copy of another type was converted on the way in,
+    Compared by pixels, within a type: a copy of another type was converted on the way in,
     so its bytes could never match.
     """
     if uri != image.live_uri:
@@ -249,7 +249,29 @@ def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, b
     except requests.RequestException:
         # Only a check; the picture to publish is already in hand.
         return content_type, body, "", False
-    return content_type, body, "", pasted_type == content_type and pasted != body
+    return content_type, body, "", pasted_type == content_type and not _same_pixels(pasted, body)
+
+
+def _same_pixels(a: bytes, b: bytes) -> bool:
+    """Whether two files are the same picture, decoded.
+
+    Not the bytes: Docs may re-encode a file pasted into it,
+    which changes every byte and not one pixel.
+    A file that will not decode is not said to differ, since this is only a check.
+    """
+    if a == b:
+        return True
+    import io
+
+    from PIL import Image as Pillow
+
+    try:
+        with Pillow.open(io.BytesIO(a)) as first, Pillow.open(io.BytesIO(b)) as second:
+            if first.size != second.size:
+                return False
+            return first.convert("RGBA").tobytes() == second.convert("RGBA").tobytes()
+    except OSError:
+        return True
 
 
 def _type_by_name(uri: str) -> str:
