@@ -155,7 +155,14 @@ def download(
         written[image.object_id] = existing
         doc.image_files[image.object_id] = existing.name
 
-    for image, content_type, body, live_failure in _fetch_all(wanted, http):
+    for image, content_type, body, live_failure, stale in _fetch_all(wanted, http):
+        if stale:
+            doc.warn(
+                "image {} differs from its source {}, which is what publishes; "
+                "paste the current file into the document so its editors see it too",
+                Shown(image.filename),
+                Shown(image.live_uri),
+            )
         if live_failure:
             doc.warn(
                 f"could not download image {{}} from its source ({live_failure}); "
@@ -193,9 +200,10 @@ def download(
 
 def _fetch_all(
     wanted: list[tuple[Image, str]], http: requests.Session
-) -> Iterator[tuple[Image, str, bytes, str]]:
+) -> Iterator[tuple[Image, str, bytes, str, bool]]:
     """Each image with what came back for it, in the order `wanted` is in,
-    and why its live source could not be had, if it could not.
+    why its live source could not be had, if it could not,
+    and whether the document's copy is out of date with it.
 
     The requests overlap; what is yielded does not.
     A failure is raised as the document reaches it rather than as it happens,
@@ -206,18 +214,22 @@ def _fetch_all(
     with ThreadPoolExecutor(max_workers=min(len(wanted), MAX_AT_ONCE)) as pool:
         started = [(image, pool.submit(_fetch_image, image, uri, http)) for image, uri in wanted]
         for image, fetching in started:
-            content_type, body, live_failure = fetching.result()
-            yield image, content_type, body, live_failure
+            yield image, *fetching.result()
 
 
-def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, bytes, str]:
+def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, bytes, str, bool]:
     """`_fetch_one`, falling back from a live source to the document's copy.
 
     Unlike an SVG, a raster has a real fallback: the document's copy is the same
     picture, only possibly older, which is better than a figure with no picture.
+
+    Last, whether the live source differs from the document's copy of the same type,
+    which is the document showing its editors an outdated picture.
+    Compared only within a type: a copy of another type was converted on the way in,
+    so its bytes could never match.
     """
     if uri != image.live_uri:
-        return (*_fetch_one(uri, http), "")
+        return (*_fetch_one(uri, http), "", False)
     try:
         content_type, body = _fetch_one(uri, http)
         # `raw.githubusercontent.com` serves most files as `text/plain`,
@@ -226,11 +238,18 @@ def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, b
             content_type = _type_by_name(uri)
         if content_type not in EXTENSIONS:
             raise ValueError("it is not an image type this knows how to name")
-        return content_type, body, ""
     except (OSError, ValueError, requests.RequestException) as e:
         if not image.source_uri:
             raise
-        return (*_fetch_one(image.source_uri, http), str(e))
+        return (*_fetch_one(image.source_uri, http), str(e), False)
+    if not image.source_uri:
+        return content_type, body, "", False
+    try:
+        pasted_type, pasted = _fetch_one(image.source_uri, http)
+    except requests.RequestException:
+        # Only a check; the picture to publish is already in hand.
+        return content_type, body, "", False
+    return content_type, body, "", pasted_type == content_type and pasted != body
 
 
 def _type_by_name(uri: str) -> str:

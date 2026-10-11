@@ -1033,7 +1033,7 @@ def test_a_live_source_is_published_with_the_documents_crop(tmp_path: Path) -> N
     doc = _live_doc(LIVE_BLOB, crop={"offsetLeft": 0.5})
     session = Live(_png(200, 100))
     download(doc, tmp_path, session=session)
-    assert session.asked == [LIVE_RAW]
+    assert session.asked == [LIVE_RAW, "https://x.invalid/1"]
     with Pillow.open(tmp_path / doc.image_files["io.1"]) as written:
         assert written.size == (100, 100)
 
@@ -1045,3 +1045,16 @@ def test_a_live_source_that_fails_falls_back_to_the_documents_copy(tmp_path: Pat
     assert session.asked == [LIVE_RAW, "https://x.invalid/1"]
     assert (tmp_path / doc.image_files["io.1"]).read_bytes() == _png(10, 10)
     assert any(f"`{LIVE_RAW}`" in w and "copy in the document" in w for w in map(str, doc.warnings))
+
+
+def test_a_live_source_unlike_the_documents_copy_warns(tmp_path: Path) -> None:
+    doc = _live_doc(LIVE_BLOB)
+    download(doc, tmp_path, session=Live(_png(20, 10)))
+    assert (tmp_path / doc.image_files["io.1"]).read_bytes() == _png(20, 10)
+    assert any("differs from its source" in w for w in map(str, doc.warnings))
+
+
+def test_a_live_source_matching_the_documents_copy_is_quiet(tmp_path: Path) -> None:
+    doc = _live_doc(LIVE_BLOB)
+    download(doc, tmp_path, session=Live(_png(10, 10)))
+    assert not doc.warnings

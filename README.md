@@ -388,6 +388,8 @@ so adding a field to a future report is safe.
   The doc's crop is still applied to it.
   An `.svg` is taken exactly as an `SVG:` line linking it would be;
   any other file that cannot be downloaded falls back to the doc's copy with a warning.
+  One that differs from the doc's copy of the same type is warned about,
+  since the doc is then showing its editors an outdated picture.
 - **Suggestions are rejected.**
   The doc is fetched as it currently reads, with every open suggestion rejected,
   so nothing publishes because someone proposed it and no one noticed.
