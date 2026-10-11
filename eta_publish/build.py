@@ -630,7 +630,15 @@ def build_one(
     dest = outdir / path
     # Only a reused response: a fetched one has the URIs to download from.
     reused = cached is not None and '"contentUri"' not in json.dumps(document)
-    if reused and options.images and not options.offline and not has_its_figures(dest, doc):
+    # A figure downloaded from its own source is still checked against the document's copy,
+    # which only a response with the URIs can download.
+    checks_live = any(image.live_uri for image in doc.images)
+    if (
+        reused
+        and options.images
+        and not options.offline
+        and (checks_live or not has_its_figures(dest, doc))
+    ):
         document = load(ref, options.suggestions, options.comments)
         doc = parse(document)
         if verify is not None:
