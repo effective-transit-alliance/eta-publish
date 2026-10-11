@@ -564,6 +564,9 @@ class Document:
     Zero for a response saved before the fetch counted them, which cannot be helped:
     the count is not in the file to be read."""
 
+    suggestions_accepted: bool = False
+    """Whether this was read with its open suggestions accepted, as a preview of them."""
+
     open_comments: int = 0
     """Comment threads still open on this tab.
 

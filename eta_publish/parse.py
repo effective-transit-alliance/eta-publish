@@ -1701,6 +1701,7 @@ def read_review(doc: Document, document: JsonObject) -> None:
     has carried the last answer over from the saved one.
     """
     doc.open_suggestions = int(document.get("openSuggestions", 0))
+    doc.suggestions_accepted = document.get("suggestions") == "accepted"
     doc.open_comments = int(document.get("openComments", 0))
 
 

@@ -465,3 +465,16 @@ def test_a_link_that_shows_its_url_is_named() -> None:
     assert [str(w) for w in doc.warnings] == [
         "1 link shows its URL as its text; give it words in the doc:\n- `https://a.example/x`"
     ]
+
+
+def test_open_suggestions_are_warned_about(doc: Document) -> None:
+    doc.open_suggestions = 3
+    check(doc)
+    assert any("3 suggestions still open" in w for w in map(str, doc.warnings))
+
+
+def test_open_suggestions_are_not_warned_about_in_a_preview_of_them(doc: Document) -> None:
+    doc.open_suggestions = 3
+    doc.suggestions_accepted = True
+    check(doc)
+    assert not any("suggestions still open" in w for w in map(str, doc.warnings))

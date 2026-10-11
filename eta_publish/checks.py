@@ -470,7 +470,9 @@ def _check_review(doc: Document) -> None:
     tabs and 46 comments open across them, against three on the one that
     publishes, so a count for the file would be a number nobody could act on.
     """
-    if doc.open_suggestions:
+    # A preview with them accepted is a build asked to show them,
+    # and says nothing about them that the person asking does not know.
+    if doc.open_suggestions and not doc.suggestions_accepted:
         doc.warn(
             f"{plural(doc.open_suggestions, 'suggestion')} still open on this tab; "
             "the build publishes the document without them, as it reads today"
