@@ -17,7 +17,7 @@ because they are facts about how the docs are written:
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 from datetime import datetime
-from urllib.parse import parse_qs, unquote, urlsplit
+from urllib.parse import parse_qs, quote, unquote, urlsplit
 
 from .docs_json import JsonObject
 from .naming import (
@@ -605,6 +605,32 @@ def source_name(source: list[Inline]) -> str:
 def source_href(source: list[Inline]) -> str:
     """Where a source line links, if it links anywhere."""
     return next((i.href for i in source if isinstance(i, Text) and i.href), "")
+
+
+LIVE_OWNERS = frozenset({"effective-transit-alliance", "kkysen"})
+"""The GitHub accounts whose files a `Source:` line is trusted to publish from."""
+
+
+def github_raw(href: str) -> str:
+    """The raw URL of the file `href` links in one of our GitHub repos, or nothing.
+
+    A link to a repo, a directory, or anyone else's repo is a citation, not the file.
+    """
+    split = urlsplit(href)
+    parts = [unquote(p) for p in split.path.split("/") if p]
+    host = split.netloc.lower()
+    if host == "raw.githubusercontent.com" and len(parts) >= 4:
+        owner, repo, rest = parts[0], parts[1], parts[2:]
+    elif (
+        host in ("github.com", "www.github.com") and len(parts) >= 5 and parts[2] in ("blob", "raw")
+    ):
+        owner, repo, rest = parts[0], parts[1], parts[3:]
+    else:
+        return ""
+    if owner.lower() not in LIVE_OWNERS:
+        return ""
+    path = "/".join(quote(p) for p in [owner, repo, *rest])
+    return f"https://raw.githubusercontent.com/{path}"
 
 
 def video_title(link: list[Inline]) -> str:
@@ -1235,6 +1261,27 @@ class Parser:
         name = source_name(source)
         if name:
             self._source_names.setdefault(figure.image.object_id, name)
+        live = github_raw(source_href(source))
+        if live and not figure.image.live_uri and figure.image.vector is None:
+            if live.lower().endswith(".svg"):
+                # Exactly what an `SVG:` line linking the same file would be.
+                title = url_filename(live)
+                figure.image = replace(
+                    figure.image,
+                    vector=Vector(
+                        file_id="",
+                        filename=image_filename(
+                            live,
+                            extension=".svg",
+                            crop_key=figure.image.crop.key if figure.image.crop.trims else "",
+                            name=title,
+                        ),
+                        title=title,
+                        uri=live,
+                    ),
+                )
+            else:
+                figure.image = replace(figure.image, live_uri=live)
 
     def _attach_vector(self, figure: Figure, para: JsonObject) -> None:
         """Promote a `SVG:` line's link from a note to the figure's file."""

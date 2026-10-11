@@ -213,6 +213,14 @@ class Image:
     crop: Crop = field(default_factory=lambda: Crop())
     vector: Vector | None = None
 
+    live_uri: str = ""
+    """Where the picture's own file is kept, when that is somewhere we keep things:
+    a `Source:` line linking a file in one of our GitHub repos, as its raw URL.
+
+    Downloaded in place of the copy pasted into the document, which goes stale
+    whenever the file is regenerated and nobody pastes it again.
+    The document's crop is still applied to it."""
+
 
 Inline = Text | LineBreak | FootnoteRef | Image
 

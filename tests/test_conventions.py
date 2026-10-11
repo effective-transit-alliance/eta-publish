@@ -926,3 +926,122 @@ def test_a_crop_of_an_svg_sized_in_another_unit_is_in_pixels() -> None:
         b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="48 0 48 48" '
         b'width="48" height="48"><svg width="96" height="48">'
     )
+
+
+# ---- a `Source:` in one of our GitHub repos -------------------------
+
+LIVE_BLOB = "https://github.com/effective-transit-alliance/charts/blob/main/out/map.png"
+LIVE_RAW = "https://raw.githubusercontent.com/effective-transit-alliance/charts/main/out/map.png"
+
+
+def _live_doc(url: str, crop: JsonObject | None = None) -> Document:
+    return build(
+        [
+            para("Header", "HEADING_2"),
+            field("URL: /reports/x"),
+            para("Headline", "TITLE"),
+            image(),
+            {
+                "paragraph": {
+                    "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+                    "elements": [
+                        {"textRun": {"content": "Source", "textStyle": {"underline": True}}},
+                        {"textRun": {"content": ": ", "textStyle": {}}},
+                        {"textRun": {"content": url + "\n", "textStyle": {"link": {"url": url}}}},
+                    ],
+                }
+            },
+        ],
+        crop=crop,
+    )
+
+
+def _live_figure(url: str) -> Figure:
+    return next(b for b in _live_doc(url).blocks if isinstance(b, Figure))
+
+
+@pytest.mark.parametrize("url", [LIVE_BLOB, LIVE_RAW, LIVE_BLOB.replace("/blob/", "/raw/")])
+def test_a_source_in_our_repos_is_downloaded_from_there(url: str) -> None:
+    assert _live_figure(url).image.live_uri == LIVE_RAW
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/someone-else/charts/blob/main/out/map.png",
+        "https://github.com/kkysen/automated-metro-data",
+        "https://example.com/kkysen/charts/blob/main/map.png",
+    ],
+)
+def test_a_source_anywhere_else_is_only_cited(url: str) -> None:
+    figure = _live_figure(url)
+    assert figure.image.live_uri == ""
+    assert figure.image.vector is None
+
+
+def test_an_svg_source_in_our_repos_is_the_vector() -> None:
+    """The same as an `SVG:` line linking it."""
+    figure = _live_figure(
+        SVG_URL.replace("raw.githubusercontent.com", "github.com").replace(
+            "automated-metro-data/main", "automated-metro-data/blob/main"
+        )
+    )
+    assert figure.image.vector is not None
+    assert figure.image.vector.uri == SVG_URL
+    assert figure.image.vector.filename == "share.svg"
+    assert figure.image.live_uri == ""
+
+
+def _png(width: int, height: int) -> bytes:
+    import io
+
+    from PIL import Image as Pillow
+
+    buffer = io.BytesIO()
+    Pillow.new("RGB", (width, height)).save(buffer, "PNG")
+    return buffer.getvalue()
+
+
+class Live(requests.Session):
+    """Serves the live source with `live`, or fails it when `live` is `None`."""
+
+    def __init__(self, live: bytes | None) -> None:
+        super().__init__()
+        self.live = live
+        self.asked: list[str] = []
+
+    @override
+    def get(self, url: str | bytes, **kwargs: Any) -> requests.Response:
+        self.asked.append(str(url))
+        response = requests.Response()
+        response.url = str(url)
+        if url == LIVE_RAW:
+            response.status_code = 404 if self.live is None else 200
+            response._content = self.live or b""
+            # What `raw.githubusercontent.com` says of much it serves.
+            response.headers["content-type"] = "text/plain; charset=utf-8"
+        else:
+            response.status_code = 200
+            response._content = _png(10, 10)
+            response.headers["content-type"] = "image/png"
+        return response
+
+
+def test_a_live_source_is_published_with_the_documents_crop(tmp_path: Path) -> None:
+    from PIL import Image as Pillow
+
+    doc = _live_doc(LIVE_BLOB, crop={"offsetLeft": 0.5})
+    session = Live(_png(200, 100))
+    download(doc, tmp_path, session=session)
+    assert session.asked == [LIVE_RAW]
+    with Pillow.open(tmp_path / doc.image_files["io.1"]) as written:
+        assert written.size == (100, 100)
+
+
+def test_a_live_source_that_fails_falls_back_to_the_documents_copy(tmp_path: Path) -> None:
+    doc = _live_doc(LIVE_BLOB)
+    session = Live(None)
+    download(doc, tmp_path, session=session)
+    assert session.asked == [LIVE_RAW, "https://x.invalid/1"]
+    assert (tmp_path / doc.image_files["io.1"]).read_bytes() == _png(10, 10)
+    assert any(f"`{LIVE_RAW}`" in w and "copy in the document" in w for w in map(str, doc.warnings))

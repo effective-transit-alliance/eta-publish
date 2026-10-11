@@ -139,6 +139,10 @@ def download(
             image, outdir, doc, written, http, online=not offline
         ):
             continue
+        if image.live_uri and not offline:
+            # From where the file is kept, with the document's copy to fall back on.
+            wanted.append((image, image.live_uri))
+            continue
         if image.source_uri:
             # Carried along rather than read again where it is used:
             # only here is it known not to be `None`.
@@ -151,7 +155,13 @@ def download(
         written[image.object_id] = existing
         doc.image_files[image.object_id] = existing.name
 
-    for image, content_type, body in _fetch_all(wanted, http):
+    for image, content_type, body, live_failure in _fetch_all(wanted, http):
+        if live_failure:
+            doc.warn(
+                f"could not download image {{}} from its source ({live_failure}); "
+                "the copy in the document is published instead",
+                Shown(image.live_uri),
+            )
         extension = EXTENSIONS.get(content_type)
         if extension is None:
             # Refused rather than saved under a bare stem.
@@ -183,8 +193,9 @@ def download(
 
 def _fetch_all(
     wanted: list[tuple[Image, str]], http: requests.Session
-) -> Iterator[tuple[Image, str, bytes]]:
-    """Each image with what came back for it, in the order `wanted` is in.
+) -> Iterator[tuple[Image, str, bytes, str]]:
+    """Each image with what came back for it, in the order `wanted` is in,
+    and why its live source could not be had, if it could not.
 
     The requests overlap; what is yielded does not.
     A failure is raised as the document reaches it rather than as it happens,
@@ -193,10 +204,41 @@ def _fetch_all(
     if not wanted:
         return
     with ThreadPoolExecutor(max_workers=min(len(wanted), MAX_AT_ONCE)) as pool:
-        started = [(image, pool.submit(_fetch_one, uri, http)) for image, uri in wanted]
+        started = [(image, pool.submit(_fetch_image, image, uri, http)) for image, uri in wanted]
         for image, fetching in started:
-            content_type, body = fetching.result()
-            yield image, content_type, body
+            content_type, body, live_failure = fetching.result()
+            yield image, content_type, body, live_failure
+
+
+def _fetch_image(image: Image, uri: str, http: requests.Session) -> tuple[str, bytes, str]:
+    """`_fetch_one`, falling back from a live source to the document's copy.
+
+    Unlike an SVG, a raster has a real fallback: the document's copy is the same
+    picture, only possibly older, which is better than a figure with no picture.
+    """
+    if uri != image.live_uri:
+        return (*_fetch_one(uri, http), "")
+    try:
+        content_type, body = _fetch_one(uri, http)
+        # `raw.githubusercontent.com` serves most files as `text/plain`,
+        # so the type is read off the name when the server does not give an image one.
+        if content_type not in EXTENSIONS:
+            content_type = _type_by_name(uri)
+        if content_type not in EXTENSIONS:
+            raise ValueError("it is not an image type this knows how to name")
+        return content_type, body, ""
+    except (OSError, ValueError, requests.RequestException) as e:
+        if not image.source_uri:
+            raise
+        return (*_fetch_one(image.source_uri, http), str(e))
+
+
+def _type_by_name(uri: str) -> str:
+    suffix = Path(uri.split("?", 1)[0]).suffix.lower()
+    return next(
+        (t for t, ext in EXTENSIONS.items() if ext == suffix or (ext, suffix) == (".jpg", ".jpeg")),
+        "",
+    )
 
 
 def _fetch_one(uri: str, http: requests.Session) -> tuple[str, bytes]:

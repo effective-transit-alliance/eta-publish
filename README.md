@@ -381,6 +381,13 @@ so adding a field to a future report is safe.
   and `Credit:` appears 26 times.
   When an image has no alt text in Docs, its caption is used,
   which is what the live page does by hand.
+- **A `Source:` in our GitHub repos is the picture.**
+  When a `Source:` links a file in an `effective-transit-alliance` or `kkysen` repo on GitHub,
+  that file is downloaded on every build in place of the copy pasted into the doc,
+  so a regenerated chart publishes without being pasted again.
+  The doc's crop is still applied to it.
+  An `.svg` is taken exactly as an `SVG:` line linking it would be;
+  any other file that cannot be downloaded falls back to the doc's copy with a warning.
 - **Suggestions are rejected.**
   The doc is fetched as it currently reads, with every open suggestion rejected,
   so nothing publishes because someone proposed it and no one noticed.
