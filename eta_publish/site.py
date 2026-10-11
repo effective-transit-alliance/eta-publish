@@ -110,6 +110,26 @@ def load_reports(path: Path = REPORTS) -> list[Report]:
     return reports
 
 
+def listed_report(doc: str, path: Path = REPORTS) -> Report:
+    """The entry `doc` names, or `doc` itself as a document named on the command line.
+
+    A name is what anyone remembers a report by, and its URL is what nobody does.
+    Picked by name, the entry comes with its expectations,
+    so `one` checks the document against them just as `all` would.
+    Case is ignored, since nobody types a title's capitals reliably.
+    Anything that is not a listed name is a URL, an id, or a saved response, as before:
+    no Docs URL or id reads as a report's title.
+    """
+    if not path.exists():
+        return Report(url=doc)
+    wanted = doc.strip().casefold()
+    matches = [r for r in load_reports(path) if (r.name or "").casefold() == wanted]
+    if len(matches) > 1:
+        tabs = ", ".join(f"`{r.tab}`" for r in matches)
+        raise ValueError(f"{path}: more than one report is named `{doc}`, on tabs {tabs}")
+    return matches[0] if matches else Report(url=doc)
+
+
 def entry_text(url: str, name: str, tab: str) -> str:
     """One `[[report]]` block, as `reports.toml` writes them.
 

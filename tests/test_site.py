@@ -34,6 +34,7 @@ from eta_publish.site import (
     build_site,
     canonical,
     index_page,
+    listed_report,
     load_reports,
     report_path,
     reusable,
@@ -122,6 +123,35 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     assert not site.built
     # An empty marked span, which is what a name that is not there looks like.
     assert "``" in site.failed[0].error
+
+
+def test_one_finds_a_report_by_its_name_in_any_case(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text(
+        '[[report]]\nname = "IBX Automation"\ntab = "Live"\nurl = "https://example.invalid/b"\n'
+    )
+    assert listed_report("ibx automation", path) == Report(
+        url="https://example.invalid/b", name="IBX Automation", tab="Live"
+    )
+
+
+def test_one_takes_anything_unlisted_as_the_document_itself(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text('[[report]]\nname = "IBX"\ntab = "Live"\nurl = "https://example.invalid/b"\n')
+    assert listed_report("https://example.invalid/c", path) == Report(
+        url="https://example.invalid/c"
+    )
+    assert listed_report("x", tmp_path / "missing.toml") == Report(url="x")
+
+
+def test_one_refuses_a_name_two_entries_share(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text(
+        '[[report]]\nname = "IBX"\ntab = "A"\nurl = "https://example.invalid/a"\n'
+        '\n[[report]]\nname = "IBX"\ntab = "B"\nurl = "https://example.invalid/b"\n'
+    )
+    with pytest.raises(ValueError, match="more than one"):
+        listed_report("IBX", path)
 
 
 def test_an_entry_without_a_url_is_an_error(tmp_path: Path) -> None:

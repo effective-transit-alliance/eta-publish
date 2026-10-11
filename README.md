@@ -153,6 +153,9 @@ uv run eta-publish all --offline
 A document can also be a directory a previous build wrote,
 which holds the API response as `doc.json` beside its outputs,
 so anything built once rebuilds with no network and no credentials.
+A report already in `reports.toml` can be named instead, in any case,
+as in `eta-publish one 'IBX Automation' -o out`,
+and is then checked against its entry as `all` checks it.
 
 Pass the full URL including its `?tab=` id.
 ETA reports live in multi-tab documents,

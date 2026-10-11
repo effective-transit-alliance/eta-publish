@@ -3,12 +3,12 @@
 Three commands, because there are three things to do:
 
     eta-publish all             every report in `reports.toml`, into `site/`
-    eta-publish one <doc>       one document, wherever you point it
+    eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
 
 `all` is what the workflow runs and what the committed site is built from.
-`one` is for a document before it is on the list,
-and takes a Docs URL, a bare id, or a saved Docs response.
+`one` is for a document before it is on the list, or one report off it,
+and takes a Docs URL, a bare id, a saved Docs response, or a name from the list.
 
 Both build the same way and write the same index,
 so the common case and the real case stay on the same code.
@@ -25,7 +25,16 @@ from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
-from .site import REPORTS, Report, Site, add_report, build_site, index_page, load_reports
+from .site import (
+    REPORTS,
+    Report,
+    Site,
+    add_report,
+    build_site,
+    index_page,
+    listed_report,
+    load_reports,
+)
 
 
 class Suggestions(StrEnum):
@@ -105,9 +114,14 @@ def build_one_report(
         str,
         Argument(
             metavar="DOC",
-            help="a Google Doc URL (including its `?tab=` id), an id, or saved Docs API JSON",
+            help="a Google Doc URL (including its `?tab=` id), an id, saved Docs API JSON,"
+            " or a report's `name` in the list",
         ),
     ],
+    reports: Annotated[
+        Path,
+        Option("-r", "--reports", help="the list a name is looked up in"),
+    ] = REPORTS,
     outdir: Outdir = Path("site"),
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
@@ -117,10 +131,15 @@ def build_one_report(
 ) -> None:
     """Build one document, before it is on the list or instead of it.
 
-    The report has no entry, so there is nothing saying what it should be called
+    Named by its entry, it is checked against that entry as `all` checks it.
+    Otherwise the report has no entry, so there is nothing saying what it should be called
     and nothing to hold it up against: what the document says, it publishes as.
     """
-    publish([Report(url=doc)], outdir, suggestions, split, images, comments, archive=archive)
+    try:
+        report = listed_report(doc, reports)
+    except (OSError, ValueError) as e:
+        raise BadParameter(str(e), param_hint="DOC") from e
+    publish([report], outdir, suggestions, split, images, comments, archive=archive)
 
 
 def publish(
