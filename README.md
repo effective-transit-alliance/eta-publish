@@ -383,6 +383,7 @@ so adding a field to a future report is safe.
   which is what the live page does by hand.
 - **A `Source:` in our GitHub repos is the picture.**
   When a `Source:` links a file in an `effective-transit-alliance` or `kkysen` repo on GitHub,
+  or a release asset of one,
   that file is downloaded on every build in place of the copy pasted into the doc,
   so a regenerated chart publishes without being pasted again.
   The doc's crop is still applied to it.

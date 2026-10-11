@@ -1058,3 +1058,26 @@ def test_a_live_source_matching_the_documents_copy_is_quiet(tmp_path: Path) -> N
     doc = _live_doc(LIVE_BLOB)
     download(doc, tmp_path, session=Live(_png(10, 10)))
     assert not doc.warnings
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/kkysen/charts/releases/download/v1.2/map.png",
+        "https://github.com/kkysen/charts/releases/latest/download/map.png",
+    ],
+)
+def test_a_release_asset_in_our_repos_is_downloaded_from_there(url: str) -> None:
+    assert _live_figure(url).image.live_uri == url
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://github.com/kkysen/charts/releases/tag/v1.2",
+        "https://github.com/kkysen/charts/releases/latest",
+        "https://github.com/someone-else/charts/releases/download/v1.2/map.png",
+    ],
+)
+def test_a_release_page_or_someone_elses_asset_is_only_cited(url: str) -> None:
+    assert _live_figure(url).image.live_uri == ""

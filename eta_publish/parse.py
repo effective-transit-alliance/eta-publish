@@ -614,16 +614,31 @@ LIVE_OWNERS = frozenset({"effective-transit-alliance", "kkysen"})
 def github_raw(href: str) -> str:
     """The raw URL of the file `href` links in one of our GitHub repos, or nothing.
 
-    A link to a repo, a directory, or anyone else's repo is a citation, not the file.
+    A release asset is its own download link, `releases/download/<tag>/<file>`
+    or `releases/latest/download/<file>`, so it is kept as it is.
+    A link to a repo, a directory, a release page, or anyone else's repo
+    is a citation, not the file.
     """
     split = urlsplit(href)
     parts = [unquote(p) for p in split.path.split("/") if p]
     host = split.netloc.lower()
+    github = host in ("github.com", "www.github.com")
+    if (
+        github
+        and len(parts) >= 5
+        and parts[2] == "releases"
+        and (
+            (parts[3] == "download" and len(parts) >= 6)
+            or (parts[3:5] == ["latest", "download"] and len(parts) >= 6)
+        )
+    ):
+        if parts[0].lower() not in LIVE_OWNERS:
+            return ""
+        path = "/".join(quote(p) for p in parts)
+        return f"https://github.com/{path}"
     if host == "raw.githubusercontent.com" and len(parts) >= 4:
         owner, repo, rest = parts[0], parts[1], parts[2:]
-    elif (
-        host in ("github.com", "www.github.com") and len(parts) >= 5 and parts[2] in ("blob", "raw")
-    ):
+    elif github and len(parts) >= 5 and parts[2] in ("blob", "raw"):
         owner, repo, rest = parts[0], parts[1], parts[3:]
     else:
         return ""
