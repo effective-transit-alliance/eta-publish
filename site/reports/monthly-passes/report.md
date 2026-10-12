@@ -231,7 +231,7 @@ After all, the easiest transit trip to make is the one that you don't have to th
 
 ## Sources
 
-1. (not archived) [etany.org/statements/six-minute-service](<https://www.etany.org/statements/six-minute-service>)
+1. (archived [Feb 3, 2026](<https://web.archive.org/web/20260203205100/https://www.etany.org/statements/six-minute-service>)) [etany.org/statements/six-minute-service](<https://www.etany.org/statements/six-minute-service>)
 2. (archived [May 19, 2026](<https://web.archive.org/web/20260519002325/https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)) [mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0](<https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)
 3. (archived [May 21, 2026](<https://web.archive.org/web/20260521040021/https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)) [mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north](<https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)
 4. (archived [Apr 10, 2026](<https://web.archive.org/web/20260410095829/https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)) [hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/](<https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)
@@ -242,7 +242,7 @@ After all, the easiest transit trip to make is the one that you don't have to th
 9. (archived [Apr 29, 2026](<https://web.archive.org/web/20260429163851/https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)) [ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)
 10. (archived [Feb 14, 2026](<https://web.archive.org/web/20260214174558/https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)) [cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)
 11. (archived [Oct 9, 2026](<https://web.archive.org/web/20261009033532/https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)) [youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)
-12. (not archived) [etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>)
+12. (archived [May 19, 2026](<https://web.archive.org/web/20260519113718/https://www.etany.org/modernizing-new-york-commuter-rail>)) [etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>)
 
 ## Contributors
 

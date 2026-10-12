@@ -375,5 +375,5 @@ Tweets:
 + (archived #link("https://web.archive.org/web/20261009033515/https://www.youtube.com/live/0AEaaKvpMQw")[Oct 9, 2026]) #link("https://www.youtube.com/live/0AEaaKvpMQw")[youtube.com/live/0AEaaKvpMQw] <src32>
 + (archived #link("https://web.archive.org/web/20260615050241/https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn")[Jun 15, 2026]) #link("https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn")[nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn] <src33>
 + (archived #link("https://web.archive.org/web/20260518011635/https://www.mta.info/map/40511")[May 18, 2026]) #link("https://www.mta.info/map/40511")[mta.info/map/40511] <src34>
-+ (not archived) #link("https://www.etany.org/statements/deinterlining")[etany.org/statements/deinterlining] <src35>
++ (archived #link("https://web.archive.org/web/20251215222408/https://www.etany.org/statements/deinterlining")[Dec 15, 2025]) #link("https://www.etany.org/statements/deinterlining")[etany.org/statements/deinterlining] <src35>
 ]
