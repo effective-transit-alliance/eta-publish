@@ -36,6 +36,7 @@ it is exactly what the change does to a real published report.
 Accept it with `pytest --regenerate-snapshots`.
 """
 
+import copy
 import json
 import re
 import tempfile
@@ -94,8 +95,8 @@ def image_shapes(regenerate: bool) -> dict[str, tuple[int, int]]:
     }
 
 
-@pytest.fixture
-def doc(regenerate_snapshots: bool) -> Document:
+@pytest.fixture(scope="module")
+def built(regenerate_snapshots: bool) -> Document:
     parsed = parse(DOC_JSON)
     parsed.image_files.update(image_files(regenerate_snapshots))
     parsed.image_shapes.update(image_shapes(regenerate_snapshots))
@@ -110,6 +111,16 @@ def doc(regenerate_snapshots: bool) -> Document:
     run_checks(parsed)
     style(parsed)
     return parsed
+
+
+@pytest.fixture
+def doc(built: Document) -> Document:
+    """A copy of the one build, so that no test sees what another did to it.
+
+    Building it is most of what these tests cost, about a seventh of a second
+    each, and copying it takes a fiftieth of that.
+    """
+    return copy.deepcopy(built)
 
 
 def check(name: str, actual: str, regenerate: bool) -> None:

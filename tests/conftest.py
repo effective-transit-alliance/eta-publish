@@ -20,7 +20,7 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def regenerate_snapshots(request: pytest.FixtureRequest) -> bool:
     return bool(request.config.getoption("--regenerate-snapshots"))
 
