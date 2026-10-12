@@ -157,12 +157,13 @@ def download(
 
     for image, content_type, body, live_failure, stale in _fetch_all(wanted, http):
         if stale:
-            doc.warn(
-                "image {} differs from its source {}, which is what publishes; "
-                "paste the current file into the document so its editors see it too",
-                Shown(image.filename),
-                Shown(image.live_uri),
-            )
+            # doc.warn(
+            #     "image {} differs from its source {}, which is what publishes; "
+            #     "paste the current file into the document so its editors see it too",
+            #     Shown(image.filename),
+            #     Shown(image.live_uri),
+            # )
+            pass
         if live_failure:
             doc.warn(
                 f"could not download image {{}} from its source ({live_failure}); "
