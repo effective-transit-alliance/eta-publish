@@ -18,7 +18,16 @@ from htpy._types import Renderable
 from markupsafe import Markup
 
 from ..assets import read
-from ..naming import ASSET_DIR, IMAGE_DIR, VIDEO_DIR, content_anchor
+from ..naming import (
+    ASSET_DIR,
+    IMAGE_DIR,
+    VIDEO_DIR,
+    WEB_FORMATS,
+    content_anchor,
+    has_web_copies,
+    web_href,
+    web_widths,
+)
 from ..nodes import (
     VIDEO_TYPES,
     Archived,
@@ -1076,22 +1085,56 @@ class HtmlEmitter(Emitter):
         the screen: a lazy image is not asked for until the page is laid out
         and it is found to be in view, which for the one picture certain to be
         in view is only a delay. It is asked for first instead.
+
+        A raster is shown through `picture`, from the AVIF and WebP copies at
+        `WEB_WIDTHS` that `images.write_web_copies` writes, and is a link to
+        the file as the document holds it, for whoever wants to zoom in.
+        `sizes` is how wide the stylesheet lets the figure get, so a phone is
+        sent the narrow copy; in a row of several it overstates, which costs a
+        wider copy than needed and never a blurry one.
         """
         href = self.doc.image_href(node)
         src = f"{self.image_base}/{href}" if self.image_base else href
         shape = self.doc.image_shapes.get(node.object_id)
         width, height = shape if shape else (None, None)
         hero = self.doc.hero is not None and self.doc.hero.image is node
-        return markup(
-            htpy.img(
-                src=src,
-                alt=node.alt,
-                loading=None if hero else "lazy",
-                fetchpriority="high" if hero else None,
-                width=width,
-                height=height,
+        if width is None or height is None or not has_web_copies(href):
+            return markup(
+                htpy.img(
+                    src=src,
+                    alt=node.alt,
+                    loading=None if hero else "lazy",
+                    fetchpriority="high" if hero else None,
+                    width=width,
+                    height=height,
+                )
             )
+        widths = web_widths(width)
+
+        def copy(w: int, extension: str) -> str:
+            name = web_href(href, w, extension)
+            return f"{self.image_base}/{name}" if self.image_base else name
+
+        shown = min(46.0, width / height * 34)
+        sizes = f"min(100vw, {shown:.1f}rem)"
+        sources = [
+            htpy.source(
+                type=f"image/{extension}",
+                srcset=", ".join(f"{copy(w, extension)} {w}w" for w in widths),
+                sizes=sizes,
+            )
+            for extension in WEB_FORMATS
+        ]
+        largest = widths[-1]
+        img = htpy.img(
+            src=copy(largest, WEB_FORMATS[-1]),
+            alt=node.alt,
+            loading=None if hero else "lazy",
+            fetchpriority="high" if hero else None,
+            width=largest,
+            height=round(height * largest / width),
         )
+        return markup(tag.a(class_="full-size", href=src)[htpy.picture[[*sources, img]]])
 
 
 # Enough to read the report as it will look, and nothing more.

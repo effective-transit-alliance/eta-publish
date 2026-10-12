@@ -27,7 +27,7 @@ from .embeds import download as download_embeds
 from .emit.html import HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
-from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR
+from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -189,6 +189,12 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
         files = [entry["file"] for entry in entries.values() if entry.get("file")]
         media += [f"{folder}/{name}" for name in files for folder in (IMAGE_DIR, VIDEO_DIR)]
     media += [f"{IMAGE_DIR}/{original_name(image)}" for image in doc.images if image.vector]
+    # The copies a page shows, with the record of what each was made from:
+    # `write_web_copies` keeps those still made from the same picture and
+    # removes the rest, so carrying all of them costs nothing and saves encoding.
+    web = previous / IMAGE_DIR / WEB_DIR
+    if web.is_dir():
+        media += [f"{IMAGE_DIR}/{WEB_DIR}/{copy.name}" for copy in web.iterdir()]
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
@@ -752,7 +758,7 @@ def build_one(
 
     if doc.images:
         if options.images:
-            from .images import download, write_print_copies
+            from .images import download, write_print_copies, write_web_copies
 
             written_images = download(doc, dest / IMAGE_DIR, offline=options.offline)
             write_image_index(dest, written_images, doc.unpublished)
@@ -761,6 +767,7 @@ def build_one(
             # release would break the committed-site check months later
             # over pictures nothing publishes.
             write_print_copies(written_images, dest / PRINT_DIR)
+            write_web_copies(written_images, dest / IMAGE_DIR)
         else:
             require_image_index(dest, doc)
     read_image_index(dest, doc)

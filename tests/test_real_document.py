@@ -270,7 +270,11 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     # And from 225,000 when `Image Source` began asking to be `Source:`:
     # twelve warnings, each carrying its URL, about 1.4 KB that goes away
     # again as the document is converted.
-    assert size < 230_000, f"grown to {size:,} bytes; still fits, worth a look"
+    #
+    # And from 230,000 when each picture became a `picture` of AVIF and WebP
+    # copies at two widths, linked to the original: five URLs where there was
+    # one, about 400 bytes a figure here and more with the full site URL.
+    assert size < 245_000, f"grown to {size:,} bytes; still fits, worth a look"
 
 
 def test_every_image_has_something_describing_it(doc: Document) -> None:
@@ -321,3 +325,15 @@ def test_only_the_hero_is_asked_for_before_it_is_in_view(doc: Document) -> None:
     images = re.findall(r"<img\b[^>]*>", HtmlEmitter().emit(doc))
     assert 'fetchpriority="high"' in images[0] and "loading=" not in images[0]
     assert all('loading="lazy"' in image for image in images[1:])
+
+
+def test_a_photo_is_shown_from_small_copies_and_links_to_the_original(doc: Document) -> None:
+    """A tenth of the bytes on the page, and the file as the document holds it a tap away."""
+    html = HtmlEmitter().emit(doc)
+    pictures = re.findall(r'<a class="full-size" href="([^"]+)"><picture>(.*?)</picture></a>', html)
+    rasters = [f for f in doc.images if f.object_id in doc.image_shapes and f is not doc.card]
+    assert len(pictures) == len(rasters)
+    original, inside = pictures[0]
+    assert original == "img-6fb0f9c4.jpg"
+    assert inside.index('type="image/avif"') < inside.index('type="image/webp"')
+    assert "web/img-6fb0f9c4-800w.avif 800w, web/img-6fb0f9c4-1500w.avif 1500w" in inside

@@ -16,6 +16,8 @@ so one download serves both the web and the print output.
 """
 
 import hashlib
+import io
+import json
 import os
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
@@ -23,7 +25,15 @@ from pathlib import Path
 
 import requests
 
-from .naming import print_href, replace_bytes
+from .naming import (
+    WEB_DIR,
+    WEB_FORMATS,
+    has_web_copies,
+    print_href,
+    replace_bytes,
+    web_href,
+    web_widths,
+)
 from .nodes import Crop, Document, Image, Shown
 
 EXTENSIONS = {
@@ -582,6 +592,93 @@ def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
             else:
                 out.write_bytes(data)
     return copies
+
+
+WEB_SOURCES = "sources.json"
+"""Which version of each picture the copies in `WEB_DIR` were made from, by hash.
+
+Not committed, like the copies: it is what lets a rebuild that changed no
+picture skip encoding them all again, which is most of the time a build with
+the images spends.
+"""
+
+
+def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
+    """Write the AVIF and WebP copies a page shows of each raster, returning them.
+
+    One per width in `web_widths` and format in `WEB_FORMATS`, named by
+    `web_href`. A copy already made from the same bytes is kept rather than
+    encoded again, and anything else in `WEB_DIR` is removed, so a picture
+    taken out of the document takes its copies with it.
+    """
+    from PIL import Image as Pillow
+
+    web = images / WEB_DIR
+    web.mkdir(parents=True, exist_ok=True)
+    try:
+        made: dict[str, str] = json.loads((web / WEB_SOURCES).read_text())
+    except OSError, ValueError:
+        made = {}
+    wanted: dict[str, tuple[Path, int, str, str]] = {}
+    for path in written.values():
+        if not has_web_copies(path.name):
+            continue
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        with Pillow.open(path) as opened:
+            width = opened.width
+        for w in web_widths(width):
+            for extension in WEB_FORMATS:
+                name = web_href(path.name, w, extension).removeprefix(f"{WEB_DIR}/")
+                wanted[name] = (path, w, extension, digest)
+    stale = [
+        (name, source)
+        for name, source in wanted.items()
+        if made.get(name) != source[3] or not (web / name).is_file()
+    ]
+    if stale:
+        # Several at once: Pillow lets go of the GIL while it encodes.
+        with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
+            encoded = pool.map(
+                _for_web,
+                [source[0] for _, source in stale],
+                [source[1] for _, source in stale],
+                [source[2] for _, source in stale],
+            )
+            for (name, _), data in zip(stale, encoded, strict=True):
+                replace_bytes(web / name, data)
+    for leftover in web.iterdir():
+        if leftover.name not in wanted and leftover.name != WEB_SOURCES:
+            leftover.unlink()
+    sources = {name: source[3] for name, source in sorted(wanted.items())}
+    replace_bytes(web / WEB_SOURCES, (json.dumps(sources, indent=2) + "\n").encode())
+    return [web / name for name in sorted(wanted)]
+
+
+WEB_QUALITY = {"avif": {"quality": 60, "speed": 8}, "webp": {"quality": 80, "method": 4}}
+"""What each format is encoded at.
+
+Chosen by eye against a 4764-pixel track map and the photos in SAS West: at
+these, the copies at 1600 pixels are hard to tell from the original scaled to
+the same size, where AVIF at 55 started to smear foliage. `speed` 8 rather
+than AVIF's default 6 halves the time for a file a few percent larger.
+"""
+
+
+def _for_web(path: Path, width: int, extension: str) -> bytes:
+    """`path` at `width` pixels wide in `extension`, keeping any transparency."""
+    from PIL import Image as Pillow
+
+    with Pillow.open(path) as opened:
+        opened.load()
+        picture = opened
+        if picture.mode not in ("RGB", "RGBA"):
+            picture = picture.convert("RGBA" if "transparency" in picture.info else "RGB")
+        if picture.width > width:
+            height = round(picture.height * width / picture.width)
+            picture = picture.resize((width, height), Pillow.Resampling.LANCZOS)
+        out = io.BytesIO()
+        picture.save(out, extension.upper(), **WEB_QUALITY[extension])
+        return out.getvalue()
 
 
 def _for_print(path: Path) -> bytes | None:

@@ -90,6 +90,52 @@ def print_href(href: str) -> str:
     return href if extension.lower() == "svg" else f"{stem}.jpg"
 
 
+WEB_DIR = "web"
+"""Where under `IMAGE_DIR` the copies a page shows are written.
+
+`images/` keeps each picture as the document holds it, which is what a reader
+who taps one opens. A photo pasted as a PNG is 5 MB there, and a column
+nothing shows wider than 46rem is 1,472 pixels at twice the density of a
+desktop screen, so what a page shows is a copy at no more than `WEB_WIDTHS`,
+as AVIF and WebP: on these reports a tenth of the bytes, or less.
+"""
+
+WEB_WIDTHS = (800, 1600)
+"""The widths a picture is offered at, for a phone and for everything else.
+
+1600 covers the widest the column is shown at twice the density, so a copy
+any wider would be pixels nobody is shown. Zooming in is what the original,
+a tap away, is for.
+"""
+
+WEB_FORMATS = ("avif", "webp")
+"""The formats the copies are written in, best first.
+
+AVIF is the smaller; WebP is the fallback for the browsers that do not read it,
+and the `src` for anything that does not read a `picture` at all.
+"""
+
+
+def web_widths(width: int) -> list[int]:
+    """The widths a picture `width` pixels wide is offered at, never wider than it is."""
+    return [w for w in WEB_WIDTHS if w < width] + [min(width, WEB_WIDTHS[-1])]
+
+
+def web_href(href: str, width: int, extension: str) -> str:
+    """What the copy of `href` at `width` in `extension` is called, under `IMAGE_DIR`.
+
+    From the name and the width only, and both are in the committed
+    `images.json`, so a build without the images writes the same page.
+    """
+    stem = href.rpartition(".")[0]
+    return f"{WEB_DIR}/{stem}-{width}w.{extension}"
+
+
+def has_web_copies(href: str) -> bool:
+    """Whether `href` is shown through copies: a raster, and not a GIF, which may move."""
+    return href.rpartition(".")[2].lower() in ("jpg", "jpeg", "png", "webp")
+
+
 # GitHub's rule for a heading anchor, from `pymdown-extensions` rather than
 # rewritten here: a second copy agrees until a heading has an accent in it,
 # and then whichever copy is wrong is wrong in published URLs.

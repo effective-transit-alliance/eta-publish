@@ -30,6 +30,13 @@
   height: auto;
   display: block;
 }
+/* A picture is a link to the file as the document holds it, for zooming in
+   past the copy the page shows. It reads as the picture, not as a link. */
+.eta-report figure .full-size,
+.eta-report figure picture {
+  display: block;
+  cursor: zoom-in;
+}
 /* No figure is taller than this: the pictures arrive at whatever size
    someone dropped them into the document at, and a tall one filled the
    screen on its own. A `max-width` derived from the picture's own shape
@@ -988,12 +995,26 @@
       class="link-mark"
       href="#img-6fb0f9c4"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-6fb0f9c4.jpg"
-      alt="Composite image of the MTA’s SAS West St Nicholas Av station diagram and a Grand Central Madison escalator."
-      fetchpriority="high"
-      width="1500"
-      height="2000"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-6fb0f9c4.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6fb0f9c4-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6fb0f9c4-1500w.avif 1500w"
+          sizes="min(100vw, 25.5rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6fb0f9c4-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6fb0f9c4-1500w.webp 1500w"
+          sizes="min(100vw, 25.5rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6fb0f9c4-1500w.webp"
+          alt="Composite image of the MTA’s SAS West St Nicholas Av station diagram and a Grand Central Madison escalator."
+          fetchpriority="high"
+          width="1500"
+          height="2000"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Composite image of the MTA’s
       <span class="cited"
@@ -1158,12 +1179,26 @@
       class="link-mark"
       href="#sas-west-036-afb00c85"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-036-afb00c85.jpg"
-      alt="The SAS West and Phase 2 alignments."
-      loading="lazy"
-      width="737"
-      height="783"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-036-afb00c85.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-036-afb00c85-737w.avif 737w"
+          sizes="min(100vw, 32.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-036-afb00c85-737w.webp 737w"
+          sizes="min(100vw, 32.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-036-afb00c85-737w.webp"
+          alt="The SAS West and Phase 2 alignments."
+          loading="lazy"
+          width="737"
+          height="783"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The SAS West and Phase 2 alignments.</figcaption
     ><figcaption class="figure-credit"><span class="cited"
@@ -1292,12 +1327,26 @@
       class="link-mark"
       href="#sas-west-217"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-217.jpg"
-      alt="The proposed design for Broadway station, with transfers to the 1 train. The 100 ft depth of the station and switchback escalators raise escalator transfer times over 5 minutes."
-      loading="lazy"
-      width="1972"
-      height="1039"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-217.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-1600w.avif 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-1600w.webp 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-217-1600w.webp"
+          alt="The proposed design for Broadway station, with transfers to the 1 train. The 100 ft depth of the station and switchback escalators raise escalator transfer times over 5 minutes."
+          loading="lazy"
+          width="1600"
+          height="843"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The proposed design for Broadway station, with transfers to the 1 train.
       The 100 ft depth of the station and switchback escalators raise escalator
@@ -1497,12 +1546,26 @@
       class="link-mark"
       href="#96st_station-52b19425"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/96st_station-52b19425.jpg"
-      alt="The station box of 96 St/2 Av shown on the MTA app. Dark gray is the whole station box, while light gray is the platform length."
-      loading="lazy"
-      width="1080"
-      height="1467"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/96st_station-52b19425.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/96st_station-52b19425-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/96st_station-52b19425-1080w.avif 1080w"
+          sizes="min(100vw, 25.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/96st_station-52b19425-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/96st_station-52b19425-1080w.webp 1080w"
+          sizes="min(100vw, 25.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/96st_station-52b19425-1080w.webp"
+          alt="The station box of 96 St/2 Av shown on the MTA app. Dark gray is the whole station box, while light gray is the platform length."
+          loading="lazy"
+          width="1080"
+          height="1467"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The station box of 96 St/2 Av shown on the MTA app. Dark gray is the
       whole station box, while light gray is the platform length.</figcaption
@@ -1633,12 +1696,26 @@
       class="link-mark"
       href="#img-4b8ff8de"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-4b8ff8de.jpg"
-      alt="One of the two massive caverns blasted out of bedrock 140 ft below Grand Central Terminal."
-      loading="lazy"
-      width="1920"
-      height="1278"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-4b8ff8de.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-1600w.avif 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-1600w.webp 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-4b8ff8de-1600w.webp"
+          alt="One of the two massive caverns blasted out of bedrock 140 ft below Grand Central Terminal."
+          loading="lazy"
+          width="1600"
+          height="1065"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >One of the two massive caverns blasted out of bedrock 140 ft below Grand
       Central Terminal.</figcaption
@@ -1791,12 +1868,26 @@
       class="link-mark"
       href="#sas-west-207"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-207.png"
-      alt="The proposed design for St Nicholas Av station, with transfers to the A/B/C/D trains. The 130 ft depth of the station and switchback escalators raise escalator transfer times over 5 minutes."
-      loading="lazy"
-      width="1792"
-      height="762"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-207.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-1600w.avif 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-1600w.webp 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-west-207-1600w.webp"
+          alt="The proposed design for St Nicholas Av station, with transfers to the A/B/C/D trains. The 130 ft depth of the station and switchback escalators raise escalator transfer times over 5 minutes."
+          loading="lazy"
+          width="1600"
+          height="680"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The proposed design for St Nicholas Av station, with transfers to the
       A/B/C/D trains. The 130 ft depth of the station and switchback escalators
@@ -2089,12 +2180,26 @@
       class="link-mark"
       href="#SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6.png"
-      alt="The station and tunnel profile from the feasibility study, calling for significant separation between new and existing stations, increasing transfer times."
-      loading="lazy"
-      width="1931"
-      height="882"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-1600w.avif 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-1600w.webp 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6-1600w.webp"
+          alt="The station and tunnel profile from the feasibility study, calling for significant separation between new and existing stations, increasing transfer times."
+          loading="lazy"
+          width="1600"
+          height="731"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The station and tunnel profile from the feasibility study, calling for
       significant separation between new and existing stations, increasing
@@ -2208,12 +2313,26 @@
         class="link-mark"
         href="#img-f5b8dae7"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-f5b8dae7.jpg"
-        alt="Cross-section of Zhongsheng station."
-        loading="lazy"
-        width="1247"
-        height="720"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-f5b8dae7.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-f5b8dae7-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-f5b8dae7-1247w.avif 1247w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-f5b8dae7-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-f5b8dae7-1247w.webp 1247w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-f5b8dae7-1247w.webp"
+            alt="Cross-section of Zhongsheng station."
+            loading="lazy"
+            width="1247"
+            height="720"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >Cross-section of Zhongsheng station.</figcaption
       ><figcaption class="figure-credit"><span class="cited"
@@ -2231,12 +2350,26 @@
         class="link-mark"
         href="#img-6a139fa2"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-6a139fa2.png"
-        alt="Cross-section of the pipe-jacking at Jing’an Temple station."
-        loading="lazy"
-        width="561"
-        height="330"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-6a139fa2.png"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6a139fa2-561w.avif 561w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6a139fa2-561w.webp 561w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-6a139fa2-561w.webp"
+            alt="Cross-section of the pipe-jacking at Jing’an Temple station."
+            loading="lazy"
+            width="561"
+            height="330"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >Cross-section of the pipe-jacking at Jing’an Temple station.</figcaption
       ><figcaption class="figure-credit"><span class="cited"
@@ -2272,12 +2405,26 @@
         class="link-mark"
         href="#W125irtjeh-6c3ad309"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/W125irtjeh-6c3ad309.jpg"
-        alt="The existing elevated 125 St/Broadway station with a wide, 172 ft arch."
-        loading="lazy"
-        width="2048"
-        height="1089"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/W125irtjeh-6c3ad309.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-1600w.avif 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-1600w.webp 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/W125irtjeh-6c3ad309-1600w.webp"
+            alt="The existing elevated 125 St/Broadway station with a wide, 172 ft arch."
+            loading="lazy"
+            width="1600"
+            height="851"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >The existing elevated 125 St/Broadway station with a wide, 172 ft arch.</figcaption
       ><figcaption class="figure-credit"><span class="cited"
@@ -2294,12 +2441,26 @@
         class="link-mark"
         href="#72nd_Street_IRT_Broadway_013-a5e93aab"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/72nd_Street_IRT_Broadway_013-a5e93aab.jpg"
-        alt="The 72 St headhouse in the Broadway median."
-        loading="lazy"
-        width="2048"
-        height="1044"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/72nd_Street_IRT_Broadway_013-a5e93aab.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-1600w.avif 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-1600w.webp 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/72nd_Street_IRT_Broadway_013-a5e93aab-1600w.webp"
+            alt="The 72 St headhouse in the Broadway median."
+            loading="lazy"
+            width="1600"
+            height="816"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >The 72 St headhouse in the Broadway median.</figcaption
       ><figcaption class="figure-credit"><span class="cited"
@@ -2384,12 +2545,26 @@
       class="link-mark"
       href="#Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang.png"
-      alt="Interior of the Express Bus Terminal station on Seoul’s Line 9, which is mere feet beneath an existing metro station."
-      loading="lazy"
-      width="2048"
-      height="1536"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-1600w.avif 1600w"
+          sizes="min(100vw, 45.3rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-1600w.webp 1600w"
+          sizes="min(100vw, 45.3rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang-1600w.webp"
+          alt="Interior of the Express Bus Terminal station on Seoul’s Line 9, which is mere feet beneath an existing metro station."
+          loading="lazy"
+          width="1600"
+          height="1200"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Interior of the Express Bus Terminal station on Seoul’s Line 9, which is
       mere feet beneath an existing metro station.</figcaption
@@ -2421,12 +2596,26 @@
       class="link-mark"
       href="#1-s2.0-S2214509525014135-gr2_lrg"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/1-s2.0-S2214509525014135-gr2_lrg.png"
-      alt="Heping South Street station utilized cut-and-cover except for the intersection with Nanba Road, where a pipe roof similar to TRCM was used instead. The station was constructed in a high water table environment with similarly challenging soil conditions as on 125 St. While the source does not explain this design choice, many possible constraints, like cross-traffic on Nanba Road, could motivate avoiding cut-and-cover in the intersection specifically."
-      loading="lazy"
-      width="565"
-      height="695"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/1-s2.0-S2214509525014135-gr2_lrg.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1-s2.0-S2214509525014135-gr2_lrg-565w.avif 565w"
+          sizes="min(100vw, 27.6rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1-s2.0-S2214509525014135-gr2_lrg-565w.webp 565w"
+          sizes="min(100vw, 27.6rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1-s2.0-S2214509525014135-gr2_lrg-565w.webp"
+          alt="Heping South Street station utilized cut-and-cover except for the intersection with Nanba Road, where a pipe roof similar to TRCM was used instead. The station was constructed in a high water table environment with similarly challenging soil conditions as on 125 St. While the source does not explain this design choice, many possible constraints, like cross-traffic on Nanba Road, could motivate avoiding cut-and-cover in the intersection specifically."
+          loading="lazy"
+          width="565"
+          height="695"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Heping South Street station utilized cut-and-cover except for the
       intersection with Nanba Road, where a pipe roof similar to TRCM was used
@@ -2494,12 +2683,26 @@
       class="link-mark"
       href="#Screenshot_2026-07-18_100636-4392a78e"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Screenshot_2026-07-18_100636-4392a78e.png"
-      alt="A video rendering of the 125 St/Lexington Av station."
-      loading="lazy"
-      width="1982"
-      height="995"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Screenshot_2026-07-18_100636-4392a78e.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-1600w.avif 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-1600w.webp 1600w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-07-18_100636-4392a78e-1600w.webp"
+          alt="A video rendering of the 125 St/Lexington Av station."
+          loading="lazy"
+          width="1600"
+          height="803"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >A video rendering of the 125 St/Lexington Av station.</figcaption
     ><figcaption class="figure-credit"><span class="cited"
@@ -2590,12 +2793,26 @@
         class="link-mark"
         href="#nyc-mta-116th-station-design-a718beb8"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/nyc-mta-116th-station-design-a718beb8.png"
-        alt="Cross-section of the 116 St station on SAS Phase 2. This is before the June 2025 cost containment measures that switched the mezzanine from above to below the platform."
-        loading="lazy"
-        width="966"
-        height="731"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/nyc-mta-116th-station-design-a718beb8.png"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/nyc-mta-116th-station-design-a718beb8-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/nyc-mta-116th-station-design-a718beb8-966w.avif 966w"
+            sizes="min(100vw, 44.9rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/nyc-mta-116th-station-design-a718beb8-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/nyc-mta-116th-station-design-a718beb8-966w.webp 966w"
+            sizes="min(100vw, 44.9rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/nyc-mta-116th-station-design-a718beb8-966w.webp"
+            alt="Cross-section of the 116 St station on SAS Phase 2. This is before the June 2025 cost containment measures that switched the mezzanine from above to below the platform."
+            loading="lazy"
+            width="966"
+            height="731"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >Cross-section of the 116 St station on SAS Phase 2. This is before the
         <span class="cited"
@@ -2620,12 +2837,26 @@
         class="link-mark"
         href="#sas-2-029-3ec53fb1"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-2-029-3ec53fb1.jpg"
-        alt="A rendering of the 125 St/Lexington Av station on SAS Phase 2. The platform is 30 ft wide and the station box is 63 ft wide."
-        loading="lazy"
-        width="2048"
-        height="1041"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-2-029-3ec53fb1.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-1600w.avif 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-1600w.webp 1600w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/sas-2-029-3ec53fb1-1600w.webp"
+            alt="A rendering of the 125 St/Lexington Av station on SAS Phase 2. The platform is 30 ft wide and the station box is 63 ft wide."
+            loading="lazy"
+            width="1600"
+            height="813"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >A rendering of the 125 St/Lexington Av station on SAS Phase 2. The
         platform is 30 ft wide and the station box is 63 ft wide.</figcaption
@@ -2726,12 +2957,26 @@
       class="link-mark"
       href="#img-44bf278f"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-44bf278f.png"
-      alt="Station length as a percentage of platform length."
-      loading="lazy"
-      width="1498"
-      height="1101"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-44bf278f.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-44bf278f-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-44bf278f-1498w.avif 1498w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-44bf278f-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-44bf278f-1498w.webp 1498w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-44bf278f-1498w.webp"
+          alt="Station length as a percentage of platform length."
+          loading="lazy"
+          width="1498"
+          height="1101"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Station length as a percentage of platform length.</figcaption
     ><figcaption class="figure-credit">Credit: ETA</figcaption></figure
@@ -2856,12 +3101,26 @@
         class="link-mark"
         href="#italian-case-study-139"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/italian-case-study-139.jpg"
-        alt="A ventilation and daylight structure from Milan’s M1 line."
-        loading="lazy"
-        width="329"
-        height="227"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/italian-case-study-139.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/italian-case-study-139-329w.avif 329w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/italian-case-study-139-329w.webp 329w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/italian-case-study-139-329w.webp"
+            alt="A ventilation and daylight structure from Milan’s M1 line."
+            loading="lazy"
+            width="329"
+            height="227"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >A ventilation and daylight structure from Milan’s M1 line.</figcaption
       ><figcaption class="figure-credit"><span class="cited"
@@ -2878,12 +3137,26 @@
         class="link-mark"
         href="#img-2a097531"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-2a097531.jpg"
-        alt="The nearly 10-story ventilation structure at 69 St and 2 Av on SAS Phase 1."
-        loading="lazy"
-        width="1004"
-        height="1200"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-2a097531.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-2a097531-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-2a097531-1004w.avif 1004w"
+            sizes="min(100vw, 28.4rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-2a097531-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-2a097531-1004w.webp 1004w"
+            sizes="min(100vw, 28.4rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-2a097531-1004w.webp"
+            alt="The nearly 10-story ventilation structure at 69 St and 2 Av on SAS Phase 1."
+            loading="lazy"
+            width="1004"
+            height="1200"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >The nearly 10-story ventilation structure at 69 St and 2 Av on SAS
         Phase 1.</figcaption
@@ -2919,12 +3192,26 @@
       class="link-mark"
       href="#image-9"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/image-9.png"
-      alt="Sound Transit recently reduced the scope of its proposed Alaska Junction station to a single box just as long as its trains, with no tail tracks, which is projected to save $190–235 million."
-      loading="lazy"
-      width="1175"
-      height="647"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/image-9.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/image-9-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/image-9-1175w.avif 1175w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/image-9-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/image-9-1175w.webp 1175w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/image-9-1175w.webp"
+          alt="Sound Transit recently reduced the scope of its proposed Alaska Junction station to a single box just as long as its trains, with no tail tracks, which is projected to save $190–235 million."
+          loading="lazy"
+          width="1175"
+          height="647"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Sound Transit recently reduced the scope of its proposed Alaska Junction
       station to a single box just as long as its trains, with no tail tracks,
@@ -3063,12 +3350,26 @@
       class="link-mark"
       href="#galleria-tratta-centrale"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/galleria-tratta-centrale.png"
-      alt="Milan Metro Line 4 includes ventilation fans within station structures constructed via cut-and-cover."
-      loading="lazy"
-      width="600"
-      height="586"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/galleria-tratta-centrale.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/galleria-tratta-centrale-600w.avif 600w"
+          sizes="min(100vw, 34.8rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/galleria-tratta-centrale-600w.webp 600w"
+          sizes="min(100vw, 34.8rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/galleria-tratta-centrale-600w.webp"
+          alt="Milan Metro Line 4 includes ventilation fans within station structures constructed via cut-and-cover."
+          loading="lazy"
+          width="600"
+          height="586"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >Milan Metro Line 4 includes ventilation fans within station structures
       constructed via cut-and-cover.</figcaption
@@ -3166,12 +3467,26 @@
         class="link-mark"
         href="#img-3230dd0e"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-3230dd0e.png"
-        alt="The engineering schematic of the Port Authority’s 1957 plans to connect the now-PATH to the 6."
-        loading="lazy"
-        width="1247"
-        height="798"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-3230dd0e.png"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-3230dd0e-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-3230dd0e-1247w.avif 1247w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-3230dd0e-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-3230dd0e-1247w.webp 1247w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-3230dd0e-1247w.webp"
+            alt="The engineering schematic of the Port Authority’s 1957 plans to connect the now-PATH to the 6."
+            loading="lazy"
+            width="1247"
+            height="798"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >The engineering schematic of the Port Authority’s 1957 plans to connect
         the now-PATH to the 6.</figcaption
@@ -3192,12 +3507,26 @@
         class="link-mark"
         href="#img-e47b1bdb"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-e47b1bdb.png"
-        alt="A cross-section of the Steinway tubes, which carry the 7 under the East River. It shows a 4.6% grade on the Queens side."
-        loading="lazy"
-        width="1069"
-        height="729"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-e47b1bdb.png"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-e47b1bdb-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-e47b1bdb-1069w.avif 1069w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-e47b1bdb-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-e47b1bdb-1069w.webp 1069w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-e47b1bdb-1069w.webp"
+            alt="A cross-section of the Steinway tubes, which carry the 7 under the East River. It shows a 4.6% grade on the Queens side."
+            loading="lazy"
+            width="1069"
+            height="729"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >A cross-section of the Steinway tubes, which carry the 7 under the East
         River. It shows a 4.6% grade on the Queens side.</figcaption
@@ -3296,12 +3625,26 @@
       class="link-mark"
       href="#Screenshot_2026-04-27_160823-e68e5d52"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Screenshot_2026-04-27_160823-e68e5d52.png"
-      alt="The MTA proposed extending tail tracks all the way up 12 Av to 137 St in a board meeting on April 27, 2026."
-      loading="lazy"
-      width="800"
-      height="624"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/Screenshot_2026-04-27_160823-e68e5d52.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-04-27_160823-e68e5d52-800w.avif 800w"
+          sizes="min(100vw, 43.6rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-04-27_160823-e68e5d52-800w.webp 800w"
+          sizes="min(100vw, 43.6rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/Screenshot_2026-04-27_160823-e68e5d52-800w.webp"
+          alt="The MTA proposed extending tail tracks all the way up 12 Av to 137 St in a board meeting on April 27, 2026."
+          loading="lazy"
+          width="800"
+          height="624"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >The MTA proposed extending tail tracks all the way up 12 Av to 137 St in
       a board meeting on April 27, 2026.</figcaption
@@ -3761,12 +4104,26 @@
       class="link-mark"
       href="#img-d4734d4b"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-d4734d4b.jpg"
-      alt="A photo inside the Freedom Tunnel, showing room for 4 tracks."
-      loading="lazy"
-      width="1024"
-      height="681"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-d4734d4b.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-d4734d4b-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-d4734d4b-1024w.avif 1024w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-d4734d4b-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-d4734d4b-1024w.webp 1024w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/img-d4734d4b-1024w.webp"
+          alt="A photo inside the Freedom Tunnel, showing room for 4 tracks."
+          loading="lazy"
+          width="1024"
+          height="681"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"
       >A photo inside the Freedom Tunnel, showing room for 4 tracks.</figcaption
     ><figcaption class="figure-credit"><span class="cited"
@@ -3949,12 +4306,26 @@
         class="link-mark"
         href="#1000024411-0fb4cdcf"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/1000024411-0fb4cdcf.jpg"
-        alt="A rendering of the short below-mezzanine and elevator-only entrance to the 116 St station on SAS Phase 2."
-        loading="lazy"
-        width="1050"
-        height="784"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/1000024411-0fb4cdcf.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1000024411-0fb4cdcf-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1000024411-0fb4cdcf-1050w.avif 1050w"
+            sizes="min(100vw, 45.5rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1000024411-0fb4cdcf-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1000024411-0fb4cdcf-1050w.webp 1050w"
+            sizes="min(100vw, 45.5rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/1000024411-0fb4cdcf-1050w.webp"
+            alt="A rendering of the short below-mezzanine and elevator-only entrance to the 116 St station on SAS Phase 2."
+            loading="lazy"
+            width="1050"
+            height="784"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >A rendering of the short below-mezzanine and elevator-only entrance to
         the 116 St station on SAS Phase 2.</figcaption
@@ -3974,12 +4345,26 @@
         class="link-mark"
         href="#diagram-station-edouard-montpetit-REM-ed748d24"
         aria-label="Link to this figure"
-      ></a><img
-        src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/diagram-station-edouard-montpetit-REM-ed748d24.png"
-        alt="A station diagram of Montreal’s Édouard-Montpetit station, showing the elevator-only interchange between the Blue Line and REM."
-        loading="lazy"
-        width="862"
-        height="715"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/diagram-station-edouard-montpetit-REM-ed748d24.png"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/diagram-station-edouard-montpetit-REM-ed748d24-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/diagram-station-edouard-montpetit-REM-ed748d24-862w.avif 862w"
+            sizes="min(100vw, 41.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/diagram-station-edouard-montpetit-REM-ed748d24-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/diagram-station-edouard-montpetit-REM-ed748d24-862w.webp 862w"
+            sizes="min(100vw, 41.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/web/diagram-station-edouard-montpetit-REM-ed748d24-862w.webp"
+            alt="A station diagram of Montreal’s Édouard-Montpetit station, showing the elevator-only interchange between the Blue Line and REM."
+            loading="lazy"
+            width="862"
+            height="715"
+          ></picture
+        ></a
       ><figcaption class="figure-caption"
         >A station diagram of Montreal’s Édouard-Montpetit station, showing the
         elevator-only interchange between the Blue Line and REM.</figcaption

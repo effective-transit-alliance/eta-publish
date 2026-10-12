@@ -16,6 +16,9 @@
 .eta-report .figure-row > figure {
   flex: var(--aspect, 1.4) 1 calc(var(--aspect, 1.4) * 10rem); margin: 0; }
 .eta-report figure img { width: 100%; height: auto; display: block; }
+/* A picture is a link to the file as the document holds it, for zooming in
+   past the copy the page shows. It reads as the picture, not as a link. */
+.eta-report figure .full-size, .eta-report figure picture { display: block; cursor: zoom-in; }
 /* No figure is taller than this: the pictures arrive at whatever size
    someone dropped them into the document at, and a tall one filled the
    screen on its own. A `max-width` derived from the picture's own shape

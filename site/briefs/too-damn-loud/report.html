@@ -30,6 +30,13 @@
   height: auto;
   display: block;
 }
+/* A picture is a link to the file as the document holds it, for zooming in
+   past the copy the page shows. It reads as the picture, not as a link. */
+.eta-report figure .full-size,
+.eta-report figure picture {
+  display: block;
+  cursor: zoom-in;
+}
 /* No figure is taller than this: the pictures arrive at whatever size
    someone dropped them into the document at, and a tall one filled the
    screen on its own. A `max-width` derived from the picture's own shape
@@ -883,12 +890,26 @@
       class="link-mark"
       href="#img-831248b1"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-831248b1.jpg"
-      alt=""
-      loading="lazy"
-      width="510"
-      height="787"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-831248b1.jpg"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-831248b1-510w.avif 510w"
+          sizes="min(100vw, 22.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-831248b1-510w.webp 510w"
+          sizes="min(100vw, 22.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-831248b1-510w.webp"
+          alt=""
+          loading="lazy"
+          width="510"
+          height="787"
+        ></picture
+      ></a
     ></figure
   >
   <h2 id="too-damn-loud"
@@ -965,12 +986,26 @@
       class="link-mark"
       href="#img-b17aa21a"
       aria-label="Link to this figure"
-    ></a><img
-      src="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-b17aa21a.png"
-      alt="PNG SVG"
-      loading="lazy"
-      width="1427"
-      height="1000"
+    ></a><a
+      class="full-size"
+      href="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-b17aa21a.png"
+      ><picture
+        ><source
+          type="image/avif"
+          srcset="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-b17aa21a-800w.avif 800w, https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-b17aa21a-1427w.avif 1427w"
+          sizes="min(100vw, 46.0rem)"
+        ><source
+          type="image/webp"
+          srcset="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-b17aa21a-800w.webp 800w, https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-b17aa21a-1427w.webp 1427w"
+          sizes="min(100vw, 46.0rem)"
+        ><img
+          src="https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/web/img-b17aa21a-1427w.webp"
+          alt="PNG SVG"
+          loading="lazy"
+          width="1427"
+          height="1000"
+        ></picture
+      ></a
     ><figcaption class="figure-caption"><span class="cited"
       ><a
         href="https://drive.google.com/file/d/1ceFr--thicXMKXMuKG87Rhxs7oY2xWgC/view?usp=drive_link"
