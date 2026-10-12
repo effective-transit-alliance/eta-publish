@@ -365,7 +365,12 @@ at the other end and thirty asking at once is a way to be told to wait.
 """
 
 
-def build_site(reports: list[Report], outdir: Path, options: BuildOptions | None = None) -> Site:
+def build_site(
+    reports: list[Report],
+    outdir: Path,
+    options: BuildOptions | None = None,
+    read_from: Path | None = None,
+) -> Site:
     """Build every report, keeping going when one of them cannot be built.
 
     A document that cannot be fetched says nothing about the next one,
@@ -380,11 +385,14 @@ def build_site(reports: list[Report], outdir: Path, options: BuildOptions | None
     Reported in the order the list gives rather than the order they finish,
     which also means the first one's warnings are printed
     while the rest are still running.
+
+    What the last build left is read from `read_from`, `outdir` by default,
+    and a report built from another directory carries over what it reads.
     """
     options = options or BuildOptions()
     # Always, not only offline: a fetch reuses one too, when Drive says
     # the document behind it has not been edited since it was written.
-    saved = saved_responses(outdir)
+    saved = saved_responses(read_from or outdir)
     site = Site()
     log = console.for_stream()
 
@@ -401,6 +409,8 @@ def build_site(reports: list[Report], outdir: Path, options: BuildOptions | None
                 options,
                 verify=verifier(report),
                 cached=reusable(previous, options),
+                previous=previous,
+                read_from=read_from,
             )
 
     with ThreadPoolExecutor(max_workers=max(1, min(len(reports), MAX_AT_ONCE))) as pool:

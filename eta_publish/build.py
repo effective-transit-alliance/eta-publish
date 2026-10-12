@@ -27,7 +27,7 @@ from .embeds import download as download_embeds
 from .emit.html import HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
-from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR
+from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, VIDEO_DIR
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -134,6 +134,52 @@ def carry_over_review(document: JsonObject, saved: Path) -> None:
     for key in REVIEW_KEYS:
         if key not in document and key in previous:
             document[key] = previous[key]
+
+
+def carry_over(previous: Path, dest: Path, doc: Document) -> None:
+    """Copy what the last build of this report left that this one reads.
+
+    A build writes into a directory of its own and reads the last one's,
+    so nothing is read from a file it is halfway through rewriting,
+    and nothing it no longer writes is left behind:
+    an image taken out of the document is not carried over, and so is gone.
+
+    The records, which say what no saved response can: what each image was
+    written as, what the archive and each platform said. And the files they
+    name, which are not committed and so are only on disk: the images, the
+    downloaded SVGs this document still links, and the embeds' thumbnails and
+    videos. Copied, not linked, because each of them is rewritten in place,
+    and a link would be the last build's file being rewritten under it.
+
+    Not the print copies, the PDF, or the outputs: every build writes those.
+    """
+    import shutil
+
+    from .archive import ARCHIVES_JSON
+    from .embeds import EMBEDS_JSON
+    from .images import original_name
+
+    if previous.resolve() == dest.resolve():
+        return
+    dest.mkdir(parents=True, exist_ok=True)
+    media: list[str] = []
+    for record in (DOC_JSON, IMAGES_JSON, ARCHIVES_JSON, EMBEDS_JSON):
+        if not (previous / record).is_file():
+            continue
+        shutil.copyfile(previous / record, dest / record)
+        if record not in (IMAGES_JSON, EMBEDS_JSON):
+            continue
+        try:
+            entries = json.loads((previous / record).read_text())
+        except ValueError:
+            continue
+        files = [entry["file"] for entry in entries.values() if entry.get("file")]
+        media += [f"{folder}/{name}" for name in files for folder in (IMAGE_DIR, VIDEO_DIR)]
+    media += [f"{IMAGE_DIR}/{original_name(image)}" for image in doc.images if image.vector]
+    for name in media:
+        if (previous / name).is_file():
+            (dest / name).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(previous / name, dest / name)
 
 
 def write_split(doc: Document, outdir: Path) -> list[Path]:
@@ -599,6 +645,8 @@ def build_one(
     options: BuildOptions | None = None,
     verify: Callable[[Document], None] | None = None,
     cached: Path | None = None,
+    previous: Path | None = None,
+    read_from: Path | None = None,
 ) -> tuple[Document, str]:
     """Build one report, returning it and the site-relative path it went to.
 
@@ -616,6 +664,10 @@ def build_one(
     `cached` is the response the last build of this report saved, if there is one.
     It is not read unless Drive says the document has not been edited since,
     which is a cheaper question than any of the ones it saves asking.
+
+    `previous` is the directory the last build of this report wrote, if it
+    was not this one: what it recorded is carried over before anything reads it.
+    Without one, it is the report's own path under `read_from`, the last site.
     """
     from .site import report_path
 
@@ -628,6 +680,10 @@ def build_one(
         verify(doc)
     path = report_path(doc)
     dest = outdir / path
+    if previous is None and read_from is not None:
+        previous = read_from / path
+    if previous is not None and previous.is_dir():
+        carry_over(previous, dest, doc)
     # Only a reused response: a fetched one has the URIs to download from.
     reused = cached is not None and '"contentUri"' not in json.dumps(document)
     # A figure downloaded from its own source is still checked against the document's copy,

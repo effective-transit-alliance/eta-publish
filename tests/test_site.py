@@ -487,6 +487,28 @@ def test_a_report_directory_is_a_document(tmp_path: Path) -> None:
     assert (built / "doc.json").is_file()
 
 
+def test_a_build_elsewhere_carries_over_only_what_the_report_still_uses(tmp_path: Path) -> None:
+    """What the last build recorded comes along, and a picture nothing names any more does not.
+
+    The point of building into a directory of its own is that a file the build
+    no longer writes is not left behind to be published with the rest.
+    """
+    from eta_publish.build import carry_over
+
+    last = tmp_path / "last"
+    (last / "images").mkdir(parents=True)
+    (last / IMAGES_JSON).write_text((FIXTURE_DIR / IMAGES_JSON).read_text())
+    (last / "doc.json").write_text(json.dumps(FIXTURE))
+    (last / "images" / "sas-west-036.png").write_bytes(b"named")
+    (last / "images" / "img-0fb4cdcf.jpg").write_bytes(b"named once, not now")
+    (last / "report.html").write_text("written by every build")
+
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+
+    carried = {p.relative_to(tmp_path / "next").as_posix() for p in (tmp_path / "next").rglob("*")}
+    assert carried == {"doc.json", IMAGES_JSON, "images", "images/sas-west-036.png"}
+
+
 def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 

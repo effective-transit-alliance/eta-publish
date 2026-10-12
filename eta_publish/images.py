@@ -325,6 +325,15 @@ so a crop that could not be applied says so on every build, not only the first.
 """
 
 
+def original_name(image: Image) -> str:
+    """Where under the images `image`'s SVG is kept as downloaded, if it has one."""
+    vector = image.vector
+    if vector is None:
+        return ""
+    key = vector.file_id or hashlib.sha256(vector.uri.encode()).hexdigest()[:16]
+    return f"{ORIGINALS}/{key}.svg"
+
+
 def _fetch_vector(
     image: Image,
     outdir: Path,
@@ -345,8 +354,7 @@ def _fetch_vector(
 
     from .fetch import FetchFailed, download_drive_file
 
-    key = vector.file_id or hashlib.sha256(vector.uri.encode()).hexdigest()[:16]
-    original = outdir / ORIGINALS / f"{key}.svg"
+    original = outdir / original_name(image)
     dest = outdir / vector.filename
     if not original.exists() and not image.crop.trims and dest.exists():
         # Written before the originals were kept apart, and uncropped,
