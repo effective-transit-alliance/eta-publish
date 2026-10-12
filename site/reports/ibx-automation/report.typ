@@ -279,13 +279,13 @@ Even the Metro in Washington, DC, designed to avoid the squeal of the tight curv
 The only tight curves were the #link("https://www.mta.info/document/114891#page=1014")[100 ft street-running curves]#super[#link(<src60>)[\[60\]]]#footnote[In the former street-running section, there were multiple 100 ft curves: #link("https://www.mta.info/document/114891#page=1014")[IBX1 LRT-647]#super[#link(<src60>)[\[60\]]], #link("https://www.mta.info/document/114891#page=1014")[IBX1 LRT-661]#super[#link(<src60>)[\[60\]]], #link("https://www.mta.info/document/114891#page=1014")[IBX2 LRT641]#super[#link(<src60>)[\[60\]]], #link("https://www.mta.info/document/114891#page=1014")[IBX2 LRT656]#super[#link(<src60>)[\[60\]]].] that have since been removed with the All Faiths tunnel.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-f6361416.png")[#capped_image("print/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-f6361416.jpg", alt: "The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.")],
+  link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/ibx-pel-study-street-running-curves-p1014-tracks-only.png")[#capped_image("print/ibx-pel-study-street-running-curves-p1014-tracks-only.jpg", alt: "The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.")],
   caption: [The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft. \
   #link("https://www.mta.info/document/114891#page=1014")[Credit: MTA]#super[#link(<src60>)[\[60\]]], #link("https://github.com/kkysen/ibx-pel-track-map-images#street-running-curves-page-1014")[modified by ETA (Khyber Sen)]#super[#link(<src61>)[\[61\]]]],
 )
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-a25b625c.png")[#capped_image("print/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-a25b625c.jpg", alt: "The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.")],
+  link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png")[#capped_image("print/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.jpg", alt: "The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.")],
   caption: [The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av. \
   #link("https://www.mta.info/document/114891#page=993")[Credit: MTA]#super[#link(<src62>)[\[62\]]], #link("https://github.com/kkysen/ibx-pel-track-map-images#bat-curves-with-the-reverse-curve-page-993")[modified by ETA (Khyber Sen)]#super[#link(<src63>)[\[63\]]]],
 )

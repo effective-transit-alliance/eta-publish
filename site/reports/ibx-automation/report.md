@@ -237,12 +237,12 @@ The tightest curve on the NYC subway has a radius of [100±10 ft](<https://www.m
 Even the Metro in Washington, DC, designed to avoid the squeal of the tight curves of the oldest sections of the NYC Subway, has a [minimum curve radius of 225 ft](<https://www.wmata.com/business/procurement/solicitations/documents/General%20Design%20Criteria%20-%208K%202017%2001%2024.pdf#page=4>)<sup>\[7\]</sup>, less than half of that of the IBX.
 The only tight curves were the [100 ft street-running curves](<https://www.mta.info/document/114891#page=1014>)<sup>\[60\]</sup>[^30] that have since been removed with the All Faiths tunnel.
 
-![The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.](<images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-f6361416.png>)\
+![The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.](<images/ibx-pel-study-street-running-curves-p1014-tracks-only.png>)\
 The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.\
 [Credit: MTA](<https://www.mta.info/document/114891#page=1014>)<sup>\[60\]</sup>, [modified by ETA (Khyber Sen)](<https://github.com/kkysen/ibx-pel-track-map-images#street-running-curves-page-1014>)<sup>\[61\]</sup>
-<!-- Source: [ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png](<https://github.com/kkysen/ibx-pel-track-map-images/releases/download/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>) -->
+<!-- Source: [ibx-pel-study-street-running-curves-p1014-tracks-only.png](<https://github.com/kkysen/ibx-pel-track-map-images/releases/download/images/ibx-pel-study-street-running-curves-p1014-tracks-only.png>) -->
 
-![The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.](<images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-a25b625c.png>)\
+![The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.](<images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>)\
 The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.\
 [Credit: MTA](<https://www.mta.info/document/114891#page=993>)<sup>\[62\]</sup>, [modified by ETA (Khyber Sen)](<https://github.com/kkysen/ibx-pel-track-map-images#bat-curves-with-the-reverse-curve-page-993>)<sup>\[63\]</sup>
 <!-- Source: [ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png](<https://github.com/kkysen/ibx-pel-track-map-images/releases/download/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>) -->
