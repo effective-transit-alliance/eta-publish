@@ -52,14 +52,17 @@ def test_a_source_cited_twice_is_one_source_and_keeps_its_first_place() -> None:
     assert doc.source_uses == {"https://a.example/1": 2, "https://b.example/2": 1}
 
 
-def test_anchors_addresses_and_the_site_itself_are_not_sources() -> None:
+def test_anchors_and_email_addresses_are_not_sources() -> None:
     doc = cites(
         "#fn3",
         "mailto:someone@example.org",
         "https://www.etany.org/reports/something",
         "https://a.example/1",
     )
-    assert doc.sources == ["https://a.example/1"]
+    assert doc.sources == [
+        "https://www.etany.org/reports/something",
+        "https://a.example/1",
+    ]
 
 
 def test_a_figures_source_line_is_not_a_source() -> None:

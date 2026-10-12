@@ -1141,15 +1141,11 @@ def document_url(url: str) -> str:
 def is_source(href: str | None) -> bool:
     """Whether a link is a citation of something outside the report.
 
-    An anchor is a place in this page, `mailto:` is a person, and `etany.org`
-    is the site the report is published on: none of the three is a source that
-    can go away, and archiving the site into itself would say nothing.
+    An anchor is a place in this page and `mailto:` is a person, not a source.
     """
     if not href:
         return False
-    if not href.startswith(("http://", "https://")):
-        return False
-    return "etany.org" not in href
+    return href.startswith(("http://", "https://"))
 
 
 class Where(Enum):

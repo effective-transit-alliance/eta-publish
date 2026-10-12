@@ -111,7 +111,7 @@ In Europe, low monthly pass ratios are part of an overall strategy to not only b
 This is because **off-peak rides are far cheaper to provide than peak-hour rides**.[^4] Transit systems must be designed to provide enough capacity during peak hours, creating a large reserve of buses, trains, and staff that are only needed for a few hours a day and are underutilized the rest of the time.
 What’s more, maintenance costs scale with peak service and not off-peak service, and crew scheduling is easier when the peak-to-base ratio of frequency is lower.[^5] The same effect can be seen in other modes of travel, which often adopt peak pricing to mitigate these extra costs, such as high airline and intercity rail fares at busy times, congestion pricing and tolls that vary by time of day, surge pricing on app-hailed vehicle rides, and parking rates that rise during peak hours.
 Rather than ration service through peak fares, unlimited passes allow a system to better use peak resources by running more of them during the day and stimulating off-peak travel by making it effectively free for regular riders.
-ETA has [previously argued that the MTA can and should run better off-peak service](<https://www.etany.org/statements/six-minute-service>) for this reason: filling empty cars is essentially free, and running more service off-peak is far cheaper than adding service during rush hour.
+ETA has [previously argued that the MTA can and should run better off-peak service](<https://www.etany.org/statements/six-minute-service>)<sup>\[1\]</sup> for this reason: filling empty cars is essentially free, and running more service off-peak is far cheaper than adding service during rush hour.
 
 In other words, **transit passes create all of the social, economic, and environmental benefits of increased transit ridership while lowering the per-rider operating cost**.
 This is especially important post-pandemic, as ridership during off-peak and weekend hours has grown far faster than peak travel.
@@ -120,7 +120,7 @@ Reasonably priced transit passes have played a major role in enabling this growt
 
 ### Choosing a Ratio for the Hybrid Work Era
 
-The MTA has argued that relying on weekly fare caps makes sense in a post-pandemic world, where [remote and hybrid work means fewer people commuting every day](<https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)<sup>\[1\]</sup>, many of whom [may not know in advance if they will be traveling enough](<https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)<sup>\[2\]</sup> to make a monthly pass worthwhile.
+The MTA has argued that relying on weekly fare caps makes sense in a post-pandemic world, where [remote and hybrid work means fewer people commuting every day](<https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)<sup>\[2\]</sup>, many of whom [may not know in advance if they will be traveling enough](<https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)<sup>\[3\]</sup> to make a monthly pass worthwhile.
 
 However, the logic of the MTA’s solution is precisely backwards.
 If a pass is so expensive that regular riders are unsure if they will break even, that means the pass itself is too expensive.
@@ -164,7 +164,7 @@ If you take additional rides beyond commuting starting the Monday you return, yo
 This is precisely the type of planning complexity that unlimited passes are designed to eliminate.
 
 Recently, there have been multiple reports that bus proof-of-payment has been severely hampered by fare inspectors being unable for technical reasons to verify when riders have met the cap just by tapping their payment mechanisms to a verification device.
-This has led to MTA staff asking riders to display bank account information, which not only is an unacceptable violation of privacy, but has also resulted in [tickets being issued to fare-paying straphangers](<https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)<sup>\[3\]</sup>.
+This has led to MTA staff asking riders to display bank account information, which not only is an unacceptable violation of privacy, but has also resulted in [tickets being issued to fare-paying straphangers](<https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)<sup>\[4\]</sup>.
 
 These fare issues are technical problems that should have been ironed-out years ago, and need to be fixed as soon as possible.
 At the same time, they illustrate that the additional complexity of fare capping is not free.
@@ -190,12 +190,12 @@ But it was the first to implement a fare cap, however, because of a unique combi
 - It has a complex multi-zone system, with nine zones for the London Underground, a separate fare system for buses, and a commuter rail network that is mostly but not completely fare integrated with the Underground. Importantly, this complex fare system means that much of what might be considered a central-city ride in other cities actually crosses multiple zones. As a result, a rider who travels more than just a single round-trip commuter per day is likely to wind up travelling across multiple, changing combinations of zones as they travel to different destinations across the city. In contrast, Continental European cities’ zone systems are for the suburbs, whereas the entire city is usually in a single zone, as in New York.
 - Oyster’s trip history could remember, for each card, enough past transactions to be able to implement a daily or weekly cap, but not a monthly cap. This technological limit, by now over 20 years no longer relevant, has been reified to the point that people expecting London-style fare capping still only implement a daily and weekly but not monthly cap.
 
-In the United States, reform-oriented organizations such as [TransitCenter](<https://transitcenter.org/capping-the-way-to-fairer-fares/>)<sup>\[4\]</sup> have seen the Oyster fare cap in action in London and [advocated to import it](<https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)<sup>\[5\]</sup> to the United States.
+In the United States, reform-oriented organizations such as [TransitCenter](<https://transitcenter.org/capping-the-way-to-fairer-fares/>)<sup>\[5\]</sup> have seen the Oyster fare cap in action in London and [advocated to import it](<https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)<sup>\[6\]</sup> to the United States.
 The technical context of London and the Oyster card is not applicable to any US metro system with a flat fare.
 Instead, the organizations have made equity-based arguments, saying that prepaid monthly fares are difficult for poor riders, who may not have the money for a monthly pass upfront.
 
 A better solution for low-income riders is the Fair Fares program, which offers reduced-cost travel to travelers below a certain income threshold.
-Both [Riders Alliance](<https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)<sup>\[6\]</sup> and [PCAC](<https://pcac.org/report/fairfares25/>)<sup>\[7\]</sup> have proposed expanding the program’s eligibility from a maximum income of 1.5 times the federal poverty line to 2 times to a larger income range, a more direct solution for equity concerns.
+Both [Riders Alliance](<https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)<sup>\[7\]</sup> and [PCAC](<https://pcac.org/report/fairfares25/>)<sup>\[8\]</sup> have proposed expanding the program’s eligibility from a maximum income of 1.5 times the federal poverty line to 2 times to a larger income range, a more direct solution for equity concerns.
 Indeed, many of the European cities with low monthly fare ratios have reduced-fare products for children, students, retirees, and people qualifying for means-tested benefits.
 To reduce administrative barriers, some systems have piggybacked on Medicaid eligibility for access to means-tested fares, for example Indego, Philadelphia’s bike share system.
 
@@ -214,13 +214,13 @@ After all, the easiest transit trip to make is the one that you don't have to th
 
 [^2]: Badoe, D. & Yendeti, M., “Impact of Transit-Pass Ownership on Daily Number of Trips Made by Urban Public Transit,” *Journal of Urban Planning and Development* (2007, 133:4, 242). https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)
 
-[^3]: Ironman Turnstile mentions this in its brochure, [https://www.ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)<sup>\[8\]</sup>, and Cubic mentions that as an argument for reducing fare payment friction, [https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)<sup>\[9\]</sup>.
+[^3]: Ironman Turnstile mentions this in its brochure, [https://www.ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)<sup>\[9\]</sup>, and Cubic mentions that as an argument for reducing fare payment friction, [https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)<sup>\[10\]</sup>.
 
 [^4]: Brian D. Taylor, Mark Garrett, and Hiroyuki Iseki, “Measuring Cost Variability in Provision of Transit Service,” *Transportation Research Record* (2000, 1745(1), 101-112). https://doi.org/10.3141/1735-13
 
-    Professor Taylor also explains this phenomenon in [this presentation for the Transit Costs Project](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)<sup>\[10\]</sup>.
+    Professor Taylor also explains this phenomenon in [this presentation for the Transit Costs Project](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)<sup>\[11\]</sup>.
 
-[^5]: See computations in our report, Modernizing New York Commuter Rail, [https://www.etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>), footnotes 73–77.
+[^5]: See computations in our report, Modernizing New York Commuter Rail, [https://www.etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>)<sup>\[12\]</sup>, footnotes 73–77.
     Subway rolling stock lasts regardless of how intensively it is run, and the commuter rail crew schedules in Berlin, where there is limited difference between peak and off-peak frequency, get 12% more hours out of every train driver than Metro-North, which has to pay extra for split shifts, and 50% more than the LIRR, which does not.
     Those computations are equally valid for subway and commuter rail service.
 
@@ -231,16 +231,18 @@ After all, the easiest transit trip to make is the one that you don't have to th
 
 ## Sources
 
-1. (archived [May 19, 2026](<https://web.archive.org/web/20260519002325/https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)) [mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0](<https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)
-2. (archived [May 21, 2026](<https://web.archive.org/web/20260521040021/https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)) [mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north](<https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)
-3. (archived [Apr 10, 2026](<https://web.archive.org/web/20260410095829/https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)) [hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/](<https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)
-4. (archived [Jun 7, 2026](<https://web.archive.org/web/20260607172552/https://transitcenter.org/capping-the-way-to-fairer-fares/>)) [transitcenter.org/capping-the-way-to-fairer-fares/](<https://transitcenter.org/capping-the-way-to-fairer-fares/>)
-5. (archived [May 17, 2026](<https://web.archive.org/web/20260517114557/https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)) [transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/](<https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)
-6. (archived [Mar 16, 2026](<https://web.archive.org/web/20260316022857/https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)) [ridersalliance.org/news/its-time-to-expand-fair-fares](<https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)
-7. (archived [May 17, 2026](<https://web.archive.org/web/20260517234603/https://pcac.org/report/fairfares25/>)) [pcac.org/report/fairfares25/](<https://pcac.org/report/fairfares25/>)
-8. (archived [Apr 29, 2026](<https://web.archive.org/web/20260429163851/https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)) [ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)
-9. (archived [Feb 14, 2026](<https://web.archive.org/web/20260214174558/https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)) [cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)
-10. (archived [Oct 9, 2026](<https://web.archive.org/web/20261009033532/https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)) [youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)
+1. (not archived) [etany.org/statements/six-minute-service](<https://www.etany.org/statements/six-minute-service>)
+2. (archived [May 19, 2026](<https://web.archive.org/web/20260519002325/https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)) [mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0](<https://www.mta.info/press-release/transcript-mta-chair-and-ceo-lieber-appears-brian-lehrer-show-0>)
+3. (archived [May 21, 2026](<https://web.archive.org/web/20260521040021/https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)) [mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north](<https://www.mta.info/press-release/mta-pilot-major-changes-fare-structures-new-york-city-transit-lirr-and-metro-north>)
+4. (archived [Apr 10, 2026](<https://web.archive.org/web/20260410095829/https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)) [hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/](<https://hellgatenyc.com/the-mtas-farebeating-crackdown-on-buses-is-a-mess/>)
+5. (archived [Jun 7, 2026](<https://web.archive.org/web/20260607172552/https://transitcenter.org/capping-the-way-to-fairer-fares/>)) [transitcenter.org/capping-the-way-to-fairer-fares/](<https://transitcenter.org/capping-the-way-to-fairer-fares/>)
+6. (archived [May 17, 2026](<https://web.archive.org/web/20260517114557/https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)) [transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/](<https://transitcenter.org/monthly-fare-capping-is-the-ticket-to-fare-equity/>)
+7. (archived [Mar 16, 2026](<https://web.archive.org/web/20260316022857/https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)) [ridersalliance.org/news/its-time-to-expand-fair-fares](<https://www.ridersalliance.org/news/its-time-to-expand-fair-fares>)
+8. (archived [May 17, 2026](<https://web.archive.org/web/20260517234603/https://pcac.org/report/fairfares25/>)) [pcac.org/report/fairfares25/](<https://pcac.org/report/fairfares25/>)
+9. (archived [Apr 29, 2026](<https://web.archive.org/web/20260429163851/https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)) [ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)
+10. (archived [Feb 14, 2026](<https://web.archive.org/web/20260214174558/https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)) [cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)
+11. (archived [Oct 9, 2026](<https://web.archive.org/web/20261009033532/https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)) [youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)
+12. (not archived) [etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>)
 
 ## Contributors
 

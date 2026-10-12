@@ -332,7 +332,7 @@ Sources:
 
 Tweets:
 
-+ This morning, the MTA swapped the F/M trains at 8 stations in Manhattan and Queens. This is an example of "deinterlining" reverse branches, which can improve frequency and reliability. ETA is excited to see this change happen. #link("https://www.etany.org/statements/deinterlining")[https://www.etany.org/statements/deinterlining]
++ This morning, the MTA swapped the F/M trains at 8 stations in Manhattan and Queens. This is an example of "deinterlining" reverse branches, which can improve frequency and reliability. ETA is excited to see this change happen. #link("https://www.etany.org/statements/deinterlining")[https://www.etany.org/statements/deinterlining]#super[#link(<src35>)[\[35\]]]
 + In addition to the F/M swap, ETA is eager to see the MTA pursue deinterlining at Nostrand Junction, where the 2, 3, and 5 trains currently have to share tracks. This has the potential to speed up service for over 300k daily riders.
 + We encourage the MTA to consider deinterlining the B/D/N/Q trains through DeKalb Interlocking as well. This is one of the worst sources of delays in the system, and deinterlining has the potential for huge cost savings in the upcoming 6 Av CBTC project.
 
@@ -375,4 +375,5 @@ Tweets:
 + (archived #link("https://web.archive.org/web/20261009033515/https://www.youtube.com/live/0AEaaKvpMQw")[Oct 9, 2026]) #link("https://www.youtube.com/live/0AEaaKvpMQw")[youtube.com/live/0AEaaKvpMQw] <src32>
 + (archived #link("https://web.archive.org/web/20260615050241/https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn")[Jun 15, 2026]) #link("https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn")[nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn] <src33>
 + (archived #link("https://web.archive.org/web/20260518011635/https://www.mta.info/map/40511")[May 18, 2026]) #link("https://www.mta.info/map/40511")[mta.info/map/40511] <src34>
++ (not archived) #link("https://www.etany.org/statements/deinterlining")[etany.org/statements/deinterlining] <src35>
 ]
