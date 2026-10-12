@@ -13,6 +13,7 @@ from pathlib import Path
 import pytest
 from paths import FIXTURE_DIR
 from test_conventions import build, field, image, para
+from typer import Exit
 
 from eta_publish import console
 from eta_publish.build import (
@@ -258,6 +259,62 @@ def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
     assert [f.report.name for f in site.failed] == ["gone"]
     assert [b.report.name for b in site.built] == ["Digging Out of a Very Deep Hole"]
     assert (tmp_path / "site" / site.built[0].path / "index.html").exists()
+
+
+def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """What no report wrote this time is gone, unless its report could not be built.
+
+    A site missing a report beats no site, and the last copy of it beats a missing one.
+    """
+    import eta_publish.fetch as fetch
+    from eta_publish.__main__ import Suggestions, publish
+
+    def unreachable(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("Google is not answering")
+
+    monkeypatch.setattr(fetch, "fetch", unreachable)
+    out = tmp_path / "site"
+    seed_image_index(out)
+    kept = out / "reports" / "kept"
+    kept.mkdir(parents=True)
+    (kept / "doc.json").write_text(json.dumps({"documentId": "abc", "tabId": "t.1"}))
+    (kept / "report.html").write_text("the last build of a report that failed")
+    (out / "reports" / "dropped").mkdir()
+    (out / "reports" / "dropped" / "report.html").write_text("no report writes this any more")
+    good = tmp_path / "good.json"
+    good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    reports = [
+        Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1"),
+        Report(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
+    ]
+
+    with pytest.raises(Exit):
+        publish(reports, out, Suggestions.REJECTED, False, False, False, archive=False, whole=True)
+
+    assert (kept / "report.html").read_text() == "the last build of a report that failed"
+    assert not (out / "reports" / "dropped").exists()
+    assert (out / SLUG / "report.html").is_file()
+    assert [p.name for p in tmp_path.iterdir() if "building" in p.name] == []
+
+
+def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
+    from eta_publish.__main__ import Suggestions, publish
+
+    out = tmp_path / "site"
+    seed_image_index(out)
+    (out / SLUG / "stale.html").write_text("written by an older build of this report")
+    (out / "reports" / "other").mkdir()
+    (out / "reports" / "other" / "report.html").write_text("another report's")
+    good = tmp_path / "good.json"
+    good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+
+    publish([Report(url=str(good))], out, Suggestions.REJECTED, False, False, False, archive=False)
+
+    assert not (out / SLUG / "stale.html").exists()
+    assert (out / SLUG / "report.html").is_file()
+    assert (out / "reports" / "other" / "report.html").read_text() == "another report's"
 
 
 def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:

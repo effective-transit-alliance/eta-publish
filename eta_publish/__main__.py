@@ -16,7 +16,9 @@ Each report lands under the path its own front matter gives it.
 """
 
 import os
+import shutil
 import sys
+import tempfile
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
@@ -25,6 +27,7 @@ from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
+from .naming import ASSET_DIR
 from .site import (
     REPORTS,
     Report,
@@ -34,6 +37,8 @@ from .site import (
     index_page,
     listed_report,
     load_reports,
+    saved_for,
+    saved_responses,
 )
 
 
@@ -105,7 +110,7 @@ def build_all(
     except (OSError, ValueError) as e:
         # Typer's own wording for a bad argument, because that is what it is.
         raise BadParameter(str(e), param_hint="LIST") from e
-    publish(listed, outdir, suggestions, split, images, comments, offline, archive)
+    publish(listed, outdir, suggestions, split, images, comments, offline, archive, whole=True)
 
 
 @app.command(name="one")
@@ -151,25 +156,47 @@ def publish(
     comments: bool,
     offline: bool = False,
     archive: bool = True,
-) -> None:
+    whole: bool = False,
+    into: Path | None = None,
+) -> Site:
     """Build these reports and write the index over them.
 
     One document and a whole list end here alike.
     A publish of one report is a publish of a list with one entry,
     down to the index page, which is the page that says what failed.
+
+    Built into a directory of its own beside `outdir`, reading what the last
+    build left in `outdir`, and only then put in its place: nothing reads a file
+    halfway through being rewritten, and nothing the build no longer writes,
+    like an image taken out of a document, outlives it. `whole` is a build of
+    the entire list, which replaces the entire site; otherwise only the reports
+    built are replaced. `into` builds there and leaves `outdir` as it is.
     """
-    site = build_site(
-        reports,
-        outdir,
-        BuildOptions(
-            suggestions=str(suggestions),
-            split=split,
-            images=images,
-            archive=archive,
-            comments=comments,
-            offline=offline,
-        ),
+    options = BuildOptions(
+        suggestions=str(suggestions),
+        split=split,
+        images=images,
+        archive=archive,
+        comments=comments,
+        offline=offline,
     )
+    if into is not None:
+        site = write_site(reports, into, options, read_from=outdir)
+    else:
+        outdir.mkdir(parents=True, exist_ok=True)
+        staging = Path(tempfile.mkdtemp(dir=outdir.parent, prefix=f".{outdir.name}-building-"))
+        try:
+            site = write_site(reports, staging, options, read_from=outdir)
+            install(site, staging, outdir, whole)
+        finally:
+            shutil.rmtree(staging, ignore_errors=True)
+    report_outcome(site)
+    return site
+
+
+def write_site(reports: list[Report], outdir: Path, options: BuildOptions, read_from: Path) -> Site:
+    """Build the reports into `outdir`, reading what the last build left in `read_from`."""
+    site = build_site(reports, outdir, options, read_from=read_from)
 
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "index.html").write_text(index_page(site))
@@ -191,8 +218,40 @@ def publish(
         report = outdir / built.path / "report.html"
         if report.exists():
             check_code_block_size(built.doc, report)
+    return site
 
-    report_outcome(site)
+
+def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
+    """Put what was built in `built` where it is published, `outdir`.
+
+    A whole site replaces the whole site, keeping only what the last build
+    wrote for a report that failed this time: a site missing a report beats no
+    site at all, and an older copy of it beats a missing one.
+    Otherwise each report built replaces its own directory and nothing else,
+    along with the index and the shared assets every page links.
+    """
+    if whole:
+        for failed in site.failed:
+            previous = saved_for(failed.report, saved_responses(outdir))
+            if previous is None:
+                continue
+            kept = built / previous.relative_to(outdir)
+            if not kept.exists():
+                shutil.copytree(previous, kept)
+        old = outdir.with_name(f"{built.name}-old")
+        outdir.rename(old)
+        built.rename(outdir)
+        shutil.rmtree(old)
+        return
+    for entry in site.built:
+        shutil.rmtree(outdir / entry.path, ignore_errors=True)
+        (outdir / entry.path).parent.mkdir(parents=True, exist_ok=True)
+        (built / entry.path).rename(outdir / entry.path)
+    for shared in (ASSET_DIR,):
+        shutil.rmtree(outdir / shared, ignore_errors=True)
+        (built / shared).rename(outdir / shared)
+    for name in ("index.html", "robots.txt"):
+        (built / name).replace(outdir / name)
 
 
 def report_outcome(site: Site) -> None:
