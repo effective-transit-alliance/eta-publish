@@ -50,7 +50,10 @@ class _Build:
         # Beside `site/` rather than in the system's temporary directory, which
         # is often another filesystem: the build hard-links the images it
         # reuses, and a link cannot cross one.
-        self.dir = Path(tempfile.mkdtemp(dir=root, prefix=".site-test-"))
+        from eta_publish.__main__ import abandoned
+
+        abandoned(root, ".site-test-")
+        self.dir = Path(tempfile.mkdtemp(dir=root, prefix=f".site-test-{os.getpid()}-"))
         self.out = self.dir / "site"
         self.log = (self.dir / "build.log").open("w")
         reports = [saved.parent for saved in (root / "site").glob("*/*/doc.json")]

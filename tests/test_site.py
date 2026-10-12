@@ -944,3 +944,63 @@ def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     assert capsys.readouterr().err.count("WITHOUT archive.org keys") == 1
     __main__.report_outcome(Site(built=[], failed=[]))
     assert "WITHOUT archive.org keys" in capsys.readouterr().err
+
+
+def test_one_ctrl_c_stops_a_build_without_waiting_for_its_reports(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`Ctrl+C` reaches only the main thread, and the reports are on others.
+
+    Waiting for them to finish is what made the first `Ctrl+C` look like
+    nothing and the second a traceback through the thread pool's join.
+    """
+    import os
+    import signal
+    import threading
+    import time
+
+    import eta_publish.site as site_module
+    from eta_publish.archive import Stopped
+
+    released = threading.Event()
+
+    def stuck(*args: object, **kwargs: object) -> object:
+        with console.watching() as rows:
+            rows.show("https://slow.example/a.pdf", "capture pending")
+            released.wait(10)
+        raise RuntimeError("released")
+
+    monkeypatch.setattr(site_module, "build_one", stuck)
+    # A real `SIGINT`, as `Ctrl+C` sends: one only flagged for the main thread
+    # does not wake it from waiting on a report, and so tests nothing here.
+    threading.Timer(0.2, os.kill, (os.getpid(), signal.SIGINT)).start()
+    started = time.monotonic()
+    try:
+        with pytest.raises(Stopped) as stopped:
+            build_site([Report(url=str(tmp_path / "doc.json"), name="Slow")], tmp_path / "site")
+    finally:
+        released.set()
+    assert time.monotonic() - started < 2
+    assert "stopped while building Slow" in str(stopped.value)
+    assert "https://slow.example/a.pdf (capture pending, 0s)" in str(stopped.value)
+
+
+def test_a_stopped_builds_leftovers_are_removed_and_a_running_ones_are_not(tmp_path: Path) -> None:
+    """A build stopped partway can leave its directory behind; the next build takes it away."""
+    import os
+    import subprocess
+
+    from eta_publish.__main__ import abandoned
+
+    gone = subprocess.Popen(["true"])
+    gone.wait()
+    (tmp_path / f".site-building-{gone.pid}-abc").mkdir()
+    (tmp_path / f".site-building-{os.getpid()}-def").mkdir()
+    (tmp_path / "site").mkdir()
+
+    abandoned(tmp_path, ".site-building-")
+
+    assert sorted(p.name for p in tmp_path.iterdir()) == [
+        f".site-building-{os.getpid()}-def",
+        "site",
+    ]

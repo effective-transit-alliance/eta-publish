@@ -15,9 +15,10 @@ so the common case and the real case stay on the same code.
 Each report lands under the path its own front matter gives it.
 """
 
+import glob
 import os
 import shutil
-import sys
+import signal
 import tempfile
 from enum import StrEnum
 from pathlib import Path
@@ -219,14 +220,42 @@ def publish(
         site = write_site(reports, into, options, read_from=outdir)
     else:
         outdir.mkdir(parents=True, exist_ok=True)
-        staging = Path(tempfile.mkdtemp(dir=outdir.parent, prefix=f".{outdir.name}-building-"))
-        try:
+        abandoned(outdir.parent, f".{outdir.name}-building-")
+        staging = Path(
+            tempfile.mkdtemp(dir=outdir.parent, prefix=f".{outdir.name}-building-{os.getpid()}-")
+        )
+        with console.cleaned_up(lambda: shutil.rmtree(staging, ignore_errors=True)):
             site = write_site(reports, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
-        finally:
-            shutil.rmtree(staging, ignore_errors=True)
     report_outcome(site)
     return site
+
+
+def abandoned(parent: Path, prefix: str) -> None:
+    """Remove what a build stopped partway left in `parent`, named `prefix<pid>-`.
+
+    A stopped build removes its own directory, but its other threads can
+    still be writing into it as it does, and so put some of it back before
+    the process is gone. One whose process is no longer running is left over
+    from that, and nothing else will ever remove it; one whose process is
+    running is another build's, and is left alone.
+    """
+    for leftover in parent.glob(f"{glob.escape(prefix)}*"):
+        pid = leftover.name.removeprefix(prefix).partition("-")[0]
+        if not pid.isdigit() or _running(int(pid)):
+            continue
+        shutil.rmtree(leftover, ignore_errors=True)
+
+
+def _running(pid: int) -> bool:
+    """Whether a process `pid` exists, which is all a signal 0 asks."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    return True
 
 
 def write_site(reports: list[Report], outdir: Path, options: BuildOptions, read_from: Path) -> Site:
@@ -353,27 +382,16 @@ def add(
     console.write(console.added(reports, added.name or "", added.tab or "", log), log)
 
 
-STOPPED = 130
-"""What a program that was interrupted exits with, by long convention."""
-
-
 def main() -> None:
+    # One `Ctrl+C` stops the run, says what it was doing, and cleans up after
+    # it: see `console.stopped` for why that is a handler and not an `except`.
+    signal.signal(signal.SIGINT, lambda _signal, _frame: console.stopped())
     try:
         app()
-    except KeyboardInterrupt as stopped:
-        log = console.for_stream()
-        # What it was waiting on, where whatever raised this knew:
-        # `Ctrl+C` in the middle of the archiving is answered with how far it
-        # had got and which sources it was still asking about.
-        console.write(console.note("{}", str(stopped) or "stopped"), log)
-        sys.stdout.flush()
-        sys.stderr.flush()
-        # Not a `return`, which would run the pools' own exit hook: it joins
-        # every worker thread, and a worker waiting a minute on a request the
-        # build no longer wants is a minute of nothing happening,
-        # into which somebody presses `Ctrl+C` twice more and gets a
-        # traceback through the joining rather than through the waiting.
-        os._exit(STOPPED)
+    except KeyboardInterrupt as interrupted:
+        # Raised rather than signalled, by something that knew more about what
+        # it was waiting on: the archive, asked from this thread.
+        console.stopped(str(interrupted))
 
 
 if __name__ == "__main__":

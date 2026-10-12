@@ -24,15 +24,16 @@ written plain and whole on one line, so a log that is going to be searched
 holds no escape sequences to search past and no line broken mid-sentence.
 """
 
+import os
 import sys
 import time
 from collections.abc import Callable, Iterator
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from contextvars import ContextVar
 from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
-from threading import Lock, RLock, Thread
+from threading import Event, Lock, RLock, Thread
 from typing import IO, override
 
 from rich.console import Console, Group, RenderableType
@@ -130,6 +131,9 @@ def for_stream(stream: IO[str] | None = None) -> Console:
 
 
 _ABOUT: ContextVar[str | None] = ContextVar("about", default=None)
+
+_WATCHING_LOCK = Lock()
+"""Held to read or change `_BUSY` or `_WATCHING` from any thread."""
 """Which report the build is in the middle of, for the notes it writes.
 
 A context variable rather than an argument threaded through the build, because
@@ -159,10 +163,24 @@ def about(name: str) -> Iterator[None]:
     the name of the last one.
     """
     token = _ABOUT.set(name)
+    with _WATCHING_LOCK:
+        _BUSY.append(name)
     try:
         yield
     finally:
         _ABOUT.reset(token)
+        with _WATCHING_LOCK:
+            _BUSY.remove(name)
+
+
+_BUSY: list[str] = []
+"""What every `about` still open is about, for saying what a stopped build was doing."""
+
+
+def busy() -> list[str]:
+    """What is being worked on right now, in the order it was started."""
+    with _WATCHING_LOCK:
+        return list(dict.fromkeys(_BUSY))
 
 
 def _sentence(
@@ -633,6 +651,8 @@ class Rows:
         self.tasks: dict[str, TaskID] = {}
         self.started: dict[str, float] = {}
         self.said: dict[str, str] = {}
+        with _WATCHING_LOCK:
+            _WATCHING.append(self)
 
     def show(self, key: str, state: str) -> None:
         """Say what `key` is waiting on now, starting its clock if this is the first time."""
@@ -681,6 +701,10 @@ def _shortened(url: str, width: int = 60) -> str:
     return f"{url[:half]}…{url[-half:]}"
 
 
+_WATCHING: list[Rows] = []
+"""Every `Rows` still open, for saying what a stopped build was waiting on."""
+
+
 @contextmanager
 def watching(console: Console | None = None) -> Iterator[Rows]:
     """Lines under the bar for the things being waited on, gone when this ends."""
@@ -690,3 +714,97 @@ def watching(console: Console | None = None) -> Iterator[Rows]:
     finally:
         for key in list(rows.tasks):
             rows.drop(key)
+        with _WATCHING_LOCK:
+            _WATCHING.remove(rows)
+
+
+def waiting_on() -> list[str]:
+    """What every open `watching` is waiting on, each with how long, longest first.
+
+    For a build that has been stopped: the work is on other threads, which
+    `Ctrl+C` never reaches, so this is the only place that knows what they were
+    doing when it came.
+    """
+    now = time.monotonic()
+    with _WATCHING_LOCK:
+        found = [
+            (now - rows.started[key], key, state)
+            for rows in _WATCHING
+            for key, state in list(rows.said.items())
+            if key in rows.started
+        ]
+    return [f"{key} ({state}, {took:.0f}s)" for took, key, state in sorted(found, reverse=True)]
+
+
+_STOPPING = Event()
+"""Set once the run has begun stopping."""
+
+_CLEANUPS: list[Callable[[], None]] = []
+"""What to undo if the run is stopped before it can unwind, latest first."""
+
+
+@contextmanager
+def cleaned_up(undo: Callable[[], None]) -> Iterator[None]:
+    """Run `undo` when this ends, or when the run is stopped while inside it.
+
+    A `finally` alone is not enough: a run stopped by `Ctrl+C` exits from the
+    signal handler without unwinding, so it never reaches one.
+    """
+    _CLEANUPS.append(undo)
+    try:
+        yield
+    finally:
+        _CLEANUPS.remove(undo)
+        undo()
+
+
+def stopped(reason: str = "") -> None:
+    """Say what a stopped run was doing, put the terminal right, undo what it left, and exit.
+
+    The whole of what one `Ctrl+C` does, from the signal handler `__main__`
+    installs. Not by raising `KeyboardInterrupt` and letting it unwind: the
+    work is on other threads, which it never reaches; `typer` catches it on the
+    way out and exits normally, which waits for every one of them to finish
+    the request it is in; and a second `Ctrl+C` into that wait is a traceback
+    through the thread pool's exit hook rather than anything about the build.
+    """
+    # Once: `uv run` passes the signal on to the build as well as the terminal
+    # sending it there, so one `Ctrl+C` arrives twice.
+    if _STOPPING.is_set():
+        return
+    _STOPPING.set()
+    stop()
+    said = reason or "stopped"
+    doing = busy()
+    if doing:
+        said += " while building " + ", ".join(doing)
+    waiting = waiting_on()
+    if waiting:
+        said += "; waiting on:\n" + "\n".join(f"  {line}" for line in waiting)
+    log = for_stream()
+    write(note("{}", said), log)
+    for undo in reversed(list(_CLEANUPS)):
+        # Every one, whatever the one before it did: a run being stopped is not
+        # one to stop halfway through putting things back.
+        with suppress(Exception):
+            undo()
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(STOPPED)
+
+
+STOPPED = 130
+"""What a program that was interrupted exits with, by long convention."""
+
+
+def stop() -> None:
+    """Take the bar off the screen and give the terminal back its cursor.
+
+    For a build that is exiting without unwinding, which skips what would
+    otherwise do this, and leaves a terminal with no cursor and a bar in it.
+    """
+    global _BAR
+    with _BAR_LOCK:
+        if _BAR is not None:
+            _BAR.stop()
+            _BAR = None

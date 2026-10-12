@@ -25,6 +25,7 @@ import htpy
 from markupsafe import Markup
 
 from . import console
+from .archive import Stopped
 from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images
 from .emit.html import Piece, lines, markup, phase_markup, tag
@@ -413,8 +414,9 @@ def build_site(
                 read_from=read_from,
             )
 
-    with ThreadPoolExecutor(max_workers=max(1, min(len(reports), MAX_AT_ONCE))) as pool:
-        started = [(report, pool.submit(build, report)) for report in reports]
+    pool = ThreadPoolExecutor(max_workers=max(1, min(len(reports), MAX_AT_ONCE)))
+    started = [(report, pool.submit(build, report)) for report in reports]
+    try:
         for index, (report, building) in enumerate(started):
             # A blank line between reports and none above the first:
             # a report is a heading and everything under it, and a run of them
@@ -433,6 +435,21 @@ def build_site(
                 continue
             console.write(console.built(named, path, doc.warnings, log), log)
             site.built.append(Built(report=report, doc=doc, path=path))
+    except KeyboardInterrupt:
+        # Not waited on: `Ctrl+C` reaches only this thread, and the reports
+        # are on others, each in the middle of a request that can take a
+        # minute. Waiting for them is what made one `Ctrl+C` look like
+        # nothing, and a second one a traceback through the joining.
+        pool.shutdown(wait=False, cancel_futures=True)
+        running = [label(report) for report, building in started if building.running()]
+        said = "stopped"
+        if running:
+            said += " while building " + ", ".join(running)
+        waiting = console.waiting_on()
+        if waiting:
+            said += "; waiting on:\n" + "\n".join(f"  {line}" for line in waiting)
+        raise Stopped(said) from None
+    pool.shutdown()
     return site
 
 
