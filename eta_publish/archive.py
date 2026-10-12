@@ -22,7 +22,7 @@ import json
 import os
 import re
 import time
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Collection, Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
@@ -1393,6 +1393,9 @@ def pdfs_cited(doc: Document) -> set[str]:
     }
 
 
+COUNT_TIMEOUT = timedelta(seconds=60)
+"""How long one PDF is given to download for counting, once."""
+
 COUNT_AT_ONCE = 4
 """How many PDFs are downloaded at once to count their pages.
 
@@ -1401,7 +1404,25 @@ and some of what the reports cite runs to hundreds of pages and tens of MB.
 """
 
 
-def count_pages(doc: Document, session: requests.Session | None = None) -> int:
+def uncounted(doc: Document) -> list[str]:
+    """The PDFs cited by page whose pages are not yet counted, in the order cited."""
+    return [
+        url
+        for url in dict.fromkeys(
+            document_url(source) for source in doc.sources if cited_page(source) is not None
+        )
+        if url in doc.archives and not doc.archives[url].pages
+    ]
+
+
+def count_pages(
+    doc: Document,
+    session: requests.Session | None = None,
+    *,
+    only: Collection[str] | None = None,
+    rows: Rows | None = None,
+    along: Callable[[], None] | None = None,
+) -> int:
     """Record how many pages each PDF cited by page has, returning how many were counted.
 
     Counted from the capture, asked for raw, because that is the file the
@@ -1415,25 +1436,45 @@ def count_pages(doc: Document, session: requests.Session | None = None) -> int:
     lookups checked the type was accepted on its status alone, and that is how
     `TCP_Final_Report.pdf` came to be archived as a bot check.
 
-    A download that failed is left uncounted rather than recorded: it is not a
-    fact about the document.
+    A capture that could not be downloaded is counted from the live file
+    instead, which is the same document: the capture of a Substack attachment
+    redirected to an older one that answered `503` after twenty seconds, and
+    waiting that out patiently, four PDFs at a time, was three minutes a PDF
+    on every build. One try each, then, and no waiting: a count is not worth
+    holding a build for. A download that failed both ways is left uncounted
+    rather than recorded, since it is not a fact about the document.
+
+    `only` limits it to those URLs, for the count after the archive check,
+    which is for what that check newly archived and not for what this one
+    already tried.
     """
-    wanted = [
-        url
-        for url in dict.fromkeys(
-            document_url(source) for source in doc.sources if cited_page(source) is not None
-        )
-        if url in doc.archives and not doc.archives[url].pages
-    ]
+    wanted = [url for url in uncounted(doc) if only is None or url in only]
     if not wanted:
         return 0
     http = session or _session()
 
     def count(url: str) -> int | None:
-        archived = doc.archives[url]
-        if archived.snapshot and not archived.error:
-            return _pages(http, wayback_url(archived.timestamp, url, modifier=UNREWRITTEN))
-        return _pages(http, url)
+        if rows is not None:
+            _SAYING.say = partial(rows.show, url)
+        try:
+            archived = doc.archives[url]
+            if archived.snapshot and not archived.error:
+                _status("downloading the capture")
+                pages = _pages(http, wayback_url(archived.timestamp, url, modifier=UNREWRITTEN))
+                if pages is not None:
+                    return pages
+                _status("capture failed; downloading the live file")
+            else:
+                _status("downloading the live file")
+            live = _pages(http, url)
+            # Not a PDF live says nothing about the capture, which stays.
+            return live or None
+        finally:
+            _SAYING.say = None
+            if rows is not None:
+                rows.drop(url)
+            if along is not None:
+                along()
 
     with ThreadPoolExecutor(max_workers=COUNT_AT_ONCE) as pool:
         counted = list(pool.map(count, wanted))
@@ -1452,7 +1493,7 @@ PDF_MAGIC = b"%PDF"
 def _pages(http: requests.Session, url: str) -> int | None:
     """The pages of the PDF at `url`: 0 if it is not one, `None` if it could not be fetched."""
     try:
-        response = _patiently(lambda: _checked(http.get(url, timeout=120)))
+        response = _checked(http.get(url, timeout=COUNT_TIMEOUT.total_seconds()))
     except requests.RequestException, Busy:
         return None
     if not response.content.startswith(PDF_MAGIC):

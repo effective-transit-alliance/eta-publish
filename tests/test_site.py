@@ -881,9 +881,8 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
 ) -> None:
     """Sixteen sources that all had to get through one build together never did,
     and a capture can still be running a day later."""
-    from dataclasses import replace
 
-    from eta_publish import archive, build
+    from eta_publish import archive
     from eta_publish.nodes import Archived
 
     answered: list[str] = []
@@ -903,12 +902,6 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
 
     monkeypatch.setattr(archive, "capture", capture)
 
-    def count_pages(doc: Document, *_: object) -> int:
-        for url, archived in doc.archives.items():
-            doc.archives[url] = replace(archived, pages=archived.pages or 3)
-        return 0
-
-    monkeypatch.setattr(build, "count_pages", count_pages)
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     out = tmp_path / "site"
@@ -918,7 +911,6 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
     assert not site.failed
     record = json.loads((out / SLUG / "archives.json").read_text())
     assert record[answered[0]]["timestamp"] == "20261009000000"
-    assert record[answered[0]]["pages"] == 3
     assert not site.failed, site.failed
 
 

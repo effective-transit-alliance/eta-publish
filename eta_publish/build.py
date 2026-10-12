@@ -18,6 +18,7 @@ from .archive import (
     check_pending,
     count_pages,
     read_archive_index,
+    uncounted,
     write_archive_index,
 )
 from .checks import check, check_described, check_pages, plural
@@ -552,6 +553,21 @@ def warn_anonymous() -> None:
 _WARNING_ANONYMOUS = threading.Lock()
 
 
+def counted_pages(doc: Document, only: set[str] | None = None) -> None:
+    """Count the pages of the PDFs cited by page, saying which are being downloaded."""
+    from .archive import uncounted
+
+    wanted = [url for url in uncounted(doc) if only is None or url in only]
+    if not wanted:
+        return
+    console.step("counting the pages of cited PDFs")
+    with (
+        console.progress("counting PDF pages", len(wanted)) as along,
+        console.watching() as rows,
+    ):
+        count_pages(doc, only=set(wanted), rows=rows, along=along)
+
+
 def archive_sources(doc: Document) -> None:
     """Find or make a capture of every source nothing has one for yet.
 
@@ -798,12 +814,11 @@ def build_one(
         # Before the lookups as well as after, because counting is what finds a
         # recorded capture that is not the PDF, and dropping it is what has
         # this build's lookups find one that is.
-        console.step("counting the pages of cited PDFs")
-        count_pages(doc)
+        tried = set(uncounted(doc))
+        counted_pages(doc)
         console.step("checking the archive")
         archive_sources(doc)
-        console.step("counting the pages of newly archived PDFs")
-        count_pages(doc)
+        counted_pages(doc, only=set(uncounted(doc)) - tried)
     write_archive_index(dest, doc)
     # After the record is read, because the page counts it checks against are in it.
     check_pages(doc)

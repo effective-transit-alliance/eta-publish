@@ -1228,6 +1228,28 @@ def test_a_recorded_capture_that_is_not_the_pdf_is_dropped() -> None:
     assert "https://a.example/a.pdf" not in doc.archives
 
 
+def test_a_capture_that_cannot_be_downloaded_is_counted_live_once(no_waiting: None) -> None:
+    """A Substack attachment's capture answered `503` after twenty seconds, and
+    waiting that out patiently was three minutes a PDF on every build."""
+    doc = cites("https://a.example/a.pdf#page=2")
+    doc.archives["https://a.example/a.pdf"] = CAPTURED
+    raw = "https://web.archive.org/web/20240503123456id_/https://a.example/a.pdf"
+    session = Serving({"https://a.example/a.pdf": _pdf(4)})
+    assert archive.count_pages(doc, session=session) == 1
+    assert session.asked == [raw, "https://a.example/a.pdf"]
+    assert doc.archives["https://a.example/a.pdf"].snapshot == CAPTURED.snapshot
+    assert doc.archives["https://a.example/a.pdf"].pages == 4
+
+
+def test_only_what_is_named_is_counted() -> None:
+    """The count after the archive check is for what it newly archived."""
+    doc = cites("https://a.example/a.pdf#page=2")
+    doc.archives["https://a.example/a.pdf"] = CAPTURED
+    session = Serving({})
+    assert archive.count_pages(doc, session=session, only=set()) == 0
+    assert session.asked == []
+
+
 def test_a_pdf_whose_capture_failed_is_counted_live() -> None:
     doc = cites("https://a.example/a.pdf#page=2")
     doc.archives["https://a.example/a.pdf"] = Archived(timestamp="20240503", error="refused")
