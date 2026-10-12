@@ -156,6 +156,7 @@ def test_a_reason_since_reworded_is_read_as_it_reads_now(tmp_path: Path) -> None
             {
                 "https://a.example/1": {
                     "error": "the capture is still running",
+                    "said": "the capture is still running (job spn2-a3)",
                     "pending": True,
                     "timestamp": "20261012",
                 }
@@ -164,7 +165,9 @@ def test_a_reason_since_reworded_is_read_as_it_reads_now(tmp_path: Path) -> None
     )
     doc = cites("https://a.example/1")
     read_archive_index(tmp_path, doc)
-    assert doc.archives["https://a.example/1"].error == archive.STILL_RUNNING == "in-progress"
+    recorded = doc.archives["https://a.example/1"]
+    assert recorded.error == archive.STILL_RUNNING == "in-progress"
+    assert recorded.said == "in-progress (job spn2-a3)"
 
 
 def test_a_failed_capture_is_not_tried_again() -> None:

@@ -476,7 +476,7 @@ def read_archive_index(dest: Path, doc: Document) -> None:
             error=RENAMED.get(entry.get("error", ""), entry.get("error", "")),
             job=entry.get("job", ""),
             pending=entry.get("pending", False),
-            said=entry.get("said", ""),
+            said=_reworded(entry.get("said", "")),
             pages=entry.get("pages", 0),
         )
         cited = doc.archives.get(url)
@@ -1232,8 +1232,7 @@ def _submitted(http: requests.Session, headers: dict[str, str], url: str) -> Arc
     # Still going, which is not an answer about the page: the next build asks
     # the job rather than waiting on it here.
     raise Busy(
-        f"the capture is still running after {CAPTURE_TIMEOUT.total_seconds():.0f} seconds "
-        f"(job {job})",
+        f"{STILL_RUNNING} after {CAPTURE_TIMEOUT.total_seconds():.0f} seconds (job {job})",
         short=STILL_RUNNING,
     )
 
@@ -1258,7 +1257,7 @@ def _job(http: requests.Session, headers: dict[str, str], url: str, job: str) ->
         if about_the_moment(refused):
             return None
         return Archived(timestamp=today(), error=refused, job=job)
-    raise Busy(f"the capture is still running (job {job})", short=STILL_RUNNING)
+    raise Busy(f"{STILL_RUNNING} (job {job})", short=STILL_RUNNING)
 
 
 STILL_RUNNING = "in-progress"
@@ -1270,6 +1269,18 @@ RENAMED = {"the capture is still running": STILL_RUNNING}
 Read through rather than left for the next lookup to replace: an offline build
 asks nothing, and would go on publishing the old words until one did.
 """
+
+
+def _reworded(said: str) -> str:
+    """`said` with a reason since reworded at its start, as `RENAMED` words it now.
+
+    The fuller message a warning quotes begins with the short reason, and
+    carries the job after it, so only the start is the part that changed.
+    """
+    for old, new in RENAMED.items():
+        if said.startswith(old):
+            return new + said.removeprefix(old)
+    return said
 
 
 RETRY_LATER = (
