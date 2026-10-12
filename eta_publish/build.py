@@ -713,7 +713,9 @@ def build_one(
     from .site import report_path
 
     options = options or BuildOptions()
+    console.step("reading the saved response" if options.offline else "fetching the document")
     document = load(ref, options.suggestions, options.comments, cached)
+    console.step("parsing")
     doc = parse(document)
     if verify is not None:
         # Before the first directory is made,
@@ -736,6 +738,7 @@ def build_one(
         and not options.offline
         and (checks_live or not has_its_figures(dest, doc))
     ):
+        console.step("fetching the document again for its images")
         document = load(ref, options.suggestions, options.comments)
         doc = parse(document)
         if verify is not None:
@@ -760,13 +763,16 @@ def build_one(
         if options.images:
             from .images import download, write_print_copies, write_web_copies
 
+            console.step("reusing the images" if options.offline else "downloading the images")
             written_images = download(doc, dest / IMAGE_DIR, offline=options.offline)
             write_image_index(dest, written_images, doc.unpublished)
             # Not recorded in `images.json`: that file is committed, and a
             # JPEG encoder is not byte-stable between versions, so a Pillow
             # release would break the committed-site check months later
             # over pictures nothing publishes.
+            console.step("encoding the images for print")
             write_print_copies(written_images, dest / PRINT_DIR)
+            console.step("encoding the images for the page")
             write_web_copies(written_images, dest / IMAGE_DIR)
         else:
             require_image_index(dest, doc)
@@ -778,6 +784,7 @@ def build_one(
     # the first build is nothing; offline, the record is all there is.
     read_embed_index(dest, doc)
     if not options.offline:
+        console.step("looking up embeds")
         look_up(doc)
         if options.images:
             download_embeds(doc, dest)
@@ -791,8 +798,11 @@ def build_one(
         # Before the lookups as well as after, because counting is what finds a
         # recorded capture that is not the PDF, and dropping it is what has
         # this build's lookups find one that is.
+        console.step("counting the pages of cited PDFs")
         count_pages(doc)
+        console.step("checking the archive")
         archive_sources(doc)
+        console.step("counting the pages of newly archived PDFs")
         count_pages(doc)
     write_archive_index(dest, doc)
     # After the record is read, because the page counts it checks against are in it.
@@ -803,10 +813,12 @@ def build_one(
     # report produces a page with everything it links.
     write_assets(outdir)
     images = media_base(path) if options.hosted_media else IMAGE_DIR
+    console.step("writing the outputs")
     written = emit(doc, dest, asset_base(path), images)
 
     typ = written.get("report.typ")
     if typ is not None:
+        console.step("compiling the PDF")
         build_pdf(typ, dest, skipped_images=not options.images and bool(doc.images))
 
     if options.split:

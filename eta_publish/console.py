@@ -173,6 +173,26 @@ def about(name: str) -> Iterator[None]:
             _BUSY.remove(name)
 
 
+_STEP: ContextVar[Callable[[str], None] | None] = ContextVar("step", default=None)
+
+
+def step(state: str) -> None:
+    """Say what the report being built on this thread is doing now, if anything is listening."""
+    say = _STEP.get()
+    if say is not None:
+        say(state)
+
+
+@contextmanager
+def stepping(say: Callable[[str], None]) -> Iterator[None]:
+    """Send every `step` on this thread to `say` until this ends."""
+    token = _STEP.set(say)
+    try:
+        yield
+    finally:
+        _STEP.reset(token)
+
+
 _BUSY: list[str] = []
 """What every `about` still open is about, for saying what a stopped build was doing."""
 
@@ -492,7 +512,7 @@ def _done(task: TaskID) -> None:
 
 @contextmanager
 def progress(
-    template: str, total: int, console: Console | None = None
+    template: str, total: int, console: Console | None = None, quiet: bool = False
 ) -> Iterator[Callable[[], None]]:
     """Say how far along something long is, and yield what to call as it goes.
 
@@ -508,11 +528,17 @@ def progress(
 
     The returned callable is called from the threads doing the work,
     so what it counts is kept under a lock.
+
+    `quiet` is for a count that says nothing a log does not already say as each
+    thing finishes: it is drawn on a terminal and written nowhere else.
     """
     console = console or for_stream()
     counted = 0
     lock = Lock()
     said = f"{_ABOUT.get()} · {template}" if _ABOUT.get() else template
+    if not console.is_terminal and quiet:
+        yield lambda: None
+        return
     if not console.is_terminal:
         reported = 0
 

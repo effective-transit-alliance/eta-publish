@@ -19,10 +19,12 @@ import tomllib
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path, PurePosixPath
 
 import htpy
 from markupsafe import Markup
+from rich.console import Console
 
 from . import console
 from .archive import Stopped
@@ -399,21 +401,46 @@ def build_site(
 
     def build(report: Report) -> tuple[Document, str]:
         previous = saved_for(report, saved)
+        named = label(report)
         # Named for the whole of the build, so the notes it writes along the
         # way say which report they are about. Several reports are built at
         # once and each writes as it goes, so an unattributed line is one the
         # reader has to guess the owner of.
-        with console.about(label(report)):
-            return build_one(
-                source(report, previous, options),
-                outdir,
-                options,
-                verify=verifier(report),
-                cached=reusable(previous, options),
-                previous=previous,
-                read_from=read_from,
-            )
+        with (
+            console.about(named),
+            console.stepping(partial(rows.show, named)),
+        ):
+            try:
+                return build_one(
+                    source(report, previous, options),
+                    outdir,
+                    options,
+                    verify=verifier(report),
+                    cached=reusable(previous, options),
+                    previous=previous,
+                    read_from=read_from,
+                )
+            finally:
+                rows.drop(named)
+                along()
 
+    # The whole build as one bar, and a line under it per report saying what it
+    # is doing: a report is printed only once it and every one listed before it
+    # are done, which on a build that archives can be minutes of nothing.
+    with (
+        console.progress("building reports", len(reports), quiet=True) as along,
+        console.watching() as rows,
+    ):
+        return _built(reports, build, site, log)
+
+
+def _built(
+    reports: list[Report],
+    build: Callable[[Report], tuple[Document, str]],
+    site: Site,
+    log: Console,
+) -> Site:
+    """Run `build` over every report at once, writing each out in list order as it is done."""
     pool = ThreadPoolExecutor(max_workers=max(1, min(len(reports), MAX_AT_ONCE)))
     started = [(report, pool.submit(build, report)) for report in reports]
     try:
