@@ -767,11 +767,12 @@ run as pre-commit hooks and again in CI.
 Tests run against checked-in Docs API responses,
 so neither ever needs Google credentials or the network.
 
-`scripts/check-site-offline.sh` also runs on every commit:
-it rebuilds `site/` with `eta-publish all --offline`
+`pytest` also rebuilds all of `site/` with `eta-publish all --offline --no-images --into`,
+in the background while the rest of the suite runs,
 and fails if that differs from what is staged,
 so a change to the code is committed with the pages it now writes.
-It fetches nothing, so it takes seconds and needs no credentials.
+It fetches nothing and needs no images, credentials, or network,
+so it runs the same in CI as on a machine that has built the site.
 
 One more hook runs on push rather than on commit:
 `scripts/check-committed-site.sh` rebuilds `site/` by fetching the documents

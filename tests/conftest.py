@@ -1,4 +1,9 @@
 import os
+import shutil
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 
 import pytest
 
@@ -18,6 +23,67 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         action="store_true",
         help="overwrite the committed snapshots with current output",
     )
+
+
+SITE_BUILD = "built_site"
+"""The fixture a test asks for to read the whole site as an offline build writes it."""
+
+
+class _Build:
+    """The offline build of the whole site, started as soon as a test is known to want it.
+
+    A process rather than a thread, so it runs alongside the rest of the suite
+    instead of taking turns with it for the interpreter, and so the hundred or
+    so warnings it writes go to a file rather than through the test output.
+
+    Without the images, which are not committed and so are not on a fresh
+    checkout or in CI: a build without them writes the same committed files,
+    since `images.json` says what each one was written as.
+    """
+
+    def __init__(self) -> None:
+        self.dir = Path(tempfile.mkdtemp(prefix="eta-publish-site-"))
+        self.out = self.dir / "site"
+        self.log = (self.dir / "build.log").open("w")
+        root = Path(__file__).parent.parent
+        self.process = subprocess.Popen(
+            [sys.executable, "-m", "eta_publish", "all", "--offline", "--no-images"]
+            + ["-o", str(root / "site"), "--into", str(self.out)],
+            cwd=root,
+            stdout=self.log,
+            stderr=subprocess.STDOUT,
+        )
+
+    def wait(self) -> Path:
+        code = self.process.wait()
+        self.log.close()
+        if code != 0:
+            pytest.fail(f"the offline build failed:\n{(self.dir / 'build.log').read_text()}")
+        return self.out
+
+
+_build: _Build | None = None
+
+
+def pytest_collection_finish(session: pytest.Session) -> None:
+    global _build
+    if any(SITE_BUILD in getattr(item, "fixturenames", ()) for item in session.items):
+        _build = _Build()
+
+
+def pytest_sessionfinish(session: pytest.Session) -> None:
+    if _build is not None:
+        _build.process.kill()
+        _build.process.wait()
+        shutil.rmtree(_build.dir, ignore_errors=True)
+
+
+@pytest.fixture(scope="session")
+def built_site() -> Path:
+    """Where the offline build wrote the whole site, waited for."""
+    if _build is None:
+        pytest.fail(f"`{SITE_BUILD}` was not started; see `pytest_collection_finish`")
+    return _build.wait()
 
 
 @pytest.fixture(scope="session")

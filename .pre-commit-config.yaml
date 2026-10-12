@@ -43,15 +43,6 @@ repos:
         pass_filenames: false
         always_run: true
 
-      # On every commit, unlike `committed-site` below:
-      # offline, it fetches nothing, so it takes seconds and needs no credentials.
-      - id: offline-site
-        name: the staged site is what an offline build writes
-        entry: scripts/check-site-offline.sh
-        language: script
-        pass_filenames: false
-        always_run: true
-
       # `Co-Authored-By:` is easy to write and still looks right,
       # so the spelling `CLAUDE.md` asks for is checked here
       # rather than caught in review, or not caught.

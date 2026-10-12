@@ -1,4 +1,4 @@
-"""Snapshot of the real SAS West report, end to end.
+"""The real SAS West report, parsed, checked, and emitted in process.
 
 `site/` is literally a publish of the real report,
 at the top level because it is the site this project publishes
@@ -8,9 +8,11 @@ rather than a test fixture:
 
 The report lands under the path its own front matter names,
 `reports/digging-out-deep-hole-sas-west/`, next to the index listing it.
-That directory holds `doc.json`, the four outputs, `images/`, and `report.pdf`,
-and this test asserts the committed outputs
-still match what the code produces from the committed response.
+That every committed output still matches what the code produces
+is `test_committed_site.py`'s to say, for this report and every other,
+along with what any published report has to be.
+This file asks what only this document can answer:
+what it should parse to, and what its own pages should hold.
 
 `tests/fixture/` is the same directory in miniature,
 built from a document nobody fetched, and the two differ by that and nothing else.
@@ -29,45 +31,30 @@ a Docs `inlineObject` carries a `contentUri` with no extension and no mime type,
 so the only way to learn an image is a JPEG is to fetch it,
 and this test does not use the network.
 It records the filename written for each image,
-refreshed from `images/` whenever that directory is present.
-
-When a snapshot changes, read the diff:
-it is exactly what the change does to a real published report.
-Accept it with `pytest --regenerate-snapshots`.
+refreshed from `images/` whenever that directory is present
+and the suite is run with `--regenerate-snapshots`.
 """
 
 import copy
 import json
 import re
-import tempfile
-from pathlib import Path
 
 import pytest
 from paths import REAL_DIR as REAL
 
-from eta_publish import format
 from eta_publish.archive import read_archive_index
 from eta_publish.checks import check as run_checks
 from eta_publish.docs_json import JsonObject
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
-from eta_publish.naming import IMAGE_DIR
 from eta_publish.nodes import Document, Figure, Heading
 from eta_publish.parse import parse
 from eta_publish.style import style
 
-ASSET_BASE = "../../assets"
-"""What a build links from a report at `reports/<slug>/`."""
-
 FILENAMES_PATH = REAL / "images.json"
 DOWNLOADED = REAL / "images"
 DOC_JSON = json.loads((REAL / "doc.json").read_text())
-
-# The snapshots are a plain publish, so no `--image-base`:
-# where images are hosted is still undecided,
-# and pinning a placeholder in would make every snapshot line depend on it.
-# That the flag is applied when given is covered in `test_preview.py`.
 
 
 def image_index(regenerate: bool) -> dict[str, JsonObject]:
@@ -102,12 +89,9 @@ def built(regenerate_snapshots: bool) -> Document:
     parsed.image_shapes.update(image_shapes(regenerate_snapshots))
     # Where each source is archived, from the record a build left here, for the
     # same reason as the image index: it is a fact only the network can learn,
-    # and these snapshots are the files a build writes. Without it, regenerating
-    # them overwrote the built report with one saying `not archived` 109 times.
+    # and what this emits is asked to hold of the pages a build writes.
     read_archive_index(REAL, parsed)
-    # As a build does it, because the page carries the warnings
-    # and these snapshots are the pages a build writes.
-    # `run_checks` rather than `check`, which is this module's snapshot comparison.
+    # As a build does it, because the page carries the warnings.
     run_checks(parsed)
     style(parsed)
     return parsed
@@ -121,62 +105,6 @@ def doc(built: Document) -> Document:
     each, and copying it takes a fiftieth of that.
     """
     return copy.deepcopy(built)
-
-
-def check(name: str, actual: str, regenerate: bool) -> None:
-    path = REAL / name
-    if regenerate or not path.exists():
-        path.write_text(actual)
-        if not regenerate:
-            pytest.fail(f"{path} did not exist; wrote it, review and commit")
-        return
-    expected = path.read_text()
-    assert actual == expected, (
-        f"{path} differs. This is a real published report, so read the diff "
-        "before accepting it, then rerun with --regenerate-snapshots."
-    )
-
-
-# ---- snapshots ------------------------------------------------------
-
-
-def formatted(name: str, source: str) -> str:
-    """`source` as a build would leave it on disk.
-
-    Through `format.tree`, the same call the build makes, rather than a
-    second way of formatting kept alive for the tests: the committed page is
-    the page a build writes, formatter included, and two paths that had to
-    agree would be free to stop agreeing without a test noticing.
-    """
-    with tempfile.TemporaryDirectory() as tmp:
-        page = Path(tmp) / name
-        page.write_text(source, encoding="utf-8")
-        format.tree(Path(tmp))
-        return page.read_text(encoding="utf-8")
-
-
-def test_html_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
-    check(
-        "report.html",
-        formatted("report.html", HtmlEmitter(image_base=IMAGE_DIR).emit(doc)),
-        regenerate_snapshots,
-    )
-
-
-def test_markdown_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
-    check("report.md", MarkdownEmitter().emit(doc), regenerate_snapshots)
-
-
-def test_typst_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
-    check("report.typ", TypstEmitter().emit(doc), regenerate_snapshots)
-
-
-def test_page_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
-    check(
-        "index.html",
-        formatted("index.html", report_page(doc, asset_base=ASSET_BASE)),
-        regenerate_snapshots,
-    )
 
 
 # ---- what the document should parse to ------------------------------
@@ -311,24 +239,6 @@ def test_the_archive_keeps_the_editorial_notes(doc: Document) -> None:
     assert "drive.google.com" in archive
 
 
-def test_html_ids_are_unique_and_every_link_resolves(doc: Document) -> None:
-    """The three defects on the live page, none of which can recur here."""
-    html = HtmlEmitter().emit(doc)
-
-    ids = re.findall(r'id="([^"]+)"', html)
-    assert len(ids) == len(set(ids))
-
-    refs = set(re.findall(r'id="fnref(\d+)"', html))
-    notes = set(re.findall(r'id="fn(\d+)"', html))
-    backlinks = set(re.findall(r'href="#fnref(\d+)"', html))
-    assert refs == notes == backlinks
-    assert len(refs) == 20
-
-    targets = set(ids)
-    for target in re.findall(r'href="#([^"]+)"', html):
-        assert target in targets, target
-
-
 def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     """Squarespace allows 400 KB.
     This is the number the one-paste claim rests on,
@@ -391,26 +301,6 @@ def test_the_report_opens_with_its_hero(doc: Document) -> None:
     page = report_page(doc)
     assert page.index("img-6fb0f9c4") < page.index('<nav class="toc"')
     assert page.index('property="og:image"') < page.index('<h1 id="title">')
-
-
-def test_no_chip_email_reaches_any_output(doc: Document) -> None:
-    """A person chip carries an email beside the name.
-    The name is what the document displays and what belongs in a report;
-    the address is contact information the document happens to hold,
-    and publishing it would put a contributor's address on a public page.
-
-    The fixture keeps the real addresses so this tests something.
-    """
-    emails = re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", json.dumps(DOC_JSON))
-    assert emails, "the fixture should still contain a chip to test against"
-    for emitted in (
-        HtmlEmitter().emit(doc),
-        MarkdownEmitter().emit(doc),
-        TypstEmitter().emit(doc),
-        report_page(doc),
-    ):
-        for email in emails:
-            assert email not in emitted, email
 
 
 def test_the_chart_publishes_as_a_vector(doc: Document) -> None:

@@ -99,6 +99,12 @@ def build_all(
     archive: Archive = True,
     comments: Comments = True,
     offline: Offline = False,
+    into: Annotated[
+        Path | None,
+        Option(
+            help="build here instead, reading the last build from OUTDIR and leaving it as it is"
+        ),
+    ] = None,
 ) -> None:
     """Build every report in a list, into a site with an index.
 
@@ -110,7 +116,18 @@ def build_all(
     except (OSError, ValueError) as e:
         # Typer's own wording for a bad argument, because that is what it is.
         raise BadParameter(str(e), param_hint="LIST") from e
-    publish(listed, outdir, suggestions, split, images, comments, offline, archive, whole=True)
+    publish(
+        listed,
+        outdir,
+        suggestions,
+        split,
+        images,
+        comments,
+        offline,
+        archive,
+        whole=True,
+        into=into,
+    )
 
 
 @app.command(name="one")
