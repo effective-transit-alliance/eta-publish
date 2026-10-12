@@ -592,6 +592,27 @@ def test_a_build_elsewhere_carries_over_only_what_the_report_still_uses(tmp_path
     assert carried == {"doc.json", IMAGES_JSON, "images", "images/sas-west-036.png"}
 
 
+def test_a_carried_over_image_is_linked_and_replacing_it_leaves_the_last_build_alone(
+    tmp_path: Path,
+) -> None:
+    """Linked, so a build does not copy 50 MB it changes none of; replaced, never rewritten."""
+    from eta_publish.build import carry_over
+    from eta_publish.naming import replace_bytes
+
+    last = tmp_path / "last"
+    (last / "images").mkdir(parents=True)
+    (last / IMAGES_JSON).write_text((FIXTURE_DIR / IMAGES_JSON).read_text())
+    (last / "images" / "sas-west-036.png").write_bytes(b"the last build's")
+
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+    carried = tmp_path / "next" / "images" / "sas-west-036.png"
+    assert carried.stat().st_ino == (last / "images" / "sas-west-036.png").stat().st_ino
+
+    replace_bytes(carried, b"this build's")
+    assert carried.read_bytes() == b"this build's"
+    assert (last / "images" / "sas-west-036.png").read_bytes() == b"the last build's"
+
+
 def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 

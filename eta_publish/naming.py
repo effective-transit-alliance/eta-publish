@@ -9,10 +9,13 @@ So both derive from the content they name, never from position.
 """
 
 import hashlib
+import os
 import re
+import tempfile
 import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable
+from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
 from pymdownx.slugs import slugify as _slugify
@@ -300,3 +303,22 @@ def image_filenames(claims: Iterable[tuple[str, str, str]]) -> dict[str, str]:
 
 def _short_hash(value: str, length: int = 8) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()[:length]
+
+
+def replace_bytes(path: Path, data: bytes) -> None:
+    """Write `data` as `path` by putting a new file in its place, never by rewriting it.
+
+    A build links the last build's images and videos into its own directory
+    rather than copying them. Rewritten in place, a linked file would change
+    the last build's copy too, which is the committed site when a test builds
+    beside it. Replaced, the last build keeps its own.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    try:
+        with os.fdopen(handle, "wb") as written:
+            written.write(data)
+        os.replace(temporary, path)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise

@@ -46,10 +46,13 @@ class _Build:
     def __init__(self) -> None:
         from eta_publish.build import has_its_images
 
-        self.dir = Path(tempfile.mkdtemp(prefix="eta-publish-site-"))
+        root = Path(__file__).parent.parent
+        # Beside `site/` rather than in the system's temporary directory, which
+        # is often another filesystem: the build hard-links the images it
+        # reuses, and a link cannot cross one.
+        self.dir = Path(tempfile.mkdtemp(dir=root, prefix=".site-test-"))
         self.out = self.dir / "site"
         self.log = (self.dir / "build.log").open("w")
-        root = Path(__file__).parent.parent
         reports = [saved.parent for saved in (root / "site").glob("*/*/doc.json")]
         images = all((report / "images").is_dir() and has_its_images(report) for report in reports)
         self.images = images

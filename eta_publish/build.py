@@ -159,8 +159,10 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     written as, what the archive and each platform said. And the files they
     name, which are not committed and so are only on disk: the images, the
     downloaded SVGs this document still links, and the embeds' thumbnails and
-    videos. Copied, not linked, because each of them is rewritten in place,
-    and a link would be the last build's file being rewritten under it.
+    videos. Those are hard-linked rather than copied, which is 50 MB a build
+    does not copy; every write to one goes through `replace_bytes`, which puts
+    a new file in its place and leaves the last build's copy alone.
+    The records are copied, since each is rewritten.
 
     Not the print copies, the PDF, or the outputs: every build writes those.
     """
@@ -190,7 +192,19 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(previous / name, dest / name)
+            _link_or_copy(previous / name, dest / name)
+
+
+def _link_or_copy(source: Path, dest: Path) -> None:
+    """`source` at `dest` as a second name for the same file, or a copy across filesystems."""
+    import os
+    import shutil
+
+    dest.unlink(missing_ok=True)
+    try:
+        os.link(source, dest)
+    except OSError:
+        shutil.copy2(source, dest)
 
 
 def write_split(doc: Document, outdir: Path, image_base: str = IMAGE_DIR) -> list[Path]:

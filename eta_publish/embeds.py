@@ -18,7 +18,7 @@ from urllib.parse import quote
 import requests
 
 from .docs_json import JsonObject
-from .naming import IMAGE_DIR, VIDEO_DIR, media_stem
+from .naming import IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
 from .nodes import VIDEO_TYPES, Card, Document, Embed, Platform, Shown
 
 EMBEDS_JSON = "embeds.json"
@@ -266,7 +266,7 @@ def _thumbnail(card: Card, stem: str, outdir: Path, http: requests.Session) -> s
     if extension is None:
         raise ValueError(f"the thumbnail came back as {kind or 'nothing'}")
     outdir.mkdir(parents=True, exist_ok=True)
-    (outdir / f"{stem}{extension}").write_bytes(response.content)
+    replace_bytes(outdir / f"{stem}{extension}", response.content)
     return f"{stem}{extension}"
 
 
@@ -277,7 +277,7 @@ def _video(embed: Embed, card: Card, stem: str, outdir: Path, doc: Document) -> 
     _check_size(embed, len(data), doc)
     name = f"{stem}{VIDEO_TYPES[card.mime]}"
     outdir.mkdir(parents=True, exist_ok=True)
-    (outdir / name).write_bytes(data)
+    replace_bytes(outdir / name, data)
     return name
 
 

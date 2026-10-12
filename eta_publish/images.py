@@ -23,7 +23,7 @@ from pathlib import Path
 
 import requests
 
-from .naming import print_href
+from .naming import print_href, replace_bytes
 from .nodes import Crop, Document, Image, Shown
 
 EXTENSIONS = {
@@ -181,7 +181,7 @@ def download(
                 f"expected one of {', '.join(sorted(EXTENSIONS))}"
             )
         dest = outdir / f"{image.filename}{extension}"
-        dest.write_bytes(crop_to(image, body, doc))
+        replace_bytes(dest, crop_to(image, body, doc))
         written[image.object_id] = dest
         doc.image_files[image.object_id] = dest.name
 
@@ -360,7 +360,7 @@ def _fetch_vector(
         # Written before the originals were kept apart, and uncropped,
         # so it is the original: an offline build has no other copy to work from.
         original.parent.mkdir(parents=True, exist_ok=True)
-        original.write_bytes(dest.read_bytes())
+        replace_bytes(original, dest.read_bytes())
     # Downloaded again on every build that can, like the rasters, and for the
     # same reason: nothing says whether the copy here is still the picture.
     # A Drive file keeps its id when it is replaced, and a link to a branch,
@@ -387,7 +387,7 @@ def _fetch_vector(
             doc.unpublished[image.object_id] = str(e)
             return True
         original.parent.mkdir(parents=True, exist_ok=True)
-        original.write_bytes(data)
+        replace_bytes(original, data)
 
     data = original.read_bytes()
     if image.crop.trims:
@@ -399,7 +399,7 @@ def _fetch_vector(
                 Shown(vector.title or vector.uri),
             )
     if not dest.exists() or dest.read_bytes() != data:
-        dest.write_bytes(data)
+        replace_bytes(dest, data)
     written[image.object_id] = dest
     doc.image_files[image.object_id] = dest.name
     return True
