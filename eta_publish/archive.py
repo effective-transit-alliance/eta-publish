@@ -805,9 +805,24 @@ def _archive(
             # Nothing to look up and nothing to ask for: it is already archived,
             # and asking the Wayback Machine about it only ever answers `403`.
             return Lookup(_patiently(lambda: _added(http, url, item)), already=True)
-        found = _patiently(lambda: _existing(http, url, pdf=pdf, index=index, replay=replay))
+        # The replay first, which is half a second; then, with keys, any
+        # capture already asked for, which is one status request; and only
+        # then the index, which is twenty to sixty times slower than either
+        # and when busy is minutes of being told to slow down. A source with a
+        # capture still running was asked of the index on every build first,
+        # and that was most of a build spent waiting on one photo.
+        found = _patiently(lambda: _existing(http, url, pdf=pdf, index=False, replay=replay))
         if found is not None:
             return Lookup(found, already=True)
+        job = _recorded_job(url) if headers is not None else None
+        if headers is not None and job is not None:
+            asked = _job(http, headers, url, job)
+            if asked is not None:
+                return Lookup(asked)
+        if index:
+            found = _patiently(lambda: _existing(http, url, pdf=pdf, index=True, replay=False))
+            if found is not None:
+                return Lookup(found, already=True)
         if headers is None and anonymous:
             # Not `_patiently`: each attempt is a capture, and one refused
             # about the moment is asked again by the next build, not this one.
@@ -819,14 +834,9 @@ def _archive(
             # was held back, this build learned nothing, and writing today's
             # date would renew the entry on every build and expire it never.
             return Lookup(unindexed=index, unserved=replay)
-        job = _recorded_job(url)
-        if job is not None:
-            # What became of the capture already asked for, rather than a
-            # second one: that one may have worked where no lookup can see it,
-            # filed under the address the source redirected to.
-            asked = _job(http, headers, url, job)
-            if asked is not None:
-                return Lookup(asked)
+        # A capture already asked for was asked about above, before the index:
+        # it may have worked where no lookup can see it, filed under the
+        # address the source redirected to. Its answer was to ask again.
         if _requested_lately(url):
             return _asked_lately()
         return Lookup(_submit(http, headers, url))

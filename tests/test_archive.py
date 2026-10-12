@@ -1123,6 +1123,23 @@ def test_a_recorded_job_is_still_asked_about_within_the_day(
     assert session.submitted == 0
 
 
+def test_a_capture_still_running_is_not_asked_of_the_index(
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The index is the slow one; the job says in one request that it is still going."""
+    asked: list[bool] = []
+
+    def existing(*_args: object, index: bool = True, **_kwargs: object) -> None:
+        asked.append(index)
+
+    monkeypatch.setattr(archive, "_existing", existing)
+    archive._remember_job("https://a.example/1", "job-1")
+    session = Saving([{"status": "pending"}])
+    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
+    assert (lookup.unanswered, lookup.short) == (True, archive.STILL_RUNNING)
+    assert asked == [False]
+
+
 def test_a_source_waiting_for_tomorrow_keeps_what_it_last_heard(keyed: None) -> None:
     """Not replaced by "asked for today", which would say less and change the page."""
     doc = cites("https://a.example/1")
