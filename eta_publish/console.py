@@ -33,19 +33,22 @@ from dataclasses import dataclass
 from datetime import timedelta
 from pathlib import Path
 from threading import Lock, RLock, Thread
-from typing import IO
+from typing import IO, override
 
 from rich.console import Console, Group, RenderableType
+from rich.markup import escape
 from rich.panel import Panel
 from rich.progress import (
     BarColumn,
     MofNCompleteColumn,
     Progress,
+    ProgressColumn,
+    Task,
     TaskID,
     TextColumn,
     TimeElapsedColumn,
 )
-from rich.table import Table
+from rich.table import Column, Table
 from rich.text import Text
 
 from .nodes import Cut, Highlighted, Listed, Notice, Quoted, Shown, Span, filled
@@ -402,9 +405,17 @@ def _bar(console: Console) -> Progress:
         _BAR = Progress(
             # The words first, as every other line of a build reads: what is
             # happening, then how far along it is, then how long it has been.
-            TextColumn("  [dim]{task.description}[/dim]"),
-            BarColumn(bar_width=24),
-            MofNCompleteColumn(),
+            # Cut short rather than allowed to push the rest off the line:
+            # a source's URL is often longer than the terminal is wide, and
+            # the elapsed time at the end is what a row of `watching` is for.
+            TextColumn(
+                "  [dim]{task.description}[/dim]",
+                table_column=Column(
+                    no_wrap=True, overflow="ellipsis", max_width=max(20, console.width - 34)
+                ),
+            ),
+            _CountsOnly(BarColumn(bar_width=12)),
+            _CountsOnly(MofNCompleteColumn()),
             TimeElapsedColumn(),
             console=console,
             # Gone once it is done, because the line that follows says the
@@ -429,6 +440,22 @@ def _bar(console: Console) -> Progress:
         # A daemon, so a build that is stopping is never waiting on a clock.
         Thread(target=_ticking, args=(console,), name=TICKER, daemon=True).start()
     return _BAR
+
+
+class _CountsOnly(ProgressColumn):
+    """`column` on a row that counts, and nothing on a row that is a line of `watching`."""
+
+    def __init__(self, column: ProgressColumn) -> None:
+        super().__init__()
+        self.column = column
+
+    @override
+    def render(self, task: Task) -> RenderableType:
+        return Text() if task.fields.get(ROW) else self.column.render(task)
+
+
+ROW = "row"
+"""The field marking a bar row as one of `watching`'s, which counts nothing."""
 
 
 def _done(task: TaskID) -> None:
@@ -585,3 +612,81 @@ def write(renderable: RenderableType | None, console: Console | None = None) -> 
     with _BAR_LOCK:
         console.print(renderable, soft_wrap=not console.is_terminal)
     console.file.flush()
+
+
+SLOW = timedelta(seconds=10)
+"""How long one thing has to take before a log with no terminal says it did."""
+
+
+class Rows:
+    """One line per thing being waited on, each with how long it has been waited on.
+
+    `progress` says how many of a hundred sources have answered, which is not
+    what anybody watching a stalled build wants to know: that is which one has
+    not, what it is waiting for, and for how long. A capture can take minutes,
+    and a build sitting at 108 of 109 says nothing about the one left.
+    """
+
+    def __init__(self, console: Console) -> None:
+        self.console = console
+        self.lock = Lock()
+        self.tasks: dict[str, TaskID] = {}
+        self.started: dict[str, float] = {}
+        self.said: dict[str, str] = {}
+
+    def show(self, key: str, state: str) -> None:
+        """Say what `key` is waiting on now, starting its clock if this is the first time."""
+        with self.lock:
+            self.said[key] = state
+            self.started.setdefault(key, time.monotonic())
+            if not self.console.is_terminal:
+                return
+            # What it is waiting on first, since the end is what gets cut.
+            line = escape(f"  {state} · {_shortened(key)}")
+            with _BAR_LOCK:
+                bar = _bar(self.console)
+                if key in self.tasks:
+                    bar.update(self.tasks[key], description=line)
+                else:
+                    self.tasks[key] = bar.add_task(line, total=None, **{ROW: True})
+                bar.refresh()
+
+    def drop(self, key: str) -> None:
+        """`key` has its answer: take its line away, or in a log, say if it was slow."""
+        with self.lock:
+            started = self.started.pop(key, None)
+            state = self.said.pop(key, "")
+            task = self.tasks.pop(key, None)
+        if task is not None:
+            _done(task)
+            return
+        if started is None or self.console.is_terminal:
+            return
+        took = time.monotonic() - started
+        if took >= SLOW.total_seconds():
+            write(
+                note(
+                    "{} took {}s, last {}", Shown(key), f"{took:.0f}", state, console=self.console
+                ),
+                self.console,
+            )
+
+
+def _shortened(url: str, width: int = 60) -> str:
+    """`url` without its scheme, and cut in the middle if it is still too long for a line."""
+    url = url.removeprefix("https://").removeprefix("http://")
+    if len(url) <= width:
+        return url
+    half = (width - 1) // 2
+    return f"{url[:half]}…{url[-half:]}"
+
+
+@contextmanager
+def watching(console: Console | None = None) -> Iterator[Rows]:
+    """Lines under the bar for the things being waited on, gone when this ends."""
+    rows = Rows(console or for_stream())
+    try:
+        yield rows
+    finally:
+        for key in list(rows.tasks):
+            rows.drop(key)

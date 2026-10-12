@@ -165,6 +165,29 @@ def test_a_failure_recorded_about_the_moment_is_tried_again() -> None:
     assert missing(doc) == ["https://a.example/1"]
 
 
+def test_each_step_of_a_capture_is_said_while_it_is_waited_on(no_waiting: None) -> None:
+    said: list[str] = []
+    archive._SAYING.say = said.append
+    try:
+        session = Saving(
+            [
+                {"job_id": "job-5"},
+                {"status": "pending"},
+                {"status": "success", "timestamp": "20261012000000"},
+            ]
+        )
+        archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/5")
+    finally:
+        archive._SAYING.say = None
+    assert said == [
+        "queued to capture",
+        "asking to capture",
+        "capture asked",
+        "capture pending",
+        "capture success",
+    ]
+
+
 def test_a_job_save_page_now_cannot_find_is_not_the_pages_answer(no_waiting: None) -> None:
     session = Saving([{"job_id": "job-4"}, {"status": "error", "status_ext": "error:no-request"}])
     with pytest.raises(archive.Busy):

@@ -352,3 +352,33 @@ def test_the_clock_is_not_something_a_build_waits_on() -> None:
     with log.progress("checking the archive", 1, console):
         ticking = [t for t in threading.enumerate() if t.name == log.TICKER]
         assert ticking and all(t.daemon for t in ticking)
+
+
+def test_a_source_being_waited_on_has_a_line_saying_what_it_waits_on() -> None:
+    """Which one is holding the build up, and what for, rather than only how many are left."""
+    console = terminal(width=100)
+    with log.progress("checking the archive", 2, console), log.watching(console) as rows:
+        rows.show("https://data.ny.gov/d/kcjb-nf3e", "index")
+        drawn = _written(console)
+    assert "index · data.ny.gov/d/kcjb-nf3e" in drawn
+
+
+def test_a_source_answered_takes_its_line_with_it() -> None:
+    console = terminal(width=100)
+    with log.progress("checking the archive", 2, console), log.watching(console) as rows:
+        rows.show("https://a.example/1", "replay")
+        rows.drop("https://a.example/1")
+        assert rows.tasks == {}
+
+
+def test_off_a_terminal_only_a_slow_source_is_said(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A log has no line to redraw, so it hears about a source once, and only if it was slow."""
+    console = plain()
+    now = iter([0.0, 0.0, 30.0])
+    monkeypatch.setattr(log.time, "monotonic", lambda: next(now))
+    with log.watching(console) as rows:
+        rows.show("https://a.example/1", "replay")
+        rows.show("https://a.example/1", "capture pending")
+        rows.drop("https://a.example/1")
+    assert "https://a.example/1" in _written(console)
+    assert "took 30s, last capture pending" in _written(console)

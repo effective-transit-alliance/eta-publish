@@ -26,9 +26,10 @@ from collections.abc import Callable, Mapping
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
+from functools import partial
 from io import BytesIO
 from pathlib import Path
-from threading import Lock, Semaphore
+from threading import Lock, Semaphore, local
 from urllib.parse import urljoin, urlsplit
 
 import platformdirs
@@ -39,6 +40,7 @@ from requests.adapters import HTTPAdapter
 
 from . import PACKAGE_NAME
 from .checks import plural
+from .console import Rows
 from .nodes import UNREWRITTEN, Archived, Document, Shown, cited_page, document_url, wayback_url
 
 ARCHIVES_JSON = "archives.json"
@@ -556,11 +558,29 @@ def today() -> str:
     return datetime.now(UTC).strftime("%Y%m%d")
 
 
+_SAYING = local()
+"""What the thread asking about a source calls to say what it is waiting on."""
+
+
+def _status(state: str) -> None:
+    """Say what the source this thread is asking about is waiting on now.
+
+    Through the thread rather than an argument handed down every function
+    between `capture` and the request: every one of them is asked about one
+    source, on one of `capture`'s threads, and nothing else calls them in a
+    way that wants telling.
+    """
+    say = getattr(_SAYING, "say", None)
+    if say is not None:
+        say(state)
+
+
 def capture(
     doc: Document,
     *,
     session: requests.Session | None = None,
     along: Callable[[], None] | None = None,
+    rows: Rows | None = None,
 ) -> tuple[int, int]:
     """Archive every source of `doc` that nothing has tried yet.
 
@@ -582,6 +602,9 @@ def capture(
     `along` is called once per source as the answer arrives, for a build that
     wants to say how far along it is: this is the slowest thing a build does,
     and it is slow in a way nothing here controls.
+
+    `rows` is told, for each source being asked about, what it is waiting on:
+    the replay, the index, a turn to ask, or a capture that is still running.
 
     A source the service would not answer about at all is the exception:
     it publishes as not archived with the reason, and a warning, but `pending`,
@@ -607,15 +630,22 @@ def capture(
     cached = _cached() if headers is None and not anonymous else {"index": {}, "replay": {}}
 
     def archive(url: str) -> Lookup:
-        return _archive(
-            http,
-            headers,
-            url,
-            pdf=url in pdfs,
-            anonymous=anonymous,
-            index=not _stands("index", cached["index"].get(url, "")),
-            replay=not _stands("replay", cached["replay"].get(url, "")),
-        )
+        if rows is not None:
+            _SAYING.say = partial(rows.show, url)
+        try:
+            return _archive(
+                http,
+                headers,
+                url,
+                pdf=url in pdfs,
+                anonymous=anonymous,
+                index=not _stands("index", cached["index"].get(url, "")),
+                replay=not _stands("replay", cached["replay"].get(url, "")),
+            )
+        finally:
+            _SAYING.say = None
+            if rows is not None:
+                rows.drop(url)
 
     pool = ThreadPoolExecutor(max_workers=REPLAY_AT_ONCE)
     asked = [pool.submit(archive, url) for url in wanted]
@@ -883,7 +913,8 @@ def _patiently[T](ask: Callable[[], T]) -> T:
     for wait in PATIENCE:
         try:
             return ask()
-        except Busy, requests.ConnectionError, requests.Timeout:
+        except (Busy, requests.ConnectionError, requests.Timeout) as e:
+            _status(f"slowed ({type(e).__name__}), again in {wait.total_seconds():.0f}s")
             time.sleep(wait.total_seconds())
     return ask()
 
@@ -920,7 +951,9 @@ def _existing(
 
 def _replayed(http: requests.Session, url: str, *, pdf: bool = False) -> Archived | None:
     """`_served`, asked while holding `_REPLAYING`."""
+    _status("queued for replay")
     with _REPLAYING:
+        _status("replay")
         return _served(http, url, pdf=pdf)
 
 
@@ -1111,7 +1144,9 @@ def _indexed(http: requests.Session, url: str, *, pdf: bool = False) -> Archived
     Under `_INDEXING`, which is the limit this whole module is careful about:
     it is held for this question and not for the replay lookup that came first.
     """
+    _status("queued for index")
     with _INDEXING:
+        _status("index")
         return _index_answer(http, url, pdf=pdf)
 
 
@@ -1149,7 +1184,9 @@ def _submit(http: requests.Session, headers: dict[str, str], url: str) -> Archiv
     Save Page Now answers with a job rather than a snapshot, so the wait is the
     ordinary shape of this rather than a retry.
     """
+    _status("queued to capture")
     with _SUBMITTING:
+        _status("asking to capture")
         return _submitted(http, headers, url)
 
 
@@ -1162,6 +1199,7 @@ def _submitted(http: requests.Session, headers: dict[str, str], url: str) -> Arc
     if not job:
         return _failed(_refused(answer), answer)
     _remember_job(url, job)
+    _status("capture asked")
     deadline = time.monotonic() + CAPTURE_TIMEOUT.total_seconds()
     while time.monotonic() < deadline:
         time.sleep(POLL_EVERY.total_seconds())
@@ -1173,6 +1211,7 @@ def _submitted(http: requests.Session, headers: dict[str, str], url: str) -> Arc
             # is still going, and a second one is a second capture of the page.
             continue
         status = state.get("status")
+        _status(f"capture {status or 'unanswered'}")
         if status == "success" and state.get("timestamp"):
             stamp = state["timestamp"]
             return Archived(
@@ -1196,6 +1235,7 @@ def _job(http: requests.Session, headers: dict[str, str], url: str, job: str) ->
     one refused about the page is the answer, and one still running is waited
     on by the builds after this one, not by this one.
     """
+    _status("earlier capture?")
     state = _checked(http.get(f"{SAVE}/status/{job}", headers=headers, timeout=30)).json()
     status = state.get("status")
     if status == "success" and state.get("timestamp"):
@@ -1297,10 +1337,13 @@ def _submit_anonymously(http: requests.Session, url: str) -> Archived:
     "Sorry" paragraph says why, which is the reason recorded. Anything else,
     `429` and the service's own `5xx` included, is about the service.
     """
+    _status("queued to capture anonymously")
     with _ANONYMOUSLY:
         wait = _last_anonymous[0] + ANONYMOUS_EVERY.total_seconds() - time.monotonic()
         if wait > 0:
+            _status(f"anonymous capture in {wait:.0f}s")
             time.sleep(wait)
+        _status("capturing anonymously")
         _last_anonymous[0] = time.monotonic()
         _remember_request(url)
         response = http.get(
