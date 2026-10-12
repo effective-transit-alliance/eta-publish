@@ -1414,6 +1414,22 @@ and some of what the reports cite runs to hundreds of pages and tens of MB.
 """
 
 
+def unchanging(url: str) -> bool:
+    """Whether the file at `url` is known never to change, so its live copy is the one cited.
+
+    A Substack attachment, `<publication>.substack.com/api/v1/file/<uuid>`:
+    the UUID is made when the file is uploaded, and a file uploaded again is
+    given a new one, so the URL a report cites keeps naming the same file.
+    Its live copy downloads in a third of a second, where its captures have
+    answered `503` after twenty, so it is counted live first. What that skips
+    is the count of the capture, which is what finds a capture that is not the
+    PDF; a Substack attachment has not been captured as anything else.
+    """
+    parts = urlsplit(url)
+    host = parts.hostname or ""
+    return host.endswith(".substack.com") and parts.path.startswith("/api/v1/file/")
+
+
 def uncounted(doc: Document) -> list[str]:
     """The PDFs cited by page whose pages are not yet counted, in the order cited."""
     return [
@@ -1468,6 +1484,11 @@ def count_pages(
             _SAYING.say = partial(rows.show, url)
         try:
             archived = doc.archives[url]
+            if unchanging(url):
+                _status("downloading the live file")
+                live = _pages(http, url)
+                if live:
+                    return live
             if archived.snapshot and not archived.error:
                 _status("downloading the capture")
                 pages = _pages(http, wayback_url(archived.timestamp, url, modifier=UNREWRITTEN))

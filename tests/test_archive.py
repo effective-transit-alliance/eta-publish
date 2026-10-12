@@ -1258,6 +1258,19 @@ def test_a_capture_that_cannot_be_downloaded_is_counted_live_once(no_waiting: No
     assert doc.archives["https://a.example/a.pdf"].pages == 4
 
 
+def test_a_substack_attachment_is_counted_live_first() -> None:
+    """Its URL names one upload for good, and the live copy is the fast one."""
+    url = "https://bqrail.substack.com/api/v1/file/e01c0e72-8526-4748-879c-5ac271ca3c06.pdf"
+    doc = cites(f"{url}#page=2")
+    doc.archives[url] = Archived(
+        snapshot=f"https://web.archive.org/web/20261010195152/{url}", timestamp="20261010195152"
+    )
+    session = Serving({url: _pdf(3)})
+    assert archive.count_pages(doc, session=session) == 1
+    assert session.asked == [url]
+    assert doc.archives[url].pages == 3
+
+
 def test_only_what_is_named_is_counted() -> None:
     """The count after the archive check is for what it newly archived."""
     doc = cites("https://a.example/a.pdf#page=2")
