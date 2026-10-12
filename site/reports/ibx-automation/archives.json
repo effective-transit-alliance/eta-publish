@@ -15,6 +15,14 @@
     "snapshot": "https://web.archive.org/web/20260416140808/https://arxiv.org/abs/2408.01562",
     "timestamp": "20260416140808"
   },
+  "https://assets.new.siemens.com/siemens/assets/api/uuid:3ce5a359-5933-4f0b-8877-6e9aa3df13bd/Low-Floor-Light-Rail-Vehicle-Packet.pdf": {
+    "snapshot": "https://web.archive.org/web/20260724161740/https://assets.new.siemens.com/siemens/assets/api/uuid:3ce5a359-5933-4f0b-8877-6e9aa3df13bd/Low-Floor-Light-Rail-Vehicle-Packet.pdf",
+    "timestamp": "20260724161740"
+  },
+  "https://assets.new.siemens.com/siemens/assets/api/uuid:8f100b64-dc6a-4cde-8e22-c0d8dcce6273/High-Floor-Light-Rail-Vehicle-Packet.pdf": {
+    "snapshot": "https://web.archive.org/web/20260814044508/https://assets.new.siemens.com/siemens/assets/api/uuid:8f100b64-dc6a-4cde-8e22-c0d8dcce6273/High-Floor-Light-Rail-Vehicle-Packet.pdf",
+    "timestamp": "20260814044508"
+  },
   "https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf": {
     "pages": 12,
     "snapshot": "https://web.archive.org/web/20240921120558/https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf",
@@ -25,11 +33,9 @@
     "timestamp": "20261010113008"
   },
   "https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf": {
-    "error": "the archive did not answer",
-    "pages": 30,
-    "pending": true,
-    "said": "HTTPSConnectionPool(host='web.archive.org', port=443): Max retries exceeded with url: /web/2099/https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf (Caused by NewConnectionError(\"HTTPSConnection(host='web.archive.org', port=443): Failed to establish a new connection: [Errno 111] Connection refused\"))",
-    "timestamp": "20261010"
+    "job": "spn2-d07574712d277732eee28213a77231e270fa10f9",
+    "snapshot": "https://web.archive.org/web/20261012000357/https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf",
+    "timestamp": "20261012000357"
   },
   "https://bqrail.substack.com/api/v1/file/69603a69-34d1-4d20-b44a-921b6c45714e.pdf": {
     "snapshot": "https://web.archive.org/web/20261010091720/https://bqrail.substack.com/api/v1/file/69603a69-34d1-4d20-b44a-921b6c45714e.pdf",
@@ -49,9 +55,18 @@
     "snapshot": "https://web.archive.org/web/20261010112952/https://bqrail.substack.com/api/v1/file/cce3e5d4-3702-4e13-a96f-f5d4d0d99e6e.pdf",
     "timestamp": "20261010112952"
   },
+  "https://bqrail.substack.com/p/full-size-trains-for-the-interborough": {
+    "snapshot": "https://web.archive.org/web/20260212131716/https://bqrail.substack.com/p/full-size-trains-for-the-interborough",
+    "timestamp": "20260212131716"
+  },
   "https://bqrail.substack.com/p/interborough-express-progress-reports": {
     "snapshot": "https://web.archive.org/web/20260304064215/https://bqrail.substack.com/p/interborough-express-progress-reports",
     "timestamp": "20260304064215"
+  },
+  "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg": {
+    "error": "error:no-request",
+    "job": "spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67",
+    "timestamp": "20261012"
   },
   "https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg": {
     "snapshot": "https://web.archive.org/web/20251205134012/https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg",
@@ -65,13 +80,35 @@
     "snapshot": "https://web.archive.org/web/20260313233214/https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NAMAIN10%40DF_TABLE4&df[ag]=OECD.SDD.NAD&df[vs]=2.0&dq=A.AUS%2BAUT%2BBEL%2BCAN%2BCHL%2BCOL%2BCRI%2BCZE%2BDNK%2BEST%2BFIN%2BFRA%2BDEU%2BGRC%2BHUN%2BISL%2BIRL%2BISR%2BITA%2BJPN%2BKOR%2BLVA%2BLTU%2BLUX%2BMEX%2BNLD%2BNZL%2BNOR%2BPOL%2BPRT%2BSVK%2BSVN%2BESP%2BSWE%2BCHE%2BTUR%2BGBR%2BUSA...PPP_B1GQ.......&lom=LASTNPERIODS&lo=10&to[TIME_PERIOD]=false&ly[cl]=TIME_PERIOD&ly[rw]=REF_AREA,COMBINED_UNIT_MEASURE&vw=tb",
     "timestamp": "20260313233214"
   },
+  "https://data.ny.gov/Transportation/MTA-Subway-Origin-Destination-Ridership-Estimate-2/y2qv-fytt/about_data": {
+    "snapshot": "https://web.archive.org/web/20260426142345/https://data.ny.gov/Transportation/MTA-Subway-Origin-Destination-Ridership-Estimate-2/y2qv-fytt/about_data",
+    "timestamp": "20260426142345"
+  },
+  "https://data.ny.gov/d/kcjb-nf3e": {
+    "job": "spn2-58c665c974aabf37e3821c0fc9cf65d55fa60627",
+    "snapshot": "https://web.archive.org/web/20261012000437/https://data.ny.gov/d/kcjb-nf3e",
+    "timestamp": "20261012000437"
+  },
+  "https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf": {
+    "pages": 37,
+    "snapshot": "https://web.archive.org/web/20260821175057/https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf",
+    "timestamp": "20260821175057"
+  },
   "https://github.com/kkysen/automated-metro-data": {
     "snapshot": "https://web.archive.org/web/20261009033813/https://github.com/kkysen/automated-metro-data",
     "timestamp": "20261009033813"
   },
+  "https://github.com/kkysen/ibx-pel-track-map-images": {
+    "snapshot": "https://web.archive.org/web/20261012000612/https://github.com/kkysen/ibx-pel-track-map-images",
+    "timestamp": "20261012000612"
+  },
   "https://github.com/kkysen/ibx-ridership-charts/": {
     "snapshot": "https://web.archive.org/web/20261010091656/https://github.com/kkysen/ibx-ridership-charts/",
     "timestamp": "20261010091656"
+  },
+  "https://github.com/kkysen/mta-od-data/tree/raptor/raptor": {
+    "snapshot": "https://web.archive.org/web/20261012000517/https://github.com/kkysen/mta-od-data/tree/raptor/raptor",
+    "timestamp": "20261012000517"
   },
   "https://gothamist.com/news/mamdani-eyes-sweeping-housing-plan-for-blocks-south-of-brooklyns-prospect-park": {
     "snapshot": "https://web.archive.org/web/20260902012928/https://gothamist.com/news/mamdani-eyes-sweeping-housing-plan-for-blocks-south-of-brooklyns-prospect-park",
@@ -100,6 +137,10 @@
   "https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part": {
     "snapshot": "https://web.archive.org/web/20251027132111/https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part",
     "timestamp": "20251027132111"
+  },
+  "https://metrics.mta.info/?subway/fareevasion": {
+    "snapshot": "https://web.archive.org/web/20250311083040/https://metrics.mta.info/?subway/fareevasion",
+    "timestamp": "20250311083040"
   },
   "https://myemail.constantcontact.com/News-from-the-Honolulu-Rail-Transit-Project.html?aid=Hx5Y3V3IrQE&soid=1102697428056": {
     "snapshot": "https://web.archive.org/web/20261009033703/https://myemail.constantcontact.com/News-from-the-Honolulu-Rail-Transit-Project.html?aid=Hx5Y3V3IrQE&soid=1102697428056",
@@ -145,6 +186,10 @@
     "snapshot": "https://web.archive.org/web/20260829123215/https://www.governor.ny.gov/news/governor-hochul-announces-interborough-express-advancing-planning-active-phase",
     "timestamp": "20260829123215"
   },
+  "https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing": {
+    "snapshot": "https://web.archive.org/web/20260512062354/https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing",
+    "timestamp": "20260512062354"
+  },
   "https://www.grandparisexpress.fr/ligne-15": {
     "snapshot": "https://web.archive.org/web/20260313040341/https://www.grandparisexpress.fr/ligne-15",
     "timestamp": "20260313040341"
@@ -154,6 +199,10 @@
     "snapshot": "https://web.archive.org/web/20260406153437/https://www.iledefrance-mobilites.fr/medias/portail-idfm/d2b73925-aa17-452d-b662-c466dbbe3e04_Journe%CC%81e-dinformation-aux-ope%CC%81rateurs-_Socie%CC%81te%CC%81-du-Grand-Paris-_-13062019.pdf",
     "timestamp": "20260406153437"
   },
+  "https://www.info.gov.hk/gia/general/200501/05/0105194.htm": {
+    "snapshot": "https://web.archive.org/web/20241112233930/https://www.info.gov.hk/gia/general/200501/05/0105194.htm",
+    "timestamp": "20241112233930"
+  },
   "https://www.innotrans.de/en": {
     "snapshot": "https://web.archive.org/web/20261002215033/https://www.innotrans.de/en",
     "timestamp": "20261002215033"
@@ -161,6 +210,10 @@
   "https://www.leparisien.fr/info-paris-ile-de-france-oise/transports/accidents-mortels-dans-le-metro-la-securisation-des-quais-un-chantier-long-et-couteux-27-04-2023-6HBP4OH5TFBDXM5SN2NMLM3JME.php": {
     "snapshot": "https://web.archive.org/web/20260121060040/https://www.leparisien.fr/info-paris-ile-de-france-oise/transports/accidents-mortels-dans-le-metro-la-securisation-des-quais-un-chantier-long-et-couteux-27-04-2023-6HBP4OH5TFBDXM5SN2NMLM3JME.php",
     "timestamp": "20260121060040"
+  },
+  "https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf": {
+    "snapshot": "https://web.archive.org/web/20260918072835/https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf",
+    "timestamp": "20260918072835"
   },
   "https://www.mta.info/document/103691": {
     "pages": 6,
@@ -182,6 +235,10 @@
     "snapshot": "https://web.archive.org/web/20260920230007/https://www.mta.info/document/187036",
     "timestamp": "20260920230007"
   },
+  "https://www.mta.info/document/213556": {
+    "snapshot": "https://web.archive.org/web/20260805005314/https://www.mta.info/document/213556",
+    "timestamp": "20260805005314"
+  },
   "https://www.mta.info/document/222046": {
     "pages": 16,
     "snapshot": "https://web.archive.org/web/20261008194744/https://www.mta.info/document/222046",
@@ -201,10 +258,6 @@
     "pages": 18,
     "snapshot": "https://web.archive.org/web/20260518163429/https://www.mta.info/document/77166",
     "timestamp": "20260518163429"
-  },
-  "https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-advancing-planning-active-phase": {
-    "snapshot": "https://web.archive.org/web/20260518022508/https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-advancing-planning-active-phase",
-    "timestamp": "20260518022508"
   },
   "https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental": {
     "snapshot": "https://web.archive.org/web/20260910033654/https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental",
@@ -226,6 +279,10 @@
     "pages": 130,
     "snapshot": "https://web.archive.org/web/20261009033606/https://www.nymtc.org/sites/default/files/rfp/2024%20Hub%20Bound%20Report%20%282%29.pdf",
     "timestamp": "20261009033606"
+  },
+  "https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article": {
+    "snapshot": "https://web.archive.org/web/20251217185902/https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article",
+    "timestamp": "20251217185902"
   },
   "https://www.transit.dot.gov/funding/grant-programs/capital-investments/stops": {
     "snapshot": "https://web.archive.org/web/20260512184009/https://www.transit.dot.gov/funding/grant-programs/capital-investments/stops",

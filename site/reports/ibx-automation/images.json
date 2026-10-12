@@ -5,6 +5,12 @@
     "sha256": "52b14e2c48347f825a4bc7de9bdc71ba2882355afe00467ce25a1f78487268ce",
     "width": 1536
   },
+  "kix.5n8vt7vnc1n": {
+    "file": "ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-f6361416.png",
+    "height": 1364,
+    "sha256": "98be77896bbede703755f62c964ad75c72f74cd225ac1e6d40cdfff5aed6edf0",
+    "width": 3639
+  },
   "kix.5qe5oqancvsg": {
     "file": "IBX_NU_Side_Platform_Crop_2026_0825.original.jpg",
     "height": 1365,
@@ -32,9 +38,21 @@
     "file": "automated_share_by_year_2016_to_2026.svg",
     "sha256": "5b6b5195266b740ecd88fe6837874d35e31509665eed81ed3d463f2830a40b97"
   },
+  "kix.qc2x0atkvkca": {
+    "file": "ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only-a25b625c.png",
+    "height": 1364,
+    "sha256": "98be77896bbede703755f62c964ad75c72f74cd225ac1e6d40cdfff5aed6edf0",
+    "width": 3639
+  },
   "kix.tx1fjdbmxbaz": {
     "alt": "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.",
     "file": "automated_share_by_year_ex_china_2016_to_2026.svg",
     "sha256": "50ff669b751660cf1f79a6a96dcc8addf598b7d626d6dcf62d1db603ad017b13"
+  },
+  "kix.wy9tafmqauu3": {
+    "file": "Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg",
+    "height": 893,
+    "sha256": "ce5f2401e2eddece1ec9777932a184d4b38ec7e61a53893ed581853276af79dc",
+    "width": 1644
   }
 }
