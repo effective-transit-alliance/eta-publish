@@ -1083,6 +1083,20 @@ def test_a_capture_is_asked_for_at_most_once_a_day(
     assert (second.unanswered, second.short) == (True, archive.ASKED_LATELY)
 
 
+def test_a_job_save_page_now_lost_is_not_captured_again_within_the_day(
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The Harsimus Cove photo: its job answered `error:no-request`, which is about
+    the moment, so it is asked for again, but not before the day is out."""
+    _found_nothing(monkeypatch)
+    archive._remember_request("https://a.example/1")
+    archive._remember_job("https://a.example/1", "job-1")
+    session = Saving([{"status": "error", "status_ext": "error:no-request"}])
+    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
+    assert session.submitted == 0
+    assert (lookup.unanswered, lookup.short) == (True, archive.ASKED_LATELY)
+
+
 def test_a_capture_is_asked_for_again_the_next_day(
     no_waiting: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
