@@ -314,3 +314,10 @@ def test_the_chart_publishes_as_a_vector(doc: Document) -> None:
     for emitted in (HtmlEmitter().emit(doc), MarkdownEmitter().emit(doc), TypstEmitter().emit(doc)):
         assert vectors[0].vector is not None
         assert vectors[0].vector.filename in emitted
+
+
+def test_only_the_hero_is_asked_for_before_it_is_in_view(doc: Document) -> None:
+    """Lazy loading delays the one picture certain to be on the screen."""
+    images = re.findall(r"<img\b[^>]*>", HtmlEmitter().emit(doc))
+    assert 'fetchpriority="high"' in images[0] and "loading=" not in images[0]
+    assert all('loading="lazy"' in image for image in images[1:])

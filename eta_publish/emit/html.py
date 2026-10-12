@@ -1071,12 +1071,27 @@ class HtmlEmitter(Emitter):
 
         An SVG has no pixel size to read, so it is the one this cannot say
         anything about.
+
+        Every picture loads lazily but the hero, which is the first thing on
+        the screen: a lazy image is not asked for until the page is laid out
+        and it is found to be in view, which for the one picture certain to be
+        in view is only a delay. It is asked for first instead.
         """
         href = self.doc.image_href(node)
         src = f"{self.image_base}/{href}" if self.image_base else href
         shape = self.doc.image_shapes.get(node.object_id)
         width, height = shape if shape else (None, None)
-        return markup(htpy.img(src=src, alt=node.alt, loading="lazy", width=width, height=height))
+        hero = self.doc.hero is not None and self.doc.hero.image is node
+        return markup(
+            htpy.img(
+                src=src,
+                alt=node.alt,
+                loading=None if hero else "lazy",
+                fetchpriority="high" if hero else None,
+                width=width,
+                height=height,
+            )
+        )
 
 
 # Enough to read the report as it will look, and nothing more.
