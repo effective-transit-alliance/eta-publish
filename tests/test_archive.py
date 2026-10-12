@@ -155,6 +155,22 @@ def test_a_failed_capture_is_not_tried_again() -> None:
     assert missing(doc) == ["https://b.example/2"]
 
 
+def test_a_failure_recorded_about_the_moment_is_tried_again() -> None:
+    """Recorded before `error:no-request` was known to be about the moment,
+    the Harsimus Cove photo would otherwise never have been asked about again."""
+    doc = cites("https://a.example/1")
+    doc.archives["https://a.example/1"] = Archived(
+        timestamp="20261012", error="error:no-request", job="job-1"
+    )
+    assert missing(doc) == ["https://a.example/1"]
+
+
+def test_a_job_save_page_now_cannot_find_is_not_the_pages_answer(no_waiting: None) -> None:
+    session = Saving([{"job_id": "job-4"}, {"status": "error", "status_ext": "error:no-request"}])
+    with pytest.raises(archive.Busy):
+        archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/4")
+
+
 # ---- what the service says --------------------------------------------
 
 

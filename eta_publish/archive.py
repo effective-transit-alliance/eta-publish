@@ -530,9 +530,17 @@ def missing(doc: Document) -> list[str]:
     One recorded with an `error` is not among them: that one has been tried,
     and a build that submitted it again on every run would spend the rate limit
     on the pages least likely to ever answer. Unless the error is `pending`,
-    about the moment rather than the page, which a later build asks about again.
+    about the moment rather than the page, which a later build asks about again;
+    or one recorded before this knew it was about the moment, which would
+    otherwise stay recorded as the page's answer for good.
     """
-    return [url for url in _documents(doc) if url not in doc.archives or doc.archives[url].pending]
+    return [
+        url
+        for url in _documents(doc)
+        if url not in doc.archives
+        or doc.archives[url].pending
+        or about_the_moment(doc.archives[url].error)
+    ]
 
 
 def _documents(doc: Document) -> list[str]:
@@ -1197,7 +1205,7 @@ def _job(http: requests.Session, headers: dict[str, str], url: str, job: str) ->
         )
     if status == "error":
         refused = _refused(state)
-        if any(later in refused for later in RETRY_LATER):
+        if about_the_moment(refused):
             return None
         return Archived(timestamp=today(), error=refused, job=job)
     raise Busy(f"the capture is still running (job {job})", short=STILL_RUNNING)
@@ -1211,15 +1219,24 @@ RETRY_LATER = (
     "error:user-session-limit",
     "error:too-many-daily-captures",
     "error:gateway-timeout",
+    "error:no-request",
 )
 """Refusals that are about when the page was asked for, not about the page.
 
 The account already having twelve captures going; the URL having been captured
 as many times today as Save Page Now allows, which repeated builds that could
-not yet see their own captures ran into; and the page's server being slow that
-once. Recorded as a failure, each would leave the source with no archive
-forever, so each is recorded `pending`, for a later build to ask again.
+not yet see their own captures ran into; the page's server being slow that
+once; and the status of a job being asked for when Save Page Now could not
+find the request, which it said of the Harsimus Cove photo's capture while the
+same job went on answering `pending`. Recorded as a failure, each would leave
+the source with no archive forever, so each is recorded `pending`, for a later
+build to ask again.
 """
+
+
+def about_the_moment(refused: str) -> bool:
+    """Whether a refusal is one of `RETRY_LATER`'s, about when rather than what."""
+    return any(later in refused for later in RETRY_LATER)
 
 
 def _failed(refused: str, answer: dict[str, object], job: str = "") -> Archived:
@@ -1229,7 +1246,7 @@ def _failed(refused: str, answer: dict[str, object], job: str = "") -> Archived:
     since it is what the build prints when it stops over one:
     `error:too-many-daily-captures` alone does not say the limit is per URL.
     """
-    if any(later in refused for later in RETRY_LATER):
+    if about_the_moment(refused):
         said = refused
         if answer.get("message"):
             said += f": {answer['message']}"
