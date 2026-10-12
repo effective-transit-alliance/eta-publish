@@ -1210,9 +1210,9 @@ def _links_in(block: Block) -> list[str]:
         case List():
             return [href for item in _items(block.items) for href in _hrefs(item.content)]
         case Embed():
-            # Still a source: a post can be deleted like any other page,
-            # and the archived copy is how a reader sees what it said.
-            return [block.url]
+            # A copied video is served from the report, so its download URL
+            # is not a source the published page points readers to.
+            return [] if block.copy else [block.url]
     return []
 
 

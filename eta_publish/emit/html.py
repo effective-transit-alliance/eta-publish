@@ -877,7 +877,7 @@ class HtmlEmitter(Emitter):
         """
         file = self.doc.media_files.get(node.url)
         anchor = self.take(f"embed-{node.platform.value}-{node.key.replace('/', '-')}")
-        ref = self.source_ref(node.url)
+        ref = "" if node.copy else self.source_ref(node.url)
         # In a `cited` of its own, the way a link's is, since that is what the
         # script hangs a source's box off; the card is not in it,
         # because the card's hover is a click away from playing.
@@ -909,7 +909,7 @@ class HtmlEmitter(Emitter):
         if served is not None:
             video = tag.video(
                 src=self.media_src(served, VIDEO_DIR), controls=True, preload="metadata"
-            )[tag.a(href=node.url)["Watch the video"]]
+            )[tag.a(href=node.url)["Watch the video"] if not node.copy else None]
             return markup(
                 tag.figure(id=anchor, class_="embed embed-video")[
                     mark, warning, video, title, credit, ref
@@ -920,7 +920,7 @@ class HtmlEmitter(Emitter):
         if file is not None and Path(file).suffix not in VIDEO_TYPES.values():
             picture = htpy.img(src=self.media_src(file, IMAGE_DIR), alt="", loading="lazy")
         verb = "Play on" if node.platform is Platform.YOUTUBE else "View on"
-        card_link = tag.a(class_="embed-card", href=node.url)[
+        card_contents = [
             picture,
             # A post's own line breaks as `br`, since the formatter that lays
             # out the page is free to break the text anywhere else.
@@ -930,12 +930,17 @@ class HtmlEmitter(Emitter):
                 tag.span(class_="embed-play")[f"{verb} {where}"],
             ],
         ]
+        card_link = (
+            tag.a(class_="embed-card", href=node.url)[card_contents]
+            if not node.copy
+            else tag.div(class_="embed-card")[card_contents]
+        )
         return markup(
             tag.figure(
                 id=anchor,
                 class_=f"embed embed-{node.platform.value}"
                 + (" embed-vertical" if node.vertical else ""),
-                data_player=player_url(node, card),
+                data_player=player_url(node, card) if not node.copy else None,
                 data_title=f"{card.author} on {where}",
             )[
                 mark,

@@ -219,11 +219,12 @@ class TypstEmitter(Emitter):
         # linked to where it does play.
         served = self.doc.served_video(node)
         if served is not None:
-            # Ours, so named as the document names it and linked to our copy:
-            # the post it came from is the citation's to point at.
+            # Ours, so named as the document names it and linked to our copy.
             slug = self.doc.slug.strip("/")
             href = f"{SITE}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
-            return self.linked_embed(node, node.title or "Video", href, self.source_ref(node.url))
+            return self.linked_embed(
+                node, node.title or "Video", href, "" if node.copy else self.source_ref(node.url)
+            )
         return self.linked_embed(node, embed_label(node, card))
 
     @override

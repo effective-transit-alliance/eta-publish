@@ -198,9 +198,9 @@ class Emitter(ABC):
         start of the link's text: the link is named for the video, and the
         warning is something to read before following it.
         """
-        # `cite` is the post's citation, for a link that goes somewhere else:
-        # a link to the post carries its own.
-        link = self.paragraph(Paragraph([Text(label, href=href or node.url)])) + cite
+        # `cite` is the post's citation, for a link that goes somewhere else.
+        target = href or ("" if node.copy else node.url)
+        link = self.paragraph(Paragraph([Text(label, href=target)])) + cite
         warning = self.paragraph(Paragraph([Text(GRAPHIC_WARNING, bold=True)]))
         credit = self.paragraph(Paragraph(node.credit))
         return self.join(
