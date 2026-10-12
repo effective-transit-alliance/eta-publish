@@ -159,8 +159,8 @@ def link_mark(anchor: str, what: str = "section") -> Tag:
     so quoting a heading does not copy a character nobody wrote.
 
     A function rather than only a method,
-    because `report_page` writes the headline and the standfirst itself
-    and never walks to them.
+    because the page and fragment both write the headline and standfirst
+    outside the body walk.
     """
     return tag.a(class_="link-mark", href=f"#{anchor}", aria_label=f"Link to this {what}")
 
@@ -210,6 +210,7 @@ class HtmlEmitter(Emitter):
         inline_css: bool = True,
         inline_js: bool = True,
         inline_phase: bool = True,
+        inline_title: bool = True,
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -218,10 +219,12 @@ class HtmlEmitter(Emitter):
         # Off for a page, which links one copy; on for the fragment, which
         # is pasted somewhere with nothing to link to.
         self.inline_js = inline_js
-        # Off for a page, which writes the phase above the headline, where it
-        # qualifies the title too; on for the fragment, which has no headline
-        # of its own and opens on the report.
+        # Off for a page, which writes the phase above the headline itself;
+        # on for the fragment, which emits it with the rest of the report.
         self.inline_phase = inline_phase
+        # Off for a page, which writes the headline and standfirst outside
+        # `.eta-report`; on for the fragment, which has no page shell.
+        self.inline_title = inline_title
         self._in_tip = False
         """Whether what is being emitted is the box a reference carries,
         which is a copy of a note and so cannot carry boxes of its own."""
@@ -350,6 +353,9 @@ class HtmlEmitter(Emitter):
         self.restart(doc)
         parts = []
         parts.append(self.phase(doc))
+        if self.inline_title:
+            parts.append(self.report_title(doc))
+            parts.append(self.standfirst(doc))
         parts.append(self.dateline(doc))
         # Below the dateline and above the hero,
         # because the hero fills the screen
@@ -374,6 +380,18 @@ class HtmlEmitter(Emitter):
         ]
         groups[-1].extend(back)
         return [group for group in groups if group]
+
+    def report_title(self, doc: Document) -> str:
+        """The headline, which belongs to the fragment as it does the page."""
+        return markup(tag.h1(id="title")[self.mark("title", "title"), doc.title])
+
+    def standfirst(self, doc: Document) -> str:
+        """The report's short introduction, under the headline."""
+        return markup(
+            tag.p(class_="standfirst", id="short")[
+                self.mark("short", "standfirst"), doc.meta.get("Short", "")
+            ]
+        )
 
     def contributors(self, doc: Document) -> str:
         """Who is credited, in a section at the end, the way ETA credits them.
@@ -1076,7 +1094,11 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
     which inherits the site's typography and has nowhere to put a warning.
     """
     body = HtmlEmitter(
-        image_base=image_base, inline_css=False, inline_js=False, inline_phase=False
+        image_base=image_base,
+        inline_css=False,
+        inline_js=False,
+        inline_phase=False,
+        inline_title=False,
     ).emit(doc)
     short = doc.meta.get("Short", "")
     # The share card is what a link to the report unfurls as, and the only place it appears:

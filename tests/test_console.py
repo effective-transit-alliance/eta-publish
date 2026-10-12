@@ -55,7 +55,9 @@ def plain() -> Console:
 
 def terminal(width: int = 60) -> Console:
     """A console that believes it is a terminal, narrow enough to have to wrap."""
-    return Console(file=io.StringIO(), highlight=False, force_terminal=True, width=width)
+    return Console(
+        file=io.StringIO(), highlight=False, force_terminal=True, no_color=False, width=width
+    )
 
 
 def test_a_warning_off_a_terminal_is_one_line() -> None:

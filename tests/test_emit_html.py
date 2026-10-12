@@ -83,10 +83,12 @@ def sections_and_headings(out: str) -> list[str]:
     """The ids the table of contents is allowed to point at, in page order.
 
     The back matter's id is on its `section`, not on its heading:
-    the whole section is the thing being linked to."""
+    the whole section is the thing being linked to. The report title identifies
+    the document rather than introducing a section, so the contents omit it."""
     return [
         m.group(1) or m.group(2)
         for m in re.finditer(r'<h\d id="([^"]+)"|<section class="[^"]*" id="([^"]+)"', out)
+        if (m.group(1) or m.group(2)) != "title"
     ]
 
 

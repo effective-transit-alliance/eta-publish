@@ -105,6 +105,8 @@
 .eta-report .embed-vertical .embed-card img,
 .eta-report .embed-vertical .embed-frame { aspect-ratio: 9 / 16; max-height: none; }
 .eta-report .dateline { font-size: .95rem; opacity: .75; }
+.eta-report h1 { font: 700 2.1rem/1.25 system-ui, sans-serif; margin: 0 0 .2em; }
+.eta-report .standfirst { font-size: 1.15rem; opacity: .75; margin-top: 0; }
 /* The build's own notes about this report. A colour and a face of their own,
    because they are the one thing on the page that is not the report and
    should not be read as though they were. */
