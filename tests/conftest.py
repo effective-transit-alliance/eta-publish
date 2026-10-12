@@ -36,18 +36,26 @@ class _Build:
     instead of taking turns with it for the interpreter, and so the hundred or
     so warnings it writes go to a file rather than through the test output.
 
-    Without the images, which are not committed and so are not on a fresh
-    checkout or in CI: a build without them writes the same committed files,
-    since `images.json` says what each one was written as.
+    With the images where they are on disk, so the cropping, the print copies,
+    the PDF and `images.json` are all built as a real build builds them:
+    offline, nothing is downloaded, only reused. Without them where they are
+    not, which is a fresh checkout or CI, since they are not committed: a build
+    without them writes the same committed files, from `images.json`.
     """
 
     def __init__(self) -> None:
+        from eta_publish.build import has_its_images
+
         self.dir = Path(tempfile.mkdtemp(prefix="eta-publish-site-"))
         self.out = self.dir / "site"
         self.log = (self.dir / "build.log").open("w")
         root = Path(__file__).parent.parent
+        reports = [saved.parent for saved in (root / "site").glob("*/*/doc.json")]
+        images = all((report / "images").is_dir() and has_its_images(report) for report in reports)
+        self.images = images
         self.process = subprocess.Popen(
-            [sys.executable, "-m", "eta_publish", "all", "--offline", "--no-images"]
+            [sys.executable, "-m", "eta_publish", "all", "--offline"]
+            + ([] if images else ["--no-images"])
             + ["-o", str(root / "site"), "--into", str(self.out)],
             cwd=root,
             stdout=self.log,
@@ -84,6 +92,14 @@ def built_site() -> Path:
     if _build is None:
         pytest.fail(f"`{SITE_BUILD}` was not started; see `pytest_collection_finish`")
     return _build.wait()
+
+
+@pytest.fixture(scope="session")
+def built_with_images(built_site: Path) -> Path:
+    """`built_site`, skipping the test where the images were not on disk to build with."""
+    if _build is None or not _build.images:
+        pytest.skip("the images are not on disk; a build with a fetch puts them there")
+    return built_site
 
 
 @pytest.fixture(scope="session")

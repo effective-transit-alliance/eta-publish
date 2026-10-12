@@ -25,6 +25,7 @@ import pytest
 from paths import ROOT, SITE
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
+from eta_publish.naming import IMAGE_DIR, PRINT_DIR, print_href
 
 
 def committed() -> set[str]:
@@ -160,3 +161,27 @@ def test_the_records_are_json(report: Path) -> None:
     for name in ("doc.json", "images.json", "archives.json", "embeds.json"):
         if (report / name).exists():
             json.loads((report / name).read_text())
+
+
+# ---- what only a build with the images can be asked ----------------------
+
+
+@pytest.fixture(params=reports())
+def report_with_images(request: pytest.FixtureRequest, built_with_images: Path) -> Path:
+    return built_with_images / request.param
+
+
+def test_every_image_is_served_and_has_a_print_copy(report_with_images: Path) -> None:
+    """What `images.json` records is on disk, and so is the copy the PDF embeds."""
+    index = report_with_images / "images.json"
+    entries: dict[str, dict[str, object]] = json.loads(index.read_text()) if index.exists() else {}
+    files = [str(entry["file"]) for entry in entries.values() if "file" in entry]
+    for file in files:
+        assert (report_with_images / IMAGE_DIR / file).is_file(), file
+        assert (report_with_images / PRINT_DIR / print_href(file)).is_file(), file
+
+
+def test_the_pdf_is_built(report_with_images: Path) -> None:
+    pdf = report_with_images / "report.pdf"
+    assert pdf.is_file()
+    assert pdf.read_bytes().startswith(b"%PDF")
