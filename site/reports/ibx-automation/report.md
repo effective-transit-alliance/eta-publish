@@ -11,6 +11,7 @@ October 12, 2026
 - 2 comment threads still open on this tab
 - `Short:` is still marked unfinished
 - `SEO Description:` is still marked unfinished
+- could not archive `https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg` (in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)); it publishes as not archived, and the next build that can asks again
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
@@ -237,13 +238,13 @@ The tightest curve on the NYC subway has a radius of [100±10 ft](<https://www.m
 Even the Metro in Washington, DC, designed to avoid the squeal of the tight curves of the oldest sections of the NYC Subway, has a [minimum curve radius of 225 ft](<https://www.wmata.com/business/procurement/solicitations/documents/General%20Design%20Criteria%20-%208K%202017%2001%2024.pdf#page=4>)<sup>\[8\]</sup>, less than half of that of the IBX.
 The only tight curves were the [100 ft street-running curves](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>[^30] that have since been removed with the All Faiths tunnel.
 
-![The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.](<images/ibx-pel-study-street-running-curves-p1014-tracks-only.png>)\
-The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as 100 ft.\
+![The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as a 100 ft radius.](<images/ibx-pel-study-street-running-curves-p1014-tracks-only.png>)\
+The previously planned IBX street-running section around All Faiths Cemetery, with curves as sharp as a 100 ft radius.\
 [Credit: MTA](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>, [modified by ETA (Khyber Sen)](<https://github.com/kkysen/ibx-pel-track-map-images#street-running-curves-page-1014>)<sup>\[62\]</sup>
 <!-- Source: [ibx-pel-study-street-running-curves-p1014-tracks-only.png](<https://github.com/kkysen/ibx-pel-track-map-images/releases/download/images/ibx-pel-study-street-running-curves-p1014-tracks-only.png>) -->
 
-![The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.](<images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>)\
-The current sharpest curve (465 ft) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.\
+![The current sharpest curve (465 ft radius) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.](<images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>)\
+The current sharpest curve (465 ft radius) on the IBX as it curves into the Brooklyn Army Terminal station near 2 Av.\
 [Credit: MTA](<https://www.mta.info/document/114891#page=993>)<sup>\[63\]</sup>, [modified by ETA (Khyber Sen)](<https://github.com/kkysen/ibx-pel-track-map-images#bat-curves-with-the-reverse-curve-page-993>)<sup>\[64\]</sup>
 <!-- Source: [ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png](<https://github.com/kkysen/ibx-pel-track-map-images/releases/download/images/ibx-pel-study-bat-curves-ibx1-lrt-12-and-lrt-18-p993-tracks-only.png>) -->
 
@@ -438,7 +439,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 54. (archived [Jun 3, 2025](<https://web.archive.org/web/20250603012443/https://journals.sagepub.com/doi/10.1177/0361198118784386>)) [journals.sagepub.com/doi/10.1177/0361198118784386](<https://journals.sagepub.com/doi/10.1177/0361198118784386>)
 55. (archived [Dec 17, 2025](<https://web.archive.org/web/20251217185902/https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article>)) [railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article](<https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article>)
 56. (archived [Apr 23, 2026](<https://web.archive.org/web/20260423181419id_/https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35>)) [wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35](<https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35>)
-57. (not archived: no-request) [commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg](<https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>)
+57. (not archived: in-progress) [commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg](<https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>)
 58. (archived [Sep 21, 2026](<https://web.archive.org/web/20260921162613/https://ibx.mta.info/about/>)) [ibx.mta.info/about/](<https://ibx.mta.info/about/>)
 59. (archived [May 19, 2026](<https://web.archive.org/web/20260519070421id_/https://www.mta.info/document/172206#page=6>)) [mta.info/document/172206#page=6](<https://www.mta.info/document/172206#page=6>)
 60. (archived [Dec 5, 2025](<https://web.archive.org/web/20251205012113/https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111>)) [nycsubway.org/wiki/Chapter\_03.\_General\_Arrangement\_for\_Construction](<https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111>)

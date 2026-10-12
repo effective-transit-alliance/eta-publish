@@ -29,29 +29,35 @@
     "timestamp": "20240921120558"
   },
   "https://bqrail.substack.com/api/v1/file/42b8fb33-73ef-4a87-8d9a-31260d311b91.pdf": {
+    "pages": 16,
     "snapshot": "https://web.archive.org/web/20261010113008/https://bqrail.substack.com/api/v1/file/42b8fb33-73ef-4a87-8d9a-31260d311b91.pdf",
     "timestamp": "20261010113008"
   },
   "https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf": {
     "job": "spn2-d07574712d277732eee28213a77231e270fa10f9",
+    "pages": 30,
     "snapshot": "https://web.archive.org/web/20261012000357/https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf",
     "timestamp": "20261012000357"
   },
   "https://bqrail.substack.com/api/v1/file/69603a69-34d1-4d20-b44a-921b6c45714e.pdf": {
+    "pages": 31,
     "snapshot": "https://web.archive.org/web/20261010091720/https://bqrail.substack.com/api/v1/file/69603a69-34d1-4d20-b44a-921b6c45714e.pdf",
     "timestamp": "20261010091720"
   },
   "https://bqrail.substack.com/api/v1/file/be8e35d6-2103-4be7-9f92-f1806c182602.pdf": {
     "job": "spn2-6507be1a066d6ab3bb850260070eae96d42677a2",
+    "pages": 19,
     "snapshot": "https://web.archive.org/web/20261010114910/https://bqrail.substack.com/api/v1/file/be8e35d6-2103-4be7-9f92-f1806c182602.pdf",
     "timestamp": "20261010114910"
   },
   "https://bqrail.substack.com/api/v1/file/cc9ae61d-79eb-4b8e-ab99-30cd70582945.pdf": {
     "job": "spn2-db98d53759e4a92a029b92156dcd1f7bd9917936",
+    "pages": 25,
     "snapshot": "https://web.archive.org/web/20261010175114/https://bqrail.substack.com/api/v1/file/cc9ae61d-79eb-4b8e-ab99-30cd70582945.pdf",
     "timestamp": "20261010175114"
   },
   "https://bqrail.substack.com/api/v1/file/cce3e5d4-3702-4e13-a96f-f5d4d0d99e6e.pdf": {
+    "pages": 18,
     "snapshot": "https://web.archive.org/web/20261010112952/https://bqrail.substack.com/api/v1/file/cce3e5d4-3702-4e13-a96f-f5d4d0d99e6e.pdf",
     "timestamp": "20261010112952"
   },
@@ -64,8 +70,9 @@
     "timestamp": "20260304064215"
   },
   "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg": {
-    "error": "error:no-request",
-    "job": "spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67",
+    "error": "in-progress",
+    "pending": true,
+    "said": "in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)",
     "timestamp": "20261012"
   },
   "https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg": {
