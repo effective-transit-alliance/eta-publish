@@ -2,6 +2,10 @@
 # so a clone that follows the README gets the message and push checks
 # as well as the commit checks.
 default_install_hook_types: [pre-commit, commit-msg, pre-push]
+# A hook that names no stage runs at every one of those three,
+# and the ones with nothing to skip on (`pytest`, `ty`) ran twice a commit.
+# The commit checks are commit checks; the other two stages name their own hooks.
+default_stages: [pre-commit]
 
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
