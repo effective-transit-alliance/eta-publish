@@ -149,6 +149,24 @@ def test_what_the_document_itself_says_wins_over_the_record(tmp_path: Path) -> N
     assert fresh.archives["https://a.example/1"].snapshot == "from the doc"
 
 
+def test_a_reason_since_reworded_is_read_as_it_reads_now(tmp_path: Path) -> None:
+    """An offline build asks nothing, so the record is where the old words would stay."""
+    (tmp_path / "archives.json").write_text(
+        json.dumps(
+            {
+                "https://a.example/1": {
+                    "error": "the capture is still running",
+                    "pending": True,
+                    "timestamp": "20261012",
+                }
+            }
+        )
+    )
+    doc = cites("https://a.example/1")
+    read_archive_index(tmp_path, doc)
+    assert doc.archives["https://a.example/1"].error == archive.STILL_RUNNING == "in-progress"
+
+
 def test_a_failed_capture_is_not_tried_again() -> None:
     doc = cites("https://a.example/1", "https://b.example/2")
     doc.archives["https://a.example/1"] = Archived(timestamp="20260101", error="cannot be captured")

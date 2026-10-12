@@ -473,7 +473,7 @@ def read_archive_index(dest: Path, doc: Document) -> None:
         recorded = Archived(
             snapshot=entry.get("snapshot", ""),
             timestamp=entry.get("timestamp", ""),
-            error=entry.get("error", ""),
+            error=RENAMED.get(entry.get("error", ""), entry.get("error", "")),
             job=entry.get("job", ""),
             pending=entry.get("pending", False),
             said=entry.get("said", ""),
@@ -1261,8 +1261,15 @@ def _job(http: requests.Session, headers: dict[str, str], url: str, job: str) ->
     raise Busy(f"the capture is still running (job {job})", short=STILL_RUNNING)
 
 
-STILL_RUNNING = "the capture is still running"
+STILL_RUNNING = "in-progress"
 """What a source is published with while its capture has not finished."""
+
+RENAMED = {"the capture is still running": STILL_RUNNING}
+"""What a record may still say for a reason since reworded, and what it says now.
+
+Read through rather than left for the next lookup to replace: an offline build
+asks nothing, and would go on publishing the old words until one did.
+"""
 
 
 RETRY_LATER = (
