@@ -328,11 +328,17 @@ def test_a_bar_leaves_nothing_behind_to_read() -> None:
     assert "checking the archive" not in _written(console).splitlines()[-1]
 
 
-def test_the_clock_keeps_moving_while_nothing_finishes() -> None:
+def test_the_clock_keeps_moving_while_nothing_finishes(monkeypatch: pytest.MonkeyPatch) -> None:
     """The elapsed time is the half of the row that says a slow answer is
     still an answer, and a row that redraws only when something completes
-    stops for exactly as long as the thing worth watching takes."""
+    stops for exactly as long as the thing worth watching takes.
+
+    On a clock and a tick both twenty times faster,
+    so the seconds the row shows pass without the suite waiting for them.
+    """
+    monkeypatch.setattr(log, "TICK", log.TICK / 20)
     console = terminal()
+    console.get_time = lambda: time.monotonic() * 20
     with log.progress("checking the archive", 3, console) as along:
         along()
         time.sleep((log.TICK * 6).total_seconds())
