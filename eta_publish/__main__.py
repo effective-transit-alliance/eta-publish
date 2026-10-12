@@ -78,6 +78,10 @@ Offline = Annotated[
     bool,
     Option(help="rebuild from the responses saved by the last build; no network"),
 ]
+HostedMedia = Annotated[
+    bool,
+    Option(help="link `report.html`'s images and videos where the site serves them"),
+]
 Comments = Annotated[
     bool,
     Option(help="ask how many comment threads are open; the slowest thing a build does"),
@@ -95,6 +99,7 @@ def build_all(
     outdir: Outdir = Path("site"),
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
+    hosted_media: HostedMedia = True,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -127,6 +132,7 @@ def build_all(
         archive,
         whole=True,
         into=into,
+        hosted_media=hosted_media,
     )
 
 
@@ -147,6 +153,7 @@ def build_one_report(
     outdir: Outdir = Path("site"),
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
+    hosted_media: HostedMedia = True,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -161,7 +168,16 @@ def build_one_report(
         report = listed_report(doc, reports)
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
-    publish([report], outdir, suggestions, split, images, comments, archive=archive)
+    publish(
+        [report],
+        outdir,
+        suggestions,
+        split,
+        images,
+        comments,
+        archive=archive,
+        hosted_media=hosted_media,
+    )
 
 
 def publish(
@@ -175,6 +191,7 @@ def publish(
     archive: bool = True,
     whole: bool = False,
     into: Path | None = None,
+    hosted_media: bool = True,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -196,6 +213,7 @@ def publish(
         archive=archive,
         comments=comments,
         offline=offline,
+        hosted_media=hosted_media,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)

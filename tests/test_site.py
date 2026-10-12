@@ -317,6 +317,32 @@ def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
     assert (out / "reports" / "other" / "report.html").read_text() == "another report's"
 
 
+@pytest.mark.parametrize(
+    ("hosted", "src"),
+    [
+        (
+            True,
+            'src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/',
+        ),
+        (False, 'src="images/'),
+    ],
+)
+def test_the_fragment_links_its_images_where_the_site_serves_them(
+    tmp_path: Path, hosted: bool, src: str
+) -> None:
+    """Squarespace names every upload by a hash, so the fragment links the site's copies."""
+    out = tmp_path / "site"
+    seed_image_index(out)
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps(FIXTURE))
+    options = BuildOptions(images=False, archive=False, hosted_media=hosted)
+    site = build_site([Report(url=str(saved))], out, options)
+    fragment = (out / site.built[0].path / "report.html").read_text()
+    assert src in fragment
+    # The page is served beside its images either way.
+    assert 'src="images/' in (out / site.built[0].path / "index.html").read_text()
+
+
 def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
     """A report that failed its own check must not leave a published directory:
     the next run compares against it and finds nothing wrong."""

@@ -27,7 +27,7 @@ from .embeds import download as download_embeds
 from .emit.html import HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
-from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, VIDEO_DIR
+from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -60,6 +60,17 @@ class BuildOptions:
 
     No credentials, no network, and no way to notice a document that changed.
     A rebuild of what is committed, for a change to this code rather than to a doc.
+    """
+
+    hosted_media: bool = True
+    """Whether `report.html` links its images and videos where the site serves them.
+
+    The fragment is pasted into Squarespace, which has no way to upload a
+    folder of images and names each one it is given by a hash nobody can
+    predict, so each would otherwise be uploaded by hand and its link copied
+    back one at a time. Linked at `SITE` instead, the files the build already
+    wrote are the ones the page shows. Off, it links them relative to itself,
+    for a page served beside its `images/`.
     """
 
     comments: bool = True
@@ -182,9 +193,9 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
             shutil.copy2(previous / name, dest / name)
 
 
-def write_split(doc: Document, outdir: Path) -> list[Path]:
+def write_split(doc: Document, outdir: Path, image_base: str = IMAGE_DIR) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
-    emitter = HtmlEmitter(image_base=IMAGE_DIR)
+    emitter = HtmlEmitter(image_base=image_base)
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
@@ -442,12 +453,19 @@ def asset_base(path: str) -> str:
     return "/".join([".."] * len(PurePosixPath(path).parts) + [ASSET_DIR])
 
 
-def emit(doc: Document, outdir: Path, assets: str = ASSET_DIR) -> dict[str, Path]:
+def media_base(path: str) -> str:
+    """Where the site serves the images of the report at `path`, as a URL."""
+    return f"{SITE}/{path}/{IMAGE_DIR}"
+
+
+def emit(
+    doc: Document, outdir: Path, assets: str = ASSET_DIR, images: str = IMAGE_DIR
+) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them."""
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        "report.html": HtmlEmitter(image_base=IMAGE_DIR),
+        "report.html": HtmlEmitter(image_base=images),
         "report.md": MarkdownEmitter(),
         "report.typ": TypstEmitter(),
     }
@@ -763,13 +781,14 @@ def build_one(
     # Written here rather than once per site, so that building a single
     # report produces a page with everything it links.
     write_assets(outdir)
-    written = emit(doc, dest, asset_base(path))
+    images = media_base(path) if options.hosted_media else IMAGE_DIR
+    written = emit(doc, dest, asset_base(path), images)
 
     typ = written.get("report.typ")
     if typ is not None:
         build_pdf(typ, dest, skipped_images=not options.images and bool(doc.images))
 
     if options.split:
-        write_split(doc, dest)
+        write_split(doc, dest, images)
 
     return doc, path

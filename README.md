@@ -53,7 +53,7 @@ Reads the Google Doc, builds a document tree, and emits from that tree:
 
 | Output | Purpose |
 | --- | --- |
-| `report.html` | One fragment to paste into a single Squarespace code block |
+| `report.html` | One fragment to paste into a single Squarespace code block, linking its images and videos on GitHub Pages (`--no-hosted-media` links them relative to itself) |
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
 | `index.html` | Standalone page for review, including any warnings |
