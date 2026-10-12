@@ -1048,7 +1048,6 @@ def test_a_live_source_that_fails_falls_back_to_the_documents_copy(tmp_path: Pat
 
 
 def test_a_live_source_unlike_the_documents_copy_warns(tmp_path: Path) -> None:
-    return
     doc = _live_doc(LIVE_BLOB)
     download(doc, tmp_path, session=Live(_png(20, 10)))
     assert (tmp_path / doc.image_files["io.1"]).read_bytes() == _png(20, 10)
