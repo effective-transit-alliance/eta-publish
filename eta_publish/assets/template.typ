@@ -23,7 +23,10 @@
 })
 
 #let report(
+  // Plain text, for the PDF's metadata, which holds nothing else.
   title: "",
+  // The same words with the document's formatting, for the title page.
+  headline: none,
   dateline: none,
   contributors: (),
   contributors_note: none,
@@ -116,7 +119,7 @@
           text(size: 13pt, weight: "bold", fill: white)[Phase: #phase],
         )
       ]
-      #text(size: 21pt, weight: "bold")[#title]
+      #text(size: 21pt, weight: "bold")[#if headline != none { headline } else { title }]
       #if short != none [
         #v(0.6em)
         #text(size: 11.5pt, fill: luma(35%), style: "italic")[#short]

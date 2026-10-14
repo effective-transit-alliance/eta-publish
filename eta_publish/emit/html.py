@@ -404,7 +404,8 @@ class HtmlEmitter(Emitter):
 
     def report_title(self, doc: Document) -> str:
         """The headline, which belongs to the fragment as it does the page."""
-        return markup(tag.h1(id="title")[self.mark("title", "title"), doc.title])
+        headline = self.inlines(doc.headline) if doc.headline else doc.title
+        return markup(tag.h1(id="title")[self.mark("title", "title"), headline])
 
     def standfirst(self, doc: Document) -> str:
         """The report's short introduction, under the headline."""

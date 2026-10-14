@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "Monthly Passes",
+  headline: [Monthly Passes],
   short: "",
   phase: "",
   dateline: "",

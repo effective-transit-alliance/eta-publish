@@ -85,6 +85,7 @@ class TypstEmitter(Emitter):
             f"#import {string(self.template)}: capped_image, report\n\n"
             f"#show: report.with(\n"
             f"  title: {string(doc.title)},\n"
+            f"  headline: [{self.inlines(doc.headline) if doc.headline else escape(doc.title)}],\n"
             f"  short: {string(doc.meta.get('Short', ''))},\n"
             f"  phase: {string(doc.phase)},\n"
             f"  dateline: {string(doc.dateline)},\n"

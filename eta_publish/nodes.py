@@ -550,6 +550,13 @@ def _written(part: Part) -> str:
 @dataclass
 class Document:
     title: str = ""
+    """The headline as plain text, for what holds only text:
+    the page's `<title>`, the PDF's metadata, the preview index."""
+
+    headline: list[Inline] = field(default_factory=list)
+    """The headline as written, with its underlines and the rest of its formatting,
+    for where it is set as the headline. Empty when the headline is not from a
+    `Title` paragraph, where `title` is all there is."""
 
     file_title: str = ""
     """What the document is called in Drive, which is not what it is called here.

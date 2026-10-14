@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "No Need to Wait: Automated Light Metro is Right for the IBX",
+  headline: [No Need to Wait: Automated Light Metro is Right for the IBX],
   short: "[TODO]",
   phase: "",
   dateline: "October 12, 2026",

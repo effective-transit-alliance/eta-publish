@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "Deinterlining: Simpler Service, Fewer Delays",
+  headline: [Deinterlining: Simpler Service, Fewer Delays],
   short: "",
   phase: "",
   dateline: "",

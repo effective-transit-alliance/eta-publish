@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "Too Damn Loud: Announcements on NYC Transit are Out of Control",
+  headline: [Too Damn Loud: Announcements on NYC Transit are Out of Control],
   short: "The seemingly-endless onslaught of announcements on NY transit not only annoys riders, but impairs accessibility, making navigating transit far more difficult than it needs to be.",
   phase: "",
   dateline: "September 9, 2026",

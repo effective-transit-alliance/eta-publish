@@ -1583,6 +1583,7 @@ class Parser:
         for item in content:
             para = item.get("paragraph")
             if para is not None and style_of(para) == "TITLE" and plain(para):
+                self.doc.headline = self.inlines(para)
                 return plain(para)
 
         filename = self.json.get("title", "")

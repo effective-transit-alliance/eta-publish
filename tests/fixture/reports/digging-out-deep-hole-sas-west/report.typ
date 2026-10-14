@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "Digging Out of a Very Deep Hole: Saving Billions on 125th Street",
+  headline: [Digging Out of a Very Deep Hole: Saving Billions on 125th Street],
   short: "A 125 St subway should be a slam dunk.",
   phase: "",
   dateline: "",

@@ -2,6 +2,7 @@
 
 #show: report.with(
   title: "Digging Out of a Very Deep Hole: Saving Billions on 125th Street",
+  headline: [Digging Out of a Very Deep Hole: Saving Billions on 125th Street],
   short: "A 125 St subway should be a slam dunk. But at $7.7B and with stations more than 100 ft underground, it would be the most expensive subway in the world, and cost riders more than 5 minutes every trip before ever stepping on a train. By using international best practices and building a more shallow route, however, New York would not only be able to build more transit for less money, but would also save riders significant time every single day.",
   phase: "",
   dateline: "August 19, 2026",
