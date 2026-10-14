@@ -272,6 +272,34 @@
   border-left: 2px solid currentColor;
   opacity: 0.8;
 }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    align-items: flex-start;
+  }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure {
+    flex: 1 1 15rem;
+  }
+  .eta-report .masthead > figure {
+    margin: 1em 0 0;
+  }
+  .eta-report .masthead > .warnings {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
@@ -684,159 +712,177 @@
 })();
 </script>
 <div class="eta-report">
-  <h1 id="title"
-    ><a class="link-mark" href="#title" aria-label="Link to this title"></a>Too
-    Damn Loud: Announcements on NYC Transit are Out of Control</h1
-  >
-  <p class="standfirst" id="short"
-    ><a
-      class="link-mark"
-      href="#short"
-      aria-label="Link to this standfirst"
-    ></a>The seemingly-endless onslaught of announcements on NY transit not only
-    annoys riders, but impairs accessibility, making navigating transit far more
-    difficult than it needs to be.</p
-  >
-  <p class="dateline" id="date"
-    ><a
-      class="link-mark"
-      href="#date"
-      aria-label="Link to this date"
-    ></a>September 9, 2026</p
-  >
-  <div class="warnings"
-    ><strong>Warnings</strong><ul
-      ><li
-        >the <code>Header</code> section has an unrecognized
-        <code>Related Document:</code> line; check it for a typo</li
-      >
-      <li
-        >the <code>Header</code> section has an unrecognized <code>Video:</code>
-        line; check it for a typo</li
-      >
-      <li>2 images share one paragraph; only the first becomes a figure</li>
-      <li
-        >the image <code>img-831248b1</code> has no caption</li
-      >
-      <li
-        >the image <code>img-831248b1</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >the image <code>img-b17aa21a</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >2 images are unnamed, so each publishes under a hash; give each a
-        <code>Source:</code> line naming its file:<ul
-          ><li
-            ><code>img-831248b1</code></li
-          ><li
-            ><code>img-b17aa21a</code>: PNG SVG</li
-          ></ul
-        ></li
-      >
-      <li
-        >24 suggestions still open on this tab; the build publishes the document
-        without them, as it reads today</li
-      >
-      <li>2 comment threads still open on this tab</li>
-      <li
-        >3 links show their URL as their text; give each words in the doc:<ul
-          ><li
-            ><code
-              >https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393</code
-            ></li
-          ><li
-            ><code
-              >https://www.amny.com/news/mta-nyc-subway-ads-and-money/</code
-            ></li
-          ><li
-            ><code>https://sbahn.berlin/fahren/bauen-stoerung/</code></li
-          ></ul
-        ></li
-      >
-      <li
-        >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Goals:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Audience:</code> line</li
-      >
-      <li
-        ><code>SEO Description:</code> is 363 characters, over the 300 a search
-        result shows:<blockquote
-          >The seemingly-endless onslaught of announcements on NY transit not
-          only annoys riders, but impairs accessibility, making navigating
-          transit far more difficult than it needs to be. ETA outlines the best
-          practices for transit audio design: clear, concise messages reserved
-          for actionable information. I<s
-            >t&#39;s time to stop the cacophony, and let riders travel in peace.</s
-          ></blockquote
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...for actionable information. It<mark>&#39;</mark>s time to stop the
-          cacophony, ...</code
-        ></li
-      >
-      <li
-        >style: a sentence should end with 1 space, not 2:
-        <code
-          >..., often one message at a time.<mark>··</mark>Slowly, by following
-          the path ...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...ual advertisements, riders can<mark>&#39;</mark>t simply choose to
-          look away f...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >... be a positive part of a rider<mark>&#39;</mark>s day, not an
-          annoyance.</code
-        ></li
-      >
-      <li
-        >style: a sentence should end with 1 space, not 2:
-        <code
-          >...ersion of the curb cut effect.<mark>··</mark>In this case,
-          designing announ...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...o understand for those who don<mark>&#39;</mark>t speak English as
-          a first lan...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...become intolerable. The region<mark>&#39;</mark>s transit
-          agencies, and the MT...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >... New York is too damn loud. It<mark>&#39;</mark>s time to let
-          riders travel in...</code
-        ></li
-      >
-      <li
-        >the image <code>img-831248b1</code> has no alt text and no caption; add
-        a description to it in the doc</li
-      ></ul
-    ></div
-  >
+  <div class="masthead">
+    <div class="masthead-text"
+      ><h1 id="title"
+        ><a
+          class="link-mark"
+          href="#title"
+          aria-label="Link to this title"
+        ></a>Too Damn Loud: Announcements on NYC Transit are Out of Control</h1
+      ><p class="standfirst" id="short"
+        ><a
+          class="link-mark"
+          href="#short"
+          aria-label="Link to this standfirst"
+        ></a>The seemingly-endless onslaught of announcements on NY transit not
+        only annoys riders, but impairs accessibility, making navigating transit
+        far more difficult than it needs to be.</p
+      ><p class="dateline" id="date"
+        ><a
+          class="link-mark"
+          href="#date"
+          aria-label="Link to this date"
+        ></a>September 9, 2026</p
+      ></div
+    >
+    <div class="warnings"
+      ><strong>Warnings</strong><ul
+        ><li
+          >the <code>Header</code> section has an unrecognized
+          <code>Related Document:</code> line; check it for a typo</li
+        >
+        <li
+          >the <code>Header</code> section has an unrecognized
+          <code>Video:</code> line; check it for a typo</li
+        >
+        <li>2 images share one paragraph; only the first becomes a figure</li>
+        <li
+          >the image <code>img-831248b1</code> has no caption</li
+        >
+        <li
+          >the image <code>img-831248b1</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >the image <code>img-b17aa21a</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >2 images are unnamed, so each publishes under a hash; give each a
+          <code>Source:</code> line naming its file:<ul
+            ><li
+              ><code>img-831248b1</code></li
+            ><li
+              ><code>img-b17aa21a</code>: PNG SVG</li
+            ></ul
+          ></li
+        >
+        <li
+          >24 suggestions still open on this tab; the build publishes the
+          document without them, as it reads today</li
+        >
+        <li>2 comment threads still open on this tab</li>
+        <li
+          >3 links show their URL as their text; give each words in the doc:<ul
+            ><li
+              ><code
+                >https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393</code
+              ></li
+            ><li
+              ><code
+                >https://www.amny.com/news/mta-nyc-subway-ads-and-money/</code
+              ></li
+            ><li
+              ><code>https://sbahn.berlin/fahren/bauen-stoerung/</code></li
+            ></ul
+          ></li
+        >
+        <li
+          >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Goals:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Audience:</code> line</li
+        >
+        <li
+          ><code>SEO Description:</code> is 363 characters, over the 300 a
+          search result shows:<blockquote
+            >The seemingly-endless onslaught of announcements on NY transit not
+            only annoys riders, but impairs accessibility, making navigating
+            transit far more difficult than it needs to be. ETA outlines the
+            best practices for transit audio design: clear, concise messages
+            reserved for actionable information. I<s
+              >t&#39;s time to stop the cacophony, and let riders travel in
+              peace.</s
+            ></blockquote
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...for actionable information. It<mark>&#39;</mark>s time to stop
+            the cacophony, ...</code
+          ></li
+        >
+        <li
+          >style: a sentence should end with 1 space, not 2:
+          <code
+            >..., often one message at a time.<mark>··</mark>Slowly, by
+            following the path ...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...ual advertisements, riders can<mark>&#39;</mark>t simply choose
+            to look away f...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >... be a positive part of a rider<mark>&#39;</mark>s day, not an
+            annoyance.</code
+          ></li
+        >
+        <li
+          >style: a sentence should end with 1 space, not 2:
+          <code
+            >...ersion of the curb cut effect.<mark>··</mark>In this case,
+            designing announ...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...o understand for those who don<mark>&#39;</mark>t speak English
+            as a first lan...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...become intolerable. The region<mark>&#39;</mark>s transit
+            agencies, and the MT...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >... New York is too damn loud. It<mark>&#39;</mark>s time to let
+            riders travel in...</code
+          ></li
+        >
+        <li
+          >the image <code>img-831248b1</code> has no alt text and no caption;
+          add a description to it in the doc</li
+        ></ul
+      ></div
+    >
+  </div>
   <nav class="toc" id="table-of-contents" aria-label="Table of contents">
     <a
       class="link-mark"

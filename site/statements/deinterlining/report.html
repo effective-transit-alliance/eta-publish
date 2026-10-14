@@ -272,6 +272,34 @@
   border-left: 2px solid currentColor;
   opacity: 0.8;
 }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    align-items: flex-start;
+  }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure {
+    flex: 1 1 15rem;
+  }
+  .eta-report .masthead > figure {
+    margin: 1em 0 0;
+  }
+  .eta-report .masthead > .warnings {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
@@ -684,252 +712,271 @@
 })();
 </script>
 <div class="eta-report">
-  <h1 id="title"
-    ><a
-      class="link-mark"
-      href="#title"
-      aria-label="Link to this title"
-    ></a>Deinterlining: Simpler Service, Fewer Delays</h1
-  >
-  <p class="standfirst" id="short"
-    ><a
-      class="link-mark"
-      href="#short"
-      aria-label="Link to this standfirst"
-    ></a></p
-  >
-  <div class="warnings"
-    ><strong>Warnings</strong><ul
-      ><li
-        >dropped a line before the <code>Header</code> section:
-        <code>Deinterlining</code></li
-      >
-      <li
-        >the <code>Header</code> section has an unrecognized
-        <code>Before:</code> line; check it for a typo</li
-      >
-      <li
-        >the <code>Header</code> section has an unrecognized
-        <code>Thesis:</code> line; check it for a typo</li
-      >
-      <li
-        >the image <code>img-a199edea</code> has a <code>Credit:</code> line
-        under it that is not read as its credit, because <code>Credit</code> is
-        not underlined; underline it in the doc</li
-      >
-      <li
-        >the image <code>img-da01ab69</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >the image <code>img-5f0a3a08</code> has a <code>Credit:</code> line
-        under it that is not read as its credit, because <code>Credit</code> is
-        not underlined; underline it in the doc</li
-      >
-      <li
-        >the image <code>img-c1aacb22</code> has a <code>Credit:</code> line
-        under it that is not read as its credit, because <code>Credit</code> is
-        not underlined; underline it in the doc</li
-      >
-      <li
-        >the image <code>img-96810135</code> has no caption</li
-      >
-      <li
-        >the image <code>img-96810135</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >the image <code>img-5a4ea5b9</code> has no caption</li
-      >
-      <li
-        >the image <code>img-5a4ea5b9</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >6 images are unnamed, so each publishes under a hash; give each a
-        <code>Source:</code> line naming its file:<ul
-          ><li
-            ><code>img-a199edea</code>: Reverse branching makes scheduling
-            transit systems incredibly complex...</li
-          ><li
-            ><code>img-da01ab69</code>: Many of New York’s subway lines are
-            interconnected through delicate ac...</li
-          ><li
-            ><code>img-5f0a3a08</code>: Credit: MTA</li
-          ><li
-            ><code>img-c1aacb22</code>: Credit: MTA, via Roosevelt Islander</li
-          ><li
-            ><code>img-96810135</code></li
-          ><li
-            ><code>img-5a4ea5b9</code></li
-          ></ul
-        ></li
-      >
-      <li>3 comment threads still open on this tab</li>
-      <li
-        >11 links show their URL as their text; give each words in the doc:<ul
-          ><li
-            ><code
-              >https://images-prod.gothamist.com/images/Nostr.2e16d0ba.fill-1336x852.format-webp.webpquality-60.webp</code
-            ></li
-          ><li
-            ><code>https://www.mta.info/document/174186</code></li
-          ><li
-            ><code
-              >https://nyc.streetsblog.org/2025/06/03/mta-to-finally-untangle-notorious-brooklyn-subway-pinch-point</code
-            ></li
-          ><li
-            ><code
-              >https://rooseveltislander.com/2025/06/03/mta-plans-big-changes-coming-to-roosevelt-island-subway-service/</code
-            ></li
-          ><li
-            ><code
-              >https://future.mta.info/documents/20-YearNeedsAssessment_ReportandAppendix.pdf</code
-            ></li
-          ><li
-            ><code
-              >https://ia601408.us.archive.org/15/items/irt-capacity-study-final-reportt-redacted/IRT%20Capacity%20Study%20Final%20Reportt_Redacted_.pdf</code
-            ></li
-          ><li
-            ><code>https://www.youtube.com/live/0AEaaKvpMQw</code></li
-          ><li
-            ><code>https://www.mta.info/document/179856</code></li
-          ><li
-            ><code
-              >https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn</code
-            ></li
-          ><li
-            ><code>https://www.mta.info/map/40511</code></li
-          ><li
-            ><code>https://www.etany.org/statements/deinterlining</code></li
-          ></ul
-        ></li
-      >
-      <li
-        >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Publish Due Date:</code>
-        line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Goals:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Audience:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Short:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>SEO Description:</code>
-        line</li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...ry train is running at a snail<mark>&#39;</mark>s pace, all due to
-          an incident...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...iddle. In this way, trains don<mark>&#39;</mark>t conflict with
-          one another, a...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...k-hour service, however, today<mark>&#39;</mark>s interlined
-          network requires ...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...er, even with a transfer. What<mark>&#39;</mark>s more, this
-          service simplific...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...ion will make it so delays can<mark>&#39;</mark>t spread, making
-          massive meltd...</code
-        ></li
-      >
-      <li
-        >style: a sentence should end with 1 space, not 2:
-        <code
-          >...ce over the course of the day.<mark>··</mark>There will be 9 tph
-          both befor...</code
-        ></li
-      >
-      <li
-        >style: <code>6-minute</code> should be <code>6 minute</code>, with no
-        hyphen: <code
-          >... M trains having the promised <mark>6-minute</mark> headways or
-          better. We hope t...</code
-        ></li
-      >
-      <li
-        >style: <code>6-minute</code> should be <code>6 minute</code>, with no
-        hyphen: <code
-          >..., at least up to the promised <mark>6-minute</mark> headways, to
-          ensure that as m...</code
-        ></li
-      >
-      <li
-        >style: <code>1-minute</code> should be <code>1 minute</code>, with no
-        hyphen: <code
-          >...will only incur an additional <mark>1-minute</mark> penalty in
-          return for far mor...</code
-        ></li
-      >
-      <li
-        >style: <code>10-minute</code> should be <code>10 minute</code>, with no
-        hyphen: <code
-          >...top is less than a half-mile (<mark>10-minute</mark>) walk from a
-          6 Av Express sto...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...torical artifact of the system<mark>&#39;</mark>s creation is
-          almost unique in...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...d causes issues that often don<mark>&#39;</mark>t arise elsewhere.
-          At worst, t...</code
-        ></li
-      >
-      <li
-        >style: a sentence should end with 1 space, not 2:
-        <code
-          >...rain did not increase service.<mark>··</mark>The schedule does
-          include a mo...</code
-        ></li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...ncorrectly stated that the MTA<mark>&#39;</mark>s new schedule for
-          the M train...</code
-        ></li
-      >
-      <li
-        >the image <code>img-96810135</code> has no alt text and no caption; add
-        a description to it in the doc</li
-      >
-      <li
-        >the image <code>img-5a4ea5b9</code> has no alt text and no caption; add
-        a description to it in the doc</li
-      ></ul
-    ></div
-  >
+  <div class="masthead">
+    <div class="masthead-text"
+      ><h1 id="title"
+        ><a
+          class="link-mark"
+          href="#title"
+          aria-label="Link to this title"
+        ></a>Deinterlining: Simpler Service, Fewer Delays</h1
+      ><p class="standfirst" id="short"
+        ><a
+          class="link-mark"
+          href="#short"
+          aria-label="Link to this standfirst"
+        ></a></p
+      ></div
+    >
+    <div class="warnings"
+      ><strong>Warnings</strong><ul
+        ><li
+          >dropped a line before the <code>Header</code> section:
+          <code>Deinterlining</code></li
+        >
+        <li
+          >the <code>Header</code> section has an unrecognized
+          <code>Before:</code> line; check it for a typo</li
+        >
+        <li
+          >the <code>Header</code> section has an unrecognized
+          <code>Thesis:</code> line; check it for a typo</li
+        >
+        <li
+          >the image <code>img-a199edea</code> has a <code>Credit:</code> line
+          under it that is not read as its credit, because <code>Credit</code>
+          is not underlined; underline it in the doc</li
+        >
+        <li
+          >the image <code>img-da01ab69</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >the image <code>img-5f0a3a08</code> has a <code>Credit:</code> line
+          under it that is not read as its credit, because <code>Credit</code>
+          is not underlined; underline it in the doc</li
+        >
+        <li
+          >the image <code>img-c1aacb22</code> has a <code>Credit:</code> line
+          under it that is not read as its credit, because <code>Credit</code>
+          is not underlined; underline it in the doc</li
+        >
+        <li
+          >the image <code>img-96810135</code> has no caption</li
+        >
+        <li
+          >the image <code>img-96810135</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >the image <code>img-5a4ea5b9</code> has no caption</li
+        >
+        <li
+          >the image <code>img-5a4ea5b9</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >6 images are unnamed, so each publishes under a hash; give each a
+          <code>Source:</code> line naming its file:<ul
+            ><li
+              ><code>img-a199edea</code>: Reverse branching makes scheduling
+              transit systems incredibly complex...</li
+            ><li
+              ><code>img-da01ab69</code>: Many of New York’s subway lines are
+              interconnected through delicate ac...</li
+            ><li
+              ><code>img-5f0a3a08</code>: Credit: MTA</li
+            ><li
+              ><code>img-c1aacb22</code>: Credit: MTA, via Roosevelt Islander</li
+            ><li
+              ><code>img-96810135</code></li
+            ><li
+              ><code>img-5a4ea5b9</code></li
+            ></ul
+          ></li
+        >
+        <li>3 comment threads still open on this tab</li>
+        <li
+          >11 links show their URL as their text; give each words in the doc:<ul
+            ><li
+              ><code
+                >https://images-prod.gothamist.com/images/Nostr.2e16d0ba.fill-1336x852.format-webp.webpquality-60.webp</code
+              ></li
+            ><li
+              ><code>https://www.mta.info/document/174186</code></li
+            ><li
+              ><code
+                >https://nyc.streetsblog.org/2025/06/03/mta-to-finally-untangle-notorious-brooklyn-subway-pinch-point</code
+              ></li
+            ><li
+              ><code
+                >https://rooseveltislander.com/2025/06/03/mta-plans-big-changes-coming-to-roosevelt-island-subway-service/</code
+              ></li
+            ><li
+              ><code
+                >https://future.mta.info/documents/20-YearNeedsAssessment_ReportandAppendix.pdf</code
+              ></li
+            ><li
+              ><code
+                >https://ia601408.us.archive.org/15/items/irt-capacity-study-final-reportt-redacted/IRT%20Capacity%20Study%20Final%20Reportt_Redacted_.pdf</code
+              ></li
+            ><li
+              ><code>https://www.youtube.com/live/0AEaaKvpMQw</code></li
+            ><li
+              ><code>https://www.mta.info/document/179856</code></li
+            ><li
+              ><code
+                >https://nyc.streetsblog.org/2025/08/11/the-mta-begins-to-untangle-a-notorious-subway-snarl-in-brooklyn</code
+              ></li
+            ><li
+              ><code>https://www.mta.info/map/40511</code></li
+            ><li
+              ><code>https://www.etany.org/statements/deinterlining</code></li
+            ></ul
+          ></li
+        >
+        <li
+          >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Publish Due Date:</code>
+          line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Goals:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Audience:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Short:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>SEO Description:</code>
+          line</li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...ry train is running at a snail<mark>&#39;</mark>s pace, all due
+            to an incident...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...iddle. In this way, trains don<mark>&#39;</mark>t conflict with
+            one another, a...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...k-hour service, however, today<mark>&#39;</mark>s interlined
+            network requires ...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...er, even with a transfer. What<mark>&#39;</mark>s more, this
+            service simplific...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...ion will make it so delays can<mark>&#39;</mark>t spread, making
+            massive meltd...</code
+          ></li
+        >
+        <li
+          >style: a sentence should end with 1 space, not 2:
+          <code
+            >...ce over the course of the day.<mark>··</mark>There will be 9 tph
+            both befor...</code
+          ></li
+        >
+        <li
+          >style: <code>6-minute</code> should be <code>6 minute</code>, with no
+          hyphen: <code
+            >... M trains having the promised <mark>6-minute</mark> headways or
+            better. We hope t...</code
+          ></li
+        >
+        <li
+          >style: <code>6-minute</code> should be <code>6 minute</code>, with no
+          hyphen: <code
+            >..., at least up to the promised <mark>6-minute</mark> headways, to
+            ensure that as m...</code
+          ></li
+        >
+        <li
+          >style: <code>1-minute</code> should be <code>1 minute</code>, with no
+          hyphen: <code
+            >...will only incur an additional <mark>1-minute</mark> penalty in
+            return for far mor...</code
+          ></li
+        >
+        <li
+          >style: <code>10-minute</code> should be <code>10 minute</code>, with
+          no hyphen: <code
+            >...top is less than a half-mile (<mark>10-minute</mark>) walk from
+            a 6 Av Express sto...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...torical artifact of the system<mark>&#39;</mark>s creation is
+            almost unique in...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...d causes issues that often don<mark>&#39;</mark>t arise
+            elsewhere. At worst, t...</code
+          ></li
+        >
+        <li
+          >style: a sentence should end with 1 space, not 2:
+          <code
+            >...rain did not increase service.<mark>··</mark>The schedule does
+            include a mo...</code
+          ></li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...ncorrectly stated that the MTA<mark>&#39;</mark>s new schedule
+            for the M train...</code
+          ></li
+        >
+        <li
+          >the image <code>img-96810135</code> has no alt text and no caption;
+          add a description to it in the doc</li
+        >
+        <li
+          >the image <code>img-5a4ea5b9</code> has no alt text and no caption;
+          add a description to it in the doc</li
+        ></ul
+      ></div
+    >
+  </div>
   <nav class="toc" id="table-of-contents" aria-label="Table of contents">
     <a
       class="link-mark"

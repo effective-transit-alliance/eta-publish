@@ -166,10 +166,6 @@ def link_mark(anchor: str, what: str = "section") -> Tag:
     so every mark on the page hangs in one column.
     The `#` is the stylesheet's,
     so quoting a heading does not copy a character nobody wrote.
-
-    A function rather than only a method,
-    because the page and fragment both write the headline and standfirst
-    outside the body walk.
     """
     return tag.a(class_="link-mark", href=f"#{anchor}", aria_label=f"Link to this {what}")
 
@@ -219,7 +215,6 @@ class HtmlEmitter(Emitter):
         inline_css: bool = True,
         inline_js: bool = True,
         inline_phase: bool = True,
-        inline_title: bool = True,
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -231,9 +226,6 @@ class HtmlEmitter(Emitter):
         # Off for a page, which writes the phase above the headline itself;
         # on for the fragment, which emits it with the rest of the report.
         self.inline_phase = inline_phase
-        # Off for a page, which writes the headline and standfirst outside
-        # `.eta-report`; on for the fragment, which has no page shell.
-        self.inline_title = inline_title
         self._in_tip = False
         """Whether what is being emitted is the box a reference carries,
         which is a copy of a note and so cannot carry boxes of its own."""
@@ -362,17 +354,7 @@ class HtmlEmitter(Emitter):
         self.restart(doc)
         parts = []
         parts.append(self.phase(doc))
-        if self.inline_title:
-            parts.append(self.report_title(doc))
-            parts.append(self.standfirst(doc))
-        parts.append(self.dateline(doc))
-        # Below the dateline and above the hero,
-        # because the hero fills the screen
-        # and a warning under it is a warning nobody scrolls to.
-        # In the fragment as well as the page, so that a report pasted into the
-        # live site with warnings still on it says so at the top.
-        parts.append(self.warnings(doc))
-        parts.append(self.blocks([doc.hero] if doc.hero is not None else []))
+        parts.append(self.masthead(doc))
         parts.append(self.toc(doc))
 
         groups: list[list[str]] = [[part for part in parts if part]]
@@ -389,6 +371,36 @@ class HtmlEmitter(Emitter):
         ]
         groups[-1].extend(back)
         return [group for group in groups if group]
+
+    def masthead(self, doc: Document) -> str:
+        """The headline, standfirst and dateline, beside the hero where there is room.
+
+        The site's own reports set the title beside the picture on a wide
+        screen, so this does too, and the stylesheet stacks them on a phone.
+
+        The warnings come between the dateline and the hero,
+        because stacked, the hero fills the screen
+        and a warning under it is a warning nobody scrolls to;
+        side by side, the stylesheet moves them under both.
+        In the fragment as well as the page, so that a report pasted into the
+        live site with warnings still on it says so at the top.
+        """
+        text = tag.div(class_="masthead-text")[
+            Markup(self.report_title(doc)),
+            Markup(self.standfirst(doc)),
+            Markup(self.dateline(doc)),
+        ]
+        hero = self.blocks([doc.hero] if doc.hero is not None else [])
+        return markup(
+            tag.div(class_="masthead")[
+                "\n",
+                text,
+                "\n",
+                Markup(self.warnings(doc)) if doc.warnings else None,
+                Markup(hero) if hero else None,
+                "\n",
+            ]
+        )
 
     def report_title(self, doc: Document) -> str:
         """The headline, which belongs to the fragment as it does the page."""
@@ -1156,9 +1168,7 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
         inline_css=False,
         inline_js=False,
         inline_phase=False,
-        inline_title=False,
     ).emit(doc)
-    short = doc.meta.get("Short", "")
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.
     card: list[Piece] = []
@@ -1192,8 +1202,6 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
         ),
         htpy.script(src=f"{asset_base}/report.js", defer=True),
         *([Markup(phase_markup(doc.phase))] if doc.phase else []),
-        tag.h1(id="title")[link_mark("title", "title"), doc.title],
-        tag.p(class_="standfirst", id="short")[link_mark("short", "standfirst"), short],
     ]
     # `<!doctype html>` is not an element and no builder emits one.
     return markup([Markup("<!doctype html>"), "\n", lines(head), "\n", Markup(body), "\n"])

@@ -271,6 +271,34 @@
   border-left: 2px solid currentColor;
   opacity: 0.8;
 }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    align-items: flex-start;
+  }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure {
+    flex: 1 1 15rem;
+  }
+  .eta-report .masthead > figure {
+    margin: 1em 0 0;
+  }
+  .eta-report .masthead > .warnings {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.

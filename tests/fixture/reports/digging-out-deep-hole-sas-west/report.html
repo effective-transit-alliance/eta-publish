@@ -139,6 +139,22 @@
 .eta-report .warnings blockquote { margin: .5em 0 .5em 1em; padding-left: .8em;
                                    border-left: 2px solid currentColor;
                                    opacity: .8; }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead { display: flex; flex-wrap: wrap; gap: 0 2rem;
+                          align-items: flex-start; }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure { flex: 1 1 15rem; }
+  .eta-report .masthead > figure { margin: 1em 0 0; }
+  .eta-report .masthead > .warnings { order: 1; flex-basis: 100%; min-width: 0; }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
@@ -429,9 +445,10 @@
 })();
 </script>
 <div class="eta-report">
-<h1 id="title"><a class="link-mark" href="#title" aria-label="Link to this title"></a>Digging Out of a Very Deep Hole: Saving Billions on 125th Street</h1>
-<p class="standfirst" id="short"><a class="link-mark" href="#short" aria-label="Link to this standfirst"></a>A 125 St subway should be a slam dunk.</p>
+<div class="masthead">
+<div class="masthead-text"><h1 id="title"><a class="link-mark" href="#title" aria-label="Link to this title"></a>Digging Out of a Very Deep Hole: Saving Billions on 125th Street</h1><p class="standfirst" id="short"><a class="link-mark" href="#short" aria-label="Link to this standfirst"></a>A 125 St subway should be a slam dunk.</p></div>
 <div class="warnings"><strong>Warnings</strong><ul><li>the <code>Header</code> section has an unrecognized <code>MTA SAS West Feasibility Study:</code> line; check it for a typo</li></ul></div>
+</div>
 <nav class="toc" id="table-of-contents" aria-label="Table of contents">
 <a class="link-mark" href="#table-of-contents" aria-label="Link to this table of contents"></a>
 <strong>Table of Contents</strong>

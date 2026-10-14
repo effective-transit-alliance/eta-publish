@@ -27,31 +27,6 @@ h4 {
   font-family: system-ui, sans-serif;
   line-height: 1.25;
 }
-/* The headline and standfirst sit outside `.eta-report`, so the rules that
-   hang a mark beside a block do not reach them. These two do. */
-#title,
-#short {
-  position: relative;
-}
-#title > .link-mark,
-#short > .link-mark {
-  position: absolute;
-  left: -1.15em;
-  text-decoration: none;
-  font-weight: normal;
-  font-size: 1rem;
-  opacity: 0;
-}
-#title > .link-mark::before,
-#short > .link-mark::before {
-  content: "#";
-}
-#title:hover > .link-mark,
-#short:hover > .link-mark,
-#title > .link-mark:focus-visible,
-#short > .link-mark:focus-visible {
-  opacity: 0.45;
-}
 h1 {
   font-size: 2.1rem;
   margin-bottom: 0.2em;

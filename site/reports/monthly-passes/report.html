@@ -272,6 +272,34 @@
   border-left: 2px solid currentColor;
   opacity: 0.8;
 }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    align-items: flex-start;
+  }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure {
+    flex: 1 1 15rem;
+  }
+  .eta-report .masthead > figure {
+    margin: 1em 0 0;
+  }
+  .eta-report .masthead > .warnings {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
@@ -684,153 +712,158 @@
 })();
 </script>
 <div class="eta-report">
-  <h1 id="title"
-    ><a
-      class="link-mark"
-      href="#title"
-      aria-label="Link to this title"
-    ></a>Monthly Passes</h1
-  >
-  <p class="standfirst" id="short"
-    ><a
-      class="link-mark"
-      href="#short"
-      aria-label="Link to this standfirst"
-    ></a></p
-  >
-  <div class="warnings"
-    ><strong>Warnings</strong><ul
-      ><li
-        >the <code>Header</code> section has an unrecognized
-        <code>Description:</code> line; check it for a typo</li
-      >
-      <li
-        >no <code>Title</code>-styled paragraph, so the document name <code
-          >Monthly Passes</code
-        > is being used as the headline; style the headline as <code
-          >Title</code
-        > in the doc</li
-      >
-      <li
-        >the image <code>img-ae6ddd33</code> has no caption</li
-      >
-      <li
-        >the image <code>img-ae6ddd33</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >the image <code>img-cf3f2056</code> has a <code>Credit:</code> line
-        under it that is not read as its credit, because <code>Credit</code> is
-        not underlined; underline it in the doc</li
-      >
-      <li
-        >the image <code>img-6b5eb7d1</code> has no <code>Credit:</code> line</li
-      >
-      <li
-        >3 images are unnamed, so each publishes under a hash; give each a
-        <code>Source:</code> line naming its file:<ul
-          ><li
-            ><code>img-ae6ddd33</code></li
-          ><li
-            ><code>img-cf3f2056</code>: Image: Tapping onto the subway with OMNY</li
-          ><li
-            ><code>img-6b5eb7d1</code>: A comparison of monthly fare pass
-            ratios. Note: for cities with multip...</li
-          ></ul
-        ></li
-      >
-      <li
-        >1 suggestion still open on this tab; the build publishes the document
-        without them, as it reads today</li
-      >
-      <li>26 comment threads still open on this tab</li>
-      <li
-        >2 URLs typed out but not linked; link each in the doc:<ul
-          ><li
-            ><code
-              >https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)</code
-            ></li
-          ><li
-            ><code>https://doi.org/10.3141/1735-13</code></li
-          ></ul
-        ></li
-      >
-      <li
-        >3 links show their URL as their text; give each words in the doc:<ul
-          ><li
-            ><code
-              >https://www.ironmanturnstile.com/transportation-and-smart-hubs/</code
-            ></li
-          ><li
-            ><code
-              >https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection</code
-            ></li
-          ><li
-            ><code
-              >https://www.etany.org/modernizing-new-york-commuter-rail</code
-            ></li
-          ></ul
-        ></li
-      >
-      <li
-        >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Publish Due Date:</code>
-        line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Goals:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Audience:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>Short:</code> line</li
-      >
-      <li
-        >the <code>Header</code> section has no <code>SEO Description:</code>
-        line</li
-      >
-      <li
-        >style: an apostrophe should be <code>’</code>, not <code>&#39;</code>:
-        <code
-          >...o make is the one that you don<mark>&#39;</mark>t have to think
-          about.</code
-        ></li
-      >
-      <li
-        >the image <code>img-ae6ddd33</code> has no alt text and no caption; add
-        a description to it in the doc</li
-      ></ul
-    ></div
-  >
-  <figure id="img-ae6ddd33" style="--aspect: 1.908"
-    ><a
-      class="link-mark"
-      href="#img-ae6ddd33"
-      aria-label="Link to this figure"
-    ></a><a
-      class="full-size"
-      href="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/img-ae6ddd33.jpg"
-      ><picture
-        ><source
-          type="image/avif"
-          srcset="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.avif 1198w"
-          sizes="min(100vw, 46.0rem)"
-        ><source
-          type="image/webp"
-          srcset="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.webp 1198w"
-          sizes="min(100vw, 46.0rem)"
-        ><img
-          src="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.webp"
-          alt=""
-          fetchpriority="high"
-          width="1198"
-          height="628"
-        ></picture
-      ></a
-    ></figure
-  >
+  <div class="masthead">
+    <div class="masthead-text"
+      ><h1 id="title"
+        ><a
+          class="link-mark"
+          href="#title"
+          aria-label="Link to this title"
+        ></a>Monthly Passes</h1
+      ><p class="standfirst" id="short"
+        ><a
+          class="link-mark"
+          href="#short"
+          aria-label="Link to this standfirst"
+        ></a></p
+      ></div
+    >
+    <div class="warnings"
+      ><strong>Warnings</strong><ul
+        ><li
+          >the <code>Header</code> section has an unrecognized
+          <code>Description:</code> line; check it for a typo</li
+        >
+        <li
+          >no <code>Title</code>-styled paragraph, so the document name <code
+            >Monthly Passes</code
+          > is being used as the headline; style the headline as <code
+            >Title</code
+          > in the doc</li
+        >
+        <li
+          >the image <code>img-ae6ddd33</code> has no caption</li
+        >
+        <li
+          >the image <code>img-ae6ddd33</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >the image <code>img-cf3f2056</code> has a <code>Credit:</code> line
+          under it that is not read as its credit, because <code>Credit</code>
+          is not underlined; underline it in the doc</li
+        >
+        <li
+          >the image <code>img-6b5eb7d1</code> has no <code>Credit:</code> line</li
+        >
+        <li
+          >3 images are unnamed, so each publishes under a hash; give each a
+          <code>Source:</code> line naming its file:<ul
+            ><li
+              ><code>img-ae6ddd33</code></li
+            ><li
+              ><code>img-cf3f2056</code>: Image: Tapping onto the subway with
+              OMNY</li
+            ><li
+              ><code>img-6b5eb7d1</code>: A comparison of monthly fare pass
+              ratios. Note: for cities with multip...</li
+            ></ul
+          ></li
+        >
+        <li
+          >1 suggestion still open on this tab; the build publishes the document
+          without them, as it reads today</li
+        >
+        <li>26 comment threads still open on this tab</li>
+        <li
+          >2 URLs typed out but not linked; link each in the doc:<ul
+            ><li
+              ><code
+                >https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)</code
+              ></li
+            ><li
+              ><code>https://doi.org/10.3141/1735-13</code></li
+            ></ul
+          ></li
+        >
+        <li
+          >3 links show their URL as their text; give each words in the doc:<ul
+            ><li
+              ><code
+                >https://www.ironmanturnstile.com/transportation-and-smart-hubs/</code
+              ></li
+            ><li
+              ><code
+                >https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection</code
+              ></li
+            ><li
+              ><code
+                >https://www.etany.org/modernizing-new-york-commuter-rail</code
+              ></li
+            ></ul
+          ></li
+        >
+        <li
+          >the <code>Header</code> section has no <code>SME/Liaison:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Publish Due Date:</code>
+          line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Goals:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Audience:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>Short:</code> line</li
+        >
+        <li
+          >the <code>Header</code> section has no <code>SEO Description:</code>
+          line</li
+        >
+        <li
+          >style: an apostrophe should be <code>’</code>, not <code
+            >&#39;</code
+          >:
+          <code
+            >...o make is the one that you don<mark>&#39;</mark>t have to think
+            about.</code
+          ></li
+        >
+        <li
+          >the image <code>img-ae6ddd33</code> has no alt text and no caption;
+          add a description to it in the doc</li
+        ></ul
+      ></div
+    ><figure id="img-ae6ddd33" style="--aspect: 1.908"
+      ><a
+        class="link-mark"
+        href="#img-ae6ddd33"
+        aria-label="Link to this figure"
+      ></a><a
+        class="full-size"
+        href="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/img-ae6ddd33.jpg"
+        ><picture
+          ><source
+            type="image/avif"
+            srcset="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.avif 1198w"
+            sizes="min(100vw, 46.0rem)"
+          ><source
+            type="image/webp"
+            srcset="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.webp 1198w"
+            sizes="min(100vw, 46.0rem)"
+          ><img
+            src="https://kkysen.github.io/eta-publish/reports/monthly-passes/images/web/img-ae6ddd33-1198w.webp"
+            alt=""
+            fetchpriority="high"
+            width="1198"
+            height="628"
+          ></picture
+        ></a
+      ></figure
+    >
+  </div>
   <nav class="toc" id="table-of-contents" aria-label="Table of contents">
     <a
       class="link-mark"

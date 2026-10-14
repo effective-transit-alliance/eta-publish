@@ -139,6 +139,22 @@
 .eta-report .warnings blockquote { margin: .5em 0 .5em 1em; padding-left: .8em;
                                    border-left: 2px solid currentColor;
                                    opacity: .8; }
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column. */
+@media (min-width: 768px) {
+  .eta-report .masthead { display: flex; flex-wrap: wrap; gap: 0 2rem;
+                          align-items: flex-start; }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure { flex: 1 1 15rem; }
+  .eta-report .masthead > figure { margin: 1em 0 0; }
+  .eta-report .masthead > .warnings { order: 1; flex-basis: 100%; min-width: 0; }
+}
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
@@ -429,15 +445,14 @@
 })();
 </script>
 <div class="eta-report">
-<h1 id="title"><a class="link-mark" href="#title" aria-label="Link to this title"></a>No Need to Wait: Automated Light Metro is Right for the IBX</h1>
-<p class="standfirst" id="short"><a class="link-mark" href="#short" aria-label="Link to this standfirst"></a>[TODO]</p>
-<p class="dateline" id="date"><a class="link-mark" href="#date" aria-label="Link to this date"></a>October 12, 2026</p>
+<div class="masthead">
+<div class="masthead-text"><h1 id="title"><a class="link-mark" href="#title" aria-label="Link to this title"></a>No Need to Wait: Automated Light Metro is Right for the IBX</h1><p class="standfirst" id="short"><a class="link-mark" href="#short" aria-label="Link to this standfirst"></a>[TODO]</p><p class="dateline" id="date"><a class="link-mark" href="#date" aria-label="Link to this date"></a>October 12, 2026</p></div>
 <div class="warnings"><strong>Warnings</strong><ul><li>1 suggestion still open on this tab; the build publishes the document without them, as it reads today</li>
 <li>2 comment threads still open on this tab</li>
 <li><code>Short:</code> is still marked unfinished</li>
 <li><code>SEO Description:</code> is still marked unfinished</li>
-<li>could not archive <code>https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg</code> (in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)); it publishes as not archived, and the next build that can asks again</li></ul></div>
-<figure id="IBX_NU_Side_Platform_Crop_2026_0825.original" style="--aspect: 1.500"><a class="link-mark" href="#IBX_NU_Side_Platform_Crop_2026_0825.original" aria-label="Link to this figure"></a><a class="full-size" href="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg"><picture><source type="image/avif" srcset="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.avif 1600w" sizes="min(100vw, 46.0rem)"><source type="image/webp" srcset="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp 1600w" sizes="min(100vw, 46.0rem)"><img src="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp" alt="A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs)." fetchpriority="high" width="1600" height="1066"></picture></a><figcaption class="figure-caption">A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).</figcaption><figcaption class="figure-credit">Credit: MTA, <span class="cited"><a href="https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out">via Gothamist</a><sup class="source-ref" id="srcref1-1"><a href="#src1">[1]</a></sup></span></figcaption></figure>
+<li>could not archive <code>https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg</code> (in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)); it publishes as not archived, and the next build that can asks again</li></ul></div><figure id="IBX_NU_Side_Platform_Crop_2026_0825.original" style="--aspect: 1.500"><a class="link-mark" href="#IBX_NU_Side_Platform_Crop_2026_0825.original" aria-label="Link to this figure"></a><a class="full-size" href="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg"><picture><source type="image/avif" srcset="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-800w.avif 800w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.avif 1600w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.avif 1600w" sizes="min(100vw, 46.0rem)"><source type="image/webp" srcset="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-800w.webp 800w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp 1600w, https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp 1600w" sizes="min(100vw, 46.0rem)"><img src="https://kkysen.github.io/eta-publish/reports/ibx-automation/images/web/IBX_NU_Side_Platform_Crop_2026_0825.original-1600w.webp" alt="A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs)." fetchpriority="high" width="1600" height="1066"></picture></a><figcaption class="figure-caption">A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).</figcaption><figcaption class="figure-credit">Credit: MTA, <span class="cited"><a href="https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out">via Gothamist</a><sup class="source-ref" id="srcref1-1"><a href="#src1">[1]</a></sup></span></figcaption></figure>
+</div>
 <nav class="toc" id="table-of-contents" aria-label="Table of contents">
 <a class="link-mark" href="#table-of-contents" aria-label="Link to this table of contents"></a>
 <strong>Table of Contents</strong>
