@@ -278,9 +278,17 @@
 
    The warnings come between the two in the markup, which is where they read
    once the hero is under the headline, and go under both here. `min-width`,
-   or a long address in one holds the row wider than the column. */
+   or a long address in one holds the row wider than the column.
+
+   Wider than the column, as the site's own title sections are: the width of
+   the page less the site's 3vw gutter each side, up to the site's 1500px,
+   centred on the column, which is centred on the page. Two halves of the
+   column alone left the headline a few words to a line. */
 @media (min-width: 768px) {
   .eta-report .masthead {
+    --wide: min(94vw, 1500px);
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
     display: flex;
     flex-wrap: wrap;
     gap: 0 2rem;
