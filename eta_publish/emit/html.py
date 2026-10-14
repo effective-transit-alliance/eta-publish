@@ -215,6 +215,7 @@ class HtmlEmitter(Emitter):
         inline_css: bool = True,
         inline_js: bool = True,
         inline_phase: bool = True,
+        asset_base: str = "",
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -223,6 +224,9 @@ class HtmlEmitter(Emitter):
         # Off for a page, which links one copy; on for the fragment, which
         # is pasted somewhere with nothing to link to.
         self.inline_js = inline_js
+        # Where the fragment links what it does not carry: the site's copies.
+        # Empty for a page, which links its own.
+        self.asset_base = asset_base
         # Off for a page, which writes the phase above the headline itself;
         # on for the fragment, which emits it with the rest of the report.
         self.inline_phase = inline_phase
@@ -329,11 +333,17 @@ class HtmlEmitter(Emitter):
         shell = []
         if self.inline_css:
             shell.append(markup(tag.style[Markup(f"\n{REPORT_CSS}")]))
+        elif self.asset_base:
+            href = f"{self.asset_base}/report.css"
+            shell.append(markup(htpy.link(rel="stylesheet", href=href)))
         # Unlike the stylesheet, which a site can carry once under Custom CSS,
         # this travels with the report: it is small, and a fragment pasted
         # without it puts a tooltip off the edge of the screen.
         if self.inline_js:
             shell.append(markup(tag.script[Markup(f"\n{REPORT_JS}")]))
+        elif self.asset_base:
+            src = f"{self.asset_base}/report.js"
+            shell.append(markup(htpy.script(src=src, defer=True)))
         # The one pair of tags written out rather than built:
         # a group is a list of lines the caller joins, and the wrapper opens
         # before the first and closes after the last, so there is no element

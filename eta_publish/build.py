@@ -63,6 +63,15 @@ class BuildOptions:
     A rebuild of what is committed, for a change to this code rather than to a doc.
     """
 
+    embed_assets: bool = False
+    """Whether `report.html` carries its stylesheet and script rather than linking them.
+
+    Linked by default, at `SITE`,
+    so a fragment is 28 KB smaller and every report shares one copy.
+    A linked copy only exists once the site is pushed, though,
+    so embedding is for a fragment to paste before then.
+    """
+
     hosted_media: bool = True
     """Whether `report.html` links its images and videos where the site serves them.
 
@@ -214,9 +223,22 @@ def _link_or_copy(source: Path, dest: Path) -> None:
         shutil.copy2(source, dest)
 
 
-def write_split(doc: Document, outdir: Path, image_base: str = IMAGE_DIR) -> list[Path]:
+def fragment_emitter(image_base: str, linked: str) -> HtmlEmitter:
+    """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
+    and carrying them otherwise."""
+    return HtmlEmitter(
+        image_base=image_base,
+        inline_css=not linked,
+        inline_js=not linked,
+        asset_base=linked,
+    )
+
+
+def write_split(
+    doc: Document, outdir: Path, image_base: str = IMAGE_DIR, linked: str = ""
+) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
-    emitter = HtmlEmitter(image_base=image_base)
+    emitter = fragment_emitter(image_base, linked)
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
@@ -480,13 +502,17 @@ def media_base(path: str) -> str:
 
 
 def emit(
-    doc: Document, outdir: Path, assets: str = ASSET_DIR, images: str = IMAGE_DIR
+    doc: Document,
+    outdir: Path,
+    assets: str = ASSET_DIR,
+    images: str = IMAGE_DIR,
+    linked: str = "",
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them."""
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        "report.html": HtmlEmitter(image_base=images),
+        "report.html": fragment_emitter(images, linked),
         "report.md": MarkdownEmitter(),
         "report.typ": TypstEmitter(),
     }
@@ -829,7 +855,8 @@ def build_one(
     write_assets(outdir)
     images = media_base(path) if options.hosted_media else IMAGE_DIR
     console.step("writing the outputs")
-    written = emit(doc, dest, asset_base(path), images)
+    linked = "" if options.embed_assets else f"{SITE}/{ASSET_DIR}"
+    written = emit(doc, dest, asset_base(path), images, linked)
 
     typ = written.get("report.typ")
     if typ is not None:
@@ -837,6 +864,6 @@ def build_one(
         build_pdf(typ, dest, skipped_images=not options.images and bool(doc.images))
 
     if options.split:
-        write_split(doc, dest, images)
+        write_split(doc, dest, images, linked)
 
     return doc, path

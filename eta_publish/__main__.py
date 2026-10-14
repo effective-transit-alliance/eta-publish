@@ -79,6 +79,13 @@ Offline = Annotated[
     bool,
     Option(help="rebuild from the responses saved by the last build; no network"),
 ]
+EmbedAssets = Annotated[
+    bool,
+    Option(
+        help="carry the stylesheet and script in `report.html` rather than linking the site's,"
+        " for a fragment to paste before the site is pushed"
+    ),
+]
 HostedMedia = Annotated[
     bool,
     Option(help="link `report.html`'s images and videos where the site serves them"),
@@ -101,6 +108,7 @@ def build_all(
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
     hosted_media: HostedMedia = True,
+    embed_assets: EmbedAssets = False,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -134,6 +142,7 @@ def build_all(
         whole=True,
         into=into,
         hosted_media=hosted_media,
+        embed_assets=embed_assets,
     )
 
 
@@ -155,6 +164,7 @@ def build_one_report(
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
     hosted_media: HostedMedia = True,
+    embed_assets: EmbedAssets = False,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -178,6 +188,7 @@ def build_one_report(
         comments,
         archive=archive,
         hosted_media=hosted_media,
+        embed_assets=embed_assets,
     )
 
 
@@ -193,6 +204,7 @@ def publish(
     whole: bool = False,
     into: Path | None = None,
     hosted_media: bool = True,
+    embed_assets: bool = False,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -215,6 +227,7 @@ def publish(
         comments=comments,
         offline=offline,
         hosted_media=hosted_media,
+        embed_assets=embed_assets,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)

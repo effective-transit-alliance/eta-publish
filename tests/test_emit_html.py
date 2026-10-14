@@ -507,3 +507,16 @@ def test_a_source_is_shown_without_its_www() -> None:
     """Only what is shown: the link still goes where the document said."""
     assert shown_url("https://www.mta.info/document/196361") == "mta.info/document/196361"
     assert shown_url("https://web.archive.org/x/www.a.b") == "web.archive.org/x/www.a.b"
+
+
+def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
+    """Linked, not carried, unless built to embed them."""
+    from eta_publish.build import fragment_emitter
+
+    linked = fragment_emitter("images", "https://example.org/assets").emit(doc)
+    assert "<style>" not in linked
+    assert 'href="https://example.org/assets/report.css"' in linked
+    assert 'src="https://example.org/assets/report.js" defer' in linked
+    embedded = fragment_emitter("images", "").emit(doc)
+    assert "<style>" in embedded
+    assert "<link" not in embedded
