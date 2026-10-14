@@ -274,7 +274,11 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     # And from 230,000 when each picture became a `picture` of AVIF and WebP
     # copies at two widths, linked to the original: five URLs where there was
     # one, about 400 bytes a figure here and more with the full site URL.
-    assert size < 245_000, f"grown to {size:,} bytes; still fits, worth a look"
+    #
+    # And from 245,000 when an underline in the headline became a swoosh:
+    # the curve and the script that lays one under each line, about 1.8 KB
+    # that every fragment carries, underlined headline or not.
+    assert size < 250_000, f"grown to {size:,} bytes; still fits, worth a look"
 
 
 def test_every_image_has_something_describing_it(doc: Document) -> None:

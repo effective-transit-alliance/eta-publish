@@ -113,6 +113,24 @@
 .eta-report .embed-vertical { max-width: 20rem; }
 .eta-report .embed-vertical .embed-card img,
 .eta-report .embed-vertical .embed-frame { aspect-ratio: 9 / 16; max-height: none; }
+/* An underline in the headline is a swoosh, as the site draws one when its
+   own title sections underline a word: a hand-drawn curve under the words
+   rather than a rule. `report.js` lays one curve under each line the words
+   fall on, which nothing in CSS can do for words that wrap, and marks the
+   headline once it has; until then, or without the script, it is the
+   underline the document has.
+
+   The curve is the mask of a block of colour rather than a picture of a
+   curve, so it takes the site's highlight colour, which a picture could not,
+   and the text's own where there is none. */
+.eta-report .swooshed u { text-decoration: none; }
+.eta-report .swoosh {
+  position: absolute; height: .28em; margin-top: -.2em; pointer-events: none;
+  background: var(--text-highlight-color, currentColor);
+  --curve: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 0 140 18' preserveAspectRatio='none'%3E%3Cpath d='M0 13.2c16.4-2.3 32.8-7 65.5-9s49.8 0 65.5.8c3.1.2-2.5 2.3-2.6 2.5' fill='none' stroke='%23000' stroke-width='6.5' stroke-linecap='square' stroke-linejoin='bevel'/%3E%3C/svg%3E") 0 0 / 100% 100% no-repeat;
+  -webkit-mask: var(--curve);
+  mask: var(--curve);
+}
 .eta-report .dateline { font-size: .95rem; opacity: .75; }
 .eta-report .standfirst { font-size: 1.15rem; opacity: .75; }
 /* The build's own notes about this report. A colour and a face of their own,

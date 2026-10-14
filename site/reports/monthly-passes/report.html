@@ -224,6 +224,31 @@
   aspect-ratio: 9 / 16;
   max-height: none;
 }
+/* An underline in the headline is a swoosh, as the site draws one when its
+   own title sections underline a word: a hand-drawn curve under the words
+   rather than a rule. `report.js` lays one curve under each line the words
+   fall on, which nothing in CSS can do for words that wrap, and marks the
+   headline once it has; until then, or without the script, it is the
+   underline the document has.
+
+   The curve is the mask of a block of colour rather than a picture of a
+   curve, so it takes the site's highlight colour, which a picture could not,
+   and the text's own where there is none. */
+.eta-report .swooshed u {
+  text-decoration: none;
+}
+.eta-report .swoosh {
+  position: absolute;
+  height: 0.28em;
+  margin-top: -0.2em;
+  pointer-events: none;
+  background: var(--text-highlight-color, currentColor);
+  --curve:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 0 140 18' preserveAspectRatio='none'%3E%3Cpath d='M0 13.2c16.4-2.3 32.8-7 65.5-9s49.8 0 65.5.8c3.1.2-2.5 2.3-2.6 2.5' fill='none' stroke='%23000' stroke-width='6.5' stroke-linecap='square' stroke-linejoin='bevel'/%3E%3C/svg%3E")
+    0 0 / 100% 100% no-repeat;
+  -webkit-mask: var(--curve);
+  mask: var(--curve);
+}
 .eta-report .dateline {
   font-size: 0.95rem;
   opacity: 0.75;
@@ -713,6 +738,42 @@
         frame.style.height = `${height}px`;
     }
   });
+  // An underline in the headline is drawn as a swoosh, one curve under each
+  // line the underlined words fall on, measured rather than styled: a curve
+  // the stylesheet hangs off the words is one curve, and words that wrap
+  // need one per line. Drawn again whenever the headline changes shape,
+  // which is what moves the words from one line to another.
+  const swoosh = (title) => {
+    for (const old of title.querySelectorAll(".swoosh")) old.remove();
+    const box = title.getBoundingClientRect();
+    for (const words of title.querySelectorAll("u")) {
+      for (const line of words.getClientRects()) {
+        const curve = document.createElement("span");
+        curve.className = "swoosh";
+        curve.setAttribute("aria-hidden", "true");
+        curve.style.left = `${line.left - box.left}px`;
+        curve.style.top = `${line.bottom - box.top}px`;
+        curve.style.width = `${line.width}px`;
+        title.append(curve);
+      }
+    }
+    title.classList.add("swooshed");
+  };
+  // After the page has been read rather than now: in the fragment this script
+  // comes before the report it is for.
+  const swooshAll = () => {
+    for (const title of document.querySelectorAll(".eta-report #title")) {
+      if (!title.querySelector("u")) continue;
+      swoosh(title);
+      new ResizeObserver(() => swoosh(title)).observe(title);
+      // A web font arriving rewraps the words without always resizing the
+      // headline.
+      document.fonts?.ready.then(() => swoosh(title));
+    }
+  };
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", swooshAll);
+  else swooshAll();
   for (const name of ["pointerover", "focusin"])
     document.addEventListener(name, place);
   for (const name of ["pointerout", "focusout"])
