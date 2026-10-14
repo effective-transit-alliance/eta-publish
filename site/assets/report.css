@@ -48,6 +48,14 @@
   margin-left: auto;
   margin-right: auto;
 }
+/* Links underlined the way the site underlines them in a text block. The
+   report is pasted into an embed block, which that rule does not reach, and
+   the site's own `a` rule takes the underline off everywhere else. The
+   links that are marks rather than words take it off again below. */
+.eta-report a {
+  text-decoration: underline 1px solid currentColor;
+  text-decoration-skip-ink: auto;
+}
 /* Everything with an id carries a link to itself. The `#` is written by the
    stylesheet rather than by the emitter, so that it is not part of the text:
    selecting a heading to quote it should not pick up a stray character.
