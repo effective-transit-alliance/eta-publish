@@ -460,6 +460,17 @@
 .eta-report .contributors {
   font-size: 0.95rem;
 }
+/* The names in two columns, read down the first and then the second, the way
+   the site's own reports lay them out. At 768px, where the site stacks its
+   own columns: a phone gets one. */
+@media (min-width: 768px) {
+  .eta-report .contributors ul {
+    columns: 2;
+  }
+  .eta-report .contributors li {
+    break-inside: avoid;
+  }
+}
 /* The back matter is set off by space, not by a rule. A page gives every
    `h2` a rule of its own, so a separator here drew a second one. */
 .eta-report .footnotes,
