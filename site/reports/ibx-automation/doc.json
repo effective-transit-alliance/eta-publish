@@ -840,10 +840,28 @@
         "paragraph": {
           "elements": [
             {
-              "endIndex": 620,
+              "endIndex": 577,
               "startIndex": 560,
               "textRun": {
-                "content": "No Need to Wait: Automated Light Metro is Right for the IBX\n",
+                "content": "No Need to Wait: ",
+                "textStyle": {}
+              }
+            },
+            {
+              "endIndex": 598,
+              "startIndex": 577,
+              "textRun": {
+                "content": "Automated Light Metro",
+                "textStyle": {
+                  "underline": true
+                }
+              }
+            },
+            {
+              "endIndex": 620,
+              "startIndex": 598,
+              "textRun": {
+                "content": " is Right for the IBX\n",
                 "textStyle": {}
               }
             }
@@ -1042,7 +1060,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.vjjyykwnecrz",
-            "namedStyleType": "HEADING_2"
+            "namedStyleType": "HEADING_1"
           }
         },
         "startIndex": 922
@@ -1719,7 +1737,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.qt58hkt3r79x",
-            "namedStyleType": "HEADING_2"
+            "namedStyleType": "HEADING_1"
           }
         },
         "startIndex": 4354
@@ -2983,7 +3001,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.nqsc20sgtn9n",
-            "namedStyleType": "HEADING_2"
+            "namedStyleType": "HEADING_1"
           }
         },
         "startIndex": 7479
@@ -11762,7 +11780,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-14T22:06:24.859Z",
+  "modifiedTime": "2026-10-14T22:46:29.688Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [

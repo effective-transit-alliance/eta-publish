@@ -2,7 +2,7 @@
 
 #show: report.with(
   title: "No Need to Wait: Automated Light Metro is Right for the IBX",
-  headline: [No Need to Wait: Automated Light Metro is Right for the IBX],
+  headline: [No Need to Wait: #underline[Automated Light Metro] is Right for the IBX],
   short: "[TODO]",
   phase: "",
   dateline: "October 12, 2026",
@@ -24,7 +24,7 @@
   ],
 )
 
-== Introduction
+= Introduction
 
 Now is the time to decide how the IBX should be built.
 The MTA is slated to release the draft environmental impact statement (DEIS) for the IBX in #link("https://ibx.mta.info/#:~:text=anticipated%20release%20in-,late%202026,-)")[late 2026]#super[#link(<src2>)[\[2\]]].
@@ -62,7 +62,7 @@ ALM allows headways (the time between trains) as low as every 90 seconds, as see
 Initial ridership may not warrant 90 second headways, but ALM would allow peak and off-peak headways much lower than the MTA currently plans, increasing ridership from day one and future-proofing the IBX for significant growth.
 ALM would also mean installing platform screen doors (PSDs) to protect riders from the risks of falling onto the tracks, the #link("https://communityofmetros.org/research-enhancing-platform-safety-without-platform-doors/")[biggest source of risk to riders]#super[#link(<src9>)[\[9\]]] on the subway today.
 
-== Rising Ridership
+= Rising Ridership
 
 IBX ridership projections have steadily risen as plans materialize and improve.
 The design of the IBX must be future-proofed to accommodate this rising ridership, and utilizing ALM technology is critical to do so in a cost-effective manner.
@@ -103,7 +103,7 @@ Light metro can scale from something as small and limited as an airport’s peop
 6B means 6-car Type B trains, so 119 m long.
 By contrast, the high-capacity heavy metro lines are generally 8A, 3.09 m wide and 186 m long.] serving Guangzhou Metro Line 3, which carried #link("http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html")[2.76 million riders a day]#super[#link(<src28>)[\[28\]]] in 2019, making it #link("https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part")[one of the busiest metro lines]#super[#link(<src29>)[\[29\]]] in the world.
 
-== Automation
+= Automation
 
 The rider capacity and high frequency needs of the IBX described above make automation the obvious best choice for the IBX.
 Indeed, automation should be the default choice for any newly built line not extending a pre-existing line.

@@ -17,7 +17,7 @@ A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high
 Credit: MTA, [via Gothamist](<https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out>)<sup>\[1\]</sup>
 <!-- Source: [IBX\_NU\_Side\_Platform\_Crop\_2026\_0825.original.jpg](<https://images-prod.gothamist.com/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>) -->
 
-### Introduction
+## Introduction
 
 Now is the time to decide how the IBX should be built.
 The MTA is slated to release the draft environmental impact statement (DEIS) for the IBX in [late 2026](<https://ibx.mta.info/#:~:text=anticipated%20release%20in-,late%202026,-)>)<sup>\[2\]</sup>.
@@ -55,7 +55,7 @@ ALM allows headways (the time between trains) as low as every 90 seconds, as see
 Initial ridership may not warrant 90 second headways, but ALM would allow peak and off-peak headways much lower than the MTA currently plans, increasing ridership from day one and future-proofing the IBX for significant growth.
 ALM would also mean installing platform screen doors (PSDs) to protect riders from the risks of falling onto the tracks, the [biggest source of risk to riders](<https://communityofmetros.org/research-enhancing-platform-safety-without-platform-doors/>)<sup>\[9\]</sup> on the subway today.
 
-### Rising Ridership
+## Rising Ridership
 
 IBX ridership projections have steadily risen as plans materialize and improve.
 The design of the IBX must be future-proofed to accommodate this rising ridership, and utilizing ALM technology is critical to do so in a cost-effective manner.
@@ -86,7 +86,7 @@ It is imperative that the IBX be future-proofed for higher ridership in the futu
 ALM is the most cost-effective way to accomplish this: it allows capacity to scale to meet future demand with comparatively little additional capital investment or ongoing operational cost.
 Light metro can scale from something as small and limited as an airport’s people mover system to systems as large as the (not fully automated) [narrow 6B trains](<https://rail.kychung.com/en/2d-en/guangzhou-metro-line-6-csr-sifang-emu/>)<sup>\[27\]</sup>[^8] serving Guangzhou Metro Line 3, which carried [2.76 million riders a day](<http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html>)<sup>\[28\]</sup> in 2019, making it [one of the busiest metro lines](<https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part>)<sup>\[29\]</sup> in the world.
 
-### Automation
+## Automation
 
 The rider capacity and high frequency needs of the IBX described above make automation the obvious best choice for the IBX.
 Indeed, automation should be the default choice for any newly built line not extending a pre-existing line.
