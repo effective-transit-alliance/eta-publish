@@ -114,14 +114,14 @@
     "timestamp": "20261010091656"
   },
   "https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md": {
-    "error": "error:not-found",
     "job": "spn2-808429d8fcf32919896345e74efaf675dbd4c10c",
-    "timestamp": "20261014"
+    "snapshot": "https://web.archive.org/web/20261015042645/https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md",
+    "timestamp": "20261015042645"
   },
   "https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_route.md": {
-    "error": "error:not-found",
     "job": "spn2-a8d2a80adf12ef21d2e5f229a71c05399ef00e72",
-    "timestamp": "20261014"
+    "snapshot": "https://web.archive.org/web/20261015042716/https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_route.md",
+    "timestamp": "20261015042716"
   },
   "https://github.com/kkysen/mta-od-data/tree/raptor/raptor": {
     "snapshot": "https://web.archive.org/web/20261012000517/https://github.com/kkysen/mta-od-data/tree/raptor/raptor",
