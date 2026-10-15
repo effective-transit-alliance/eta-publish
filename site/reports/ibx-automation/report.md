@@ -6,13 +6,10 @@ October 12, 2026
 
 **Warnings**
 
-- 4 suggestions still open on this tab; the build publishes the document without them, as it reads today
+- 1 suggestion still open on this tab; the build publishes the document without them, as it reads today
 - 2 comment threads still open on this tab
 - `Short:` is still marked unfinished
 - `SEO Description:` is still marked unfinished
-- style: a range should use an en dash, `–`, not a hyphen: `...nd Hong Kong have run to $10.9-12.9 million per station, scal...`
-- style: a range should use an en dash, `–`, not a hyphen: `...emwide retrofit would cost $67-72 million per station.`
-- style: a range should use an en dash, `–`, not a hyphen: `...ed to be $7.01 billion in 2018-2019 USD for only the 128 feas...`
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
@@ -196,8 +193,8 @@ Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitach
 
 If the MTA waits until after IBX opens, however, then retrofitting PSDs will grow far more expensive.
 Indeed, while the cost of a new PSD in Honolulu is $1.8 million per station in 2026 USD, the cost of a retrofit is an order of magnitude higher.
-Installations in Paris[^23] and Hong Kong[^24] have run to $10.9-12.9 million per station, scaled to the length of an NYC Subway train.
-In 2020, the MTA suggested that a systemwide retrofit[^25] would cost $67-72 million per station.[^26]
+Installations in Paris[^23] and Hong Kong[^24] have run to $10.9–12.9 million per station, scaled to the length of an NYC Subway train.
+In 2020, the MTA suggested that a systemwide retrofit[^25] would cost $67–72 million per station.[^26]
 
 While safety is of course critical, PSDs also bring numerous other benefits.
 Track incursions are not just a safety risk; they are also abysmal for reliability.
@@ -359,7 +356,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
     The NYC estimate is extremely high compared to other retrofitted cities.
     But even if NYC had similar costs, the station design in NYC genuinely makes it more difficult.
 
-[^26]: The cost of full-height PSDs was estimated to be [$7.01 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[91\]</sup> in 2018-2019 USD for only the 128 feasible stations.
+[^26]: The cost of full-height PSDs was estimated to be [$7.01 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[91\]</sup> in 2018–2019 USD for only the 128 feasible stations.
     Half-height PSDs were [$6.53 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[91\]</sup>.
     Adjusted for inflation, this is $7.01 billion \* 1.322 / 128 = $72.4 million and $6.53 billion \* 1.322 / 128 = $67.4 million.
     1.322 is inflation from the average of 2018 and 2019 to Aug 2026.

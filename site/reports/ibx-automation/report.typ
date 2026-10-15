@@ -9,13 +9,10 @@
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
-    [4 suggestions still open on this tab; the build publishes the document without them, as it reads today],
+    [1 suggestion still open on this tab; the build publishes the document without them, as it reads today],
     [2 comment threads still open on this tab],
     [#raw("Short:") is still marked unfinished],
     [#raw("SEO Description:") is still marked unfinished],
-    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...nd Hong Kong have run to $10.9-12.9 million per station, scal...")],
-    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...emwide retrofit would cost $67-72 million per station.")],
-    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...ed to be $7.01 billion in 2018-2019 USD for only the 128 feas...")],
   ),
   hero: [
 #figure(
@@ -230,12 +227,12 @@ If the MTA waits until after IBX opens, however, then retrofitting PSDs will gro
 Indeed, while the cost of a new PSD in Honolulu is \$1.8 million per station in 2026 USD, the cost of a retrofit is an order of magnitude higher.
 Installations in Paris#footnote[#link("https://www.leparisien.fr/info-paris-ile-de-france-oise/transports/accidents-mortels-dans-le-metro-la-securisation-des-quais-un-chantier-long-et-couteux-27-04-2023-6HBP4OH5TFBDXM5SN2NMLM3JME.php")[\$106 million EUR / 29 stations]#super[#link(<src87>)[\[87\]]] \* (602.1 ft / 90 m) / (0.8933 EUR/USD in 2019) \* (334.98 Aug 2026 CPI-U / 255.66 2019 CPI-U) = \$10.93 million USD/station.
 The contract was signed in 2016 and automation began in 2022, so the midpoint, 2019, is used.] and Hong Kong#footnote[#link("https://www.info.gov.hk/gia/general/200501/05/0105194.htm")[\$2 billion HKD]#super[#link(<src88>)[\[88\]]] / #link("https://www.info.gov.hk/gia/general/200501/05/0105194.htm#:~:text=of%20PSDs%20at-,74%20platforms,-of%20the%2030")[74 platform faces]#super[#link(<src89>)[\[89\]]] \* 2 platform faces/station \* (602.1 ft / 180 m) / (7.80 HKD/USD in 2003) \* (334.98 Aug 2026 CPI-U / 184.00 2003 CPI-U) = \$12.86 million USD/station.
-The contract was signed in 2000 and construction finished in 2006, so the midpoint, 2003, is used.] have run to \$10.9-12.9 million per station, scaled to the length of an NYC Subway train.
+The contract was signed in 2000 and construction finished in 2006, so the midpoint, 2003, is used.] have run to \$10.9–12.9 million per station, scaled to the length of an NYC Subway train.
 In 2020, the MTA suggested that a systemwide retrofit#footnote[On the existing NYC subway, retrofitting PSDs at every station is unfortunately very difficult.
 There are issues with #link("https://www.mta.info/document/73241#page=3")[ADA clearance, platform edges that can’t support a PSD’s weight, different train door positions, and more]#super[#link(<src90>)[\[90\]]].
 These can be fixed, at even greater cost.
 The NYC estimate is extremely high compared to other retrofitted cities.
-But even if NYC had similar costs, the station design in NYC genuinely makes it more difficult.] would cost \$67-72 million per station.#footnote[The cost of full-height PSDs was estimated to be #link("https://www.mta.info/document/73241#page=4")[\$7.01 billion]#super[#link(<src91>)[\[91\]]] in 2018-2019 USD for only the 128 feasible stations.
+But even if NYC had similar costs, the station design in NYC genuinely makes it more difficult.] would cost \$67–72 million per station.#footnote[The cost of full-height PSDs was estimated to be #link("https://www.mta.info/document/73241#page=4")[\$7.01 billion]#super[#link(<src91>)[\[91\]]] in 2018–2019 USD for only the 128 feasible stations.
 Half-height PSDs were #link("https://www.mta.info/document/73241#page=4")[\$6.53 billion]#super[#link(<src91>)[\[91\]]].
 Adjusted for inflation, this is \$7.01 billion \* 1.322 / 128 = \$72.4 million and \$6.53 billion \* 1.322 / 128 = \$67.4 million.
 1.322 is inflation from the average of 2018 and 2019 to Aug 2026.]

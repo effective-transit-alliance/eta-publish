@@ -5434,7 +5434,7 @@
               "endIndex": 17250,
               "startIndex": 17108,
               "textRun": {
-                "content": "have run to $10.9-12.9 million per station, scaled to the length of an NYC Subway train. In 2020, the MTA suggested that a systemwide retrofit",
+                "content": "have run to $10.9\u201312.9 million per station, scaled to the length of an NYC Subway train. In 2020, the MTA suggested that a systemwide retrofit",
                 "textStyle": {}
               }
             },
@@ -5451,7 +5451,7 @@
               "endIndex": 17290,
               "startIndex": 17251,
               "textRun": {
-                "content": " would cost $67-72 million per station.",
+                "content": " would cost $67\u201372 million per station.",
                 "textStyle": {}
               }
             },
@@ -8618,7 +8618,7 @@
                 "endIndex": 139,
                 "startIndex": 63,
                 "textRun": {
-                  "content": " in 2018-2019 USD for only the 128 feasible stations. Half-height PSDs were ",
+                  "content": " in 2018\u20132019 USD for only the 128 feasible stations. Half-height PSDs were ",
                   "textStyle": {
                     "fontSize": {
                       "magnitude": 10,
@@ -11780,7 +11780,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-15T05:35:39.300Z",
+  "modifiedTime": "2026-10-15T06:25:35.938Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
@@ -12136,7 +12136,7 @@
     ]
   },
   "openComments": 2,
-  "openSuggestions": 4,
+  "openSuggestions": 1,
   "positionedObjects": {},
   "suggestions": "rejected",
   "tabId": "t.nfnx93uo764a",
