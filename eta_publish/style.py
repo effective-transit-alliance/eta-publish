@@ -175,6 +175,10 @@ nor inside a URL or a code, which have letters, slashes, or dots at their edges.
 """
 
 
+STREETS_AFTER = re.compile(r" (?:Sts|Avs)\b")
+"""What follows the numbers in a station named for a span of streets, `47-50 Sts`."""
+
+
 def _check_ranges(doc: Document, text: str) -> None:
     """A hyphen between two numbers, where the house style has an en dash.
 
@@ -183,6 +187,10 @@ def _check_ranges(doc: Document, text: str) -> None:
     """
     for match in RANGE.finditer(text):
         start, end = match.span("hyphen")
+        # A station named for the streets it spans, as the MTA writes it:
+        # `47-50 Sts`, with a hyphen, in its own station names.
+        if STREETS_AFTER.match(text, match.end()):
+            continue
         # A URL or a DOI, whose numbers are an address rather than a range.
         token_start = max(text.rfind(" ", 0, start), text.rfind("\n", 0, start)) + 1
         token_end = min(

@@ -12,7 +12,6 @@ October 12, 2026
 - `SEO Description:` is still marked unfinished
 - style: a range should use an en dash, `–`, not a hyphen: `...nd Hong Kong have run to $10.9-12.9 million per station, scal...`
 - style: a range should use an en dash, `–`, not a hyphen: `...emwide retrofit would cost $67-72 million per station.`
-- style: a range should use an en dash, `–`, not a hyphen: `...M/R) between 50 St/8 Av and 47-50 Sts/6 Av to Kew Gardens-Uni...`
 - style: a range should use an en dash, `–`, not a hyphen: `...ed to be $7.01 billion in 2018-2019 USD for only the 128 feas...`
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\

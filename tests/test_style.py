@@ -140,6 +140,7 @@ def test_a_range_with_an_en_dash_is_not_warned_about() -> None:
         "See nyc.gov/report-2024-5 for more.",
         "The R211-T cars.",
         "A 3-car train.",
+        "Change at 47-50 Sts/6 Av for the F.",
         "See https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242) there.",
     ],
 )
