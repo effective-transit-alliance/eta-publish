@@ -348,7 +348,7 @@
   padding: 0.3em 0.7em;
   margin: 0 0 1em;
 }
-.eta-report .toc {
+.eta-report .toc > ul {
   font-size: 0.95rem;
   line-height: 1.9;
 }

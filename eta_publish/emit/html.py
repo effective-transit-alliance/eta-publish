@@ -523,9 +523,8 @@ class HtmlEmitter(Emitter):
         return markup(
             tag.nav(class_="toc", id="table-of-contents", aria_label="Table of contents")[
                 "\n",
-                self.mark("table-of-contents", "table of contents"),
-                "\n",
-                tag.strong["Table of Contents"],
+                # A heading, as the back matter's are, so it reads as one of them.
+                tag.h2[self.mark("table-of-contents", "table of contents"), "Table of Contents"],
                 "\n",
                 self.toc_list(headings),
                 "\n",
