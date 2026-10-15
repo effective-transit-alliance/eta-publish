@@ -522,3 +522,14 @@ def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
     embedded = fragment_emitter("images", "").emit(doc)
     assert "<style>" in embedded
     assert "<link" not in embedded
+
+
+def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> None:
+    """The SEO description where there is one, and the excerpt where there is not."""
+    doc.meta["Short"] = "The excerpt."
+    doc.meta["SEO Description"] = "The SEO description."
+    assert 'property="og:description" content="The SEO description."' in report_page(doc)
+    del doc.meta["SEO Description"]
+    page = report_page(doc)
+    assert 'name="description" content="The excerpt."' in page
+    assert 'property="og:description" content="The excerpt."' in page

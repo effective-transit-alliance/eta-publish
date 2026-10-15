@@ -1232,6 +1232,9 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.
     card: list[Piece] = []
+    # What Squarespace does with the two: the SEO description where there is one,
+    # and the excerpt, which is `Short:`, where there is not.
+    description = doc.meta.get("SEO Description") or doc.meta.get("Short", "")
     if doc.card is not None:
         href = doc.image_href(doc.card)
         src = f"{image_base}/{href}" if image_base else href
@@ -1251,7 +1254,10 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
         # Remove this, and `site/robots.txt`, when the reports go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
         tag.title[doc.title],
-        htpy.meta(name="description", content=doc.meta.get("SEO Description", "")),
+        htpy.meta(name="description", content=description),
+        # What a link to the report unfurls as, beside the card's picture.
+        htpy.meta(property="og:title", content=doc.title),
+        htpy.meta(property="og:description", content=description),
         *card,
         # Linked rather than inlined: every report page carries the same
         # stylesheets and the same script, and `asset_base` is where the
