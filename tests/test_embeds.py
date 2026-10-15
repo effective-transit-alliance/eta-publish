@@ -253,9 +253,10 @@ def test_two_videos_whose_links_read_alike_both_carry_a_hash() -> None:
     assert stems[alone.url] == "other"
 
 
-def test_a_graphic_video_is_warned_about_and_named_apart() -> None:
-    """The warning is a notice of its own, and the `#` linking to the video
-    sits on the video's name rather than beside the warning."""
+def test_a_copied_video_is_a_figure_like_an_image() -> None:
+    """Named and captioned as an image is, with nothing of the post it came from:
+    its anchor is its file's name, its `#` is on the figure,
+    and the warning is a notice of its own."""
     url = "https://x.com/someone/status/123"
     line = linked(
         (": ", None), ("Hit by the 1 train", url), underline="Video (Graphic Warning, Copy)"
@@ -265,9 +266,12 @@ def test_a_graphic_video_is_warned_about_and_named_apart() -> None:
     doc.media_files[url] = "Hit_by_the_1_train.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
     assert '<p class="embed-warning" role="note">Warning, graphic video</p>' in html
-    assert "Hit by the 1 train" in html[html.index('class="embed-title"') :]
-    caption = html[html.index('<figcaption class="embed-title">') :]
-    assert caption.index("link-mark") < caption.index("</figcaption>")
+    assert '<figure id="Hit_by_the_1_train"><a class="link-mark"' in html
+    assert '<figcaption class="figure-caption">Hit by the 1 train</figcaption>' in html
+    assert "embed" not in html[html.index("<figure") : html.index("</figure>")].replace(
+        "embed-warning", ""
+    )
+    assert "x.com" not in html
     markdown = MarkdownEmitter().emit(doc)
     # Ours, so named as the document names it and linked to our copy.
     link = "[Hit by the 1 train](<videos/Hit_by_the_1_train.mp4>)"

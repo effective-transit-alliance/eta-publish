@@ -24,10 +24,16 @@
   flex: var(--aspect, 1.4) 1 calc(var(--aspect, 1.4) * 10rem);
   margin: 0;
 }
-.eta-report figure img {
+.eta-report figure img,
+.eta-report figure video {
   width: 100%;
   height: auto;
   display: block;
+}
+/* A graphic video's warning card is wider than most videos;
+   its own background fills the rest of the frame. */
+.eta-report figure video[poster] {
+  background: #000516;
 }
 /* A picture is a link to the file as the document holds it, for zooming in
    past the copy the page shows. It reads as the picture, not as a link. */
@@ -207,16 +213,6 @@
 .eta-report .embed-x .embed-frame,
 .eta-report .embed-bluesky .embed-frame {
   height: 32rem;
-}
-.eta-report .embed video {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-/* The graphic warning's card is wider than most videos;
-   its own background fills the rest of the frame. */
-.eta-report .embed video[poster] {
-  background: #000516;
 }
 /* A Short is filmed upright, so its card and its player are too, and narrow
    enough that the whole of it fits on a laptop's screen at once. */

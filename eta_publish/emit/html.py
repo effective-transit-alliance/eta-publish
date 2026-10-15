@@ -937,6 +937,9 @@ class HtmlEmitter(Emitter):
         from here, so it has nobody to keep out and plays where it is.
         """
         file = self.doc.media_files.get(node.url)
+        served = self.doc.served_video(node)
+        if served is not None:
+            return self.served_video(node, served)
         anchor = self.take(f"embed-{node.platform.value}-{node.key.replace('/', '-')}")
         ref = "" if node.copy else self.source_ref(node.url)
         # In a `cited` of its own, the way a link's is, since that is what the
@@ -966,19 +969,6 @@ class HtmlEmitter(Emitter):
             if node.credit
             else None
         )
-        served = self.doc.served_video(node)
-        if served is not None:
-            video = tag.video(
-                src=self.media_src(served, VIDEO_DIR),
-                controls=True,
-                preload="metadata",
-                poster=GRAPHIC_POSTER if node.graphic else None,
-            )[tag.a(href=node.url)["Watch the video"] if not node.copy else None]
-            return markup(
-                tag.figure(id=anchor, class_="embed embed-video")[
-                    mark, warning, video, title, credit, ref
-                ]
-            )
         where = PLATFORM_NAMES[node.platform]
         picture = None
         if file is not None and Path(file).suffix not in VIDEO_TYPES.values():
@@ -1013,6 +1003,43 @@ class HtmlEmitter(Emitter):
                 title,
                 credit,
                 ref,
+            ]
+        )
+
+    def served_video(self, node: Embed, file: str) -> str:
+        """A video the site serves, a copy or one from Drive, as a figure like an image's.
+
+        Not a stand-in for a post elsewhere, so none of an embed's card or
+        styling: its anchor is its file's name, its `#` is on the figure,
+        and its name is a caption, as an image's are.
+        """
+        anchor = self.take(Path(file).stem)
+        # A copy is ETA's to show, so nothing points back at the post it came from.
+        ref = None if node.copy else self.source_ref(node.url)
+        cited = tag.span(class_="cited")[ref] if ref else None
+        caption = tag.figcaption(class_="figure-caption")[node.title, cited] if node.title else None
+        credit = (
+            tag.figcaption(class_="figure-credit")[self.inlines(node.credit)]
+            if node.credit
+            else None
+        )
+        warning = (
+            tag.p(class_="embed-warning", role="note")[GRAPHIC_WARNING] if node.graphic else None
+        )
+        video = tag.video(
+            src=self.media_src(file, VIDEO_DIR),
+            controls=True,
+            preload="metadata",
+            poster=GRAPHIC_POSTER if node.graphic else None,
+        )[tag.a(href=node.url)["Watch the video"] if not node.copy else None]
+        return markup(
+            tag.figure(id=anchor)[
+                self.mark(anchor, "video"),
+                warning,
+                video,
+                caption,
+                credit,
+                cited if caption is None else None,
             ]
         )
 
