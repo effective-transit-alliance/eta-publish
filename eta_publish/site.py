@@ -460,7 +460,11 @@ def _built(
                 console.write(console.failed(named, str(e)), log)
                 site.failed.append(Failed(report=report, error=str(e)))
                 continue
-            console.write(console.built(named, path, doc.warnings, log), log)
+            paste = [
+                ("Excerpt", doc.meta.get("Short", "")),
+                ("SEO description", doc.meta.get("SEO Description", "")),
+            ]
+            console.write(console.built(named, path, doc.warnings, log, paste), log)
             site.built.append(Built(report=report, doc=doc, path=path))
     except KeyboardInterrupt:
         # Not waited on: `Ctrl+C` reaches only this thread, and the reports

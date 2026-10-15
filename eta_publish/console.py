@@ -327,7 +327,13 @@ def notice(about: Notice, console: Console, indent: str = "  ") -> RenderableTyp
     return Group(said, *apart)
 
 
-def built(name: str, path: str, warnings: list[Notice], console: Console) -> RenderableType:
+def built(
+    name: str,
+    path: str,
+    warnings: list[Notice],
+    console: Console,
+    paste: list[tuple[str, str]] | None = None,
+) -> RenderableType:
     """One report that was built, where it went, and everything in it to fix.
 
     Where it went belongs on this line rather than in a list of its own at the
@@ -339,6 +345,9 @@ def built(name: str, path: str, warnings: list[Notice], console: Console) -> Ren
     On a terminal the colour is what says one field has ended and the next
     begun; piped into a file there is no colour left to say it, and three
     fields with two spaces between them are one field.
+
+    `paste` is what Squarespace has to be given by hand, under the heading:
+    the fragment is a code block, and a code block sets none of the page's settings.
     """
     heading = Text()
     heading.append("✓ ", style="bold green")
@@ -348,7 +357,12 @@ def built(name: str, path: str, warnings: list[Notice], console: Console) -> Ren
     if warnings:
         heading.append(" · ", style="dim")
         heading.append(f"{len(warnings)} warning{'' if len(warnings) == 1 else 's'}", "yellow")
-    return Group(heading, *(notice(warning, console) for warning in warnings))
+    fields = [
+        Text.assemble(("  ", ""), (f"{label}: ", "dim"), value)
+        for label, value in paste or []
+        if value
+    ]
+    return Group(heading, *fields, *(notice(warning, console) for warning in warnings))
 
 
 def failed(name: str, error: str) -> RenderableType:
