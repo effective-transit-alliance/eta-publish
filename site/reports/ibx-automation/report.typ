@@ -13,6 +13,10 @@
     [2 comment threads still open on this tab],
     [#raw("Short:") is still marked unfinished],
     [#raw("SEO Description:") is still marked unfinished],
+    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...nd Hong Kong have run to $10.9-12.9 million per station, scal...")],
+    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...emwide retrofit would cost $67-72 million per station.")],
+    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...M/R) between 50 St/8 Av and 47-50 Sts/6 Av to Kew Gardens-Uni...")],
+    [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...ed to be $7.01 billion in 2018-2019 USD for only the 128 feas...")],
   ),
   hero: [
 #figure(

@@ -83,6 +83,7 @@ def style(doc: Document) -> None:
     for text in _prose(doc):
         _check_spacing(doc, text)
         _check_dash_spacing(doc, text)
+        _check_ranges(doc, text)
         _check_apostrophes(doc, text)
         _check_organization_name(doc, text)
         _check_street_names(doc, text)
@@ -161,6 +162,39 @@ def _check_dash_spacing(doc: Document, text: str) -> None:
             doc,
             f"{DASH_NAMES[dash]} should not have spaces: {{}}",
             Highlighted(_before(text, start), drawn, _after(text, end)),
+        )
+
+
+RANGE = re.compile(
+    r"(?<![\w/.#=\-\u2013])\d+(?:[.,]\d+)?(?P<hyphen>-)\d+(?:[.,]\d+)?(?![\w/\-\u2013])"
+)
+"""Two numbers joined by a hyphen, which is a range and takes an en dash: `10–15`.
+
+Not where the run goes on, as in a date, `2024-05-01`, or a phone number,
+nor inside a URL or a code, which have letters, slashes, or dots at their edges.
+"""
+
+
+def _check_ranges(doc: Document, text: str) -> None:
+    """A hyphen between two numbers, where the house style has an en dash.
+
+    Docs does not turn one into the other as it does a quote,
+    and the two look alike enough to slip past anyone reading the doc.
+    """
+    for match in RANGE.finditer(text):
+        start, end = match.span("hyphen")
+        # A URL or a DOI, whose numbers are an address rather than a range.
+        token_start = max(text.rfind(" ", 0, start), text.rfind("\n", 0, start)) + 1
+        token_end = min(
+            (i for i in (text.find(" ", end), text.find("\n", end)) if i >= 0), default=len(text)
+        )
+        if "/" in text[token_start:token_end]:
+            continue
+        _warn(
+            doc,
+            "a range should use an en dash, {}, not a hyphen: {}",
+            Shown("\u2013"),
+            Highlighted(_before(text, start), "-", _after(text, end)),
         )
 
 

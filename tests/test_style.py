@@ -1,5 +1,7 @@
 """How a report is written, as distinct from what it says."""
 
+import pytest
+
 from eta_publish.nodes import Document, Footnote, Highlighted, Paragraph, Text
 from eta_publish.style import style
 
@@ -118,6 +120,31 @@ def test_a_spaced_en_dash_is_warned_about() -> None:
 def test_a_hyphen_is_not_a_dash() -> None:
     """`pipe-jacking` is one word, and `2 - 3` is a different thing to say."""
     assert warnings(written("The pipe-jacking at Jing\u2019an Temple station.")) == []
+
+
+def test_a_range_written_with_a_hyphen_is_warned_about() -> None:
+    found = warnings(written("Trains every 5-10 minutes, from 2027-2031."))
+    assert len(found) == 2
+    assert all("en dash" in w for w in found)
+
+
+def test_a_range_with_an_en_dash_is_not_warned_about() -> None:
+    assert warnings(written("Trains every 5\u201310 minutes.")) == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Opened on 2024-05-01.",
+        "Call 212-555-0100.",
+        "See nyc.gov/report-2024-5 for more.",
+        "The R211-T cars.",
+        "A 3-car train.",
+        "See https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242) there.",
+    ],
+)
+def test_what_only_looks_like_a_range_is_not_warned_about(text: str) -> None:
+    assert warnings(written(text)) == []
 
 
 def test_a_footnote_dash_is_read_like_the_body() -> None:

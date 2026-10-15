@@ -44,15 +44,19 @@
 - style: an apostrophe should be `’`, not `'`: `...k-hour service, however, today's interlined network requires ...`
 - style: an apostrophe should be `’`, not `'`: `...er, even with a transfer. What's more, this service simplific...`
 - style: an apostrophe should be `’`, not `'`: `...ion will make it so delays can't spread, making massive meltd...`
+- style: a range should use an en dash, `–`, not a hyphen: `...on the 63 St line from every 6-7 minutes to every 6 minutes, ...`
 - style: a sentence should end with 1 space, not 2: `...ce over the course of the day.··There will be 9 tph both befor...`
 - style: `6-minute` should be `6 minute`, with no hyphen: `... M trains having the promised 6-minute headways or better. We hope t...`
 - style: `6-minute` should be `6 minute`, with no hyphen: `..., at least up to the promised 6-minute headways, to ensure that as m...`
+- style: a range should use an en dash, `–`, not a hyphen: `...nterlining in the updated 2025-2029 Capital Plan, with a new ...`
 - style: `1-minute` should be `1 minute`, with no hyphen: `...will only incur an additional 1-minute penalty in return for far mor...`
+- style: a range should use an en dash, `–`, not a hyphen: `...crossovers in the updated 2025-2029 Capital Plan. And while t...`
 - style: `10-minute` should be `10 minute`, with no hyphen: `...top is less than a half-mile (10-minute) walk from a 6 Av Express sto...`
 - style: an apostrophe should be `’`, not `'`: `...torical artifact of the system's creation is almost unique in...`
 - style: an apostrophe should be `’`, not `'`: `...d causes issues that often don't arise elsewhere. At worst, t...`
 - style: a sentence should end with 1 space, not 2: `...rain did not increase service.··The schedule does include a mo...`
 - style: an apostrophe should be `’`, not `'`: `...ncorrectly stated that the MTA's new schedule for the M train...`
+- style: a range should use an en dash, `–`, not a hyphen: `25-29 Capital Plan: https://www.m...`
 - the image `img-96810135` has no alt text and no caption; add a description to it in the doc
 - the image `img-5a4ea5b9` has no alt text and no caption; add a description to it in the doc
 

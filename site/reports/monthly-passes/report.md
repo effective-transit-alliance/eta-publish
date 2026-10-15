@@ -28,6 +28,7 @@
 - the `Header` section has no `Short:` line
 - the `Header` section has no `SEO Description:` line
 - style: an apostrophe should be `’`, not `'`: `...o make is the one that you don't have to think about.`
+- style: a range should use an en dash, `–`, not a hyphen: `...rch Record (2000, 1745(1), 101-112). https://doi.org/10.3141/...`
 - the image `img-ae6ddd33` has no alt text and no caption; add a description to it in the doc
 
 ![](<images/img-ae6ddd33.jpg>)

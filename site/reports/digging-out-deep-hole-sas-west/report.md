@@ -47,15 +47,25 @@ August 19, 2026
 - style: an apostrophe should be `’`, not `'`: `...e part because most riders don't see any major time improveme...`
 - style: `Hunterspoint Avenue` should be `Hunterspoint Av`: `...ed with using Penn Station or Hunterspoint Avenue and the 7 train. At a normal ...`
 - style: an apostrophe should be `’`, not `'`: `...s and ceiling caving in. There's no doubt that cut-and-cover ...`
+- style: a range should use an en dash, `–`, not a hyphen: `...o limit settlement to only 0.2-0.6 in, with both being in wat...`
 - style: an apostrophe should be `’`, not `'`: `...ctions, especially as New York's subway trains are quite long...`
 - style: an apostrophe should be `’`, not `'`: `... St/Lexington Av. Even if that's not possible, however, there...`
 - style: an apostrophe should be `’`, not `'`: `...rt digging until 2027, and won't reach Lenox Av until 2028. S...`
+- style: a range should use an en dash, `–`, not a hyphen: `... can be built an average of 60-70 ft deep based on the intern...`
 - style: an apostrophe should be `’`, not `'`: `Depth isn't the only problem driving up ...`
 - style: `Second Ave subway` should be `Second Avenue Subway`: `... even by the standards of the Second Ave subway. `
+- style: a range should use an en dash, `–`, not a hyphen: `... SAS, that would be around 620-660 ft. In contrast, the short...`
+- style: a range should use an en dash, `–`, not a hyphen: `...at Broadway around 800 ft (125-150% of train length). While a...`
+- style: a range should use an en dash, `–`, not a hyphen: `... still far longer than the 620-660 ft that international best...`
 - style: `6 inches` should be `6 in`: `...its ventilation openings only 6 inches above roadway height, obviati...`
 - style: `Second Ave subway` should be `Second Avenue Subway`: `...ive, oversize features of the Second Ave subway. The MTA and its contractors ...`
 - style: an apostrophe should be `’`, not `'`: `... train on the Manhattan Bridge's outdoor approaches, subject ...`
+- style: a range should use an en dash, `–`, not a hyphen: `...nd have enough room to store 8-10 trainsets. This is quite ex...`
 - style: an apostrophe should be `’`, not `'`: `...the feasibility study, the MTA's consultants proposed tail tr...`
+- style: a range should use an en dash, `–`, not a hyphen: `...There, soft costs are about 18-20% of total costs. The rest a...`
+- style: a range should use an en dash, `–`, not a hyphen: `...rty design costs are usually 7-8%, which is common in Spain, ...`
+- style: a range should use an en dash, `–`, not a hyphen: `...y, soft costs are quoted as 25-30%, but those include additio...`
+- style: a range should use an en dash, `–`, not a hyphen: `...he Continental norm, usually 3-5%. If the soft cost share wer...`
 - style: an apostrophe should be `’`, not `'`: `...7 St. So even if the MTA doesn't wish to reuse the Freedom Tu...`
 - style: an apostrophe should be `’`, not `'`: `... still simpler and cheaper: it's on publicly owned land, at a...`
 
