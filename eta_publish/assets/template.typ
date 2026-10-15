@@ -31,11 +31,8 @@
   contributors: (),
   contributors_note: none,
   hero: none,
-  // The standfirst, and the only header field this reads.
-  // Named rather than handed the header whole: the header also carries a
-  // private contributor list and the project's internal dates and channels,
-  // and the emitted file is committed.
-  short: none,
+  // The standfirst: the document's `Subtitle`-styled paragraph.
+  subtitle: none,
   // What a reader of a draft has to be told before reading it.
   // Empty for a published report, which is the state a reader assumes.
   phase: "",
@@ -120,9 +117,9 @@
         )
       ]
       #text(size: 21pt, weight: "bold")[#if headline != none { headline } else { title }]
-      #if short != none [
+      #if subtitle != none [
         #v(0.6em)
-        #text(size: 11.5pt, fill: luma(35%), style: "italic")[#short]
+        #text(size: 11.5pt, fill: luma(35%), style: "italic")[#subtitle]
       ]
       #if dateline not in (none, "") [
         #v(0.6em)

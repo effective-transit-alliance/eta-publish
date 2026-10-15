@@ -1,7 +1,5 @@
 # No Need to Wait: Automated Light Metro is Right for the IBX
 
-\[TODO\]
-
 October 12, 2026
 
 **Warnings**

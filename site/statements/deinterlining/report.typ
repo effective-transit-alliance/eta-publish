@@ -3,7 +3,7 @@
 #show: report.with(
   title: "Deinterlining: Simpler Service, Fewer Delays",
   headline: [Deinterlining: Simpler Service, Fewer Delays],
-  short: "",
+  subtitle: none,
   phase: "",
   dateline: "",
   contributors: ("John Ericson", "Madison Feinberg", "Robert Hale", "Darius Jankauskas", "Blair Lorenzo", "William Meehan", "Samuel Santaella", "Khyber Sen", ),

@@ -462,6 +462,7 @@ def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
     """
     doc.title = EVIL
     doc.meta["Short"] = EVIL
+    doc.subtitle = [Text(EVIL)]
     doc.meta["SEO Description"] = EVIL
     doc.meta["Public Contributors"] = EVIL
     doc.warn("a warning about {}", Shown(EVIL))
@@ -495,6 +496,7 @@ def test_nothing_a_document_says_becomes_markup(doc: Document) -> None:
     """The document is the untrusted half of every page this builds."""
     doc.title = EVIL
     doc.meta["Short"] = EVIL
+    doc.subtitle = [Text(EVIL)]
     doc.meta["SEO Description"] = EVIL
     doc.meta["Public Contributors"] = EVIL
     doc.warn("a warning about {}", Shown(EVIL))

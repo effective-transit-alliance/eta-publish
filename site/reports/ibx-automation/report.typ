@@ -3,7 +3,7 @@
 #show: report.with(
   title: "No Need to Wait: Automated Light Metro is Right for the IBX",
   headline: [No Need to Wait: #underline[Automated Light Metro] is Right for the IBX],
-  short: "[TODO]",
+  subtitle: none,
   phase: "",
   dateline: "October 12, 2026",
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),

@@ -1377,6 +1377,25 @@ class Parser:
                 return content[:i], content[i + 1 :]
         return [], content
 
+    def subtitle(self, below: list[JsonObject]) -> list[JsonObject]:
+        """Take the `Subtitle`-styled paragraph directly under the headline,
+        and return the report without it.
+
+        Only there: it is the style that shows,
+        and a subtitle anywhere else is not one a reader sees under the headline.
+        Blank lines between the two are skipped, as the document shows them as nothing.
+        """
+        for i, item in enumerate(below):
+            para = item.get("paragraph")
+            if para is None or "bullet" in para:
+                break
+            if style_of(para) == "SUBTITLE" and plain(para):
+                self.doc.subtitle = self.inlines(para)
+                return below[:i] + below[i + 1 :]
+            if plain(para) or has_image(para):
+                break
+        return below
+
     def card(self, above: list[JsonObject]) -> Image | None:
         """The share card, which is an image the document puts above the headline.
 
@@ -1686,6 +1705,7 @@ class Parser:
 
         above, below = self._split_at_title(content)
         self.doc.card = self.card(above)
+        below = self.subtitle(below)
         self.doc.blocks = self.blocks(below)
         # After the body, so that every reference has been numbered.
         self.doc.footnotes = self.footnotes()

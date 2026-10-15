@@ -532,3 +532,40 @@ def test_a_credit_under_a_picture_in_the_header_is_the_pictures() -> None:
     assert "Credit" not in doc.meta
     figure = next(b for b in doc.blocks if isinstance(b, Figure))
     assert _text(figure.credit) == "Credit: Blair Lorenzo, ETA"
+
+
+def test_the_subtitle_is_the_subtitle_styled_paragraph_under_the_headline() -> None:
+    """Not `Short:`, which is what a search result previews."""
+    document: JsonObject = {
+        "title": "SAS West Feasibility Response",
+        "body": {
+            "content": [
+                para("Header", "HEADING_2"),
+                field("Short: The preview."),
+                para("The Real Headline", "TITLE"),
+                para(""),
+                para("The subtitle.", "SUBTITLE"),
+                para("The first paragraph."),
+            ]
+        },
+    }
+    doc = parse(document)
+    assert doc.meta["Short"] == "The preview."
+    assert doc.subtitle == [Text("The subtitle.")]
+    assert [b for b in doc.blocks if isinstance(b, Paragraph)] == [
+        Paragraph(content=[Text("The first paragraph.")])
+    ]
+
+
+def test_a_subtitle_below_the_report_s_first_words_is_not_the_subtitle() -> None:
+    document: JsonObject = {
+        "title": "x",
+        "body": {
+            "content": [
+                para("The Real Headline", "TITLE"),
+                para("The first paragraph."),
+                para("Not a subtitle.", "SUBTITLE"),
+            ]
+        },
+    }
+    assert parse(document).subtitle == []

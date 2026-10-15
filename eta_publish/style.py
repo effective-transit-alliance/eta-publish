@@ -70,10 +70,11 @@ def _prose(doc: Document) -> Iterator[str]:
     `text_runs` walks the blocks, and the header was consumed before those
     existed, so a `Short:` or `SEO Description:` written against the style
     would otherwise be the one piece of prose nothing here reads,
-    and it is the piece that publishes as the standfirst
-    and as what a search result shows.
+    and it is the piece that publishes as what a search result shows.
+    The subtitle is taken out of the blocks the same way, so it is read here too.
     """
     yield from doc.meta.values()
+    yield plain_text(doc.subtitle)
     for run, _ in doc.text_runs():
         yield plain_text(run)
 

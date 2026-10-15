@@ -86,7 +86,7 @@ class TypstEmitter(Emitter):
             f"#show: report.with(\n"
             f"  title: {string(doc.title)},\n"
             f"  headline: [{self.inlines(doc.headline) if doc.headline else escape(doc.title)}],\n"
-            f"  short: {string(doc.meta.get('Short', ''))},\n"
+            f"  subtitle: {f'[{self.inlines(doc.subtitle)}]' if doc.subtitle else 'none'},\n"
             f"  phase: {string(doc.phase)},\n"
             f"  dateline: {string(doc.dateline)},\n"
             f"  contributors: ({self.contributors(doc)}),\n"

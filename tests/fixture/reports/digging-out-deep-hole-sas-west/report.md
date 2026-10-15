@@ -1,7 +1,5 @@
 # Digging Out of a Very Deep Hole: Saving Billions on 125th Street
 
-A 125 St subway should be a slam dunk.
-
 **Warnings**
 
 - the `Header` section has an unrecognized `MTA SAS West Feasibility Study:` line; check it for a typo

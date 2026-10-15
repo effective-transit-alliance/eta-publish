@@ -1,7 +1,5 @@
 # Too Damn Loud: Announcements on NYC Transit are Out of Control
 
-The seemingly-endless onslaught of announcements on NY transit not only annoys riders, but impairs accessibility, making navigating transit far more difficult than it needs to be.
-
 September 9, 2026
 
 **Warnings**

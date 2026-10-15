@@ -133,9 +133,8 @@ class MarkdownEmitter(Emitter):
         """
         if not doc.title:
             return ""
-        short = doc.meta.get("Short", "")
         heading = f"# {escape(doc.title)}"
-        return f"{heading}\n\n{escape(short)}" if short else heading
+        return f"{heading}\n\n{self.inlines(doc.subtitle)}" if doc.subtitle else heading
 
     def phase(self, doc: Document) -> str:
         """Bold, because the archive has no styling to give it and it is a warning.

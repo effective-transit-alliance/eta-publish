@@ -3,7 +3,7 @@
 #show: report.with(
   title: "Monthly Passes",
   headline: [Monthly Passes],
-  short: "",
+  subtitle: none,
   phase: "",
   dateline: "",
   contributors: ("John Ericson", "Madison Feinberg", "Elijah Fischer", "Robert Hale", "Darius Jankauskas", "Tim Lazaroff", "Alon Levy", "Blair Lorenzo", "Samuel Santaella", "Khyber Sen", ),

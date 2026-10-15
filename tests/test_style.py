@@ -184,8 +184,8 @@ def test_a_footnote_saying_the_initials_is_warned_about() -> None:
 
 
 def test_the_header_is_read_like_the_body() -> None:
-    """`Short:` publishes as the standfirst and `SEO Description:` as what a
-    search result shows, and the header is consumed before the body walk,
+    """`Short:` and `SEO Description:` publish as what a search result shows,
+    and the header is consumed before the body walk,
     so neither is reached by walking the blocks."""
     doc = Document()
     doc.meta = {"Short": "It is deep.  It is also expensive."}

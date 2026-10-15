@@ -319,7 +319,7 @@ class HtmlEmitter(Emitter):
         self.number_sources(doc)
         self._taken = {
             "title",
-            "short",
+            "subtitle",
             "table-of-contents",
             "footnotes",
             "sources",
@@ -430,10 +430,12 @@ class HtmlEmitter(Emitter):
         return markup(tag.h1(id="title")[self.mark("title", "title"), headline])
 
     def standfirst(self, doc: Document) -> str:
-        """The report's short introduction, under the headline."""
+        """The document's `Subtitle`, under the headline, and nothing when it has none."""
+        if not doc.subtitle:
+            return ""
         return markup(
-            tag.p(class_="standfirst", id="short")[
-                self.mark("short", "standfirst"), doc.meta.get("Short", "")
+            tag.p(class_="standfirst", id="subtitle")[
+                self.mark("subtitle", "standfirst"), Markup(self.inlines(doc.subtitle))
             ]
         )
 

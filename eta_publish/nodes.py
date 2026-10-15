@@ -578,6 +578,12 @@ class Document:
     for where it is set as the headline. Empty when the headline is not from a
     `Title` paragraph, where `title` is all there is."""
 
+    subtitle: list[Inline] = field(default_factory=list)
+    """The `Subtitle`-styled paragraph under the headline, set under it as the standfirst.
+
+    Not the header's `Short:`, which is what a search result previews
+    and which nobody reading the document sees under its headline."""
+
     file_title: str = ""
     """What the document is called in Drive, which is not what it is called here.
 
