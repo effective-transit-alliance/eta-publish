@@ -13,7 +13,6 @@
     [2 comment threads still open on this tab],
     [#raw("Short:") is still marked unfinished],
     [#raw("SEO Description:") is still marked unfinished],
-    [could not archive #raw("https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg") (in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)); it publishes as not archived, and the next build that can asks again],
   ),
   hero: [
 #figure(
@@ -388,7 +387,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 + (archived #link("https://web.archive.org/web/20250603012443/https://journals.sagepub.com/doi/10.1177/0361198118784386")[Jun 3, 2025]) #link("https://journals.sagepub.com/doi/10.1177/0361198118784386")[journals.sagepub.com/doi/10.1177/0361198118784386] <src54>
 + (archived #link("https://web.archive.org/web/20251217185902/https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article")[Dec 17, 2025]) #link("https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article")[railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article] <src55>
 + (archived #link("https://web.archive.org/web/20260423181419id_/https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35")[Apr 23, 2026]) #link("https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35")[wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf\#page=35] <src56>
-+ (not archived: in-progress) #link("https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg")[commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg] <src57>
++ (versioned #link("https://commons.wikimedia.org/w/index.php?title=File%3AHarsimus_Cove_HBLR_4th_St_RR_Crossing.jpg&oldid=980042411")[Oct 15, 2026]) #link("https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg")[commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg] <src57>
 + (archived #link("https://web.archive.org/web/20260921162613/https://ibx.mta.info/about/")[Sep 21, 2026]) #link("https://ibx.mta.info/about/")[ibx.mta.info/about/] <src58>
 + (archived #link("https://web.archive.org/web/20260519070421id_/https://www.mta.info/document/172206#page=6")[May 19, 2026]) #link("https://www.mta.info/document/172206#page=6")[mta.info/document/172206\#page=6] <src59>
 + (archived #link("https://web.archive.org/web/20251205012113/https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111")[Dec 5, 2025]) #link("https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111")[nycsubway.org/wiki/Chapter\_03.\_General\_Arrangement\_for\_Construction] <src60>

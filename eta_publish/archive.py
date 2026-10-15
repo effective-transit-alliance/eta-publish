@@ -30,7 +30,7 @@ from functools import partial
 from io import BytesIO
 from pathlib import Path
 from threading import Lock, Semaphore, local
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import quote, unquote, urljoin, urlsplit
 
 import platformdirs
 import requests
@@ -478,6 +478,8 @@ def read_archive_index(dest: Path, doc: Document) -> None:
             pending=entry.get("pending", False),
             said=_reworded(entry.get("said", "")),
             pages=entry.get("pages", 0),
+            version=entry.get("version", ""),
+            versioned=entry.get("versioned", ""),
         )
         cited = doc.archives.get(url)
         if cited is None:
@@ -517,6 +519,9 @@ def write_archive_index(dest: Path, doc: Document) -> None:
             entry["job"] = archived.job
         if archived.pages:
             entry["pages"] = archived.pages
+        if archived.version:
+            entry["version"] = archived.version
+            entry["versioned"] = archived.versioned
         index[url] = entry
     if not index:
         return
@@ -647,6 +652,7 @@ def capture(
             if rows is not None:
                 rows.drop(url)
 
+    before_any = dict(doc.archives)
     pool = ThreadPoolExecutor(max_workers=REPLAY_AT_ONCE)
     asked = [pool.submit(archive, url) for url in wanted]
     try:
@@ -704,7 +710,76 @@ def capture(
             pending=True,
             said=result.why,
         )
+    version(http, doc, wanted, before_any)
     return found, submitted
+
+
+WIKIMEDIA_HOSTS = (".wikipedia.org", ".wikimedia.org")
+"""Where a page has an `oldid` link to each of its versions."""
+
+
+def versionable(url: str) -> str | None:
+    """The page title in a Wikipedia or Wikimedia Commons `/wiki/` URL, or `None`."""
+    parts = urlsplit(url)
+    if not parts.hostname or not parts.hostname.endswith(WIKIMEDIA_HOSTS):
+        return None
+    if not parts.path.startswith("/wiki/"):
+        return None
+    return unquote(parts.path.removeprefix("/wiki/")) or None
+
+
+def version(
+    http: requests.Session, doc: Document, urls: Collection[str], before: Mapping[str, Archived]
+) -> None:
+    """Give each Wikimedia page among `urls` that could not be captured a permanent link instead.
+
+    Archiving is tried first, since a capture is ours and a version is
+    Wikimedia's to keep. Only where that failed, the page's current version is
+    recorded once, as its `oldid` link, and kept by every build after:
+    a later one recording a newer version would move the link past
+    what the report read.
+    """
+    for url in urls:
+        archived = doc.archives.get(url)
+        if archived is None or not archived.error:
+            continue
+        kept = before.get(url)
+        if kept is not None and kept.version:
+            doc.archives[url] = replace(archived, version=kept.version, versioned=kept.versioned)
+            continue
+        title = versionable(url)
+        if title is None:
+            continue
+        revision = _revision(http, url, title)
+        if revision is None:
+            continue
+        host = urlsplit(url).hostname
+        link = f"https://{host}/w/index.php?title={quote(title, safe='')}&oldid={revision}"
+        doc.archives[url] = replace(archived, version=link, versioned=today())
+
+
+def _revision(http: requests.Session, url: str, title: str) -> int | None:
+    """The ID of the current version of the page `title` on `url`'s wiki, if it answers."""
+    host = urlsplit(url).hostname
+    try:
+        answer = http.get(
+            f"https://{host}/w/api.php",
+            params={
+                "action": "query",
+                "prop": "revisions",
+                "rvprop": "ids",
+                "titles": title,
+                "format": "json",
+                "formatversion": "2",
+            },
+            headers={"User-Agent": f"{PACKAGE_NAME} (https://github.com/kkysen/eta-publish)"},
+            timeout=30,
+        )
+        answer.raise_for_status()
+        page = answer.json()["query"]["pages"][0]
+        return int(page["revisions"][0]["revid"])
+    except requests.RequestException, ValueError, KeyError, IndexError, TypeError:
+        return None
 
 
 def check_pending(doc: Document) -> None:
@@ -715,7 +790,9 @@ def check_pending(doc: Document) -> None:
     """
     for url in _documents(doc):
         archived = doc.archives.get(url)
-        if archived is None or not archived.pending:
+        # A Wikimedia page with a permanent link to its version needs no warning:
+        # it publishes as versioned, which is what a capture would have been for.
+        if archived is None or not archived.pending or archived.version:
             continue
         doc.warn(
             "could not archive {} ({}); it publishes as not archived, "

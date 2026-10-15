@@ -212,6 +212,8 @@ class MarkdownEmitter(Emitter):
         archived = doc.archived(source)
         if archived is None:
             return f"(not archived) {shown}"
+        if archived.error and archived.version:
+            return f"(versioned [{archived.version_date}]({url(archived.version)})) {shown}"
         if archived.error:
             return f"(not archived: {escape(archived.reason)}) {shown}"
         return f"(archived [{archived.date}]({url(archived.snapshot)})) {shown}"

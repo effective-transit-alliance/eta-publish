@@ -70,10 +70,12 @@
     "timestamp": "20260304064215"
   },
   "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg": {
-    "error": "in-progress",
+    "error": "error:no-request",
     "pending": true,
-    "said": "in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)",
-    "timestamp": "20261012"
+    "said": "error:no-request: The target server blocks access to https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg. (HTTP status=403) (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)",
+    "timestamp": "20261015",
+    "version": "https://commons.wikimedia.org/w/index.php?title=File%3AHarsimus_Cove_HBLR_4th_St_RR_Crossing.jpg&oldid=980042411",
+    "versioned": "20261015"
   },
   "https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg": {
     "snapshot": "https://web.archive.org/web/20251205134012/https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg",

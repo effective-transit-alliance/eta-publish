@@ -10,7 +10,6 @@ October 12, 2026
 - 2 comment threads still open on this tab
 - `Short:` is still marked unfinished
 - `SEO Description:` is still marked unfinished
-- could not archive `https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg` (in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)); it publishes as not archived, and the next build that can asks again
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
@@ -437,7 +436,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 54. (archived [Jun 3, 2025](<https://web.archive.org/web/20250603012443/https://journals.sagepub.com/doi/10.1177/0361198118784386>)) [journals.sagepub.com/doi/10.1177/0361198118784386](<https://journals.sagepub.com/doi/10.1177/0361198118784386>)
 55. (archived [Dec 17, 2025](<https://web.archive.org/web/20251217185902/https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article>)) [railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article](<https://www.railwaygazette.com/urban-rail/automation-speeds-up-metros/45910.article>)
 56. (archived [Apr 23, 2026](<https://web.archive.org/web/20260423181419id_/https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35>)) [wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35](<https://www.wmata.com/about/board/meetings/board-pdfs/upload/4C-Rail-Modernization-Program.pdf#page=35>)
-57. (not archived: in-progress) [commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg](<https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>)
+57. (versioned [Oct 15, 2026](<https://commons.wikimedia.org/w/index.php?title=File%3AHarsimus_Cove_HBLR_4th_St_RR_Crossing.jpg&oldid=980042411>)) [commons.wikimedia.org/wiki/File:Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg](<https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>)
 58. (archived [Sep 21, 2026](<https://web.archive.org/web/20260921162613/https://ibx.mta.info/about/>)) [ibx.mta.info/about/](<https://ibx.mta.info/about/>)
 59. (archived [May 19, 2026](<https://web.archive.org/web/20260519070421id_/https://www.mta.info/document/172206#page=6>)) [mta.info/document/172206#page=6](<https://www.mta.info/document/172206#page=6>)
 60. (archived [Dec 5, 2025](<https://web.archive.org/web/20251205012113/https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111>)) [nycsubway.org/wiki/Chapter\_03.\_General\_Arrangement\_for\_Construction](<https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111>)

@@ -56,6 +56,17 @@ class Archived:
     """The Save Page Now job that made the capture or failed to, if this build's
     request made it: what to ask the service about when a capture goes missing."""
 
+    version: str = ""
+    """A permanent link to the version of a Wikipedia or Wikimedia Commons page
+    the report read, where no capture could be made: its `oldid` link.
+
+    Published as `versioned` rather than `archived`. It stays as long as
+    Wikimedia keeps that version, which is nearly always but not always:
+    a deleted page takes its old versions with it."""
+
+    versioned: str = ""
+    """When `version` was recorded, as `YYYYMMDD`: the version current then."""
+
     pages: int = 0
     """How many pages the document has, if it is a PDF cited by page, or 0.
 
@@ -85,6 +96,11 @@ class Archived:
         choice `dateline` makes and for the same reason.
         """
         return _long_date(self.timestamp[:8], month="%b")
+
+    @property
+    def version_date(self) -> str:
+        """When `version` was recorded, written out as `date` is."""
+        return _long_date(self.versioned, month="%b")
 
 
 @dataclass(frozen=True)
@@ -814,6 +830,8 @@ class Document:
         """
         base, hash_, fragment = source.partition("#")
         found = self.archives.get(base)
+        if found is not None and found.version and hash_:
+            found = replace(found, version=f"{found.version}{hash_}{fragment}")
         if found is None or not found.snapshot or not hash_:
             return found
         snapshot = found.snapshot

@@ -1501,3 +1501,86 @@ def test_in_ci_nothing_is_captured_anonymously(
     session = SavingAnonymously(302)
     assert archive.capture(cites("https://a.example/1"), session=session) == (0, 0)
     assert session.saved == []
+
+
+# ---- a Wikimedia page that could not be captured ---------------------
+
+
+class Revisions(requests.Session):
+    """The MediaWiki API, answering that every page's current version is `revid`."""
+
+    def __init__(self, revid: int) -> None:
+        super().__init__()
+        self.revid = revid
+        self.asked: list[object] = []
+
+    @override
+    def request(self, method: object, url: object, *args: object, **kwargs: object):
+        self.asked.append(kwargs.get("params"))
+        response = requests.Response()
+        response.status_code = 200
+        body = {"query": {"pages": [{"revisions": [{"revid": self.revid}]}]}}
+        response.raw = BytesIO(json.dumps(body).encode())
+        return response
+
+
+COMMONS = "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg"
+REFUSED = Archived(timestamp="20261015", error="error:no-request", pending=True, said="403")
+
+
+def test_a_wikimedia_page_that_could_not_be_captured_links_its_version() -> None:
+    """Its `oldid` link, with no warning, and published as versioned."""
+    doc = cites(COMMONS)
+    doc.archives[COMMONS] = REFUSED
+    archive.version(Revisions(123), doc, [COMMONS], {})
+    found = doc.archives[COMMONS]
+    assert found.version == (
+        "https://commons.wikimedia.org/w/index.php"
+        "?title=File%3AHarsimus_Cove_HBLR_4th_St_RR_Crossing.jpg&oldid=123"
+    )
+    archive.check_pending(doc)
+    assert not doc.warnings
+
+
+def test_a_version_once_recorded_is_kept_rather_than_moved_forward() -> None:
+    doc = cites(COMMONS)
+    doc.archives[COMMONS] = REFUSED
+    kept = replace(
+        REFUSED, version="https://commons.wikimedia.org/w/index.php?oldid=1", versioned="20261001"
+    )
+    session = Revisions(999)
+    archive.version(session, doc, [COMMONS], {COMMONS: kept})
+    assert doc.archives[COMMONS].version.endswith("oldid=1")
+    assert not session.asked
+
+
+def test_a_capture_that_worked_or_a_page_elsewhere_is_not_versioned() -> None:
+    other = "https://a.example/wiki/Page"
+    doc = cites(COMMONS, other)
+    doc.archives[COMMONS] = Archived(snapshot="https://web.archive.org/web/1/x", timestamp="1")
+    doc.archives[other] = REFUSED
+    session = Revisions(5)
+    archive.version(session, doc, [COMMONS, other], {})
+    assert not session.asked
+
+
+def test_a_version_round_trips(tmp_path: Path) -> None:
+    doc = cites(COMMONS)
+    doc.archives[COMMONS] = replace(
+        REFUSED, version="https://x.org/w/index.php?oldid=1", versioned="20261015"
+    )
+    archive.write_archive_index(tmp_path, doc)
+    again = cites(COMMONS)
+    archive.read_archive_index(tmp_path, again)
+    assert again.archives == doc.archives
+
+
+def test_a_versioned_source_says_versioned_not_archived() -> None:
+    from eta_publish.emit.html import HtmlEmitter, markup
+
+    versioned = replace(REFUSED, version="https://x.org/w/index.php?oldid=1", versioned="20261015")
+    shown = markup(HtmlEmitter().source_archive(versioned))
+    assert shown == (
+        '(versioned <a class="source-archive" href="https://x.org/w/index.php?oldid=1">'
+        "Oct 15, 2026</a>)"
+    )

@@ -161,6 +161,9 @@ class TypstEmitter(Emitter):
         archived = doc.archived(source)
         if archived is None:
             return f"(not archived) {shown}"
+        if archived.error and archived.version:
+            link = f"#link({string(archived.version)})[{escape(archived.version_date)}]"
+            return f"(versioned {link}) {shown}"
         if archived.error:
             return f"(not archived: {escape(archived.reason)}) {shown}"
         return f"(archived #link({string(archived.snapshot)})[{escape(archived.date)}]) {shown}"
