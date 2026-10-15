@@ -8,7 +8,7 @@ from test_conventions import build, field, image, para
 
 from eta_publish.docs_json import JsonObject
 from eta_publish.embeds import _stems, look_up
-from eta_publish.emit.html import HtmlEmitter
+from eta_publish.emit.html import GRAPHIC_POSTER, HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.nodes import Card, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
@@ -201,7 +201,7 @@ def test_a_drive_video_plays_from_the_site() -> None:
     doc.cards[url] = Card(mime="video/mp4")
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
-    assert '<video src="videos/embed-1.mp4" controls preload="metadata">' in html
+    assert '<video src="videos/embed-1.mp4" controls preload="metadata"' in html
 
 
 def copied(url: str) -> JsonObject:
@@ -217,7 +217,17 @@ def test_a_copied_video_plays_from_the_site() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
-    assert '<video src="videos/embed-1.mp4" controls preload="metadata">' in html
+    assert '<video src="videos/embed-1.mp4" controls preload="metadata"' in html
+
+
+def test_a_graphic_video_opens_on_the_warning_card() -> None:
+    """Rather than on its first frame, which may be the very thing warned of."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    html = HtmlEmitter(image_base="images").emit(doc)
+    assert f'poster="{GRAPHIC_POSTER}"' in html
 
 
 def test_a_video_is_named_after_its_link_text() -> None:

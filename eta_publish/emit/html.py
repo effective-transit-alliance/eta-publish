@@ -141,6 +141,18 @@ def lines(parts: Iterable[Piece]) -> Piece:
     return joined("\n", parts)
 
 
+GRAPHIC_POSTER = (
+    "https://images.squarespace-cdn.com/content/6172f286c4e030728d09f143"
+    "/9c923cd2-7826-4dac-8eea-eec542fb1f63/graphic_content.png"
+)
+"""What a graphic video shows until it is played, rather than its first frame:
+ETA's logo beside "WARNING: Graphic Content", as the site's own videos open with.
+
+The site's copy, rather than one shipped here, since it is the site's card.
+The stylesheet fills the rest of a video of another shape with its background.
+"""
+
+
 def markup(node: Piece) -> Markup:
     """A tree of `htpy` nodes as the string the rest of the emitter passes around.
 
@@ -957,7 +969,10 @@ class HtmlEmitter(Emitter):
         served = self.doc.served_video(node)
         if served is not None:
             video = tag.video(
-                src=self.media_src(served, VIDEO_DIR), controls=True, preload="metadata"
+                src=self.media_src(served, VIDEO_DIR),
+                controls=True,
+                preload="metadata",
+                poster=GRAPHIC_POSTER if node.graphic else None,
             )[tag.a(href=node.url)["Watch the video"] if not node.copy else None]
             return markup(
                 tag.figure(id=anchor, class_="embed embed-video")[
