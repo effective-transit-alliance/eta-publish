@@ -4854,7 +4854,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.x8iyx5ct40ff",
-            "namedStyleType": "HEADING_2"
+            "namedStyleType": "HEADING_1"
           }
         },
         "startIndex": 14938
@@ -5816,7 +5816,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.q1ye8wl5ax2k",
-            "namedStyleType": "HEADING_2",
+            "namedStyleType": "HEADING_1",
             "spaceAbove": {
               "magnitude": 12,
               "unit": "PT"
@@ -6610,7 +6610,7 @@
           "paragraphStyle": {
             "direction": "LEFT_TO_RIGHT",
             "headingId": "h.gxs6ogmzskqz",
-            "namedStyleType": "HEADING_2",
+            "namedStyleType": "HEADING_1",
             "spaceAbove": {
               "magnitude": 12,
               "unit": "PT"
@@ -11780,7 +11780,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-14T22:46:29.688Z",
+  "modifiedTime": "2026-10-15T02:38:54.907Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [

@@ -191,7 +191,7 @@ ALM can not only do better at the peak, but is more resilient to off-peak cuts t
 The MTA is #link("https://bqrail.substack.com/api/v1/file/cce3e5d4-3702-4e13-a96f-f5d4d0d99e6e.pdf#page=7")[studying shorter peak headways of 3 minutes]#super[#link(<src47>)[\[47\]]]#strong[ ]as well, which ALM would make substantially cheaper and easier.
 But more importantly, it would allow the MTA to affordably maintain those 3 minute headways throughout the day instead of collapsing to 10 minutes off-peak.
 
-== Safety and Platform Screen Doors
+= Safety and Platform Screen Doors
 
 On metros globally, including NYC, the #link("https://communityofmetros.org/research-enhancing-platform-safety-without-platform-doors/")[largest risk to passenger safety is track intrusion]#super[#link(<src9>)[\[9\]]]: intentional and unintentional falls onto the tracks, getting pushed in front of a train, climbing on top of the train, and trash and other items falling on the tracks, which can start fires.
 New Yorkers know this all too well.
@@ -262,7 +262,7 @@ This is not acceptable for an ALM system, which requires higher levels of safety
 Even without automation, pedestrian grade crossings at stations force trains to enter those stations at reduced speed, driving up runtimes.
 The MTA’s 32 minute runtime target, for example, would be difficult to meet if grade crossings for passengers were built.
 
-== Rolling Stock
+= Rolling Stock
 
 Almost four years after first selecting the IBX’s mode as light rail,#footnote[The MTA chose light rail transit (LRT) as the mode for the IBX on January 10, 2023 in the #link("https://www.mta.info/document/103691")[PEL study]#super[#link(<src92>)[\[92\]]].] the MTA has still yet to officially make a rolling stock procurement decision.
 As they have reiterated many times, they have been designing everything to be maximally flexible so that no choice is prematurely locked in.
@@ -299,7 +299,7 @@ LRVs are also normally narrow,#footnote[The Siemens #link("https://assets.new.si
 Hopefully this is a case where the public-facing website was not updated with the latest planning.
 The alternatives are far worse: either good right-of-way decisions are not percolating over to rolling stock procurement, or the MTA is simply making the right decision without understanding the deeper reasons #emph[why] full grade separation is the right decision.
 
-== Conclusion
+= Conclusion
 
 The MTA should be careful to avoid letting legacy technology and standards hold back the IBX.
 It’s a new, isolated line, which gives it a chance to start fresh for once and make better choices without the legacy constraints.
