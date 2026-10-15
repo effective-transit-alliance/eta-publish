@@ -6,7 +6,7 @@ October 12, 2026
 
 **Warnings**
 
-- 1 suggestion still open on this tab; the build publishes the document without them, as it reads today
+- 4 suggestions still open on this tab; the build publishes the document without them, as it reads today
 - 2 comment threads still open on this tab
 - `Short:` is still marked unfinished
 - `SEO Description:` is still marked unfinished
@@ -179,7 +179,7 @@ Automation and PSDs are generally considered together as PSDs make it simpler fo
 
 **Warning, graphic video**
 
-[Joseph Lynskey hit by the 1 train at 18 St](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)
+[Joseph Lynskey hit by the 1 train at 18 St.](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)
 
 Credit: MTA security camera footage
 

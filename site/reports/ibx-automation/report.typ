@@ -9,7 +9,7 @@
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
-    [1 suggestion still open on this tab; the build publishes the document without them, as it reads today],
+    [4 suggestions still open on this tab; the build publishes the document without them, as it reads today],
     [2 comment threads still open on this tab],
     [#raw("Short:") is still marked unfinished],
     [#raw("SEO Description:") is still marked unfinished],
@@ -206,7 +206,7 @@ Automation and PSDs are generally considered together as PSDs make it simpler fo
 
 #strong[Warning, graphic video]
 
-#link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St]
+#link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St.]
 
 Credit: MTA security camera footage
 
