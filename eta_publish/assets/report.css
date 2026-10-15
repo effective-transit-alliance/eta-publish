@@ -307,3 +307,15 @@
 .eta-report .table-scroll { overflow-x: auto; }
 .eta-report table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .eta-report td { border: 1px solid currentColor; padding: .4em .6em; vertical-align: top; }
+/* Squarespace, outside the report: the Embed block it is pasted into.
+   The block pads its bottom by 56.25% for a 16:9 video, which the report is
+   not, and the editor sets the block's height in grid rows, which is never
+   the report's own height for long: it changes with every paste and every
+   screen width. Where the report is the section's only block, the section
+   is one row as tall as the report; where it shares the section with other
+   blocks, their layout is left as the editor set it. */
+.embed-block-wrapper:has(> .eta-report) {
+  /* biome-ignore lint/complexity/noImportantStyles: the padding is an inline style. */
+  padding-bottom: 0 !important; }
+.fluid-engine:has(> .fe-block:only-child .eta-report) { grid-template-rows: auto; }
+.fluid-engine:has(> .fe-block:only-child .eta-report) > .fe-block { grid-row: 1 / 2; }
