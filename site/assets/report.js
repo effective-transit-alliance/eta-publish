@@ -188,6 +188,15 @@
   // which is what moves the words from one line to another.
   const swoosh = (title) => {
     for (const old of title.querySelectorAll(".swoosh")) old.remove();
+    // Underlined words that wrap are kept to one line when they fit on one,
+    // moving them down together, as one curve rather than two short ones.
+    for (const words of title.querySelectorAll("u")) {
+      words.style.whiteSpace = "";
+      if (words.getClientRects().length < 2) continue;
+      words.style.whiteSpace = "nowrap";
+      if (words.getBoundingClientRect().width > title.clientWidth)
+        words.style.whiteSpace = "";
+    }
     const box = title.getBoundingClientRect();
     for (const words of title.querySelectorAll("u")) {
       for (const line of words.getClientRects()) {
