@@ -240,7 +240,7 @@ def _stems(embeds: list[Embed]) -> dict[str, str]:
     Two embeds whose links read alike both carry the hash too,
     decided knowing all of them, so which comes first renames neither.
     """
-    names = {embed.url: media_stem(embed.title) for embed in embeds}
+    names = {embed.url: media_stem(embed.name) for embed in embeds}
     claimants: dict[str, set[str]] = defaultdict(set)
     for url, name in names.items():
         if name:

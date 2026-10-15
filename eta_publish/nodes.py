@@ -355,8 +355,12 @@ class Embed:
     and the site serves it, rather than leaving it to a post that can be deleted."""
 
     title: str = ""
-    """Its `Video:` line's link text, which names the video on the page and its file,
+    """What its `Video:` line says after the label, which names the video on the page,
     or empty where the link reads as its own URL."""
+
+    name: str = ""
+    """The linked words alone, which name its file:
+    what follows the link, a full stop say, is the caption's and not the file's."""
 
     credit: list[Inline] = field(default_factory=list)
     """The `Credit:` line under it, as a figure has, or empty where there is none."""

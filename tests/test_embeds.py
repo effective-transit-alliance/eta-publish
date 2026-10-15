@@ -77,6 +77,28 @@ def test_a_graphic_video_line_is_embedded_with_a_warning() -> None:
     assert doc.blocks == [Embed(url=url, platform=Platform.YOUTUBE, key="abc", graphic=True)]
 
 
+def test_a_video_line_ended_with_a_full_stop_is_still_a_video() -> None:
+    """The stop is not part of the link: it ends the caption, as it ends others,
+    but not the file's name, which is the linked words alone."""
+    url = "https://x.com/someone/status/123"
+    doc = build(
+        [
+            para("Headline", "TITLE"),
+            linked((": ", None), ("Hit by the train", url), (".", None), underline="Video (Copy)"),
+        ]
+    )
+    assert doc.blocks == [
+        Embed(
+            url=url,
+            platform=Platform.X,
+            key="123",
+            copy=True,
+            title="Hit by the train.",
+            name="Hit by the train",
+        )
+    ]
+
+
 def test_an_unknown_modifier_is_warned_about_and_ignored() -> None:
     url = "https://www.youtube.com/watch?v=abc"
     doc = build(
@@ -243,9 +265,9 @@ def test_a_video_is_named_after_its_link_text() -> None:
 
 
 def test_two_videos_whose_links_read_alike_both_carry_a_hash() -> None:
-    first = Embed(url="https://x.com/a/status/1", platform=Platform.X, key="1", title="clip")
-    second = Embed(url="https://x.com/b/status/2", platform=Platform.X, key="2", title="clip")
-    alone = Embed(url="https://x.com/c/status/3", platform=Platform.X, key="3", title="other")
+    first = Embed(url="https://x.com/a/status/1", platform=Platform.X, key="1", name="clip")
+    second = Embed(url="https://x.com/b/status/2", platform=Platform.X, key="2", name="clip")
+    alone = Embed(url="https://x.com/c/status/3", platform=Platform.X, key="3", name="other")
     stems = _stems([first, second, alone])
     assert stems[first.url].startswith("clip-")
     assert stems[second.url].startswith("clip-")

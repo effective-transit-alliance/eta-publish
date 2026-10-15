@@ -14,6 +14,7 @@ because they are facts about how the docs are written:
   with the caption and `Credit:` lines after that
 """
 
+import re
 from collections.abc import Callable, Iterator
 from dataclasses import dataclass, replace
 from datetime import datetime
@@ -196,12 +197,32 @@ def after_label(line: list[Inline]) -> list[Inline]:
     return []
 
 
+TRAILING = re.compile(r"[\s.,;:!?]*")
+"""What may follow a `Video:` line's link without being part of it: a full stop, say."""
+
+
+def without_trailing(inlines: list[Inline]) -> list[Inline]:
+    """`inlines` without the unlinked punctuation at their end.
+
+    A `Video:` line ended with a full stop, as a caption is, is still a line
+    naming one video. The stop stays in what the caption says.
+    """
+    end = len(inlines)
+    while end:
+        last = inlines[end - 1]
+        if not isinstance(last, Text) or last.href or not TRAILING.fullmatch(last.text):
+            break
+        end -= 1
+    return inlines[:end]
+
+
 def embed_of(inlines: list[Inline]) -> Embed | None:
     """The embed a `Video:` line names, if it names nothing but one link to a video or a post.
 
     Nothing but: every run with text in it carries the same link, and nothing
     else is there.
     """
+    inlines = without_trailing(inlines)
     hrefs = {i.href for i in inlines if isinstance(i, Text) and i.text.strip()}
     if len(hrefs) != 1 or any(not isinstance(i, Text) for i in inlines):
         return None
@@ -1185,6 +1206,9 @@ class Parser:
                 embed.graphic = is_graphic_video_note(inlines)
                 embed.copy = is_copied_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
+                embed.name = video_title(
+                    [i for i in after_label(inlines) if isinstance(i, Text) and i.href]
+                )
                 drop_pending()
                 caption_slot = 0
                 out.append(embed)
