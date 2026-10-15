@@ -461,7 +461,7 @@ def _built(
                 site.failed.append(Failed(report=report, error=str(e)))
                 continue
             paste = [
-                ("Excerpt", doc.meta.get("Short", "")),
+                ("SEO title", doc.title),
                 ("SEO description", doc.meta.get("SEO Description", "")),
             ]
             console.write(console.built(named, path, doc.warnings, log, paste), log)

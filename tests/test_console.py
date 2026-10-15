@@ -143,10 +143,10 @@ def test_a_report_with_nothing_to_fix_says_nothing_about_warnings() -> None:
 
 def test_what_squarespace_is_given_by_hand_is_under_the_heading() -> None:
     """A field the document leaves blank is not a line to paste."""
-    paste = [("Excerpt", "The preview."), ("SEO description", "")]
+    paste = [("SEO title", "The Headline"), ("SEO description", "")]
     assert (
         rendered(log.built("A report", "reports/a", [], plain(), paste), plain())
-        == "✓ reports/a · A report\n  Excerpt: The preview.\n"
+        == "✓ reports/a · A report\n  SEO title: The Headline\n"
     )
 
 
