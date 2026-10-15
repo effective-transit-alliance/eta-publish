@@ -1232,9 +1232,8 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.
     card: list[Piece] = []
-    # What Squarespace does with the two: the SEO description where there is one,
-    # and the excerpt, which is `Short:`, where there is not.
-    description = doc.meta.get("SEO Description") or doc.meta.get("Short", "")
+    # What Squarespace previews in a search result, as its page settings show it.
+    description = doc.meta.get("SEO Description", "")
     if doc.card is not None:
         href = doc.image_href(doc.card)
         src = f"{image_base}/{href}" if image_base else href

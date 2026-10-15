@@ -525,11 +525,10 @@ def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
 
 
 def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> None:
-    """The SEO description where there is one, and the excerpt where there is not."""
-    doc.meta["Short"] = "The excerpt."
+    """With the SEO description alone: a Squarespace page has no excerpt to fall back to."""
+    doc.meta["Short"] = "The short."
     doc.meta["SEO Description"] = "The SEO description."
-    assert 'property="og:description" content="The SEO description."' in report_page(doc)
-    del doc.meta["SEO Description"]
     page = report_page(doc)
-    assert 'name="description" content="The excerpt."' in page
-    assert 'property="og:description" content="The excerpt."' in page
+    assert 'name="description" content="The SEO description."' in page
+    assert 'property="og:description" content="The SEO description."' in page
+    assert "The short." not in page
