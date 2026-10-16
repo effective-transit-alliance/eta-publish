@@ -1579,6 +1579,9 @@ class Parser:
                 if image is not None:
                     self.doc.card = image
                     self._has_social_card = True
+                    # Named for the file the field links, as a figure is for its `Source:`.
+                    name = self.doc.meta.get(SOCIAL_CARD, "")
+                    self._source_names.setdefault(image.object_id, name)
                     return
 
     def _check_label(self, line: list[Inline]) -> None:
@@ -1793,7 +1796,8 @@ class Parser:
         because an image's name depends on what the other images are called,
         and the report goes on naming them for several pages after the first is built.
 
-        Only figures: a source line is written above a figure,
+        Only figures and the share card: a source line is written above a figure,
+        and `Social Title Card:` names the card,
         so an image inside a paragraph keeps the name it was given.
         """
         names = image_filenames(
@@ -1806,6 +1810,12 @@ class Parser:
                 figure.image,
                 filename=names[figure.image.object_id],
                 named=not names_nothing(claimed),
+            )
+        card = self.doc.card
+        if card is not None and card.object_id in self._source_names:
+            claimed = self._source_names[card.object_id]
+            self.doc.card = replace(
+                card, filename=names[card.object_id], named=not names_nothing(claimed)
             )
 
 

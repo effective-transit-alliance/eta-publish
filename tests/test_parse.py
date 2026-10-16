@@ -302,6 +302,7 @@ def test_the_picture_under_social_title_card_is_the_share_card() -> None:
     assert doc.card is not None
     assert doc.card.alt == "The card."
     assert doc.meta["Social Title Card"] == "card.png"
+    assert doc.card.filename == "card"
     assert doc.meta["SEO Description"] == "About it."
     assert not [b for b in doc.blocks if isinstance(b, Figure)]
     assert not [w for w in doc.warnings if "Social Title Card" in str(w)]
