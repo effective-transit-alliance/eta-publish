@@ -514,13 +514,15 @@ def emit(
     linked: str = "",
     pdf: str = "",
     cards: str = "",
+    url: str = "",
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
 
     `pdf` is where `report.html` links the PDF: the site's copy, since the fragment
     is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
-    `cards` is where the site serves the images, for the share card's absolute URL.
+    `cards` is where the site serves the images, for the share card's absolute URL,
+    and `url` is where it serves this report, for `og:url`.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
@@ -533,7 +535,9 @@ def emit(
     # `/reports/<slug>/` serves the report rather than a listing of files.
     # `report.html` beside it is the fragment, a piece of a page rather than one.
     page = outdir / "index.html"
-    page.write_text(report_page(doc, asset_base=assets, pdf_href=PDF_NAME, card_base=cards))
+    page.write_text(
+        report_page(doc, asset_base=assets, pdf_href=PDF_NAME, card_base=cards, page_url=url)
+    )
     written[page.name] = page
     for name, emitter in emitters.items():
         try:
@@ -869,7 +873,9 @@ def build_one(
     console.step("writing the outputs")
     linked = "" if options.embed_assets else f"{SITE}/{ASSET_DIR}"
     pdf = f"{SITE}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
-    written = emit(doc, dest, asset_base(path), images, linked, pdf, media_base(path))
+    written = emit(
+        doc, dest, asset_base(path), images, linked, pdf, media_base(path), f"{SITE}/{path}/"
+    )
 
     typ = written.get("report.typ")
     if typ is not None:

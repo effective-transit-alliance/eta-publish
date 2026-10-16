@@ -1243,6 +1243,7 @@ def report_page(
     asset_base: str = ASSET_DIR,
     pdf_href: str = "",
     card_base: str = "",
+    page_url: str = "",
 ) -> str:
     """The whole report as a page,
     which is what a build writes as `index.html` and what the site serves.
@@ -1254,6 +1255,8 @@ def report_page(
     `card_base` is where the site serves the images, as a URL:
     a link preview fetches the card from wherever the link was posted,
     so `og:image` has to be absolute, and a relative one shows no picture at all.
+    `page_url` is this page's own address, as `og:url`: the site's copy, not `etany.org`,
+    so that a preview of a draft stays a preview of the draft.
     """
     body = HtmlEmitter(
         image_base=image_base,
@@ -1300,6 +1303,7 @@ def report_page(
         # What a link to the report unfurls as, beside the card's picture.
         htpy.meta(property="og:type", content="article"),
         htpy.meta(property="og:site_name", content="Effective Transit Alliance"),
+        *([htpy.meta(property="og:url", content=page_url)] if page_url else []),
         htpy.meta(property="og:title", content=doc.title),
         htpy.meta(property="og:description", content=description),
         *card,

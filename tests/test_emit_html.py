@@ -552,7 +552,10 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
     doc.card = Image(object_id="io.card", filename="card")
     doc.image_files["io.card"] = "card.jpg"
     doc.image_shapes["io.card"] = (1200, 628)
-    page = report_page(doc, card_base="https://example.invalid/r/images")
+    page = report_page(
+        doc, card_base="https://example.invalid/r/images", page_url="https://example.invalid/r/"
+    )
+    assert 'property="og:url" content="https://example.invalid/r/"' in page
     assert 'property="og:image" content="https://example.invalid/r/images/card.jpg"' in page
     assert 'property="og:image:width" content="1200"' in page
     assert 'property="og:image:height" content="628"' in page
