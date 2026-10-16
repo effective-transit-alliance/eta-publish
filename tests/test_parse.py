@@ -338,3 +338,24 @@ def test_an_excerpt_is_a_header_field() -> None:
     doc = _social_card_doc(_field_para("Excerpt: The excerpt."))
     assert doc.meta["Excerpt"] == "The excerpt."
     assert not [w for w in doc.warnings if "Excerpt" in str(w)]
+
+
+def test_a_subtitle_finishing_a_headline_that_ends_in_a_colon_is_part_of_the_title() -> None:
+    """The report's name is both halves, though the page sets the second as the standfirst."""
+    doc = parse(
+        {
+            "body": {
+                "content": [
+                    _text_para("Digging Out of a Very Deep Hole:", "TITLE"),
+                    _text_para("Saving Billions on 125th Street", "SUBTITLE"),
+                    _text_para("The body."),
+                ]
+            },
+            "inlineObjects": {},
+            "footnotes": {},
+            "lists": {},
+        }
+    )
+    assert doc.title == "Digging Out of a Very Deep Hole: Saving Billions on 125th Street"
+    assert doc.subtitle_ends_title
+    assert doc.subtitle

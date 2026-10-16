@@ -1772,6 +1772,12 @@ class Parser:
         if self.doc.card is None:
             self.doc.card = self.card(above)
         below = self.subtitle(below)
+        if self.doc.subtitle and self.doc.title.rstrip().endswith(":"):
+            # The headline set over two lines, the second as its subtitle:
+            # what the page, the search result, and a link preview are called
+            # is the whole of it, not the half that ends in a colon.
+            self.doc.title = f"{self.doc.title.rstrip()} {plain_text(self.doc.subtitle).strip()}"
+            self.doc.subtitle_ends_title = True
         self.doc.blocks = self.blocks(below)
         # After the body, so that every reference has been numbered.
         self.doc.footnotes = self.footnotes()

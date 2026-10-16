@@ -581,8 +581,13 @@ class Document:
     subtitle: list[Inline] = field(default_factory=list)
     """The `Subtitle`-styled paragraph under the headline, set under it as the standfirst.
 
-    Not the header's `Short:`, which is what a search result previews
+    Not the header's `SEO Description:`, which is what a search result previews
     and which nobody reading the document sees under its headline."""
+
+    subtitle_ends_title: bool = False
+    """Whether the headline ends in a colon and the subtitle is the rest of it,
+    as `Digging Out of a Very Deep Hole:` over `Saving Billions on 125th Street`.
+    `title` is then the two together, since that is the report's name."""
 
     file_title: str = ""
     """What the document is called in Drive, which is not what it is called here.

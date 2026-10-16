@@ -134,7 +134,11 @@ class MarkdownEmitter(Emitter):
         if not doc.title:
             return ""
         heading = f"# {escape(doc.title)}"
-        return f"{heading}\n\n{self.inlines(doc.subtitle)}" if doc.subtitle else heading
+        # A subtitle that finishes the headline is already in `title`,
+        # and a heading cannot end in the colon that splits them.
+        if not doc.subtitle or doc.subtitle_ends_title:
+            return heading
+        return f"{heading}\n\n{self.inlines(doc.subtitle)}"
 
     def phase(self, doc: Document) -> str:
         """Bold, because the archive has no styling to give it and it is a warning.
