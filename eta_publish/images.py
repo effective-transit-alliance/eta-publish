@@ -62,6 +62,32 @@ each, so a thread past the cores this process may use only waits for one.
 """
 
 
+def _renamed(image: Image, outdir: Path) -> Path | None:
+    """The file the last build wrote for `image`, saved under the name it has now.
+
+    For a build reusing a saved response, which has no URI to download from,
+    of an image a code change renamed: the file is there under its old name,
+    and `images.json` says which object it is.
+    The picture is the same one, since a saved response is only reused
+    for a document nobody has edited since it was saved.
+    """
+    import shutil
+
+    from .build import IMAGES_JSON
+
+    try:
+        recorded = json.loads((outdir.parent / IMAGES_JSON).read_text())
+    except OSError, ValueError:
+        return None
+    name = recorded.get(image.object_id, {}).get("file", "")
+    old = outdir / name
+    if not name or not old.is_file():
+        return None
+    new = outdir / f"{image.filename}{old.suffix}"
+    shutil.copyfile(old, new)
+    return new
+
+
 def download(
     doc: Document, outdir: Path, *, session: requests.Session | None = None, offline: bool = False
 ) -> dict[str, Path]:
@@ -159,6 +185,8 @@ def download(
             wanted.append((image, image.source_uri))
             continue
         existing = next(iter(outdir.glob(f"{image.filename}.*")), None)
+        if existing is None:
+            existing = _renamed(image, outdir)
         if existing is None:
             missing.append(image.object_id)
             continue

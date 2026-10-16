@@ -18,7 +18,7 @@ from eta_publish.emit.html import HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.images import crop_svg, download, svg_description
-from eta_publish.nodes import Crop, Document, Figure, Heading, Inline, Paragraph, Text
+from eta_publish.nodes import Crop, Document, Figure, Heading, Image, Inline, Paragraph, Text
 from eta_publish.parse import parse
 
 
@@ -1122,3 +1122,16 @@ def test_a_live_source_docs_shrank_is_quiet(tmp_path: Path) -> None:
     doc = _live_doc(LIVE_BLOB)
     download(doc, tmp_path, session=Shrunk(live))
     assert not doc.warnings
+
+
+def test_a_renamed_image_is_found_under_its_old_name(tmp_path: Path) -> None:
+    """A saved response has no image URLs, so a picture a code change renamed
+    is the file the last build recorded for it, saved under its new name."""
+    images = tmp_path / "images"
+    images.mkdir()
+    (images / "img-0c475eea.jpg").write_bytes(b"card")
+    (tmp_path / "images.json").write_text('{"io.card": {"file": "img-0c475eea.jpg"}}')
+    doc = Document(card=Image(object_id="io.card", filename="ibx_automation-0c475eea"))
+    download(doc, images, session=Serving(b""), offline=True)
+    assert doc.image_files["io.card"] == "ibx_automation-0c475eea.jpg"
+    assert (images / "ibx_automation-0c475eea.jpg").read_bytes() == b"card"
