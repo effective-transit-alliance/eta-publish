@@ -535,7 +535,8 @@ def index_page(site: Site) -> str:
             tag.li[
                 *phase,
                 tag.a(href=f"{built.path}/")[tag.strong[doc.title]],
-                tag.div(class_="short")[doc.meta.get("Short", "")],
+                # What Squarespace previews in a search result, so the card says the same.
+                tag.div(class_="short")[doc.meta.get("SEO Description", "")],
                 tag.div(class_="meta")[" · ".join(meta), warned],
             ]
         )

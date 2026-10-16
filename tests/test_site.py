@@ -514,6 +514,16 @@ def test_the_index_lists_what_built_and_what_did_not(doc: Document) -> None:
     assert "Next: not found" in page
 
 
+def test_a_card_summarizes_the_report_by_its_seo_description(doc: Document) -> None:
+    """What Squarespace previews in a search result, not `Short:`, which is not published."""
+    doc.meta["Short"] = "The short."
+    doc.meta["SEO Description"] = "The SEO description."
+    site = Site(built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="r/s")])
+    page = index_page(site)
+    assert "The SEO description." in page
+    assert "The short." not in page
+
+
 def test_only_one_document_or_list_at_a_time() -> None:
     """Building several at once is what a list is for,
     and a list is a file that can be reviewed
