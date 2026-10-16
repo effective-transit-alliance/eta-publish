@@ -50,6 +50,20 @@ def escape(text: str) -> str:
     return ESCAPE.sub(r"\\\1", text)
 
 
+BREAKS = re.compile(r"(?<=[&=,?+])|(?=%)")
+"""Where an address can break besides the `/` Typst already breaks it at:
+a query string can run longer than a line with no `/` in it at all."""
+
+
+def breakable(url: str) -> str:
+    """`url` escaped, with a zero-width space wherever it may break.
+
+    The character itself rather than `#sym.zws`, which the `.` of a domain
+    after it would read as a field of.
+    """
+    return "\u200b".join(escape(piece) for piece in BREAKS.split(url) if piece)
+
+
 def string(value: str) -> str:
     """A Typst string literal.
 
@@ -157,7 +171,7 @@ class TypstEmitter(Emitter):
 
     def source(self, doc: Document, source: str) -> str:
         """One entry: where the source is archived, or that it is not, then the source."""
-        shown = f"#link({string(source)})[{escape(shown_url(source))}]"
+        shown = f"#link({string(source)})[{breakable(shown_url(source))}]"
         archived = doc.archived(source)
         if archived is None:
             return f"(not archived) {shown}"

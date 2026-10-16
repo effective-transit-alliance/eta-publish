@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from paths import FIXTURE_DIR
 
-from eta_publish.emit.typst import TypstEmitter
+from eta_publish.emit.typst import TypstEmitter, breakable
 from eta_publish.images import write_print_copies
 from eta_publish.naming import IMAGE_DIR, PRINT_DIR
 from eta_publish.nodes import Document
@@ -120,3 +120,11 @@ def test_the_template_is_rewritten_every_build(tmp_path: Path) -> None:
 
     assert stale.read_text() != "#let report(..) = none  // an old house style\n"
     assert "#show: doc" in stale.read_text() or "report(" in stale.read_text()
+
+
+def test_a_long_query_string_can_break_without_a_slash() -> None:
+    """A source's address wraps at its query string's separators, not only at `/`."""
+    zws = "​"
+    shown = breakable("oecd.org/vis?a=1&b=A%2BB")
+    assert shown == f"oecd.org/vis?{zws}a={zws}1&{zws}b={zws}A{zws}%2BB"
+    assert shown.replace(zws, "") == "oecd.org/vis?a=1&b=A%2BB"
