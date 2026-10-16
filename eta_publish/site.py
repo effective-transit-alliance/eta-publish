@@ -19,6 +19,7 @@ import tomllib
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
+from datetime import date
 from functools import partial
 from pathlib import Path, PurePosixPath
 
@@ -529,6 +530,15 @@ def disagreements(report: Report, doc: Document) -> list[str]:
 INDEX_CSS = read("index.css")
 
 
+def _newest_first(built: Built) -> tuple[bool, int]:
+    """Newest first, as a list of publications reads.
+
+    An undated report has not been published yet, so it goes after them, in the list's order.
+    """
+    published = built.doc.published
+    return published is None, -(published or date.min).toordinal()
+
+
 def index_page(site: Site) -> str:
     """The site's front page: every report, and anything that did not build.
 
@@ -537,7 +547,7 @@ def index_page(site: Site) -> str:
     a line saying which one failed and why is not.
     """
     entries: list[Piece] = []
-    for built in site.built:
+    for built in sorted(site.built, key=_newest_first):
         doc = built.doc
         meta = [m for m in (doc.dateline, ", ".join(doc.contributors)) if m]
         warned = f" · {len(doc.warnings)} warning(s)" if doc.warnings else ""

@@ -13,7 +13,7 @@ Anything the parser cannot place here becomes a warning rather than a silent dro
 
 from collections.abc import Iterator
 from dataclasses import dataclass, field, replace
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 from pathlib import Path
 from string import ascii_letters
@@ -759,6 +759,11 @@ class Document:
         return _long_date(self.meta.get("Publish Due Date", ""))
 
     @property
+    def published(self) -> date | None:
+        """The publication date, or `None` where the header gives none that parses."""
+        return _date(self.meta.get("Publish Due Date", ""))
+
+    @property
     def phase(self) -> str:
         """Where the report is in its own process, when that is worth saying.
 
@@ -978,13 +983,18 @@ def _long_date(text: str, month: str = "%B") -> str:
 
     `month` is how the month is written: in full by default, `%b` for its three letters.
     """
+    parsed = _date(text)
+    return f"{parsed:{month}} {parsed.day}, {parsed.year}" if parsed else text
+
+
+def _date(text: str) -> date | None:
+    """`text` as a date in any of `DATE_FORMATS`, or `None` if it is not one."""
     for fmt in DATE_FORMATS:
         try:
-            date = datetime.strptime(text, fmt).date()
+            return datetime.strptime(text, fmt).date()
         except ValueError:
             continue
-        return f"{date:{month}} {date.day}, {date.year}"
-    return text
+    return None
 
 
 def addressed(entry: str) -> tuple[str, str] | None:

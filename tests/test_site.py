@@ -515,6 +515,19 @@ def test_the_index_lists_what_built_and_what_did_not(doc: Document) -> None:
     assert "Next: not found" in page
 
 
+def test_the_index_lists_the_newest_first_and_the_undated_last() -> None:
+    def built(name: str, published: str) -> Built:
+        doc = Document(meta={"Publish Due Date": published} if published else {})
+        doc.title = name
+        return Built(report=Report(url=name, name=name), doc=doc, path=name)
+
+    site = Site(
+        built=[built("Old", "Aug 19, 2026"), built("Draft", ""), built("New", "Oct 16, 2026")]
+    )
+    page = index_page(site)
+    assert page.index("New") < page.index("Old") < page.index("Draft")
+
+
 def test_a_card_summarizes_the_report_by_its_short(doc: Document) -> None:
     """What a blog post's excerpt or `What's New` says, not the search result's preview."""
     doc.meta["Short"] = "The short."
