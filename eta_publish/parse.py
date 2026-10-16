@@ -111,7 +111,19 @@ and a warning naming twelve is a paragraph nobody reads twice.
 # nothing publishes them, and a report that has shipped no longer needs them.
 # `Title` is a second answer to a question the headline already answers,
 # which `title` warns about separately.
-OPTIONAL_FIELDS = ("Draft Due Date", "Press Due Date", "Final Due Date", "Title")
+OPTIONAL_FIELDS = (
+    "Draft Due Date",
+    "Press Due Date",
+    "Final Due Date",
+    "Title",
+    "Social Title Card",
+)
+
+SOCIAL_CARD = "Social Title Card"
+"""The header field naming the share card, with the picture itself on the line under it.
+
+What Squarespace calls the page's social image: what a link to the report unfurls as.
+The value is the file's name, linked to the file; the picture is what publishes."""
 
 KNOWN_FIELDS = frozenset(REQUIRED_FIELDS) | frozenset(OPTIONAL_FIELDS)
 """Every field name the header is allowed to use.
@@ -1466,6 +1478,9 @@ class Parser:
         # Pictures the header section holds, which are the report's and not
         # the header's: stepped over rather than ending it, and handed back.
         pictures: list[int] = []
+        # The field the last header line set, so the picture under a
+        # `Social Title Card:` line is known to be the card rather than the report's.
+        last_key = ""
         for i in range(start + 1, len(content)):
             para = content[i].get("paragraph")
             if para is None:
@@ -1477,7 +1492,12 @@ class Parser:
             if style == "TITLE" or HEADING_LEVELS.get(style) is not None:
                 break
 
-            if has_image(para):
+            if has_image(para) and not text and last_key == SOCIAL_CARD:
+                self._social_card(para)
+                end = i + 1
+                continue
+
+            if has_image(para) and not self._names_social_card(para):
                 # Monthly Passes puts its picture in the `Header` section with a
                 # `Description:` line after it. Ending the section at the picture
                 # left that line in the body, warned about as a field somewhere
@@ -1517,6 +1537,10 @@ class Parser:
                     continue
                 self._check_label(line)
                 key = self._meta_line(*field)
+            if key == SOCIAL_CARD and has_image(para):
+                # The picture a Shift+Enter under the field rather than a paragraph.
+                self._social_card(para)
+            last_key = key
             end = i + 1
 
         if not self.doc.meta:
@@ -1529,6 +1553,20 @@ class Parser:
                 Shown("SEO Description:"),
             )
         return [content[i] for i in pictures if i < end] + content[end:]
+
+    def _names_social_card(self, para: JsonObject) -> bool:
+        """Whether `para` opens with the `Social Title Card:` field."""
+        field = key_line(split_lines(self.inlines(para))[0])
+        return field is not None and field[0] == SOCIAL_CARD
+
+    def _social_card(self, para: JsonObject) -> None:
+        """Take the picture in `para` as the share card."""
+        for el in para.get("elements", []):
+            if "inlineObjectElement" in el:
+                image = self._image(el["inlineObjectElement"])
+                if image is not None:
+                    self.doc.card = image
+                    return
 
     def _check_label(self, line: list[Inline]) -> None:
         """Warn about anything wrong with how a note's label is written."""
@@ -1704,7 +1742,10 @@ class Parser:
                 self._heading_anchors.setdefault(_normalized(name), anchor)
 
         above, below = self._split_at_title(content)
-        self.doc.card = self.card(above)
+        # A `Social Title Card:` names the card outright; a picture above the
+        # headline is the older way of saying the same, and only stands in for one.
+        if self.doc.card is None:
+            self.doc.card = self.card(above)
         below = self.subtitle(below)
         self.doc.blocks = self.blocks(below)
         # After the body, so that every reference has been numbered.

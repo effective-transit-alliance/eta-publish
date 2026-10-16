@@ -262,3 +262,53 @@ def test_a_bare_image_source_link_is_still_an_editorial_note() -> None:
     assert _text(figures[0].source) == "Image Source"
     assert _text(figures[0].credit) == "Credit: MTA"
     assert not [b for b in doc.blocks if isinstance(b, Paragraph)]
+
+
+def _social_card_doc(*header: JsonObject) -> Document:
+    return parse(
+        {
+            "body": {
+                "content": [
+                    _text_para("Header", "HEADING_2"),
+                    _field_para("URL: /reports/r"),
+                    *header,
+                    _field_para("SEO Description: About it."),
+                    _text_para("Report", "TITLE"),
+                    _text_para("The body."),
+                ]
+            },
+            "inlineObjects": {
+                "io.1": {
+                    "inlineObjectProperties": {
+                        "embeddedObject": {
+                            "description": "The card.",
+                            "imageProperties": {"contentUri": "https://example.invalid/1"},
+                        }
+                    }
+                }
+            },
+            "footnotes": {},
+            "lists": {},
+        }
+    )
+
+
+def test_the_picture_under_social_title_card_is_the_share_card() -> None:
+    """It is the page's social image, not a figure, and the header goes on after it."""
+    doc = _social_card_doc(_field_para("Social Title Card: card.png"), _image_para("io.1"))
+    assert doc.card is not None
+    assert doc.card.alt == "The card."
+    assert doc.meta["Social Title Card"] == "card.png"
+    assert doc.meta["SEO Description"] == "About it."
+    assert not [b for b in doc.blocks if isinstance(b, Figure)]
+    assert not [w for w in doc.warnings if "Social Title Card" in str(w)]
+
+
+def test_the_picture_can_share_the_social_title_card_paragraph() -> None:
+    """Under a Shift+Enter rather than a paragraph break, which reads the same in Docs."""
+    field = _field_para("Social Title Card: card.png")
+    field["paragraph"]["elements"].append({"inlineObjectElement": {"inlineObjectId": "io.1"}})
+    doc = _social_card_doc(field)
+    assert doc.card is not None
+    assert doc.meta["Social Title Card"] == "card.png"
+    assert not [b for b in doc.blocks if isinstance(b, Figure)]

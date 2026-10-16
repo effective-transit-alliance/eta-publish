@@ -320,6 +320,11 @@ and the summary on the report's card in the site index,
 `Public Contributors:` becomes the byline,
 named the way the header lists them,
 and `Final Due Date:` becomes the dateline.
+`Social Title Card:` names the share card, the picture a link to the report unfurls as,
+which is what Squarespace calls the page's social image:
+the value is the file's name, linked to the file,
+and the picture itself goes on the line under it.
+Without one, a picture above the headline is the card.
 `Private Contributors:` is never read for the byline,
 which is the point of the two fields being separate.
 `SME/Liaison:`, `Goals:`, and `Audience:` are for the editors and never published,
