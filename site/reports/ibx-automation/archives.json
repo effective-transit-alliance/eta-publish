@@ -70,9 +70,9 @@
     "timestamp": "20260304064215"
   },
   "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg": {
-    "error": "error:no-request",
+    "error": "in-progress",
     "pending": true,
-    "said": "error:no-request: The target server blocks access to https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg. (HTTP status=403) (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)",
+    "said": "in-progress (job spn2-a3cfa4a6dad7ca88a9ac5a2f50ed80f08a56de67)",
     "timestamp": "20261015",
     "version": "https://commons.wikimedia.org/w/index.php?title=File%3AHarsimus_Cove_HBLR_4th_St_RR_Crossing.jpg&oldid=980042411",
     "versioned": "20261015"
@@ -98,6 +98,14 @@
     "snapshot": "https://web.archive.org/web/20261012000437/https://data.ny.gov/d/kcjb-nf3e",
     "timestamp": "20261012000437"
   },
+  "https://data.worldbank.org/indicator/PA.NUS.PPP?locations=FR": {
+    "snapshot": "https://web.archive.org/web/20221101195005/https://data.worldbank.org/indicator/PA.NUS.PPP?locations=FR",
+    "timestamp": "20221101195005"
+  },
+  "https://data.worldbank.org/indicator/PA.NUS.PPP?locations=HK": {
+    "snapshot": "https://web.archive.org/web/20250117063653/https://data.worldbank.org/indicator/PA.NUS.PPP?locations=HK",
+    "timestamp": "20250117063653"
+  },
   "https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf": {
     "pages": 37,
     "snapshot": "https://web.archive.org/web/20260821175057/https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf",
@@ -107,21 +115,15 @@
     "snapshot": "https://web.archive.org/web/20261009033813/https://github.com/kkysen/automated-metro-data",
     "timestamp": "20261009033813"
   },
-  "https://github.com/kkysen/ibx-pel-track-map-images": {
-    "snapshot": "https://web.archive.org/web/20261012000612/https://github.com/kkysen/ibx-pel-track-map-images",
-    "timestamp": "20261012000612"
-  },
   "https://github.com/kkysen/ibx-ridership-charts/": {
     "snapshot": "https://web.archive.org/web/20261010091656/https://github.com/kkysen/ibx-ridership-charts/",
     "timestamp": "20261010091656"
   },
   "https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md": {
-    "job": "spn2-808429d8fcf32919896345e74efaf675dbd4c10c",
     "snapshot": "https://web.archive.org/web/20261015042645/https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md",
     "timestamp": "20261015042645"
   },
   "https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_route.md": {
-    "job": "spn2-a8d2a80adf12ef21d2e5f229a71c05399ef00e72",
     "snapshot": "https://web.archive.org/web/20261015042716/https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_route.md",
     "timestamp": "20261015042716"
   },
