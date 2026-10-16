@@ -218,6 +218,14 @@ def player_url(node: Embed, card: Card) -> str:
             return ""
 
 
+PDF_ICON = (
+    '<svg aria-hidden="true" viewBox="0 0 16 16" width="1em" height="1em" fill="none" '
+    'stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'
+    '<path d="M8 2v8M4.5 6.5 8 10l3.5-3.5M3 13h10"/></svg>'
+)
+"""A download arrow, drawn in the text's color so it follows the site's."""
+
+
 class HtmlEmitter(Emitter):
     extension = ".html"
 
@@ -493,7 +501,11 @@ class HtmlEmitter(Emitter):
         """A link to the report as a PDF, for a reader who wants to print or keep it."""
         if not self.pdf_href:
             return ""
-        return markup(tag.p(class_="pdf", id="pdf")[tag.a(href=self.pdf_href)["PDF version"]])
+        return markup(
+            tag.p(class_="pdf", id="pdf")[
+                tag.a(class_="pdf-button", href=self.pdf_href)[Markup(PDF_ICON), "Download PDF"]
+            ]
+        )
 
     def warnings(self, doc: Document) -> str:
         """Everything the build has to say about this report, where it will be read.

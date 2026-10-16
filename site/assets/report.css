@@ -255,6 +255,25 @@
 }
 .eta-report .pdf {
   font-size: 0.95rem;
+  margin: 0.75em 0 0;
+}
+/* Outlined like an embed card, in the text's own color, so it suits the site's
+   light and dark sections without naming a color of its own. */
+.eta-report .pdf-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+.eta-report .pdf-button:hover,
+.eta-report .pdf-button:focus-visible {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 8%, transparent);
 }
 .eta-report .standfirst {
   font-size: 1.15rem;
