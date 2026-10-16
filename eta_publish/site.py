@@ -29,7 +29,7 @@ from rich.console import Console
 from . import console
 from .archive import Stopped
 from .assets import read
-from .build import DOC_JSON, BuildOptions, build_one, has_its_images
+from .build import DOC_JSON, BuildOptions, build_one, has_its_images, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
 from .nodes import Document
@@ -83,6 +83,16 @@ class Failed:
 class Site:
     built: list[Built] = field(default_factory=list)
     failed: list[Failed] = field(default_factory=list)
+
+
+def social_image(doc: Document, path: str) -> str:
+    """Where the site serves the share card, for uploading as Squarespace's social image.
+
+    Nothing where there is no card, or where no picture of it was written.
+    """
+    if doc.card is None or doc.card.object_id not in doc.image_files:
+        return ""
+    return f"{media_base(path)}/{doc.image_href(doc.card)}"
 
 
 def load_reports(path: Path = REPORTS) -> list[Report]:
@@ -463,6 +473,7 @@ def _built(
             paste = [
                 ("SEO title", doc.title),
                 ("SEO description", doc.meta.get("SEO Description", "")),
+                ("Social image", social_image(doc, path)),
             ]
             console.write(console.built(named, path, doc.warnings, log, paste), log)
             site.built.append(Built(report=report, doc=doc, path=path))

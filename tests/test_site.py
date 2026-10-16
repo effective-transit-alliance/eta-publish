@@ -24,7 +24,7 @@ from eta_publish.build import (
     require_image_index,
     write_image_index,
 )
-from eta_publish.nodes import Document
+from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
     Built,
@@ -40,6 +40,7 @@ from eta_publish.site import (
     report_path,
     reusable,
     saved_responses,
+    social_image,
 )
 
 FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
@@ -1006,3 +1007,14 @@ def test_a_stopped_builds_leftovers_are_removed_and_a_running_ones_are_not(tmp_p
         f".site-building-{os.getpid()}-def",
         "site",
     ]
+
+
+def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
+    """What to upload as Squarespace's social image, and nothing without a card."""
+    doc.card = Image(object_id="io.card", filename="card")
+    doc.image_files["io.card"] = "card.jpg"
+    assert social_image(doc, "reports/r") == (
+        "https://kkysen.github.io/eta-publish/reports/r/images/card.jpg"
+    )
+    doc.card = None
+    assert social_image(doc, "reports/r") == ""
