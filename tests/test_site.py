@@ -1018,3 +1018,12 @@ def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
     )
     doc.card = None
     assert social_image(doc, "reports/r") == ""
+
+
+def test_a_card_shows_the_reports_share_card_where_it_has_one(doc: Document) -> None:
+    doc.card = Image(object_id="io.card", filename="card")
+    doc.image_files["io.card"] = "card.jpg"
+    site = Site(built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="r/s")])
+    assert 'src="r/s/images/card.jpg"' in index_page(site)
+    doc.card = None
+    assert 'class="card"' not in index_page(site)

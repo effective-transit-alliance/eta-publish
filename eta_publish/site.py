@@ -32,6 +32,7 @@ from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
+from .naming import IMAGE_DIR
 from .nodes import Document
 
 REPORTS = Path("reports.toml")
@@ -542,8 +543,19 @@ def index_page(site: Site) -> str:
         # a draft has to say so wherever it is read, and this list is where
         # someone picks which report to open.
         phase = [Markup(phase_markup(doc.phase))] if doc.phase else []
+        # The share card, as a link to the report shows it everywhere else.
+        # Decorative here: the title beside it is the same words, and a link.
+        thumbnail: list[Piece] = []
+        if doc.card is not None and doc.card.object_id in doc.image_files:
+            src = f"{built.path}/{IMAGE_DIR}/{doc.image_href(doc.card)}"
+            thumbnail.append(
+                tag.a(href=f"{built.path}/", tabindex="-1", aria_hidden="true")[
+                    htpy.img(class_="card", src=src, alt="", loading="lazy")
+                ]
+            )
         entries.append(
             tag.li[
+                *thumbnail,
                 *phase,
                 tag.a(href=f"{built.path}/")[tag.strong[doc.title]],
                 # What Squarespace previews in a search result, so the card says the same.
