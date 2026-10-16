@@ -32,6 +32,12 @@
     "file": "automated_share_by_year_2016_to_2026.svg",
     "sha256": "5b6b5195266b740ecd88fe6837874d35e31509665eed81ed3d463f2830a40b97"
   },
+  "kix.md2vnbfacwp5": {
+    "file": "img-0c475eea.jpg",
+    "height": 628,
+    "sha256": "786553effe8c147691412951f9b5a69246da821802c475399d5d890eb22c7ee7",
+    "width": 1200
+  },
   "kix.tx1fjdbmxbaz": {
     "alt": "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.",
     "file": "automated_share_by_year_ex_china_2016_to_2026.svg",

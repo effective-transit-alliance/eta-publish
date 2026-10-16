@@ -1,11 +1,11 @@
 # No Need to Wait: Automated Light Metro is Right for the IBX
 
-October 12, 2026
+October 16, 2026
 
 **Warnings**
 
 - 10 suggestions still open on this tab; the build publishes the document without them, as it reads today
-- the `Header` section has no `Social Title Card:` line
+- the `Header` section has no `Short:` line
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
