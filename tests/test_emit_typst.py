@@ -123,8 +123,9 @@ def test_the_template_is_rewritten_every_build(tmp_path: Path) -> None:
 
 
 def test_a_long_query_string_can_break_without_a_slash() -> None:
-    """A source's address wraps at its query string's separators, not only at `/`."""
-    zws = "​"
-    shown = breakable("oecd.org/vis?a=1&b=A%2BB")
-    assert shown == f"oecd.org/vis?{zws}a={zws}1&{zws}b={zws}A{zws}%2BB"
-    assert shown.replace(zws, "") == "oecd.org/vis?a=1&b=A%2BB"
+    """A source's address wraps at its query string's separators, not only at `/`,
+    and adds no character to the text a reader copies out of the PDF."""
+    assert breakable("oecd.org/vis?a=1&b=A%2BB") == (
+        "#box[oecd.org/vis?]#box[a=]#box[1&]#box[b=]#box[A]#box[%2BB]"
+    )
+    assert breakable("oecd.org/vis") == "oecd.org/vis"

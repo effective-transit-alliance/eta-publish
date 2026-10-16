@@ -56,12 +56,16 @@ a query string can run longer than a line with no `/` in it at all."""
 
 
 def breakable(url: str) -> str:
-    """`url` escaped, with a zero-width space wherever it may break.
+    """`url` escaped, in pieces a line may break between.
 
-    The character itself rather than `#sym.zws`, which the `.` of a domain
-    after it would read as a field of.
+    Each piece is a `box`, since Typst may break a line between two boxes.
+    Not a zero-width space, which would be in the PDF's text,
+    so an address copied out of the PDF would carry it into the browser.
     """
-    return "\u200b".join(escape(piece) for piece in BREAKS.split(url) if piece)
+    pieces = [piece for piece in BREAKS.split(url) if piece]
+    if len(pieces) == 1:
+        return escape(url)
+    return "".join(f"#box[{escape(piece)}]" for piece in pieces)
 
 
 def string(value: str) -> str:
