@@ -136,13 +136,11 @@
         #v(0.6em)
         #text(size: 10pt, fill: luma(35%))[#dateline]
       ]
-      #v(0.4em)
-      #line(length: 100%, stroke: 0.8pt)
     ],
+    // Space, not a rule, between the masthead and the picture, as the page has it.
     // A figure's own spacing above it is dropped at the top of a block,
-    // which put the rule under the dateline flush against the top of the picture
-    // and made it read as a line drawn across the image.
-    v(1.2em),
+    // so without this the dateline sat flush against the top of the picture.
+    v(1.6em),
     if hero != none {
       block(height: 1fr, width: 100%, layout(size => {
         let placed = block(width: size.width, hero)
