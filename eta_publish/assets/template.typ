@@ -76,6 +76,17 @@
 
   set footnote.entry(separator: line(length: 35%, stroke: 0.5pt + luma(60%)))
   show footnote.entry: set text(size: 8.5pt)
+  // Flush left with a space after the number, the way a note is usually set.
+  // Typst's own entry indents only its first line, by `indent`,
+  // so each note read as a paragraph rather than a note,
+  // and puts nothing between the number and the note.
+  show footnote.entry: it => {
+    let loc = it.note.location()
+    let number = numbering(it.note.numbering, ..counter(footnote).at(loc))
+    // Still the link back to the reference that the default makes it, but not
+    // colored as one, which it was not before either.
+    par(first-line-indent: 0em)[#link(loc, text(fill: black, super(number)))~#it.note.body]
+  }
 
   show figure.caption: set text(size: 9pt, fill: luma(35%))
   // Ranged left, as the page sets it.
