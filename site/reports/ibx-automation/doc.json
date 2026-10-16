@@ -10242,10 +10242,7 @@
             }
           },
           "imageProperties": {
-            "cropProperties": {
-              "offsetLeft": 0.000265252,
-              "offsetRight": 0.000265252
-            }
+            "cropProperties": {}
           },
           "marginBottom": {
             "magnitude": 9,
@@ -10265,7 +10262,7 @@
           },
           "size": {
             "height": {
-              "magnitude": 115.25989583333333,
+              "magnitude": 115.19875000000002,
               "unit": "PT"
             },
             "width": {
@@ -11495,7 +11492,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-16T08:40:53.374Z",
+  "modifiedTime": "2026-10-16T09:16:05.047Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
