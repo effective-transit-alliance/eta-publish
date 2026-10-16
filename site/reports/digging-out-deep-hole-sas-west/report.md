@@ -34,6 +34,7 @@ August 19, 2026
 - the `Header` section has no `SME/Liaison:` line
 - the `Header` section has no `Goals:` line
 - the `Header` section has no `Audience:` line
+- the `Header` section has no `Social Title Card:` line
 - `SEO Description:` is 398 characters, over the 300 a search result shows:
   > A 125 St subway should be a slam dunk. But at $7.7B and with stations more than 100 ft underground, it would be the most expensive subway in the world, and cost riders more than 5 minutes every trip before ever stepping on a train. By using international best practices & building more shallowly, how~~ever, NY would not only be able to build more for less, but would also save riders time every day.~~
 - style: `125th Street` should be `125 St`: `...enue Subway (SAS) west across 125th Street (SAS West) should be a slam d...`

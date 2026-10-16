@@ -29,6 +29,7 @@
     [the #raw("Header") section has no #raw("Audience:") line],
     [the #raw("Header") section has no #raw("Short:") line],
     [the #raw("Header") section has no #raw("SEO Description:") line],
+    [the #raw("Header") section has no #raw("Social Title Card:") line],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...ry train is running at a snail's pace, all due to an incident...")],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...iddle. In this way, trains don't conflict with one another, a...")],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...k-hour service, however, today's interlined network requires ...")],

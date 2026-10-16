@@ -26,6 +26,7 @@
     [the #raw("Header") section has no #raw("Audience:") line],
     [the #raw("Header") section has no #raw("Short:") line],
     [the #raw("Header") section has no #raw("SEO Description:") line],
+    [the #raw("Header") section has no #raw("Social Title Card:") line],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...o make is the one that you don't have to think about.")],
     [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...rch Record (2000, 1745(1), 101-112). https://doi.org/10.3141/...")],
     [the image #raw("img-ae6ddd33") has no alt text and no caption; add a description to it in the doc],

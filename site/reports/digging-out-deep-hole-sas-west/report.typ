@@ -29,6 +29,7 @@
     [the #raw("Header") section has no #raw("SME/Liaison:") line],
     [the #raw("Header") section has no #raw("Goals:") line],
     [the #raw("Header") section has no #raw("Audience:") line],
+    [the #raw("Header") section has no #raw("Social Title Card:") line],
     [#raw("SEO Description:") is 398 characters, over the 300 a search result shows:#quote(block: true)[A 125 St subway should be a slam dunk. But at \$7.7B and with stations more than 100 ft underground, it would be the most expensive subway in the world, and cost riders more than 5 minutes every trip before ever stepping on a train. By using international best practices & building more shallowly, how#strike[ever, NY would not only be able to build more for less, but would also save riders time every day.]]],
     [style: #raw("125th Street") should be #raw("125 St"): #raw("...enue Subway (SAS) west across 125th Street (SAS West) should be a slam d...")],
     [style: #raw("Second Ave Subway") should be #raw("Second Avenue Subway"): #raw("...nflation-adjusted cost of the Second Ave Subway’s first phase, a project that...")],

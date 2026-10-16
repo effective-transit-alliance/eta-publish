@@ -22,6 +22,7 @@
     [the #raw("Header") section has no #raw("SME/Liaison:") line],
     [the #raw("Header") section has no #raw("Goals:") line],
     [the #raw("Header") section has no #raw("Audience:") line],
+    [the #raw("Header") section has no #raw("Social Title Card:") line],
     [#raw("SEO Description:") is 363 characters, over the 300 a search result shows:#quote(block: true)[The seemingly-endless onslaught of announcements on NY transit not only annoys riders, but impairs accessibility, making navigating transit far more difficult than it needs to be. ETA outlines the best practices for transit audio design: clear, concise messages reserved for actionable information. I#strike[t's time to stop the cacophony, and let riders travel in peace.]]],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...for actionable information. It's time to stop the cacophony, ...")],
     [style: a sentence should end with 1 space, not 2: #raw("..., often one message at a time.··Slowly, by following the path ...")],

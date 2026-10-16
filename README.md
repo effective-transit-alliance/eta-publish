@@ -324,7 +324,7 @@ and `Final Due Date:` becomes the dateline.
 which is what Squarespace calls the page's social image:
 the value is the file's name, linked to the file,
 and the picture itself goes on the line under it.
-Without one, a picture above the headline is the card.
+A header without one warns, and a picture above the headline stands in as the card.
 `Private Contributors:` is never read for the byline,
 which is the point of the two fields being separate.
 `SME/Liaison:`, `Goals:`, and `Audience:` are for the editors and never published,

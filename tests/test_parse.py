@@ -312,3 +312,9 @@ def test_the_picture_can_share_the_social_title_card_paragraph() -> None:
     assert doc.card is not None
     assert doc.meta["Social Title Card"] == "card.png"
     assert not [b for b in doc.blocks if isinstance(b, Figure)]
+
+
+def test_a_social_title_card_line_with_no_picture_under_it_warns() -> None:
+    doc = _social_card_doc(_field_para("Social Title Card: card.png"))
+    assert doc.card is None
+    assert [w for w in doc.warnings if "has no picture under it" in str(w)]

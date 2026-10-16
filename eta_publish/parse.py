@@ -92,6 +92,7 @@ REQUIRED_FIELDS = (
     "URL",
     "Short",
     "SEO Description",
+    "Social Title Card",
 )
 """Every field the `Header` section must carry, in the order it writes them.
 
@@ -116,7 +117,6 @@ OPTIONAL_FIELDS = (
     "Press Due Date",
     "Final Due Date",
     "Title",
-    "Social Title Card",
 )
 
 SOCIAL_CARD = "Social Title Card"
@@ -785,6 +785,8 @@ class Parser:
         self._heading_anchors: dict[str, str] = {}
         self._footnote_numbers: dict[str, int] = {}
         self._source_names: dict[str, str] = {}
+        self._has_social_card = False
+        """Whether a `Social Title Card:` field had its picture under it."""
 
     # ---- inline ------------------------------------------------------
 
@@ -1566,6 +1568,7 @@ class Parser:
                 image = self._image(el["inlineObjectElement"])
                 if image is not None:
                     self.doc.card = image
+                    self._has_social_card = True
                     return
 
     def _check_label(self, line: list[Inline]) -> None:
@@ -1744,6 +1747,11 @@ class Parser:
         above, below = self._split_at_title(content)
         # A `Social Title Card:` names the card outright; a picture above the
         # headline is the older way of saying the same, and only stands in for one.
+        if SOCIAL_CARD in self.doc.meta and not self._has_social_card:
+            self.doc.warn(
+                "the {} line has no picture under it; paste the card itself on the next line",
+                Shown(f"{SOCIAL_CARD}:"),
+            )
         if self.doc.card is None:
             self.doc.card = self.card(above)
         below = self.subtitle(below)
