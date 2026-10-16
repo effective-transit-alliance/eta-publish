@@ -315,7 +315,8 @@ The converter reads that block into metadata and keeps it out of the body.
 rather than published under a guess at it.
 `SEO Description:` becomes the page description
 and the summary on the report's card in the site index,
-`Short:` is no longer used and warns, to be deleted,
+`Excerpt:` is what a Squarespace blog post shows as its summary, and is optional,
+`Short:` is no longer used and warns, suggesting `Excerpt:`,
 `Public Contributors:` becomes the byline,
 named the way the header lists them,
 and `Final Due Date:` becomes the dateline.

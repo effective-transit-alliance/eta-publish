@@ -5,7 +5,7 @@ September 9, 2026
 **Warnings**
 
 - the `Header` section has an unrecognized `Related Document:` line; check it for a typo
-- the `Short:` line is no longer used; delete it from the `Header` section
+- the `Short:` line is no longer used; if it is a blog post's excerpt, rename it `Excerpt:`, and otherwise delete it
 - the `Header` section has an unrecognized `Video:` line; check it for a typo
 - 2 images share one paragraph; only the first becomes a figure
 - the image `img-831248b1` has no caption

@@ -116,6 +116,9 @@ OPTIONAL_FIELDS = (
     "Press Due Date",
     "Final Due Date",
     "Title",
+    # What a Squarespace blog post shows as its summary on blog lists and cards.
+    # A page has none, so only a report published as a post needs one.
+    "Excerpt",
 )
 
 SOCIAL_CARD = "Social Title Card"
@@ -127,7 +130,8 @@ The value is the file's name, linked to the file; the picture is what publishes.
 RETIRED_FIELDS = frozenset({"Short"})
 """Fields older reports carry that nothing reads any more.
 
-`Short:` was the summary before the SEO description took over everywhere one shows.
+`Short:` was the summary before the SEO description took over everywhere one shows;
+a blog post's own summary is its `Excerpt:`, which is likely what it was meant to be.
 Said apart from an unknown field, which is likelier a typo to fix than a line to delete.
 """
 
@@ -1619,9 +1623,10 @@ class Parser:
         value = value.strip()
         if key in RETIRED_FIELDS:
             self.doc.warn(
-                "the {} line is no longer used; delete it from the {} section",
+                "the {} line is no longer used; if it is a blog post's excerpt, "
+                "rename it {}, and otherwise delete it",
                 Shown(f"{key}:"),
-                Shown("Header"),
+                Shown("Excerpt:"),
             )
         elif key not in KNOWN_FIELDS:
             # A field nothing reads is a field nobody notices is missing.

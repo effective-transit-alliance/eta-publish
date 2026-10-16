@@ -78,6 +78,10 @@ def check(doc: Document) -> None:
         # Twelve more warnings saying the same thing would bury it.
         return
 
+    # Not required, but published wherever it is given, so a `TODO` in it is too.
+    if unfinished(doc.meta.get("Excerpt", "")):
+        doc.warn("{} is still marked unfinished", Shown("Excerpt:"))
+
     for field in REQUIRED_FIELDS:
         if field not in doc.meta:
             doc.warn("the {} section has no {} line", Shown("Header"), Shown(f"{field}:"))

@@ -474,6 +474,8 @@ def _built(
             paste = [
                 ("SEO title", doc.title),
                 ("SEO description", doc.meta.get("SEO Description", "")),
+                # A blog post's only; a page has no excerpt, and prints none.
+                ("Excerpt", doc.meta.get("Excerpt", "")),
                 ("Social image", social_image(doc, path)),
             ]
             console.write(console.built(named, path, doc.warnings, log, paste), log)

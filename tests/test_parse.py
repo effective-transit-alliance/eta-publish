@@ -75,7 +75,8 @@ def test_the_fixture_raises_only_the_header_field_warnings(doc: Document) -> Non
     carries and not a field anything reads, and its `Short:` is from before
     the SEO description replaced it."""
     assert [str(w) for w in doc.warnings] == [
-        "the `Short:` line is no longer used; delete it from the `Header` section",
+        "the `Short:` line is no longer used; if it is a blog post's excerpt, "
+        "rename it `Excerpt:`, and otherwise delete it",
         "the `Header` section has an unrecognized "
         "`MTA SAS West Feasibility Study:` line; check it for a typo",
     ]
@@ -326,5 +327,14 @@ def test_a_short_line_is_said_to_be_no_longer_used() -> None:
     """Not a typo to check for, as an unknown field is, but a line to delete."""
     doc = _social_card_doc(_field_para("Short: The short."))
     warnings = [str(w) for w in doc.warnings]
-    assert "the `Short:` line is no longer used; delete it from the `Header` section" in warnings
+    assert (
+        "the `Short:` line is no longer used; if it is a blog post's excerpt, "
+        "rename it `Excerpt:`, and otherwise delete it"
+    ) in warnings
     assert not [w for w in warnings if "unrecognized" in w]
+
+
+def test_an_excerpt_is_a_header_field() -> None:
+    doc = _social_card_doc(_field_para("Excerpt: The excerpt."))
+    assert doc.meta["Excerpt"] == "The excerpt."
+    assert not [w for w in doc.warnings if "Excerpt" in str(w)]

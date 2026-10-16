@@ -4,7 +4,7 @@ August 19, 2026
 
 **Warnings**
 
-- the `Short:` line is no longer used; delete it from the `Header` section
+- the `Short:` line is no longer used; if it is a blog post's excerpt, rename it `Excerpt:`, and otherwise delete it
 - write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement`
 - write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://mmbiz.qpic.cn/mmbiz_jpg/R3QIfMDE0S8gZDEZoDp8r03hqSf32rQ8sC8poo18ZicPdd2e3RCMhCgKibrXHdwWEibmd29jWrRWxpgE8hf25f9FA/`
 - write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://mmbiz.qpic.cn/mmbiz_png/ZHDc6XLp5hBdZC053hhqPT42S3vG38tCIgluQfqJmxdOIARqrQMFiaFWFeX6MNEhx8mibVnB36mrTicQicNA5Jzh0Q/`
