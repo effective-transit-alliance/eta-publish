@@ -627,14 +627,14 @@
         "startIndex": 1280
       },
       {
-        "endIndex": 1347,
+        "endIndex": 1315,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1347,
+              "endIndex": 1315,
               "startIndex": 1282,
               "textRun": {
-                "content": "Digging Out of a Very Deep Hole: Saving Billions on 125th Street\n",
+                "content": "Digging Out of a Very Deep Hole:\n",
                 "textStyle": {}
               }
             }
@@ -646,6 +646,27 @@
           }
         },
         "startIndex": 1282
+      },
+      {
+        "endIndex": 1347,
+        "paragraph": {
+          "elements": [
+            {
+              "endIndex": 1347,
+              "startIndex": 1315,
+              "textRun": {
+                "content": "Saving Billions on 125th Street\n",
+                "textStyle": {}
+              }
+            }
+          ],
+          "paragraphStyle": {
+            "direction": "LEFT_TO_RIGHT",
+            "headingId": "h.6dxbpsji67m3",
+            "namedStyleType": "SUBTITLE"
+          }
+        },
+        "startIndex": 1315
       },
       {
         "endIndex": 1349,
@@ -14972,7 +14993,7 @@
       }
     }
   },
-  "modifiedTime": "2026-09-14T03:53:54.107Z",
+  "modifiedTime": "2026-10-15T20:01:10.098Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
