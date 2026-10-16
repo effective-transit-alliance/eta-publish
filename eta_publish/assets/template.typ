@@ -177,7 +177,16 @@
   if contributors.len() > 0 {
     heading(level: 1, [Contributors])
     if contributors_note != none [#contributors_note]
-    list(..contributors)
+    // Two columns, read down the first and then the second,
+    // as the web page and the site's own reports lay the names out.
+    // Split by hand: Typst's `columns` fills the first to the foot of the page
+    // before starting the second, rather than balancing the two.
+    let half = calc.ceil(contributors.len() / 2)
+    grid(
+      columns: (1fr, 1fr),
+      list(..contributors.slice(0, half)),
+      list(..contributors.slice(half)),
+    )
   }
 
 }
