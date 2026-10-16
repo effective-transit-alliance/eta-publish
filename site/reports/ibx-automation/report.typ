@@ -8,9 +8,6 @@
   dateline: "October 16, 2026",
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
-  warnings: (
-    [10 suggestions still open on this tab; the build publishes the document without them, as it reads today],
-  ),
   hero: [
 #figure(
   link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg")[#capped_image("print/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg", alt: "A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).")],
@@ -210,8 +207,7 @@ However, Honolulu Skyline is the first metro with either PSDs or GoA4 automation
 Safety was at the core of the decision to install PSDs: Honolulu Authority for Rapid Transit board members #link("https://www.civilbeat.org/2013/09/19830-honolulu-rails-new-27-million-safety-feature-to-avert-track-fatalities/")[swiftly approved the change order]#super[#link(<src50>)[\[50\]]] after seeing a video of babies falling in front of trains.
 The #link("https://myemail.constantcontact.com/News-from-the-Honolulu-Rail-Transit-Project.html?aid=Hx5Y3V3IrQE&soid=1102697428056")[PSDs for all 21 stations]#super[#link(<src51>)[\[51\]]] cost about \$27 million in 2013 USD.
 Adjusted for inflation and the number of IBX stations,#footnote[IBX stations are planned to be #link("https://www.mta.info/document/187036#page=20")[325 ft]#super[#link(<src40>)[\[40\]]], a bit longer than the 260 ft Hitachi Driverless Metro trains on Honolulu Skyline.
-However, this is an upper bound for IBX stations, as they are just ensuring everything is built for at least 325 ft until rolling stock is selected.
-The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.] equipping all IBX platforms with PSDs would cost about \$33 million,#footnote[\$27 million / 21 stations \* 18 stations \* 1.431 inflation from Sep 2013 to Aug 2026 = \$33.1 million. \$33.1 million / \$5.5 billion = 0.602%.] equal to only 0.6% of its #link("https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental#:~:text=IBX%20project%20is-,%245.5%20billion,-.%20%242.75%20billion%20in")[projected cost of \$5.5 billion]#super[#link(<src52>)[\[52\]]].
+The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.] equipping all IBX platforms with PSDs would cost about \$41 million,#footnote[\$27 million / (21 stations \* 260 ft) \* (18 stations \* 325 ft) \* 1.431 inflation from Sep 2013 to Aug 2026 = \$41.4 million. \$41.4 million / \$5.5 billion = 0.753%.] equal to only 0.75% of its #link("https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental#:~:text=IBX%20project%20is-,%245.5%20billion,-.%20%242.75%20billion%20in")[projected cost of \$5.5 billion]#super[#link(<src52>)[\[52\]]].
 The cost is only a small part of the larger project, and yet adds incredible value.
 
 #figure(

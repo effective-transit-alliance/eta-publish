@@ -2,10 +2,6 @@
 
 October 16, 2026
 
-**Warnings**
-
-- 10 suggestions still open on this tab; the build publishes the document without them, as it reads today
-
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
 Credit: MTA, [via Gothamist](<https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out>)<sup>\[1\]</sup>
@@ -178,7 +174,7 @@ Credit: MTA security camera footage
 Honolulu provides virtually the only US example[^20] pertinent to IBX.
 Safety was at the core of the decision to install PSDs: Honolulu Authority for Rapid Transit board members [swiftly approved the change order](<https://www.civilbeat.org/2013/09/19830-honolulu-rails-new-27-million-safety-feature-to-avert-track-fatalities/>)<sup>\[50\]</sup> after seeing a video of babies falling in front of trains.
 The [PSDs for all 21 stations](<https://myemail.constantcontact.com/News-from-the-Honolulu-Rail-Transit-Project.html?aid=Hx5Y3V3IrQE&soid=1102697428056>)<sup>\[51\]</sup> cost about $27 million in 2013 USD.
-Adjusted for inflation and the number of IBX stations,[^21] equipping all IBX platforms with PSDs would cost about $33 million,[^22] equal to only 0.6% of its [projected cost of $5.5 billion](<https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental#:~:text=IBX%20project%20is-,%245.5%20billion,-.%20%242.75%20billion%20in>)<sup>\[52\]</sup>.
+Adjusted for inflation and the number of IBX stations,[^21] equipping all IBX platforms with PSDs would cost about $41 million,[^22] equal to only 0.75% of its [projected cost of $5.5 billion](<https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental#:~:text=IBX%20project%20is-,%245.5%20billion,-.%20%242.75%20billion%20in>)<sup>\[52\]</sup>.
 The cost is only a small part of the larger project, and yet adds incredible value.
 
 ![Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.](<images/Skyline_platform_screen_doors.png>)\
@@ -324,10 +320,9 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
     However, Honolulu Skyline is the first metro with either PSDs or GoA4 automation.
 
 [^21]: IBX stations are planned to be [325 ft](<https://www.mta.info/document/187036#page=20>)<sup>\[40\]</sup>, a bit longer than the 260 ft Hitachi Driverless Metro trains on Honolulu Skyline.
-    However, this is an upper bound for IBX stations, as they are just ensuring everything is built for at least 325 ft until rolling stock is selected.
     The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.
 
-[^22]: $27 million / 21 stations \* 18 stations \* 1.431 inflation from Sep 2013 to Aug 2026 = $33.1 million. $33.1 million / $5.5 billion = 0.602%.
+[^22]: $27 million / (21 stations \* 260 ft) \* (18 stations \* 325 ft) \* 1.431 inflation from Sep 2013 to Aug 2026 = $41.4 million. $41.4 million / $5.5 billion = 0.753%.
 
 [^23]: [$106 million EUR / 29 stations](<https://www.leparisien.fr/info-paris-ile-de-france-oise/transports/accidents-mortels-dans-le-metro-la-securisation-des-quais-un-chantier-long-et-couteux-27-04-2023-6HBP4OH5TFBDXM5SN2NMLM3JME.php>)<sup>\[84\]</sup> \* (602.1 ft / 90 m) / ([0.7060 EUR/USD PPP in 2019](<https://data.worldbank.org/indicator/PA.NUS.PPP?locations=FR>)<sup>\[85\]</sup>) \* (334.98 Aug 2026 CPI-U / 255.66 2019 CPI-U) = $13.83 million USD/station.
     The contract was signed in 2016 and automation began in 2022, so the midpoint, 2019, is used.
