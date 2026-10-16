@@ -757,12 +757,55 @@
         "startIndex": 476
       },
       {
-        "endIndex": 842,
+        "endIndex": 832,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 552,
+              "endIndex": 542,
               "startIndex": 537,
+              "textRun": {
+                "content": "Short",
+                "textStyle": {
+                  "underline": true
+                }
+              }
+            },
+            {
+              "endIndex": 831,
+              "startIndex": 542,
+              "textRun": {
+                "content": ": Now that the IBX will be fully grade-separated thanks to the All Faiths tunnel, the IBX should be built as an automated light metro. 73% of all new grade-separated rapid transit lines in 2025 were automated; the IBX should be no exception. It is time for the MTA to commit to automation.",
+                "textStyle": {}
+              }
+            },
+            {
+              "endIndex": 832,
+              "startIndex": 831,
+              "textRun": {
+                "content": "\n",
+                "textStyle": {
+                  "underline": true
+                }
+              }
+            }
+          ],
+          "paragraphStyle": {
+            "direction": "LEFT_TO_RIGHT",
+            "namedStyleType": "NORMAL_TEXT",
+            "spaceBelow": {
+              "unit": "PT"
+            }
+          }
+        },
+        "startIndex": 537
+      },
+      {
+        "endIndex": 1137,
+        "paragraph": {
+          "elements": [
+            {
+              "endIndex": 847,
+              "startIndex": 832,
               "textRun": {
                 "content": "SEO Description",
                 "textStyle": {
@@ -771,16 +814,16 @@
               }
             },
             {
-              "endIndex": 554,
-              "startIndex": 552,
+              "endIndex": 849,
+              "startIndex": 847,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 842,
-              "startIndex": 554,
+              "endIndex": 1137,
+              "startIndex": 849,
               "textRun": {
                 "content": "Now that the IBX will be fully grade-separated thanks to the All Faiths tunnel, the IBX should be built as an automated light metro. 73% of all new grade-separated rapid transit lines in 2025 were automated; the IBX should be no exception. It is time for the MTA to commit to automation.\n",
                 "textStyle": {}
@@ -796,15 +839,15 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 537
+        "startIndex": 832
       },
       {
-        "endIndex": 880,
+        "endIndex": 1175,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 860,
-              "startIndex": 842,
+              "endIndex": 1155,
+              "startIndex": 1137,
               "textRun": {
                 "content": "Social Title Card:",
                 "textStyle": {
@@ -813,16 +856,16 @@
               }
             },
             {
-              "endIndex": 861,
-              "startIndex": 860,
+              "endIndex": 1156,
+              "startIndex": 1155,
               "textRun": {
                 "content": " ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 879,
-              "startIndex": 861,
+              "endIndex": 1174,
+              "startIndex": 1156,
               "textRun": {
                 "content": "ibx_automation.jpg",
                 "textStyle": {
@@ -843,8 +886,8 @@
               }
             },
             {
-              "endIndex": 880,
-              "startIndex": 879,
+              "endIndex": 1175,
+              "startIndex": 1174,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -859,30 +902,30 @@
             }
           }
         },
-        "startIndex": 842
+        "startIndex": 1137
       },
       {
-        "endIndex": 883,
+        "endIndex": 1178,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 881,
+              "endIndex": 1176,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.md2vnbfacwp5",
                 "textStyle": {}
               },
-              "startIndex": 880
+              "startIndex": 1175
             },
             {
-              "endIndex": 882,
+              "endIndex": 1177,
               "pageBreak": {
                 "textStyle": {}
               },
-              "startIndex": 881
+              "startIndex": 1176
             },
             {
-              "endIndex": 883,
-              "startIndex": 882,
+              "endIndex": 1178,
+              "startIndex": 1177,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -897,23 +940,23 @@
             }
           }
         },
-        "startIndex": 880
+        "startIndex": 1175
       },
       {
-        "endIndex": 943,
+        "endIndex": 1238,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 900,
-              "startIndex": 883,
+              "endIndex": 1195,
+              "startIndex": 1178,
               "textRun": {
                 "content": "No Need to Wait: ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 921,
-              "startIndex": 900,
+              "endIndex": 1216,
+              "startIndex": 1195,
               "textRun": {
                 "content": "Automated Light Metro",
                 "textStyle": {
@@ -922,8 +965,8 @@
               }
             },
             {
-              "endIndex": 943,
-              "startIndex": 921,
+              "endIndex": 1238,
+              "startIndex": 1216,
               "textRun": {
                 "content": " is Right for the IBX\n",
                 "textStyle": {}
@@ -936,23 +979,23 @@
             "namedStyleType": "TITLE"
           }
         },
-        "startIndex": 883
+        "startIndex": 1178
       },
       {
-        "endIndex": 945,
+        "endIndex": 1240,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 944,
+              "endIndex": 1239,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.5qe5oqancvsg",
                 "textStyle": {}
               },
-              "startIndex": 943
+              "startIndex": 1238
             },
             {
-              "endIndex": 945,
-              "startIndex": 944,
+              "endIndex": 1240,
+              "startIndex": 1239,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -964,15 +1007,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 943
+        "startIndex": 1238
       },
       {
-        "endIndex": 1161,
+        "endIndex": 1456,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1161,
-              "startIndex": 945,
+              "endIndex": 1456,
+              "startIndex": 1240,
               "textRun": {
                 "content": "A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\n",
                 "textStyle": {}
@@ -984,15 +1027,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 945
+        "startIndex": 1240
       },
       {
-        "endIndex": 1188,
+        "endIndex": 1483,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1167,
-              "startIndex": 1161,
+              "endIndex": 1462,
+              "startIndex": 1456,
               "textRun": {
                 "content": "Credit",
                 "textStyle": {
@@ -1001,16 +1044,16 @@
               }
             },
             {
-              "endIndex": 1174,
-              "startIndex": 1167,
+              "endIndex": 1469,
+              "startIndex": 1462,
               "textRun": {
                 "content": ": MTA, ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1187,
-              "startIndex": 1174,
+              "endIndex": 1482,
+              "startIndex": 1469,
               "textRun": {
                 "content": "via Gothamist",
                 "textStyle": {
@@ -1031,8 +1074,8 @@
               }
             },
             {
-              "endIndex": 1188,
-              "startIndex": 1187,
+              "endIndex": 1483,
+              "startIndex": 1482,
               "textRun": {
                 "content": "\n",
                 "textStyle": {
@@ -1046,15 +1089,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 1161
+        "startIndex": 1456
       },
       {
-        "endIndex": 1245,
+        "endIndex": 1540,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1194,
-              "startIndex": 1188,
+              "endIndex": 1489,
+              "startIndex": 1483,
               "textRun": {
                 "content": "Source",
                 "textStyle": {
@@ -1063,16 +1106,16 @@
               }
             },
             {
-              "endIndex": 1196,
-              "startIndex": 1194,
+              "endIndex": 1491,
+              "startIndex": 1489,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1244,
-              "startIndex": 1196,
+              "endIndex": 1539,
+              "startIndex": 1491,
               "textRun": {
                 "content": "IBX_NU_Side_Platform_Crop_2026_0825.original.jpg",
                 "textStyle": {
@@ -1093,8 +1136,8 @@
               }
             },
             {
-              "endIndex": 1245,
-              "startIndex": 1244,
+              "endIndex": 1540,
+              "startIndex": 1539,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -1106,15 +1149,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 1188
+        "startIndex": 1483
       },
       {
-        "endIndex": 1258,
+        "endIndex": 1553,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1258,
-              "startIndex": 1245,
+              "endIndex": 1553,
+              "startIndex": 1540,
               "textRun": {
                 "content": "Introduction\n",
                 "textStyle": {}
@@ -1127,23 +1170,23 @@
             "namedStyleType": "HEADING_1"
           }
         },
-        "startIndex": 1245
+        "startIndex": 1540
       },
       {
-        "endIndex": 1738,
+        "endIndex": 2033,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1405,
-              "startIndex": 1258,
+              "endIndex": 1700,
+              "startIndex": 1553,
               "textRun": {
                 "content": "Now is the time to decide how the IBX should be built. The MTA is slated to release the draft environmental impact statement (DEIS) for the IBX in ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1414,
-              "startIndex": 1405,
+              "endIndex": 1709,
+              "startIndex": 1700,
               "textRun": {
                 "content": "late 2026",
                 "textStyle": {
@@ -1164,8 +1207,8 @@
               }
             },
             {
-              "endIndex": 1738,
-              "startIndex": 1414,
+              "endIndex": 2033,
+              "startIndex": 1709,
               "textRun": {
                 "content": ". The public response to that will be one of the last times to shape the broadest contours of the project design, as the final environmental impact statement (FEIS) will lock in major decisions. What broad type of service should be run, and what type of construction is needed to enable that service, should be decided now.\n",
                 "textStyle": {}
@@ -1177,39 +1220,39 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 1258
+        "startIndex": 1553
       },
       {
-        "endIndex": 2596,
+        "endIndex": 2891,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 1814,
-              "startIndex": 1738,
+              "endIndex": 2109,
+              "startIndex": 2033,
               "textRun": {
                 "content": "Originally, a single street-running section with truly tight curves forced t",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1897,
-              "startIndex": 1814,
+              "endIndex": 2192,
+              "startIndex": 2109,
               "textRun": {
                 "content": "he design for the IBX to be light rail. That section, by All Faiths Cemetery, will ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1915,
-              "startIndex": 1897,
+              "endIndex": 2210,
+              "startIndex": 2192,
               "textRun": {
                 "content": "thankfully now be ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1932,
-              "startIndex": 1915,
+              "endIndex": 2227,
+              "startIndex": 2210,
               "textRun": {
                 "content": "built as a tunnel",
                 "textStyle": {
@@ -1230,16 +1273,16 @@
               }
             },
             {
-              "endIndex": 1937,
-              "startIndex": 1932,
+              "endIndex": 2232,
+              "startIndex": 2227,
               "textRun": {
                 "content": ", as ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 1966,
-              "startIndex": 1937,
+              "endIndex": 2261,
+              "startIndex": 2232,
               "textRun": {
                 "content": "ETA had previously pushed for",
                 "textStyle": {
@@ -1260,48 +1303,48 @@
               }
             },
             {
-              "endIndex": 1997,
-              "startIndex": 1966,
+              "endIndex": 2292,
+              "startIndex": 2261,
               "textRun": {
                 "content": ", relieving a major constraint.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2163,
-              "startIndex": 1997,
+              "endIndex": 2458,
+              "startIndex": 2292,
               "textRun": {
                 "content": " The IBX right-of-way is now guaranteed to be completely grade-separated, significantly improving speed, reliability, and achievable frequency. One key way grade sepa",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2202,
-              "startIndex": 2163,
+              "endIndex": 2497,
+              "startIndex": 2458,
               "textRun": {
                 "content": "ration does this is by unlocking better",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2478,
-              "startIndex": 2202,
+              "endIndex": 2773,
+              "startIndex": 2497,
               "textRun": {
                 "content": " service and rolling stock designs. Since the project is no longer planning on street-running, many earlier constraints no longer apply, and given the growing needs of IBX ridership, there are better choices for the IBX going forward. Now is the time for the MTA to seize the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2489,
-              "startIndex": 2478,
+              "endIndex": 2784,
+              "startIndex": 2773,
               "textRun": {
                 "content": "opportunity",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2596,
-              "startIndex": 2489,
+              "endIndex": 2891,
+              "startIndex": 2784,
               "textRun": {
                 "content": " and commit to the right set of technologies. To date, however, the agency has been sending mixed signals.\n",
                 "textStyle": {}
@@ -1313,31 +1356,31 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 1738
+        "startIndex": 2033
       },
       {
-        "endIndex": 2985,
+        "endIndex": 3280,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 2743,
-              "startIndex": 2596,
+              "endIndex": 3038,
+              "startIndex": 2891,
               "textRun": {
                 "content": "Since announcing the All Faiths tunnel, the MTA has started to describe the IBX more as a light metro rather than traditional American light rail. ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2854,
-              "startIndex": 2743,
+              "endIndex": 3149,
+              "startIndex": 3038,
               "textRun": {
                 "content": "Jamie Torres-Springer, head of MTA Construction & Development, described the IBX at that press conference as a ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2873,
-              "startIndex": 2854,
+              "endIndex": 3168,
+              "startIndex": 3149,
               "textRun": {
                 "content": "\u201clight rail metro,\u201d",
                 "textStyle": {
@@ -1358,16 +1401,16 @@
               }
             },
             {
-              "endIndex": 2984,
-              "startIndex": 2873,
+              "endIndex": 3279,
+              "startIndex": 3168,
               "textRun": {
                 "content": " and at IBX Open Houses, MTA IBX staff have also said that the IBX will now be much more akin to a light metro.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 2985,
-              "startIndex": 2984,
+              "endIndex": 3280,
+              "startIndex": 3279,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -1379,31 +1422,31 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 2596
+        "startIndex": 2891
       },
       {
-        "endIndex": 3593,
+        "endIndex": 3888,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 3013,
-              "startIndex": 2985,
+              "endIndex": 3308,
+              "startIndex": 3280,
               "textRun": {
                 "content": "However, other parts of the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3068,
-              "startIndex": 3013,
+              "endIndex": 3363,
+              "startIndex": 3308,
               "textRun": {
                 "content": "MTA perhaps didn\u2019t get the memo. The IBX website still ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3124,
-              "startIndex": 3068,
+              "endIndex": 3419,
+              "startIndex": 3363,
               "textRun": {
                 "content": "claims light rail is necessary to deal with tight curves",
                 "textStyle": {
@@ -1424,16 +1467,16 @@
               }
             },
             {
-              "endIndex": 3193,
-              "startIndex": 3124,
+              "endIndex": 3488,
+              "startIndex": 3419,
               "textRun": {
                 "content": ", even though, due to the removal of the street-running segment, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3217,
-              "startIndex": 3193,
+              "endIndex": 3512,
+              "startIndex": 3488,
               "textRun": {
                 "content": "minimum IBX curve radius",
                 "textStyle": {
@@ -1454,16 +1497,16 @@
               }
             },
             {
-              "endIndex": 3257,
-              "startIndex": 3217,
+              "endIndex": 3552,
+              "startIndex": 3512,
               "textRun": {
                 "content": " is exceptionally gentle. Indeed, it is ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3304,
-              "startIndex": 3257,
+              "endIndex": 3599,
+              "startIndex": 3552,
               "textRun": {
                 "content": "twice as gentle as that of the Washington Metro",
                 "textStyle": {
@@ -1484,33 +1527,33 @@
               }
             },
             {
-              "endIndex": 3381,
-              "startIndex": 3304,
+              "endIndex": 3676,
+              "startIndex": 3599,
               "textRun": {
                 "content": ", which is more than enough to permit any type of train to run at over 30 mph",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3382,
+              "endIndex": 3677,
               "footnoteReference": {
                 "footnoteId": "kix.sufigcy21lqs",
                 "footnoteNumber": "1",
                 "textStyle": {}
               },
-              "startIndex": 3381
+              "startIndex": 3676
             },
             {
-              "endIndex": 3402,
-              "startIndex": 3382,
+              "endIndex": 3697,
+              "startIndex": 3677,
               "textRun": {
                 "content": " on this curve (see ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3415,
-              "startIndex": 3402,
+              "endIndex": 3710,
+              "startIndex": 3697,
               "textRun": {
                 "content": "Rolling Stock",
                 "textStyle": {
@@ -1519,24 +1562,24 @@
               }
             },
             {
-              "endIndex": 3432,
-              "startIndex": 3415,
+              "endIndex": 3727,
+              "startIndex": 3710,
               "textRun": {
                 "content": " for more detail)",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3433,
-              "startIndex": 3432,
+              "endIndex": 3728,
+              "startIndex": 3727,
               "textRun": {
                 "content": ".",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3593,
-              "startIndex": 3433,
+              "endIndex": 3888,
+              "startIndex": 3728,
               "textRun": {
                 "content": " Failure to cull unneeded constraints like this from the rolling stock procurement process will likely drive up costs without benefiting IBX riders in any way.\n",
                 "textStyle": {}
@@ -1548,31 +1591,31 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 2985
+        "startIndex": 3280
       },
       {
-        "endIndex": 3832,
+        "endIndex": 4127,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 3604,
-              "startIndex": 3593,
+              "endIndex": 3899,
+              "startIndex": 3888,
               "textRun": {
                 "content": "Therefore, ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3831,
-              "startIndex": 3604,
+              "endIndex": 4126,
+              "startIndex": 3899,
               "textRun": {
                 "content": "while there have been some welcome and encouraging words, the MTA has yet to commit to the concrete details underlying them: high-floor light metro vehicles. And more importantly, they are missing one crucial piece: automation.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3832,
-              "startIndex": 3831,
+              "endIndex": 4127,
+              "startIndex": 4126,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -1584,23 +1627,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 3593
+        "startIndex": 3888
       },
       {
-        "endIndex": 3960,
+        "endIndex": 4255,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 3899,
-              "startIndex": 3832,
+              "endIndex": 4194,
+              "startIndex": 4127,
               "textRun": {
                 "content": "There is one type of light rail that is clearly ideal for the IBX: ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 3920,
-              "startIndex": 3899,
+              "endIndex": 4215,
+              "startIndex": 4194,
               "textRun": {
                 "content": "automated light metro",
                 "textStyle": {
@@ -1609,8 +1652,8 @@
               }
             },
             {
-              "endIndex": 3960,
-              "startIndex": 3920,
+              "endIndex": 4255,
+              "startIndex": 4215,
               "textRun": {
                 "content": " (ALM). The key properties of ALMs are:\n",
                 "textStyle": {}
@@ -1622,10 +1665,10 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 3832
+        "startIndex": 4127
       },
       {
-        "endIndex": 3981,
+        "endIndex": 4276,
         "paragraph": {
           "bullet": {
             "listId": "kix.vjlwd0a7b0ou",
@@ -1633,8 +1676,8 @@
           },
           "elements": [
             {
-              "endIndex": 3981,
-              "startIndex": 3960,
+              "endIndex": 4276,
+              "startIndex": 4255,
               "textRun": {
                 "content": "Automated operations\n",
                 "textStyle": {}
@@ -1655,10 +1698,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 3960
+        "startIndex": 4255
       },
       {
-        "endIndex": 3994,
+        "endIndex": 4289,
         "paragraph": {
           "bullet": {
             "listId": "kix.vjlwd0a7b0ou",
@@ -1668,8 +1711,8 @@
           },
           "elements": [
             {
-              "endIndex": 3994,
-              "startIndex": 3981,
+              "endIndex": 4289,
+              "startIndex": 4276,
               "textRun": {
                 "content": "Short trains\n",
                 "textStyle": {}
@@ -1690,10 +1733,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 3981
+        "startIndex": 4276
       },
       {
-        "endIndex": 4009,
+        "endIndex": 4304,
         "paragraph": {
           "bullet": {
             "listId": "kix.vjlwd0a7b0ou",
@@ -1703,8 +1746,8 @@
           },
           "elements": [
             {
-              "endIndex": 4009,
-              "startIndex": 3994,
+              "endIndex": 4304,
+              "startIndex": 4289,
               "textRun": {
                 "content": "High frequency\n",
                 "textStyle": {}
@@ -1725,23 +1768,23 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 3994
+        "startIndex": 4289
       },
       {
-        "endIndex": 4677,
+        "endIndex": 4972,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 4623,
-              "startIndex": 4009,
+              "endIndex": 4918,
+              "startIndex": 4304,
               "textRun": {
                 "content": "ALM technology would enable the IBX to feature significantly higher all-day frequencies from day one by lowering operating costs. ALM allows headways (the time between trains) as low as every 90 seconds, as seen in many existing systems around the world today. Initial ridership may not warrant 90 second headways, but ALM would allow peak and off-peak headways much lower than the MTA currently plans, increasing ridership from day one and future-proofing the IBX for significant growth. ALM would also mean installing platform screen doors (PSDs) to protect riders from the risks of falling onto the tracks, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4655,
-              "startIndex": 4623,
+              "endIndex": 4950,
+              "startIndex": 4918,
               "textRun": {
                 "content": "biggest source of risk to riders",
                 "textStyle": {
@@ -1762,16 +1805,16 @@
               }
             },
             {
-              "endIndex": 4676,
-              "startIndex": 4655,
+              "endIndex": 4971,
+              "startIndex": 4950,
               "textRun": {
                 "content": " on the subway today.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4677,
-              "startIndex": 4676,
+              "endIndex": 4972,
+              "startIndex": 4971,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -1783,15 +1826,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 4009
+        "startIndex": 4304
       },
       {
-        "endIndex": 4694,
+        "endIndex": 4989,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 4694,
-              "startIndex": 4677,
+              "endIndex": 4989,
+              "startIndex": 4972,
               "textRun": {
                 "content": "Rising Ridership\n",
                 "textStyle": {}
@@ -1804,55 +1847,55 @@
             "namedStyleType": "HEADING_1"
           }
         },
-        "startIndex": 4677
+        "startIndex": 4972
       },
       {
-        "endIndex": 4935,
+        "endIndex": 5230,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 4734,
-              "startIndex": 4694,
+              "endIndex": 5029,
+              "startIndex": 4989,
               "textRun": {
                 "content": "IBX ridership projections have steadily ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4739,
-              "startIndex": 4734,
+              "endIndex": 5034,
+              "startIndex": 5029,
               "textRun": {
                 "content": "risen",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4778,
-              "startIndex": 4739,
+              "endIndex": 5073,
+              "startIndex": 5034,
               "textRun": {
                 "content": " as plans materialize and improve. The ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4791,
-              "startIndex": 4778,
+              "endIndex": 5086,
+              "startIndex": 5073,
               "textRun": {
                 "content": "design of the",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4796,
-              "startIndex": 4791,
+              "endIndex": 5091,
+              "startIndex": 5086,
               "textRun": {
                 "content": " IBX ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4935,
-              "startIndex": 4796,
+              "endIndex": 5230,
+              "startIndex": 5091,
               "textRun": {
                 "content": "must be future-proofed to accommodate this rising ridership, and utilizing ALM technology is critical to do so in a cost-effective manner.\n",
                 "textStyle": {}
@@ -1864,48 +1907,48 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 4694
+        "startIndex": 4989
       },
       {
-        "endIndex": 5401,
+        "endIndex": 5696,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 4951,
-              "startIndex": 4935,
+              "endIndex": 5246,
+              "startIndex": 5230,
               "textRun": {
                 "content": "In particular, r",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4987,
-              "startIndex": 4951,
+              "endIndex": 5282,
+              "startIndex": 5246,
               "textRun": {
                 "content": "idership projections have risen 82%,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 4988,
+              "endIndex": 5283,
               "footnoteReference": {
                 "footnoteId": "kix.s28rus95czct",
                 "footnoteNumber": "2",
                 "textStyle": {}
               },
-              "startIndex": 4987
+              "startIndex": 5282
             },
             {
-              "endIndex": 4994,
-              "startIndex": 4988,
+              "endIndex": 5289,
+              "startIndex": 5283,
               "textRun": {
                 "content": " from ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5004,
-              "startIndex": 4994,
+              "endIndex": 5299,
+              "startIndex": 5289,
               "textRun": {
                 "content": "87,800/day",
                 "textStyle": {
@@ -1926,16 +1969,16 @@
               }
             },
             {
-              "endIndex": 5012,
-              "startIndex": 5004,
+              "endIndex": 5307,
+              "startIndex": 5299,
               "textRun": {
                 "content": " in the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5045,
-              "startIndex": 5012,
+              "endIndex": 5340,
+              "startIndex": 5307,
               "textRun": {
                 "content": "initial feasibility study in 2022",
                 "textStyle": {
@@ -1956,16 +1999,16 @@
               }
             },
             {
-              "endIndex": 5050,
-              "startIndex": 5045,
+              "endIndex": 5345,
+              "startIndex": 5340,
               "textRun": {
                 "content": ", to ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5061,
-              "startIndex": 5050,
+              "endIndex": 5356,
+              "startIndex": 5345,
               "textRun": {
                 "content": "115,000/day",
                 "textStyle": {
@@ -1986,16 +2029,16 @@
               }
             },
             {
-              "endIndex": 5069,
-              "startIndex": 5061,
+              "endIndex": 5364,
+              "startIndex": 5356,
               "textRun": {
                 "content": " in the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5116,
-              "startIndex": 5069,
+              "endIndex": 5411,
+              "startIndex": 5364,
               "textRun": {
                 "content": "planning and environmental linkages (PEL) study",
                 "textStyle": {
@@ -2016,24 +2059,24 @@
               }
             },
             {
-              "endIndex": 5121,
-              "startIndex": 5116,
+              "endIndex": 5416,
+              "startIndex": 5411,
               "textRun": {
                 "content": ", and",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5125,
-              "startIndex": 5121,
+              "endIndex": 5420,
+              "startIndex": 5416,
               "textRun": {
                 "content": " to ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5136,
-              "startIndex": 5125,
+              "endIndex": 5431,
+              "startIndex": 5420,
               "textRun": {
                 "content": "160,000/day",
                 "textStyle": {
@@ -2054,16 +2097,16 @@
               }
             },
             {
-              "endIndex": 5229,
-              "startIndex": 5136,
+              "endIndex": 5524,
+              "startIndex": 5431,
               "textRun": {
                 "content": " in the more detailed and higher-speed 2025 design. This is higher than the ridership of the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5250,
-              "startIndex": 5229,
+              "endIndex": 5545,
+              "startIndex": 5524,
               "textRun": {
                 "content": "G train (149,000/day)",
                 "textStyle": {
@@ -2084,16 +2127,16 @@
               }
             },
             {
-              "endIndex": 5280,
-              "startIndex": 5250,
+              "endIndex": 5575,
+              "startIndex": 5545,
               "textRun": {
                 "content": " and the vehicle count on the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5297,
-              "startIndex": 5280,
+              "endIndex": 5592,
+              "startIndex": 5575,
               "textRun": {
                 "content": "BQE (130,000/day)",
                 "textStyle": {
@@ -2114,8 +2157,8 @@
               }
             },
             {
-              "endIndex": 5401,
-              "startIndex": 5297,
+              "endIndex": 5696,
+              "startIndex": 5592,
               "textRun": {
                 "content": ", both of which also connect Brooklyn and Queens. This has been driven by all of the following factors:\n",
                 "textStyle": {}
@@ -2133,10 +2176,10 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 4935
+        "startIndex": 5230
       },
       {
-        "endIndex": 5476,
+        "endIndex": 5771,
         "paragraph": {
           "bullet": {
             "listId": "kix.hijhgui8ezf4",
@@ -2144,24 +2187,24 @@
           },
           "elements": [
             {
-              "endIndex": 5438,
-              "startIndex": 5401,
+              "endIndex": 5733,
+              "startIndex": 5696,
               "textRun": {
                 "content": "Refinement of the ridership model as ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5475,
-              "startIndex": 5438,
+              "endIndex": 5770,
+              "startIndex": 5733,
               "textRun": {
                 "content": "plans for the project have solidified",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5476,
-              "startIndex": 5475,
+              "endIndex": 5771,
+              "startIndex": 5770,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2182,10 +2225,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 5401
+        "startIndex": 5696
       },
       {
-        "endIndex": 5500,
+        "endIndex": 5795,
         "paragraph": {
           "bullet": {
             "listId": "kix.hijhgui8ezf4",
@@ -2193,24 +2236,24 @@
           },
           "elements": [
             {
-              "endIndex": 5493,
-              "startIndex": 5476,
+              "endIndex": 5788,
+              "startIndex": 5771,
               "textRun": {
                 "content": "Improved station ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5499,
-              "startIndex": 5493,
+              "endIndex": 5794,
+              "startIndex": 5788,
               "textRun": {
                 "content": "siting",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5500,
-              "startIndex": 5499,
+              "endIndex": 5795,
+              "startIndex": 5794,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2231,10 +2274,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 5476
+        "startIndex": 5771
       },
       {
-        "endIndex": 5657,
+        "endIndex": 5952,
         "paragraph": {
           "bullet": {
             "listId": "kix.hijhgui8ezf4",
@@ -2242,16 +2285,16 @@
           },
           "elements": [
             {
-              "endIndex": 5502,
-              "startIndex": 5500,
+              "endIndex": 5797,
+              "startIndex": 5795,
               "textRun": {
                 "content": "A ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5506,
-              "startIndex": 5502,
+              "endIndex": 5801,
+              "startIndex": 5797,
               "textRun": {
                 "content": "31% ",
                 "textStyle": {
@@ -2272,33 +2315,33 @@
               }
             },
             {
-              "endIndex": 5523,
-              "startIndex": 5506,
+              "endIndex": 5818,
+              "startIndex": 5801,
               "textRun": {
                 "content": "increase in speed",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5524,
+              "endIndex": 5819,
               "footnoteReference": {
                 "footnoteId": "kix.j1o3qtn1d9ck",
                 "footnoteNumber": "3",
                 "textStyle": {}
               },
-              "startIndex": 5523
+              "startIndex": 5818
             },
             {
-              "endIndex": 5531,
-              "startIndex": 5524,
+              "endIndex": 5826,
+              "startIndex": 5819,
               "textRun": {
                 "content": " after ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5545,
-              "startIndex": 5531,
+              "endIndex": 5840,
+              "startIndex": 5826,
               "textRun": {
                 "content": "ETA\u2019s analysis",
                 "textStyle": {
@@ -2319,16 +2362,16 @@
               }
             },
             {
-              "endIndex": 5550,
-              "startIndex": 5545,
+              "endIndex": 5845,
+              "startIndex": 5840,
               "textRun": {
                 "content": " and ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5575,
-              "startIndex": 5550,
+              "endIndex": 5870,
+              "startIndex": 5845,
               "textRun": {
                 "content": "Ben Brachfeld\u2019s reporting",
                 "textStyle": {
@@ -2349,16 +2392,16 @@
               }
             },
             {
-              "endIndex": 5610,
-              "startIndex": 5575,
+              "endIndex": 5905,
+              "startIndex": 5870,
               "textRun": {
                 "content": " successfully pressured the MTA to ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5629,
-              "startIndex": 5610,
+              "endIndex": 5924,
+              "startIndex": 5905,
               "textRun": {
                 "content": "drop street running",
                 "textStyle": {
@@ -2379,8 +2422,8 @@
               }
             },
             {
-              "endIndex": 5657,
-              "startIndex": 5629,
+              "endIndex": 5952,
+              "startIndex": 5924,
               "textRun": {
                 "content": " around All Faiths Cemetery\n",
                 "textStyle": {}
@@ -2401,23 +2444,23 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 5500
+        "startIndex": 5795
       },
       {
-        "endIndex": 5659,
+        "endIndex": 5954,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 5658,
+              "endIndex": 5953,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.6awmxdt1c94k",
                 "textStyle": {}
               },
-              "startIndex": 5657
+              "startIndex": 5952
             },
             {
-              "endIndex": 5659,
-              "startIndex": 5658,
+              "endIndex": 5954,
+              "startIndex": 5953,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2434,49 +2477,49 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 5657
+        "startIndex": 5952
       },
       {
-        "endIndex": 5848,
+        "endIndex": 6143,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 5740,
-              "startIndex": 5659,
+              "endIndex": 6035,
+              "startIndex": 5954,
               "textRun": {
                 "content": "The ridership of the various IBX projections, as well as comparable lines in NYC.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5741,
+              "endIndex": 6036,
               "footnoteReference": {
                 "footnoteId": "kix.nwqotsnlov51",
                 "footnoteNumber": "4",
                 "textStyle": {}
               },
-              "startIndex": 5740
+              "startIndex": 6035
             },
             {
-              "endIndex": 5846,
-              "startIndex": 5741,
+              "endIndex": 6141,
+              "startIndex": 6036,
               "textRun": {
                 "content": " Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5847,
+              "endIndex": 6142,
               "footnoteReference": {
                 "footnoteId": "kix.eu13lbqbtyes",
                 "footnoteNumber": "5",
                 "textStyle": {}
               },
-              "startIndex": 5846
+              "startIndex": 6141
             },
             {
-              "endIndex": 5848,
-              "startIndex": 5847,
+              "endIndex": 6143,
+              "startIndex": 6142,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2493,15 +2536,15 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 5659
+        "startIndex": 5954
       },
       {
-        "endIndex": 5873,
+        "endIndex": 6168,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 5872,
-              "startIndex": 5848,
+              "endIndex": 6167,
+              "startIndex": 6143,
               "textRun": {
                 "content": "Credit: ETA (Khyber Sen)",
                 "textStyle": {
@@ -2522,8 +2565,8 @@
               }
             },
             {
-              "endIndex": 5873,
-              "startIndex": 5872,
+              "endIndex": 6168,
+              "startIndex": 6167,
               "textRun": {
                 "content": "\n",
                 "textStyle": {
@@ -2551,15 +2594,15 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 5848
+        "startIndex": 6143
       },
       {
-        "endIndex": 5892,
+        "endIndex": 6187,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 5876,
-              "startIndex": 5873,
+              "endIndex": 6171,
+              "startIndex": 6168,
               "textRun": {
                 "content": "SVG",
                 "textStyle": {
@@ -2568,16 +2611,16 @@
               }
             },
             {
-              "endIndex": 5878,
-              "startIndex": 5876,
+              "endIndex": 6173,
+              "startIndex": 6171,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 5891,
-              "startIndex": 5878,
+              "endIndex": 6186,
+              "startIndex": 6173,
               "textRun": {
                 "content": "ridership.svg",
                 "textStyle": {
@@ -2598,8 +2641,8 @@
               }
             },
             {
-              "endIndex": 5892,
-              "startIndex": 5891,
+              "endIndex": 6187,
+              "startIndex": 6186,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2616,23 +2659,23 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 5873
+        "startIndex": 6168
       },
       {
-        "endIndex": 6364,
+        "endIndex": 6659,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 6100,
-              "startIndex": 5892,
+              "endIndex": 6395,
+              "startIndex": 6187,
               "textRun": {
                 "content": "Ridership could also rise further with additional transit-oriented development (TOD) along the line, since the models referenced above assume present-day land use. The Mamdani administration is interested in ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6141,
-              "startIndex": 6100,
+              "endIndex": 6436,
+              "startIndex": 6395,
               "textRun": {
                 "content": "extending City of Yes upzoning to the IBX",
                 "textStyle": {
@@ -2653,16 +2696,16 @@
               }
             },
             {
-              "endIndex": 6146,
-              "startIndex": 6141,
+              "endIndex": 6441,
+              "startIndex": 6436,
               "textRun": {
                 "content": " and ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6177,
-              "startIndex": 6146,
+              "endIndex": 6472,
+              "startIndex": 6441,
               "textRun": {
                 "content": "upzoning south of Prospect Park",
                 "textStyle": {
@@ -2683,16 +2726,16 @@
               }
             },
             {
-              "endIndex": 6363,
-              "startIndex": 6177,
+              "endIndex": 6658,
+              "startIndex": 6472,
               "textRun": {
                 "content": ". Ongoing analysis by Elif Ensari at NYU Marron previewed to ETA is finding that about 300,000 additional housing units could be built profitably along the IBX corridor if it is upzoned.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6364,
-              "startIndex": 6363,
+              "endIndex": 6659,
+              "startIndex": 6658,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -2709,39 +2752,39 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 5892
+        "startIndex": 6187
       },
       {
-        "endIndex": 7250,
+        "endIndex": 7545,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 6393,
-              "startIndex": 6364,
+              "endIndex": 6688,
+              "startIndex": 6659,
               "textRun": {
                 "content": "Automated operations not only",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6530,
-              "startIndex": 6393,
+              "endIndex": 6825,
+              "startIndex": 6688,
               "textRun": {
                 "content": " accommodate increased ridership driven by external factors like housing growth, but also themselves unlock higher ridership by enabling ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6592,
-              "startIndex": 6530,
+              "endIndex": 6887,
+              "startIndex": 6825,
               "textRun": {
                 "content": "higher peak and off-peak frequencies. An independent study by ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6606,
-              "startIndex": 6592,
+              "endIndex": 6901,
+              "startIndex": 6887,
               "textRun": {
                 "content": "Hai Yang et al",
                 "textStyle": {
@@ -2762,16 +2805,16 @@
               }
             },
             {
-              "endIndex": 6764,
-              "startIndex": 6606,
+              "endIndex": 7059,
+              "startIndex": 6901,
               "textRun": {
                 "content": " found that the upper bound of ridership, barring land-use changes, is 254,000 riders/day. Another independent study by Franklin Tang at NYU Marron using the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 6803,
-              "startIndex": 6764,
+              "endIndex": 7098,
+              "startIndex": 7059,
               "textRun": {
                 "content": "FTA\u2019s STOPS ridership modeling software",
                 "textStyle": {
@@ -2792,41 +2835,41 @@
               }
             },
             {
-              "endIndex": 6804,
+              "endIndex": 7099,
               "footnoteReference": {
                 "footnoteId": "kix.lne0xrx50xo",
                 "footnoteNumber": "6",
                 "textStyle": {}
               },
-              "startIndex": 6803
+              "startIndex": 7098
             },
             {
-              "endIndex": 7171,
-              "startIndex": 6804,
+              "endIndex": 7466,
+              "startIndex": 7099,
               "textRun": {
                 "content": " found 198,000 with the currently stated 5 minute peak headway, with off-peak headways ranging from 10 minutes midday to 15 minutes in the evening. If peak headways are reduced to 2 minutes, with off-peak headways ranging from 3 minutes midday to 8 minutes in the evening, ridership rises to 212,000, putting the IBX above even the pre-pandemic Second Avenue Subway\u2019s",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7177,
-              "startIndex": 7171,
+              "endIndex": 7472,
+              "startIndex": 7466,
               "textRun": {
                 "content": " (SAS)",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7215,
-              "startIndex": 7177,
+              "endIndex": 7510,
+              "startIndex": 7472,
               "textRun": {
                 "content": " Phase 1, which saw somewhere between ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7222,
-              "startIndex": 7215,
+              "endIndex": 7517,
+              "startIndex": 7510,
               "textRun": {
                 "content": "184,000",
                 "textStyle": {
@@ -2847,16 +2890,16 @@
               }
             },
             {
-              "endIndex": 7227,
-              "startIndex": 7222,
+              "endIndex": 7522,
+              "startIndex": 7517,
               "textRun": {
                 "content": " and ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7234,
-              "startIndex": 7227,
+              "endIndex": 7529,
+              "startIndex": 7522,
               "textRun": {
                 "content": "200,000",
                 "textStyle": {
@@ -2877,17 +2920,17 @@
               }
             },
             {
-              "endIndex": 7235,
+              "endIndex": 7530,
               "footnoteReference": {
                 "footnoteId": "kix.e73si46lcmr3",
                 "footnoteNumber": "7",
                 "textStyle": {}
               },
-              "startIndex": 7234
+              "startIndex": 7529
             },
             {
-              "endIndex": 7250,
-              "startIndex": 7235,
+              "endIndex": 7545,
+              "startIndex": 7530,
               "textRun": {
                 "content": " daily riders.\n",
                 "textStyle": {}
@@ -2904,47 +2947,47 @@
             "spacingMode": "NEVER_COLLAPSE"
           }
         },
-        "startIndex": 6364
+        "startIndex": 6659
       },
       {
-        "endIndex": 7821,
+        "endIndex": 8116,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 7372,
-              "startIndex": 7250,
+              "endIndex": 7667,
+              "startIndex": 7545,
               "textRun": {
                 "content": "It is imperative that the IBX be future-proofed for higher ridership in the future. ALM is the most cost-effective way to ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7382,
-              "startIndex": 7372,
+              "endIndex": 7677,
+              "startIndex": 7667,
               "textRun": {
                 "content": "accomplish",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7525,
-              "startIndex": 7382,
+              "endIndex": 7820,
+              "startIndex": 7677,
               "textRun": {
                 "content": " this: it allows capacity to scale to meet future demand with comparatively little additional capital investment or ongoing operational cost. L",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7667,
-              "startIndex": 7525,
+              "endIndex": 7962,
+              "startIndex": 7820,
               "textRun": {
                 "content": "ight metro can scale from something as small and limited as an airport\u2019s people mover system to systems as large as the (not fully automated) ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7683,
-              "startIndex": 7667,
+              "endIndex": 7978,
+              "startIndex": 7962,
               "textRun": {
                 "content": "narrow 6B trains",
                 "textStyle": {
@@ -2965,25 +3008,25 @@
               }
             },
             {
-              "endIndex": 7684,
+              "endIndex": 7979,
               "footnoteReference": {
                 "footnoteId": "kix.4zgfhslgy1e",
                 "footnoteNumber": "8",
                 "textStyle": {}
               },
-              "startIndex": 7683
+              "startIndex": 7978
             },
             {
-              "endIndex": 7731,
-              "startIndex": 7684,
+              "endIndex": 8026,
+              "startIndex": 7979,
               "textRun": {
                 "content": " serving Guangzhou Metro Line 3, which carried ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7756,
-              "startIndex": 7731,
+              "endIndex": 8051,
+              "startIndex": 8026,
               "textRun": {
                 "content": "2.76 million riders a day",
                 "textStyle": {
@@ -3004,16 +3047,16 @@
               }
             },
             {
-              "endIndex": 7776,
-              "startIndex": 7756,
+              "endIndex": 8071,
+              "startIndex": 8051,
               "textRun": {
                 "content": " in 2019, making it ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 7806,
-              "startIndex": 7776,
+              "endIndex": 8101,
+              "startIndex": 8071,
               "textRun": {
                 "content": "one of the busiest metro lines",
                 "textStyle": {
@@ -3034,8 +3077,8 @@
               }
             },
             {
-              "endIndex": 7821,
-              "startIndex": 7806,
+              "endIndex": 8116,
+              "startIndex": 8101,
               "textRun": {
                 "content": " in the world.\n",
                 "textStyle": {}
@@ -3047,15 +3090,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 7250
+        "startIndex": 7545
       },
       {
-        "endIndex": 7832,
+        "endIndex": 8127,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 7832,
-              "startIndex": 7821,
+              "endIndex": 8127,
+              "startIndex": 8116,
               "textRun": {
                 "content": "Automation\n",
                 "textStyle": {}
@@ -3068,23 +3111,23 @@
             "namedStyleType": "HEADING_1"
           }
         },
-        "startIndex": 7821
+        "startIndex": 8116
       },
       {
-        "endIndex": 8169,
+        "endIndex": 8464,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8168,
-              "startIndex": 7832,
+              "endIndex": 8463,
+              "startIndex": 8127,
               "textRun": {
                 "content": "The rider capacity and high frequency needs of the IBX described above make automation the obvious best choice for the IBX. Indeed, automation should be the default choice for any newly built line not extending a pre-existing line. Without the constraint of needing to interoperate with a legacy line, automation is a clear net benefit.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8169,
-              "startIndex": 8168,
+              "endIndex": 8464,
+              "startIndex": 8463,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3096,48 +3139,48 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 7832
+        "startIndex": 8127
       },
       {
-        "endIndex": 8751,
+        "endIndex": 9046,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8178,
-              "startIndex": 8169,
+              "endIndex": 8473,
+              "startIndex": 8464,
               "textRun": {
                 "content": "Indeed, m",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8433,
-              "startIndex": 8178,
+              "endIndex": 8728,
+              "startIndex": 8473,
               "textRun": {
                 "content": "odern metro technology increasingly runs automated, and ALM is merely the culmination of that trend. Today, entirely new metro lines in developed and even middle-income countries are usually driverless, and increasingly so: in 2025, 73% of new metro lines",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8434,
+              "endIndex": 8729,
               "footnoteReference": {
                 "footnoteId": "kix.1qbr3juli67g",
                 "footnoteNumber": "9",
                 "textStyle": {}
               },
-              "startIndex": 8433
+              "startIndex": 8728
             },
             {
-              "endIndex": 8463,
-              "startIndex": 8434,
+              "endIndex": 8758,
+              "startIndex": 8729,
               "textRun": {
                 "content": " were automated. In fact, at ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8472,
-              "startIndex": 8463,
+              "endIndex": 8767,
+              "startIndex": 8758,
               "textRun": {
                 "content": "InnoTrans",
                 "textStyle": {
@@ -3158,8 +3201,8 @@
               }
             },
             {
-              "endIndex": 8751,
-              "startIndex": 8472,
+              "endIndex": 9046,
+              "startIndex": 8767,
               "textRun": {
                 "content": " 2026, major rolling stock vendors who are interested in bidding on the IBX told ETA that they had difficulty understanding why the MTA would ever consider building the IBX unautomated. The global standard for a new-build metro line today, whether light or heavy, is automation.\n",
                 "textStyle": {}
@@ -3171,23 +3214,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 8169
+        "startIndex": 8464
       },
       {
-        "endIndex": 8753,
+        "endIndex": 9048,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8752,
+              "endIndex": 9047,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.jgxhj1hqsf1i",
                 "textStyle": {}
               },
-              "startIndex": 8751
+              "startIndex": 9046
             },
             {
-              "endIndex": 8753,
-              "startIndex": 8752,
+              "endIndex": 9048,
+              "startIndex": 9047,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3199,15 +3242,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 8751
+        "startIndex": 9046
       },
       {
-        "endIndex": 8948,
+        "endIndex": 9243,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8948,
-              "startIndex": 8753,
+              "endIndex": 9243,
+              "startIndex": 9048,
               "textRun": {
                 "content": "The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December.\n",
                 "textStyle": {}
@@ -3219,15 +3262,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 8753
+        "startIndex": 9048
       },
       {
-        "endIndex": 8995,
+        "endIndex": 9290,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8972,
-              "startIndex": 8948,
+              "endIndex": 9267,
+              "startIndex": 9243,
               "textRun": {
                 "content": "Credit: ETA (Khyber Sen)",
                 "textStyle": {
@@ -3248,16 +3291,16 @@
               }
             },
             {
-              "endIndex": 8974,
-              "startIndex": 8972,
+              "endIndex": 9269,
+              "startIndex": 9267,
               "textRun": {
                 "content": ", ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8987,
-              "startIndex": 8974,
+              "endIndex": 9282,
+              "startIndex": 9269,
               "textRun": {
                 "content": "UrbanRail.net",
                 "textStyle": {
@@ -3278,16 +3321,16 @@
               }
             },
             {
-              "endIndex": 8989,
-              "startIndex": 8987,
+              "endIndex": 9284,
+              "startIndex": 9282,
               "textRun": {
                 "content": ", ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 8994,
-              "startIndex": 8989,
+              "endIndex": 9289,
+              "startIndex": 9284,
               "textRun": {
                 "content": "CAMET",
                 "textStyle": {
@@ -3308,8 +3351,8 @@
               }
             },
             {
-              "endIndex": 8995,
-              "startIndex": 8994,
+              "endIndex": 9290,
+              "startIndex": 9289,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3321,15 +3364,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 8948
+        "startIndex": 9243
       },
       {
-        "endIndex": 9041,
+        "endIndex": 9336,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 8998,
-              "startIndex": 8995,
+              "endIndex": 9293,
+              "startIndex": 9290,
               "textRun": {
                 "content": "SVG",
                 "textStyle": {
@@ -3338,16 +3381,16 @@
               }
             },
             {
-              "endIndex": 9000,
-              "startIndex": 8998,
+              "endIndex": 9295,
+              "startIndex": 9293,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9040,
-              "startIndex": 9000,
+              "endIndex": 9335,
+              "startIndex": 9295,
               "textRun": {
                 "content": "automated_share_by_year_2016_to_2026.svg",
                 "textStyle": {
@@ -3368,8 +3411,8 @@
               }
             },
             {
-              "endIndex": 9041,
-              "startIndex": 9040,
+              "endIndex": 9336,
+              "startIndex": 9335,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3381,23 +3424,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 8995
+        "startIndex": 9290
       },
       {
-        "endIndex": 9043,
+        "endIndex": 9338,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 9042,
+              "endIndex": 9337,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.tx1fjdbmxbaz",
                 "textStyle": {}
               },
-              "startIndex": 9041
+              "startIndex": 9336
             },
             {
-              "endIndex": 9043,
-              "startIndex": 9042,
+              "endIndex": 9338,
+              "startIndex": 9337,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3409,23 +3452,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9041
+        "startIndex": 9336
       },
       {
-        "endIndex": 9261,
+        "endIndex": 9556,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 9260,
-              "startIndex": 9043,
+              "endIndex": 9555,
+              "startIndex": 9338,
               "textRun": {
                 "content": "The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9261,
-              "startIndex": 9260,
+              "endIndex": 9556,
+              "startIndex": 9555,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3437,15 +3480,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9043
+        "startIndex": 9338
       },
       {
-        "endIndex": 9308,
+        "endIndex": 9603,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 9285,
-              "startIndex": 9261,
+              "endIndex": 9580,
+              "startIndex": 9556,
               "textRun": {
                 "content": "Credit: ETA (Khyber Sen)",
                 "textStyle": {
@@ -3466,16 +3509,16 @@
               }
             },
             {
-              "endIndex": 9287,
-              "startIndex": 9285,
+              "endIndex": 9582,
+              "startIndex": 9580,
               "textRun": {
                 "content": ", ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9300,
-              "startIndex": 9287,
+              "endIndex": 9595,
+              "startIndex": 9582,
               "textRun": {
                 "content": "UrbanRail.net",
                 "textStyle": {
@@ -3496,16 +3539,16 @@
               }
             },
             {
-              "endIndex": 9302,
-              "startIndex": 9300,
+              "endIndex": 9597,
+              "startIndex": 9595,
               "textRun": {
                 "content": ", ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9307,
-              "startIndex": 9302,
+              "endIndex": 9602,
+              "startIndex": 9597,
               "textRun": {
                 "content": "CAMET",
                 "textStyle": {
@@ -3526,8 +3569,8 @@
               }
             },
             {
-              "endIndex": 9308,
-              "startIndex": 9307,
+              "endIndex": 9603,
+              "startIndex": 9602,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3539,15 +3582,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9261
+        "startIndex": 9556
       },
       {
-        "endIndex": 9363,
+        "endIndex": 9658,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 9311,
-              "startIndex": 9308,
+              "endIndex": 9606,
+              "startIndex": 9603,
               "textRun": {
                 "content": "SVG",
                 "textStyle": {
@@ -3556,16 +3599,16 @@
               }
             },
             {
-              "endIndex": 9313,
-              "startIndex": 9311,
+              "endIndex": 9608,
+              "startIndex": 9606,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9362,
-              "startIndex": 9313,
+              "endIndex": 9657,
+              "startIndex": 9608,
               "textRun": {
                 "content": "automated_share_by_year_ex_china_2016_to_2026.svg",
                 "textStyle": {
@@ -3586,8 +3629,8 @@
               }
             },
             {
-              "endIndex": 9363,
-              "startIndex": 9362,
+              "endIndex": 9658,
+              "startIndex": 9657,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3599,47 +3642,47 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9308
+        "startIndex": 9603
       },
       {
-        "endIndex": 9937,
+        "endIndex": 10232,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 9379,
-              "startIndex": 9363,
+              "endIndex": 9674,
+              "startIndex": 9658,
               "textRun": {
                 "content": "What\u2019s more, in ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9392,
-              "startIndex": 9379,
+              "endIndex": 9687,
+              "startIndex": 9674,
               "textRun": {
                 "content": "conversations",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9589,
-              "startIndex": 9392,
+              "endIndex": 9884,
+              "startIndex": 9687,
               "textRun": {
                 "content": " with ETA at various IBX Open Houses, the MTA IBX staff have expressed a strong preference for automation. However, they believe that the final decision is ultimately in the hands of the MTA Board.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9661,
-              "startIndex": 9589,
+              "endIndex": 9956,
+              "startIndex": 9884,
               "textRun": {
                 "content": " Automation is clearly being considered by the MTA: even two years ago, ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9721,
-              "startIndex": 9661,
+              "endIndex": 10016,
+              "startIndex": 9956,
               "textRun": {
                 "content": "consultants presented to the MTA about driverless operations",
                 "textStyle": {
@@ -3660,25 +3703,25 @@
               }
             },
             {
-              "endIndex": 9722,
+              "endIndex": 10017,
               "footnoteReference": {
                 "footnoteId": "kix.qscjybc60de3",
                 "footnoteNumber": "10",
                 "textStyle": {}
               },
-              "startIndex": 9721
+              "startIndex": 10016
             },
             {
-              "endIndex": 9785,
-              "startIndex": 9722,
+              "endIndex": 10080,
+              "startIndex": 10017,
               "textRun": {
                 "content": " for the IBX. More recently, agency personnel have visited the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9800,
-              "startIndex": 9785,
+              "endIndex": 10095,
+              "startIndex": 10080,
               "textRun": {
                 "content": "REM in Montreal",
                 "textStyle": {
@@ -3699,16 +3742,16 @@
               }
             },
             {
-              "endIndex": 9828,
-              "startIndex": 9800,
+              "endIndex": 10123,
+              "startIndex": 10095,
               "textRun": {
                 "content": " and the under-construction ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 9851,
-              "startIndex": 9828,
+              "endIndex": 10146,
+              "startIndex": 10123,
               "textRun": {
                 "content": "Ontario Line in Toronto",
                 "textStyle": {
@@ -3729,8 +3772,8 @@
               }
             },
             {
-              "endIndex": 9937,
-              "startIndex": 9851,
+              "endIndex": 10232,
+              "startIndex": 10146,
               "textRun": {
                 "content": ", both of which are ALMs. Now is the time to follow through and commit to automation.\n",
                 "textStyle": {}
@@ -3742,23 +3785,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9363
+        "startIndex": 9658
       },
       {
-        "endIndex": 10082,
+        "endIndex": 10377,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10028,
-              "startIndex": 9937,
+              "endIndex": 10323,
+              "startIndex": 10232,
               "textRun": {
                 "content": "Automation is classified in the following internationally standardized grades, each called ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 10048,
-              "startIndex": 10028,
+              "endIndex": 10343,
+              "startIndex": 10323,
               "textRun": {
                 "content": "grades of automation",
                 "textStyle": {
@@ -3767,8 +3810,8 @@
               }
             },
             {
-              "endIndex": 10082,
-              "startIndex": 10048,
+              "endIndex": 10377,
+              "startIndex": 10343,
               "textRun": {
                 "content": " (GoA) with an associated number:\n",
                 "textStyle": {}
@@ -3780,10 +3823,10 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 9937
+        "startIndex": 10232
       },
       {
-        "endIndex": 10148,
+        "endIndex": 10443,
         "paragraph": {
           "bullet": {
             "listId": "kix.q8rp6m4uxs3o",
@@ -3791,8 +3834,8 @@
           },
           "elements": [
             {
-              "endIndex": 10148,
-              "startIndex": 10082,
+              "endIndex": 10443,
+              "startIndex": 10377,
               "textRun": {
                 "content": "GoA0: line of sight manual operation with no signaling protection\n",
                 "textStyle": {}
@@ -3813,10 +3856,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 10082
+        "startIndex": 10377
       },
       {
-        "endIndex": 10254,
+        "endIndex": 10549,
         "paragraph": {
           "bullet": {
             "listId": "kix.q8rp6m4uxs3o",
@@ -3824,8 +3867,8 @@
           },
           "elements": [
             {
-              "endIndex": 10254,
-              "startIndex": 10148,
+              "endIndex": 10549,
+              "startIndex": 10443,
               "textRun": {
                 "content": "GoA1: manual operation with signaling that protects train safety through Automatic Train Protection (ATP)\n",
                 "textStyle": {}
@@ -3846,10 +3889,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 10148
+        "startIndex": 10443
       },
       {
-        "endIndex": 10476,
+        "endIndex": 10771,
         "paragraph": {
           "bullet": {
             "listId": "kix.q8rp6m4uxs3o",
@@ -3857,8 +3900,8 @@
           },
           "elements": [
             {
-              "endIndex": 10476,
-              "startIndex": 10254,
+              "endIndex": 10771,
+              "startIndex": 10549,
               "textRun": {
                 "content": "GoA2: automated driving: the train drives automatically under Automatic Train Operation (ATO), but the operator opens the doors, closes the doors, and presses a button to start the automatic driving until the next station\n",
                 "textStyle": {}
@@ -3879,10 +3922,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 10254
+        "startIndex": 10549
       },
       {
-        "endIndex": 10611,
+        "endIndex": 10906,
         "paragraph": {
           "bullet": {
             "listId": "kix.q8rp6m4uxs3o",
@@ -3890,8 +3933,8 @@
           },
           "elements": [
             {
-              "endIndex": 10611,
-              "startIndex": 10476,
+              "endIndex": 10906,
+              "startIndex": 10771,
               "textRun": {
                 "content": "GoA3: driverless operation (DTO): the train runs automatically, but there is an on-board attendant to operate the train in emergencies\n",
                 "textStyle": {}
@@ -3912,10 +3955,10 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 10476
+        "startIndex": 10771
       },
       {
-        "endIndex": 10725,
+        "endIndex": 11020,
         "paragraph": {
           "bullet": {
             "listId": "kix.q8rp6m4uxs3o",
@@ -3925,8 +3968,8 @@
           },
           "elements": [
             {
-              "endIndex": 10725,
-              "startIndex": 10611,
+              "endIndex": 11020,
+              "startIndex": 10906,
               "textRun": {
                 "content": "GoA4: unattended operation (UTO): the train runs automatically, with no crew on board except perhaps for security\n",
                 "textStyle": {}
@@ -3947,23 +3990,23 @@
             "spacingMode": "COLLAPSE_LISTS"
           }
         },
-        "startIndex": 10611
+        "startIndex": 10906
       },
       {
-        "endIndex": 10727,
+        "endIndex": 11022,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10726,
+              "endIndex": 11021,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.dzityh6jxt34",
                 "textStyle": {}
               },
-              "startIndex": 10725
+              "startIndex": 11020
             },
             {
-              "endIndex": 10727,
-              "startIndex": 10726,
+              "endIndex": 11022,
+              "startIndex": 11021,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -3981,15 +4024,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10725
+        "startIndex": 11020
       },
       {
-        "endIndex": 10827,
+        "endIndex": 11122,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10827,
-              "startIndex": 10727,
+              "endIndex": 11122,
+              "startIndex": 11022,
               "textRun": {
                 "content": "The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.\n",
                 "textStyle": {}
@@ -4007,15 +4050,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10727
+        "startIndex": 11022
       },
       {
-        "endIndex": 10848,
+        "endIndex": 11143,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10833,
-              "startIndex": 10827,
+              "endIndex": 11128,
+              "startIndex": 11122,
               "textRun": {
                 "content": "Credit",
                 "textStyle": {
@@ -4024,8 +4067,8 @@
               }
             },
             {
-              "endIndex": 10848,
-              "startIndex": 10833,
+              "endIndex": 11143,
+              "startIndex": 11128,
               "textRun": {
                 "content": ": Seungho Kang\n",
                 "textStyle": {}
@@ -4043,15 +4086,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10827
+        "startIndex": 11122
       },
       {
-        "endIndex": 10858,
+        "endIndex": 11153,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10854,
-              "startIndex": 10848,
+              "endIndex": 11149,
+              "startIndex": 11143,
               "textRun": {
                 "content": "Source",
                 "textStyle": {
@@ -4060,15 +4103,15 @@
               }
             },
             {
-              "endIndex": 10856,
-              "startIndex": 10854,
+              "endIndex": 11151,
+              "startIndex": 11149,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 10857,
+              "endIndex": 11152,
               "richLink": {
                 "richLinkId": "kix.zautjpvc7hro",
                 "richLinkProperties": {
@@ -4078,11 +4121,11 @@
                 },
                 "textStyle": {}
               },
-              "startIndex": 10856
+              "startIndex": 11151
             },
             {
-              "endIndex": 10858,
-              "startIndex": 10857,
+              "endIndex": 11153,
+              "startIndex": 11152,
               "textRun": {
                 "content": "\n",
                 "textStyle": {
@@ -4102,23 +4145,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10848
+        "startIndex": 11143
       },
       {
-        "endIndex": 10860,
+        "endIndex": 11155,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 10859,
+              "endIndex": 11154,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.3ceb7gpb6okx",
                 "textStyle": {}
               },
-              "startIndex": 10858
+              "startIndex": 11153
             },
             {
-              "endIndex": 10860,
-              "startIndex": 10859,
+              "endIndex": 11155,
+              "startIndex": 11154,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -4136,15 +4179,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10858
+        "startIndex": 11153
       },
       {
-        "endIndex": 11015,
+        "endIndex": 11310,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 11015,
-              "startIndex": 10860,
+              "endIndex": 11310,
+              "startIndex": 11155,
               "textRun": {
                 "content": "An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC\u2019s moving block signaling.\n",
                 "textStyle": {}
@@ -4162,15 +4205,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 10860
+        "startIndex": 11155
       },
       {
-        "endIndex": 11040,
+        "endIndex": 11335,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 11021,
-              "startIndex": 11015,
+              "endIndex": 11316,
+              "startIndex": 11310,
               "textRun": {
                 "content": "Credit",
                 "textStyle": {
@@ -4179,8 +4222,8 @@
               }
             },
             {
-              "endIndex": 11040,
-              "startIndex": 11021,
+              "endIndex": 11335,
+              "startIndex": 11316,
               "textRun": {
                 "content": ": ETA (Khyber Sen)\n",
                 "textStyle": {}
@@ -4198,15 +4241,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 11015
+        "startIndex": 11310
       },
       {
-        "endIndex": 11050,
+        "endIndex": 11345,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 11046,
-              "startIndex": 11040,
+              "endIndex": 11341,
+              "startIndex": 11335,
               "textRun": {
                 "content": "Source",
                 "textStyle": {
@@ -4215,15 +4258,15 @@
               }
             },
             {
-              "endIndex": 11048,
-              "startIndex": 11046,
+              "endIndex": 11343,
+              "startIndex": 11341,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 11049,
+              "endIndex": 11344,
               "richLink": {
                 "richLinkId": "kix.12e24eugsnyz",
                 "richLinkProperties": {
@@ -4233,11 +4276,11 @@
                 },
                 "textStyle": {}
               },
-              "startIndex": 11048
+              "startIndex": 11343
             },
             {
-              "endIndex": 11050,
-              "startIndex": 11049,
+              "endIndex": 11345,
+              "startIndex": 11344,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -4249,32 +4292,32 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 11040
+        "startIndex": 11335
       },
       {
-        "endIndex": 11478,
+        "endIndex": 11773,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 11183,
-              "startIndex": 11050,
+              "endIndex": 11478,
+              "startIndex": 11345,
               "textRun": {
                 "content": "In NYC, most subway lines are currently GoA1, but those with new communications-based train control (CBTC) signaling like the 7 and L",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 11184,
+              "endIndex": 11479,
               "footnoteReference": {
                 "footnoteId": "kix.5j4e9vri553c",
                 "footnoteNumber": "11",
                 "textStyle": {}
               },
-              "startIndex": 11183
+              "startIndex": 11478
             },
             {
-              "endIndex": 11478,
-              "startIndex": 11184,
+              "endIndex": 11773,
+              "startIndex": 11479,
               "textRun": {
                 "content": " are GoA2. The JFK AirTrain is GoA4, operating unattended trains. MTA IBX staff have indicated to ETA that the IBX will very likely use CBTC and thus be at least GoA2, but there is no reason to stop there. Only GoA4 provides the operational efficiency that unlocks the frequency the IBX needs.\n",
                 "textStyle": {}
@@ -4286,23 +4329,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 11050
+        "startIndex": 11345
       },
       {
-        "endIndex": 12520,
+        "endIndex": 12815,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 11767,
-              "startIndex": 11478,
+              "endIndex": 12062,
+              "startIndex": 11773,
               "textRun": {
                 "content": "Moreover, because automation allows trains to run at higher frequencies relative to manual operation, trains and stations can be smaller, enabling agencies to reduce capital costs while retaining overall capacity. For example, Italian cities have delivered incredibly cheap metro systems (",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 11788,
-              "startIndex": 11767,
+              "endIndex": 12083,
+              "startIndex": 12062,
               "textRun": {
                 "content": "$200\u2013400 million/mile",
                 "textStyle": {
@@ -4323,25 +4366,25 @@
               }
             },
             {
-              "endIndex": 11789,
+              "endIndex": 12084,
               "footnoteReference": {
                 "footnoteId": "kix.ocqdsyjon88x",
                 "footnoteNumber": "12",
                 "textStyle": {}
               },
-              "startIndex": 11788
+              "startIndex": 12083
             },
             {
-              "endIndex": 12001,
-              "startIndex": 11789,
+              "endIndex": 12296,
+              "startIndex": 12084,
               "textRun": {
                 "content": ") that run trains less than 330 ft long with stations barely any longer than the trains that serve them. Despite the short lengths, ALM capacity can be very high: Paris\u2019s upcoming M15 ring line, projected to run ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12019,
-              "startIndex": 12001,
+              "endIndex": 12314,
+              "startIndex": 12296,
               "textRun": {
                 "content": "354 ft long trains",
                 "textStyle": {
@@ -4362,16 +4405,16 @@
               }
             },
             {
-              "endIndex": 12041,
-              "startIndex": 12019,
+              "endIndex": 12336,
+              "startIndex": 12314,
               "textRun": {
                 "content": ", is projected to see ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12052,
-              "startIndex": 12041,
+              "endIndex": 12347,
+              "startIndex": 12336,
               "textRun": {
                 "content": "1.5 million",
                 "textStyle": {
@@ -4392,33 +4435,33 @@
               }
             },
             {
-              "endIndex": 12153,
-              "startIndex": 12052,
+              "endIndex": 12448,
+              "startIndex": 12347,
               "textRun": {
                 "content": " riders a day over a length of 47 miles, which is roughly the same ridership per route-mile as the 1.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12154,
+              "endIndex": 12449,
               "footnoteReference": {
                 "footnoteId": "kix.10ysqwfkv4le",
                 "footnoteNumber": "13",
                 "textStyle": {}
               },
-              "startIndex": 12153
+              "startIndex": 12448
             },
             {
-              "endIndex": 12172,
-              "startIndex": 12154,
+              "endIndex": 12467,
+              "startIndex": 12449,
               "textRun": {
                 "content": " For the IBX, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12211,
-              "startIndex": 12172,
+              "endIndex": 12506,
+              "startIndex": 12467,
               "textRun": {
                 "content": "Draft Scoping planned for 325 ft trains",
                 "textStyle": {
@@ -4439,33 +4482,33 @@
               }
             },
             {
-              "endIndex": 12323,
-              "startIndex": 12211,
+              "endIndex": 12618,
+              "startIndex": 12506,
               "textRun": {
                 "content": ". A standard ALM with 325 ft long trains that fits in the East NY Tunnel would hold about 1000 people per train,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12324,
+              "endIndex": 12619,
               "footnoteReference": {
                 "footnoteId": "kix.xlksitbpkyju",
                 "footnoteNumber": "14",
                 "textStyle": {}
               },
-              "startIndex": 12323
+              "startIndex": 12618
             },
             {
-              "endIndex": 12426,
-              "startIndex": 12324,
+              "endIndex": 12721,
+              "startIndex": 12619,
               "textRun": {
                 "content": " and thus have a peak capacity of 40,000 people per hour per direction (pphpd). This is more than any ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12469,
-              "startIndex": 12426,
+              "endIndex": 12764,
+              "startIndex": 12721,
               "textRun": {
                 "content": "rail crossing into Manhattan south of 60 St",
                 "textStyle": {
@@ -4486,42 +4529,42 @@
               }
             },
             {
-              "endIndex": 12478,
-              "startIndex": 12469,
+              "endIndex": 12773,
+              "startIndex": 12764,
               "textRun": {
                 "content": " in 2024,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12479,
+              "endIndex": 12774,
               "footnoteReference": {
                 "footnoteId": "kix.6hzmidfz3wrp",
                 "footnoteNumber": "15",
                 "textStyle": {}
               },
-              "startIndex": 12478
+              "startIndex": 12773
             },
             {
-              "endIndex": 12518,
-              "startIndex": 12479,
+              "endIndex": 12813,
+              "startIndex": 12774,
               "textRun": {
                 "content": " and more than double the 14 St tunnel.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12519,
+              "endIndex": 12814,
               "footnoteReference": {
                 "footnoteId": "kix.7vnkbyay89pp",
                 "footnoteNumber": "16",
                 "textStyle": {}
               },
-              "startIndex": 12518
+              "startIndex": 12813
             },
             {
-              "endIndex": 12520,
-              "startIndex": 12519,
+              "endIndex": 12815,
+              "startIndex": 12814,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -4533,23 +4576,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 11478
+        "startIndex": 11773
       },
       {
-        "endIndex": 13120,
+        "endIndex": 13415,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 12758,
-              "startIndex": 12520,
+              "endIndex": 13053,
+              "startIndex": 12815,
               "textRun": {
                 "content": "For a circumferential line like the IBX, the ALM paradigm is especially well-suited, given those lines\u2019 extreme need for frequency. Circumferential lines support and enable rides that are far more likely to involve transfers. Indeed, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 12839,
-              "startIndex": 12758,
+              "endIndex": 13134,
+              "startIndex": 13053,
               "textRun": {
                 "content": "largest share of new jobs made accessible to commuters by the IBX is in Manhattan",
                 "textStyle": {
@@ -4570,8 +4613,8 @@
               }
             },
             {
-              "endIndex": 13120,
-              "startIndex": 12839,
+              "endIndex": 13415,
+              "startIndex": 13134,
               "textRun": {
                 "content": ", where the IBX will not run, purely through better transfers between the IBX and lines that do run into Manhattan. High frequency and reliability are especially important for facilitating transfers, since the wait between trains can make or break riders\u2019 willingness to transfer.\n",
                 "textStyle": {}
@@ -4583,32 +4626,32 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 12520
+        "startIndex": 12815
       },
       {
-        "endIndex": 13871,
+        "endIndex": 14166,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 13709,
-              "startIndex": 13120,
+              "endIndex": 14004,
+              "startIndex": 13415,
               "textRun": {
                 "content": "Driverless operation has the unique benefit of permitting high off-peak frequency without incurring a commensurate increase in operating cost. This is one reason they have proven successful, even in smaller cities with lower possible ridership or lines with lower ridership. Vancouver\u2019s SkyTrain runs every 6\u20138 minutes off-peak on each of two branches, and the Copenhagen Metro runs every 4\u20136 minutes off-peak on each of two branches. In both cases, the branches separate quite far from the city center, so 3 minute headways are offered on a lengthy trunk. The systems using driverless VAL",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 13710,
+              "endIndex": 14005,
               "footnoteReference": {
                 "footnoteId": "kix.yzpcm4fm9eog",
                 "footnoteNumber": "17",
                 "textStyle": {}
               },
-              "startIndex": 13709
+              "startIndex": 14004
             },
             {
-              "endIndex": 13871,
-              "startIndex": 13710,
+              "endIndex": 14166,
+              "startIndex": 14005,
               "textRun": {
                 "content": " technology run every 3\u20136 minutes off-peak in Lille, Rennes, Toulouse, and Turin. In contrast, the non-driverless Marseille Metro only runs every 10\u201315 minutes.\n",
                 "textStyle": {}
@@ -4620,23 +4663,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 13120
+        "startIndex": 13415
       },
       {
-        "endIndex": 14536,
+        "endIndex": 14831,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 14011,
-              "startIndex": 13871,
+              "endIndex": 14306,
+              "startIndex": 14166,
               "textRun": {
                 "content": "The costs of operating ALM technology in these cities are impressively low: the Expo and Millennium Lines of SkyTrain in Vancouver averaged ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14035,
-              "startIndex": 14011,
+              "endIndex": 14330,
+              "startIndex": 14306,
               "textRun": {
                 "content": "US$8.11/car-mile in 2025",
                 "textStyle": {
@@ -4657,49 +4700,49 @@
               }
             },
             {
-              "endIndex": 14036,
-              "startIndex": 14035,
+              "endIndex": 14331,
+              "startIndex": 14330,
               "textRun": {
                 "content": ",",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14037,
+              "endIndex": 14332,
               "footnoteReference": {
                 "footnoteId": "kix.2ep7udfbb16g",
                 "footnoteNumber": "18",
                 "textStyle": {}
               },
-              "startIndex": 14036
+              "startIndex": 14331
             },
             {
-              "endIndex": 14064,
-              "startIndex": 14037,
+              "endIndex": 14359,
+              "startIndex": 14332,
               "textRun": {
                 "content": " less than half as much as ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14094,
-              "startIndex": 14064,
+              "endIndex": 14389,
+              "startIndex": 14359,
               "textRun": {
                 "content": "New York City Transit (NYCT), ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14109,
-              "startIndex": 14094,
+              "endIndex": 14404,
+              "startIndex": 14389,
               "textRun": {
                 "content": "which averaged ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14115,
-              "startIndex": 14109,
+              "endIndex": 14410,
+              "startIndex": 14404,
               "textRun": {
                 "content": "$18.63",
                 "textStyle": {
@@ -4720,16 +4763,16 @@
               }
             },
             {
-              "endIndex": 14165,
-              "startIndex": 14115,
+              "endIndex": 14460,
+              "startIndex": 14410,
               "textRun": {
                 "content": "/car-mile in 2024. This is important, as 72.5% of ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14185,
-              "startIndex": 14165,
+              "endIndex": 14480,
+              "startIndex": 14460,
               "textRun": {
                 "content": "NYCT operating costs",
                 "textStyle": {
@@ -4750,33 +4793,33 @@
               }
             },
             {
-              "endIndex": 14283,
-              "startIndex": 14185,
+              "endIndex": 14578,
+              "startIndex": 14480,
               "textRun": {
                 "content": " today are labor expenditures, and about 23% of subway workers are train operators and conductors.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14284,
+              "endIndex": 14579,
               "footnoteReference": {
                 "footnoteId": "kix.mkcy93wmn75l",
                 "footnoteNumber": "19",
                 "textStyle": {}
               },
-              "startIndex": 14283
+              "startIndex": 14578
             },
             {
-              "endIndex": 14298,
-              "startIndex": 14284,
+              "endIndex": 14593,
+              "startIndex": 14579,
               "textRun": {
                 "content": " In contrast, ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14432,
-              "startIndex": 14298,
+              "endIndex": 14727,
+              "startIndex": 14593,
               "textRun": {
                 "content": "SkyTrain is very light on employees, and expanded service dramatically in the late 2000s with little increase in the number of workers",
                 "textStyle": {
@@ -4797,16 +4840,16 @@
               }
             },
             {
-              "endIndex": 14496,
-              "startIndex": 14432,
+              "endIndex": 14791,
+              "startIndex": 14727,
               "textRun": {
                 "content": ". Similarly, WMATA estimates that automating the Red Line would ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 14534,
-              "startIndex": 14496,
+              "endIndex": 14829,
+              "startIndex": 14791,
               "textRun": {
                 "content": "reduce marginal operating costs by 41%",
                 "textStyle": {
@@ -4827,8 +4870,8 @@
               }
             },
             {
-              "endIndex": 14536,
-              "startIndex": 14534,
+              "endIndex": 14831,
+              "startIndex": 14829,
               "textRun": {
                 "content": ".\n",
                 "textStyle": {}
@@ -4840,23 +4883,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 13871
+        "startIndex": 14166
       },
       {
-        "endIndex": 15281,
+        "endIndex": 15576,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 15016,
-              "startIndex": 14536,
+              "endIndex": 15311,
+              "startIndex": 14831,
               "textRun": {
                 "content": "This also insulates the system from fiscal pressure to cut service in order to save small amounts of money during a funding crisis. The MTA currently plans only 5 minute peak headways for the IBX and even lower frequencies off-peak. ALM can not only do better at the peak, but is more resilient to off-peak cuts that would degrade service to the point of unusability, a problem that has plagued many recently built American light rail networks coping with budget cuts. The MTA is ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 15059,
-              "startIndex": 15016,
+              "endIndex": 15354,
+              "startIndex": 15311,
               "textRun": {
                 "content": "studying shorter peak headways of 3 minutes",
                 "textStyle": {
@@ -4877,8 +4920,8 @@
               }
             },
             {
-              "endIndex": 15060,
-              "startIndex": 15059,
+              "endIndex": 15355,
+              "startIndex": 15354,
               "textRun": {
                 "content": " ",
                 "textStyle": {
@@ -4887,8 +4930,8 @@
               }
             },
             {
-              "endIndex": 15281,
-              "startIndex": 15060,
+              "endIndex": 15576,
+              "startIndex": 15355,
               "textRun": {
                 "content": "as well, which ALM would make substantially cheaper and easier. But more importantly, it would allow the MTA to affordably maintain those 3 minute headways throughout the day instead of collapsing to 10 minutes off-peak.\n",
                 "textStyle": {}
@@ -4900,15 +4943,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 14536
+        "startIndex": 14831
       },
       {
-        "endIndex": 15314,
+        "endIndex": 15609,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 15314,
-              "startIndex": 15281,
+              "endIndex": 15609,
+              "startIndex": 15576,
               "textRun": {
                 "content": "Safety and Platform Screen Doors\n",
                 "textStyle": {}
@@ -4921,23 +4964,23 @@
             "namedStyleType": "HEADING_1"
           }
         },
-        "startIndex": 15281
+        "startIndex": 15576
       },
       {
-        "endIndex": 16278,
+        "endIndex": 16573,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 15353,
-              "startIndex": 15314,
+              "endIndex": 15648,
+              "startIndex": 15609,
               "textRun": {
                 "content": "On metros globally, including NYC, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 15404,
-              "startIndex": 15353,
+              "endIndex": 15699,
+              "startIndex": 15648,
               "textRun": {
                 "content": "largest risk to passenger safety is track intrusion",
                 "textStyle": {
@@ -4958,16 +5001,16 @@
               }
             },
             {
-              "endIndex": 15653,
-              "startIndex": 15404,
+              "endIndex": 15948,
+              "startIndex": 15699,
               "textRun": {
                 "content": ": intentional and unintentional falls onto the tracks, getting pushed in front of a train, climbing on top of the train, and trash and other items falling on the tracks, which can start fires. New Yorkers know this all too well. In 2021, there were ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 15709,
-              "startIndex": 15653,
+              "endIndex": 16004,
+              "startIndex": 15948,
               "textRun": {
                 "content": "1267 track intrusions, 200 collisions, and 68 fatalities",
                 "textStyle": {
@@ -4988,16 +5031,16 @@
               }
             },
             {
-              "endIndex": 16005,
-              "startIndex": 15709,
+              "endIndex": 16300,
+              "startIndex": 16004,
               "textRun": {
                 "content": ". The proven solution is to physically prevent passengers from accessing the track with platform screen doors. NYC has played around with blue lighting for suicide prevention, lasers, and most recently, platform edge fences. These do not stop people from falling and dying; PSDs do. In fact, the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16065,
-              "startIndex": 16005,
+              "endIndex": 16360,
+              "startIndex": 16300,
               "textRun": {
                 "content": "MTA has now even been held liable for their failure to do so",
                 "textStyle": {
@@ -5018,8 +5061,8 @@
               }
             },
             {
-              "endIndex": 16278,
-              "startIndex": 16065,
+              "endIndex": 16573,
+              "startIndex": 16360,
               "textRun": {
                 "content": ". Automation and PSDs are generally considered together as PSDs make it simpler for trains to operate unattended, but the safety benefits of PSDs are so strong that they should be installed on the IBX regardless.\n",
                 "textStyle": {}
@@ -5031,15 +5074,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 15314
+        "startIndex": 15609
       },
       {
-        "endIndex": 16353,
+        "endIndex": 16648,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 16307,
-              "startIndex": 16278,
+              "endIndex": 16602,
+              "startIndex": 16573,
               "textRun": {
                 "content": "Video (Graphic Warning, Copy)",
                 "textStyle": {
@@ -5048,16 +5091,16 @@
               }
             },
             {
-              "endIndex": 16309,
-              "startIndex": 16307,
+              "endIndex": 16604,
+              "startIndex": 16602,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16351,
-              "startIndex": 16309,
+              "endIndex": 16646,
+              "startIndex": 16604,
               "textRun": {
                 "content": "Joseph Lynskey hit by the 1 train at 18 St",
                 "textStyle": {
@@ -5078,8 +5121,8 @@
               }
             },
             {
-              "endIndex": 16353,
-              "startIndex": 16351,
+              "endIndex": 16648,
+              "startIndex": 16646,
               "textRun": {
                 "content": ".\n",
                 "textStyle": {}
@@ -5091,15 +5134,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 16278
+        "startIndex": 16573
       },
       {
-        "endIndex": 16389,
+        "endIndex": 16684,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 16359,
-              "startIndex": 16353,
+              "endIndex": 16654,
+              "startIndex": 16648,
               "textRun": {
                 "content": "Credit",
                 "textStyle": {
@@ -5108,8 +5151,8 @@
               }
             },
             {
-              "endIndex": 16389,
-              "startIndex": 16359,
+              "endIndex": 16684,
+              "startIndex": 16654,
               "textRun": {
                 "content": ": MTA security camera footage\n",
                 "textStyle": {}
@@ -5121,48 +5164,48 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 16353
+        "startIndex": 16648
       },
       {
-        "endIndex": 16989,
+        "endIndex": 17295,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 16436,
-              "startIndex": 16389,
+              "endIndex": 16731,
+              "startIndex": 16684,
               "textRun": {
                 "content": "Honolulu provides virtually the only US example",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16437,
+              "endIndex": 16732,
               "footnoteReference": {
                 "footnoteId": "kix.za9q9ezfnisk",
                 "footnoteNumber": "20",
                 "textStyle": {}
               },
-              "startIndex": 16436
+              "startIndex": 16731
             },
             {
-              "endIndex": 16482,
-              "startIndex": 16437,
+              "endIndex": 16777,
+              "startIndex": 16732,
               "textRun": {
                 "content": " pertinent to IBX. Safety was at the core of ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16563,
-              "startIndex": 16482,
+              "endIndex": 16858,
+              "startIndex": 16777,
               "textRun": {
                 "content": "the decision to install PSDs: Honolulu Authority for Rapid Transit board members ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16596,
-              "startIndex": 16563,
+              "endIndex": 16891,
+              "startIndex": 16858,
               "textRun": {
                 "content": "swiftly approved the change order",
                 "textStyle": {
@@ -5183,16 +5226,16 @@
               }
             },
             {
-              "endIndex": 16660,
-              "startIndex": 16596,
+              "endIndex": 16955,
+              "startIndex": 16891,
               "textRun": {
                 "content": " after seeing a video of babies falling in front of trains. The ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16684,
-              "startIndex": 16660,
+              "endIndex": 16979,
+              "startIndex": 16955,
               "textRun": {
                 "content": "PSDs for all 21 stations",
                 "textStyle": {
@@ -5213,50 +5256,50 @@
               }
             },
             {
-              "endIndex": 16775,
-              "startIndex": 16684,
+              "endIndex": 17081,
+              "startIndex": 16979,
               "textRun": {
-                "content": " cost about $27 million in 2013 USD. Adjusted for inflation and the number of IBX stations,",
+                "content": " cost about $27 million in 2013 USD. Adjusted for inflation and the number and length of IBX stations,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16776,
+              "endIndex": 17082,
               "footnoteReference": {
                 "footnoteId": "kix.1lrumktil480",
                 "footnoteNumber": "21",
                 "textStyle": {}
               },
-              "startIndex": 16775
+              "startIndex": 17081
             },
             {
-              "endIndex": 16844,
-              "startIndex": 16776,
+              "endIndex": 17150,
+              "startIndex": 17082,
               "textRun": {
                 "content": " equipping all IBX platforms with PSDs would cost about $41 million,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16845,
+              "endIndex": 17151,
               "footnoteReference": {
                 "footnoteId": "kix.h4j2twh0eamt",
                 "footnoteNumber": "22",
                 "textStyle": {}
               },
-              "startIndex": 16844
+              "startIndex": 17150
             },
             {
-              "endIndex": 16873,
-              "startIndex": 16845,
+              "endIndex": 17179,
+              "startIndex": 17151,
               "textRun": {
                 "content": " equal to only 0.75% of its ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 16903,
-              "startIndex": 16873,
+              "endIndex": 17209,
+              "startIndex": 17179,
               "textRun": {
                 "content": "projected cost of $5.5 billion",
                 "textStyle": {
@@ -5277,8 +5320,8 @@
               }
             },
             {
-              "endIndex": 16989,
-              "startIndex": 16903,
+              "endIndex": 17295,
+              "startIndex": 17209,
               "textRun": {
                 "content": ". The cost is only a small part of the larger project, and yet adds incredible value.\n",
                 "textStyle": {}
@@ -5290,25 +5333,25 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 16389
+        "startIndex": 16684
       },
       {
-        "endIndex": 16991,
+        "endIndex": 17297,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 16990,
+              "endIndex": 17296,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.981yqm2a5a03",
                 "textStyle": {
                   "bold": true
                 }
               },
-              "startIndex": 16989
+              "startIndex": 17295
             },
             {
-              "endIndex": 16991,
-              "startIndex": 16990,
+              "endIndex": 17297,
+              "startIndex": 17296,
               "textRun": {
                 "content": "\n",
                 "textStyle": {
@@ -5322,15 +5365,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 16989
+        "startIndex": 17295
       },
       {
-        "endIndex": 17104,
+        "endIndex": 17410,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 17104,
-              "startIndex": 16991,
+              "endIndex": 17410,
+              "startIndex": 17297,
               "textRun": {
                 "content": "Half-height PSDs at H\u0101lawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.\n",
                 "textStyle": {}
@@ -5342,15 +5385,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 16991
+        "startIndex": 17297
       },
       {
-        "endIndex": 17124,
+        "endIndex": 17430,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 17123,
-              "startIndex": 17104,
+              "endIndex": 17429,
+              "startIndex": 17410,
               "textRun": {
                 "content": "Credit: Eli Fessler",
                 "textStyle": {
@@ -5371,8 +5414,8 @@
               }
             },
             {
-              "endIndex": 17124,
-              "startIndex": 17123,
+              "endIndex": 17430,
+              "startIndex": 17429,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5384,15 +5427,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 17104
+        "startIndex": 17410
       },
       {
-        "endIndex": 17166,
+        "endIndex": 17472,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 17130,
-              "startIndex": 17124,
+              "endIndex": 17436,
+              "startIndex": 17430,
               "textRun": {
                 "content": "Source",
                 "textStyle": {
@@ -5401,16 +5444,16 @@
               }
             },
             {
-              "endIndex": 17132,
-              "startIndex": 17130,
+              "endIndex": 17438,
+              "startIndex": 17436,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17165,
-              "startIndex": 17132,
+              "endIndex": 17471,
+              "startIndex": 17438,
               "textRun": {
                 "content": "Skyline_platform_screen_doors.jpg",
                 "textStyle": {
@@ -5431,8 +5474,8 @@
               }
             },
             {
-              "endIndex": 17166,
-              "startIndex": 17165,
+              "endIndex": 17472,
+              "startIndex": 17471,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5444,91 +5487,91 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 17124
+        "startIndex": 17430
       },
       {
-        "endIndex": 17632,
+        "endIndex": 17938,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 17435,
-              "startIndex": 17166,
+              "endIndex": 17741,
+              "startIndex": 17472,
               "textRun": {
                 "content": "If the MTA waits until after IBX opens, however, then retrofitting PSDs will grow far more expensive. Indeed, while the cost of a new PSD in Honolulu is $1.8 million per station in 2026 USD, the cost of a retrofit is an order of magnitude higher. Installations in Paris",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17436,
+              "endIndex": 17742,
               "footnoteReference": {
                 "footnoteId": "kix.yidh58u3640m",
                 "footnoteNumber": "23",
                 "textStyle": {}
               },
-              "startIndex": 17435
+              "startIndex": 17741
             },
             {
-              "endIndex": 17450,
-              "startIndex": 17436,
+              "endIndex": 17756,
+              "startIndex": 17742,
               "textRun": {
                 "content": " and Hong Kong",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17451,
+              "endIndex": 17757,
               "footnoteReference": {
                 "footnoteId": "kix.9wrstg3c7xpo",
                 "footnoteNumber": "24",
                 "textStyle": {}
               },
-              "startIndex": 17450
+              "startIndex": 17756
             },
             {
-              "endIndex": 17452,
-              "startIndex": 17451,
+              "endIndex": 17758,
+              "startIndex": 17757,
               "textRun": {
                 "content": " ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17590,
-              "startIndex": 17452,
+              "endIndex": 17896,
+              "startIndex": 17758,
               "textRun": {
                 "content": "have run to $14\u201317 million per station, scaled to the length of an NYC Subway train. In 2020, the MTA suggested that a systemwide retrofit",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17591,
+              "endIndex": 17897,
               "footnoteReference": {
                 "footnoteId": "kix.28acukidogpb",
                 "footnoteNumber": "25",
                 "textStyle": {}
               },
-              "startIndex": 17590
+              "startIndex": 17896
             },
             {
-              "endIndex": 17630,
-              "startIndex": 17591,
+              "endIndex": 17936,
+              "startIndex": 17897,
               "textRun": {
                 "content": " would cost $67\u201372 million per station.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17631,
+              "endIndex": 17937,
               "footnoteReference": {
                 "footnoteId": "kix.h756suhrejiq",
                 "footnoteNumber": "26",
                 "textStyle": {}
               },
-              "startIndex": 17630
+              "startIndex": 17936
             },
             {
-              "endIndex": 17632,
-              "startIndex": 17631,
+              "endIndex": 17938,
+              "startIndex": 17937,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5540,23 +5583,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 17166
+        "startIndex": 17472
       },
       {
-        "endIndex": 18772,
+        "endIndex": 19078,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 17793,
-              "startIndex": 17632,
+              "endIndex": 18099,
+              "startIndex": 17938,
               "textRun": {
                 "content": "While safety is of course critical, PSDs also bring numerous other benefits. Track incursions are not just a safety risk; they are also abysmal for reliability. ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 17833,
-              "startIndex": 17793,
+              "endIndex": 18139,
+              "startIndex": 18099,
               "textRun": {
                 "content": "PSDs do often add slightly to dwell time",
                 "textStyle": {
@@ -5577,16 +5620,16 @@
               }
             },
             {
-              "endIndex": 18243,
-              "startIndex": 17833,
+              "endIndex": 18549,
+              "startIndex": 18139,
               "textRun": {
                 "content": ", as they are another door to close, but they pay it back in extreme reliability. In combination with automation, running time variability becomes extremely low, allowing more runtime padding to be cut. This often raises on-time performance (OTP) from the mid 90s to over 99%. What\u2019s more, because high reliability reduces the need for schedule padding, average speed rises substantially. For example, Paris\u2019s ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 18263,
-              "startIndex": 18243,
+              "endIndex": 18569,
+              "startIndex": 18549,
               "textRun": {
                 "content": "M1 became 23% faster",
                 "textStyle": {
@@ -5607,16 +5650,16 @@
               }
             },
             {
-              "endIndex": 18339,
-              "startIndex": 18263,
+              "endIndex": 18645,
+              "startIndex": 18569,
               "textRun": {
                 "content": " after CBTC, PSDs, and automation. WMATA estimates PSDs and automation will ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 18368,
-              "startIndex": 18339,
+              "endIndex": 18674,
+              "startIndex": 18645,
               "textRun": {
                 "content": "cut round trip runtimes by 7%",
                 "textStyle": {
@@ -5637,24 +5680,24 @@
               }
             },
             {
-              "endIndex": 18457,
-              "startIndex": 18368,
+              "endIndex": 18763,
+              "startIndex": 18674,
               "textRun": {
                 "content": ". This will be key to achieving the MTA\u2019s commendable 32 minute runtime target. Finally, ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 18771,
-              "startIndex": 18457,
+              "endIndex": 19077,
+              "startIndex": 18763,
               "textRun": {
                 "content": "PSDs also increase the effective platform width, as passengers can safely stand closer to the platform edge. This matters for the IBX, as using PSDs to shave a few feet of platform width might mean another overpass doesn\u2019t have to be rebuilt and widened, saving tens of millions, enough to pay for all of the PSDs.",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 18772,
-              "startIndex": 18771,
+              "endIndex": 19078,
+              "startIndex": 19077,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5674,23 +5717,23 @@
             }
           }
         },
-        "startIndex": 17632
+        "startIndex": 17938
       },
       {
-        "endIndex": 18774,
+        "endIndex": 19080,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 18773,
+              "endIndex": 19079,
               "inlineObjectElement": {
                 "inlineObjectId": "kix.wy9tafmqauu3",
                 "textStyle": {}
               },
-              "startIndex": 18772
+              "startIndex": 19078
             },
             {
-              "endIndex": 18774,
-              "startIndex": 18773,
+              "endIndex": 19080,
+              "startIndex": 19079,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5702,15 +5745,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 18772
+        "startIndex": 19078
       },
       {
-        "endIndex": 18910,
+        "endIndex": 19216,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 18910,
-              "startIndex": 18774,
+              "endIndex": 19216,
+              "startIndex": 19080,
               "textRun": {
                 "content": "The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.\n",
                 "textStyle": {}
@@ -5722,15 +5765,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 18774
+        "startIndex": 19080
       },
       {
-        "endIndex": 18939,
+        "endIndex": 19245,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 18938,
-              "startIndex": 18910,
+              "endIndex": 19244,
+              "startIndex": 19216,
               "textRun": {
                 "content": "Credit: Sebastian Sinisterra",
                 "textStyle": {
@@ -5751,8 +5794,8 @@
               }
             },
             {
-              "endIndex": 18939,
-              "startIndex": 18938,
+              "endIndex": 19245,
+              "startIndex": 19244,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5764,15 +5807,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 18910
+        "startIndex": 19216
       },
       {
-        "endIndex": 18989,
+        "endIndex": 19295,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 18945,
-              "startIndex": 18939,
+              "endIndex": 19251,
+              "startIndex": 19245,
               "textRun": {
                 "content": "Source",
                 "textStyle": {
@@ -5781,16 +5824,16 @@
               }
             },
             {
-              "endIndex": 18947,
-              "startIndex": 18945,
+              "endIndex": 19253,
+              "startIndex": 19251,
               "textRun": {
                 "content": ": ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 18988,
-              "startIndex": 18947,
+              "endIndex": 19294,
+              "startIndex": 19253,
               "textRun": {
                 "content": "Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg",
                 "textStyle": {
@@ -5811,8 +5854,8 @@
               }
             },
             {
-              "endIndex": 18989,
-              "startIndex": 18988,
+              "endIndex": 19295,
+              "startIndex": 19294,
               "textRun": {
                 "content": "\n",
                 "textStyle": {}
@@ -5824,23 +5867,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 18939
+        "startIndex": 19245
       },
       {
-        "endIndex": 19957,
+        "endIndex": 20263,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 18999,
-              "startIndex": 18989,
+              "endIndex": 19305,
+              "startIndex": 19295,
               "textRun": {
                 "content": "Finally, i",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 19957,
-              "startIndex": 18999,
+              "endIndex": 20263,
+              "startIndex": 19305,
               "textRun": {
                 "content": "n contrast to ALMs or heavy rail systems like the subway, light rail systems in the US often force passengers to cross the tracks to get to the opposite-side platform, even when they run in private rights-of-way and not on the street. For example, Boston\u2019s Green Line Extension designed Ball Square and East Somerville to require crossing the live tracks at-grade, as a last-minute cost-saving measure. Similarly, Jersey City\u2019s Hudson-Bergen Light Rail (HBLR) requires passengers to cross the tracks at many stations such as Newport, Harsimus Cove, and Jersey Avenue. This is not acceptable for an ALM system, which requires higher levels of safety as a driver cannot operate the train by sight. Even without automation, pedestrian grade crossings at stations force trains to enter those stations at reduced speed, driving up runtimes. The MTA\u2019s 32 minute runtime target, for example, would be difficult to meet if grade crossings for passengers were built.\n",
                 "textStyle": {}
@@ -5860,15 +5903,15 @@
             }
           }
         },
-        "startIndex": 18989
+        "startIndex": 19295
       },
       {
-        "endIndex": 19971,
+        "endIndex": 20277,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 19971,
-              "startIndex": 19957,
+              "endIndex": 20277,
+              "startIndex": 20263,
               "textRun": {
                 "content": "Rolling Stock\n",
                 "textStyle": {}
@@ -5889,32 +5932,32 @@
             }
           }
         },
-        "startIndex": 19957
+        "startIndex": 20263
       },
       {
-        "endIndex": 20661,
+        "endIndex": 20967,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 20040,
-              "startIndex": 19971,
+              "endIndex": 20346,
+              "startIndex": 20277,
               "textRun": {
                 "content": "Almost four years after first selecting the IBX\u2019s mode as light rail,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 20041,
+              "endIndex": 20347,
               "footnoteReference": {
                 "footnoteId": "kix.151bwmahkalk",
                 "footnoteNumber": "27",
                 "textStyle": {}
               },
-              "startIndex": 20040
+              "startIndex": 20346
             },
             {
-              "endIndex": 20661,
-              "startIndex": 20041,
+              "endIndex": 20967,
+              "startIndex": 20347,
               "textRun": {
                 "content": " the MTA has still yet to officially make a decision on what type of rolling stock to procure. As they have reiterated many times, they have been designing everything to be maximally flexible so that no choice is prematurely locked in. This can potentially be valuable for projects very early in the design phase, but it comes at a cost as the project evolves: the design has to constantly consider a multitude of alternatives, and cannot optimize around the best alternative. At this point in the project, it is time for the IBX to settle on a technology, and abandon the no-longer relevant options considered earlier.\n",
                 "textStyle": {}
@@ -5926,23 +5969,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 19971
+        "startIndex": 20277
       },
       {
-        "endIndex": 21593,
+        "endIndex": 21899,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 21037,
-              "startIndex": 20661,
+              "endIndex": 21343,
+              "startIndex": 20967,
               "textRun": {
                 "content": "Prior to the complete grade separation of the corridor, trains would have needed to run on city streets, and would thus have necessitated very sharp curves. These factors might have justified light rail vehicles (LRVs) designed for this purpose. The All Faiths Tunnel removes the need for street running. However, the MTA is still claiming that LRVs are required in order to \u201c",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21064,
-              "startIndex": 21037,
+              "endIndex": 21370,
+              "startIndex": 21343,
               "textRun": {
                 "content": "travel through tight curves",
                 "textStyle": {
@@ -5963,16 +6006,16 @@
               }
             },
             {
-              "endIndex": 21113,
-              "startIndex": 21064,
+              "endIndex": 21419,
+              "startIndex": 21370,
               "textRun": {
                 "content": ".\u201d Yet the tightest curve on the IBX route has a ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21129,
-              "startIndex": 21113,
+              "endIndex": 21435,
+              "startIndex": 21419,
               "textRun": {
                 "content": "radius of 465 ft",
                 "textStyle": {
@@ -5993,25 +6036,25 @@
               }
             },
             {
-              "endIndex": 21130,
+              "endIndex": 21436,
               "footnoteReference": {
                 "footnoteId": "kix.bwpo1bsvin6",
                 "footnoteNumber": "28",
                 "textStyle": {}
               },
-              "startIndex": 21129
+              "startIndex": 21435
             },
             {
-              "endIndex": 21221,
-              "startIndex": 21130,
+              "endIndex": 21527,
+              "startIndex": 21436,
               "textRun": {
                 "content": ", so generous that any train can fit. The tightest curve on the NYC subway has a radius of ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21230,
-              "startIndex": 21221,
+              "endIndex": 21536,
+              "startIndex": 21527,
               "textRun": {
                 "content": "100\u00b110 ft",
                 "textStyle": {
@@ -6032,25 +6075,25 @@
               }
             },
             {
-              "endIndex": 21231,
+              "endIndex": 21537,
               "footnoteReference": {
                 "footnoteId": "kix.b1sj653aos0j",
                 "footnoteNumber": "29",
                 "textStyle": {}
               },
-              "startIndex": 21230
+              "startIndex": 21536
             },
             {
-              "endIndex": 21242,
-              "startIndex": 21231,
+              "endIndex": 21548,
+              "startIndex": 21537,
               "textRun": {
                 "content": ", with the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21275,
-              "startIndex": 21242,
+              "endIndex": 21581,
+              "startIndex": 21548,
               "textRun": {
                 "content": "old South Ferry loop being 111 ft",
                 "textStyle": {
@@ -6071,16 +6114,16 @@
               }
             },
             {
-              "endIndex": 21408,
-              "startIndex": 21275,
+              "endIndex": 21714,
+              "startIndex": 21581,
               "textRun": {
                 "content": ". Even the Metro in Washington, DC, designed to avoid the squeal of the tight curves of the oldest sections of the NYC Subway, has a ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21438,
-              "startIndex": 21408,
+              "endIndex": 21744,
+              "startIndex": 21714,
               "textRun": {
                 "content": "minimum curve radius of 225 ft",
                 "textStyle": {
@@ -6101,16 +6144,16 @@
               }
             },
             {
-              "endIndex": 21506,
-              "startIndex": 21438,
+              "endIndex": 21812,
+              "startIndex": 21744,
               "textRun": {
                 "content": ", less than half of that of the IBX. The only tight curves were the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21534,
-              "startIndex": 21506,
+              "endIndex": 21840,
+              "startIndex": 21812,
               "textRun": {
                 "content": "100 ft street-running curves",
                 "textStyle": {
@@ -6131,17 +6174,17 @@
               }
             },
             {
-              "endIndex": 21535,
+              "endIndex": 21841,
               "footnoteReference": {
                 "footnoteId": "kix.sb0nrro14lcc",
                 "footnoteNumber": "30",
                 "textStyle": {}
               },
-              "startIndex": 21534
+              "startIndex": 21840
             },
             {
-              "endIndex": 21593,
-              "startIndex": 21535,
+              "endIndex": 21899,
+              "startIndex": 21841,
               "textRun": {
                 "content": " that have since been removed with the All Faiths tunnel.\n",
                 "textStyle": {}
@@ -6153,56 +6196,56 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 20661
+        "startIndex": 20967
       },
       {
-        "endIndex": 22005,
+        "endIndex": 22311,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 21919,
-              "startIndex": 21593,
+              "endIndex": 22225,
+              "startIndex": 21899,
               "textRun": {
                 "content": "LRVs are optimized for street-running lines, or lines that are at least partly street-running. On fully grade-separated corridors, they are weaker: for example, the vehicles are short, and at the scale expected for IBX several would need to be coupled, wasting space on cabs that on an ALM train would be carrying passengers. ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21923,
-              "startIndex": 21919,
+              "endIndex": 22229,
+              "startIndex": 22225,
               "textRun": {
                 "content": "LRVs",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21949,
-              "startIndex": 21923,
+              "endIndex": 22255,
+              "startIndex": 22229,
               "textRun": {
                 "content": " are also normally narrow,",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 21950,
+              "endIndex": 22256,
               "footnoteReference": {
                 "footnoteId": "kix.r3r96gfsimw",
                 "footnoteNumber": "31",
                 "textStyle": {}
               },
-              "startIndex": 21949
+              "startIndex": 22255
             },
             {
-              "endIndex": 21967,
-              "startIndex": 21950,
+              "endIndex": 22273,
+              "startIndex": 22256,
               "textRun": {
                 "content": " even though the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 22003,
-              "startIndex": 21967,
+              "endIndex": 22309,
+              "startIndex": 22273,
               "textRun": {
                 "content": "existing tunnels permit wider trains",
                 "textStyle": {
@@ -6223,8 +6266,8 @@
               }
             },
             {
-              "endIndex": 22005,
-              "startIndex": 22003,
+              "endIndex": 22311,
+              "startIndex": 22309,
               "textRun": {
                 "content": ".\n",
                 "textStyle": {}
@@ -6236,23 +6279,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 21593
+        "startIndex": 21899
       },
       {
-        "endIndex": 22363,
+        "endIndex": 22669,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 22314,
-              "startIndex": 22005,
+              "endIndex": 22620,
+              "startIndex": 22311,
               "textRun": {
                 "content": "Hopefully this is a case where the public-facing website was not updated with the latest planning. The alternatives are far worse: either good right-of-way decisions are not percolating over to rolling stock procurement, or the MTA is simply making the right decision without understanding the deeper reasons ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 22317,
-              "startIndex": 22314,
+              "endIndex": 22623,
+              "startIndex": 22620,
               "textRun": {
                 "content": "why",
                 "textStyle": {
@@ -6261,8 +6304,8 @@
               }
             },
             {
-              "endIndex": 22363,
-              "startIndex": 22317,
+              "endIndex": 22669,
+              "startIndex": 22623,
               "textRun": {
                 "content": " full grade separation is the right decision.\n",
                 "textStyle": {}
@@ -6274,15 +6317,15 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 22005
+        "startIndex": 22311
       },
       {
-        "endIndex": 22374,
+        "endIndex": 22680,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 22374,
-              "startIndex": 22363,
+              "endIndex": 22680,
+              "startIndex": 22669,
               "textRun": {
                 "content": "Conclusion\n",
                 "textStyle": {}
@@ -6303,15 +6346,15 @@
             }
           }
         },
-        "startIndex": 22363
+        "startIndex": 22669
       },
       {
-        "endIndex": 23279,
+        "endIndex": 23585,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 23279,
-              "startIndex": 22374,
+              "endIndex": 23585,
+              "startIndex": 22680,
               "textRun": {
                 "content": "The MTA should be careful to avoid letting legacy technology and standards hold back the IBX. It\u2019s a new, isolated line, which gives it a chance to start fresh for once and make better choices without the legacy constraints. Unlike with the subway, there isn\u2019t a century of physical and operational constraints holding it back. The IBX can start from Day One with automation, PSDs, and high-floor light metro trains. It doesn\u2019t have to worry about expensive PSD retrofits, as it can build them cheaply before it even opens. It doesn\u2019t have to worry about interoperability with a huge existing network, so it can freely automate and not worry about expensive rolling stock customization. Accordingly, the MTA needs to be careful to not allow legacy standards from either the subway, the American practice of street-running light rail, or even their pre-All Faiths Tunnel planning to seep into the project.\n",
                 "textStyle": {}
@@ -6323,23 +6366,23 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 22374
+        "startIndex": 22680
       },
       {
-        "endIndex": 23973,
+        "endIndex": 24279,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 23580,
-              "startIndex": 23279,
+              "endIndex": 23886,
+              "startIndex": 23585,
               "textRun": {
                 "content": "The IBX need not be designed around the subway\u2019s A or B division standards nor the narrow LRVs designed for street-running. Their width should only be dictated by physical constraints like the width of the existing East NY Tunnel, but should otherwise be maximized for it. Its signaling should not be ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 23611,
-              "startIndex": 23580,
+              "endIndex": 23917,
+              "startIndex": 23886,
               "textRun": {
                 "content": "constrained by the I2S standard",
                 "textStyle": {
@@ -6360,8 +6403,8 @@
               }
             },
             {
-              "endIndex": 23973,
-              "startIndex": 23611,
+              "endIndex": 24279,
+              "startIndex": 23917,
               "textRun": {
                 "content": " developed for interoperable CBTC on the subway. Its floor height need not be dictated by the existing subway or LRVs meant to stop at on-street stations; it should be dictated by whatever height allows for the most open interior, mechanical reliability, and the smoothest suspension that enables the train to be as close to level with the platform as possible.\n",
                 "textStyle": {}
@@ -6373,32 +6416,32 @@
             "namedStyleType": "NORMAL_TEXT"
           }
         },
-        "startIndex": 23279
+        "startIndex": 23585
       },
       {
-        "endIndex": 24878,
+        "endIndex": 25184,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 24645,
-              "startIndex": 23973,
+              "endIndex": 24951,
+              "startIndex": 24279,
               "textRun": {
                 "content": "The IBX provides a golden opportunity for the MTA to start from a blank slate and make the right decisions by embracing the automated light metro. ALM would multiply the benefits to Queens and Brooklyn that the IBX project stands to deliver. Moreover, beyond the immense benefits for the IBX itself, it would serve as a proof-of-concept for and a new standard for potential future ALM systems on other corridors, such as in outer Queens and Brooklyn, across the Bronx, or potentially New Jersey. They can follow in the footsteps of projects like Montreal\u2019s REM, which the IBX team has toured, and which similarly eschewed the existing constraints of the rubber-tired metro",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 24646,
+              "endIndex": 24952,
               "footnoteReference": {
                 "footnoteId": "kix.psucohojhjeu",
                 "footnoteNumber": "32",
                 "textStyle": {}
               },
-              "startIndex": 24645
+              "startIndex": 24951
             },
             {
-              "endIndex": 24878,
-              "startIndex": 24646,
+              "endIndex": 25184,
+              "startIndex": 24952,
               "textRun": {
                 "content": " and the struggling commuter rail to create a new network of rapid, frequent ALM. Or they can follow Paris, which is building the Grand Paris Express, a new network of much faster and steel-wheeled ALMs, starting with the M15 ring.\n",
                 "textStyle": {}
@@ -6418,23 +6461,23 @@
             }
           }
         },
-        "startIndex": 23973
+        "startIndex": 24279
       },
       {
-        "endIndex": 25792,
+        "endIndex": 26098,
         "paragraph": {
           "elements": [
             {
-              "endIndex": 24978,
-              "startIndex": 24878,
+              "endIndex": 25284,
+              "startIndex": 25184,
               "textRun": {
                 "content": "It\u2019s clear that the MTA has listened to ETA before about the IBX. After ETA discovered that, in the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 24993,
-              "startIndex": 24978,
+              "endIndex": 25299,
+              "startIndex": 25284,
               "textRun": {
                 "content": "IBX\u2019s PEL study",
                 "textStyle": {
@@ -6455,16 +6498,16 @@
               }
             },
             {
-              "endIndex": 25014,
-              "startIndex": 24993,
+              "endIndex": 25320,
+              "startIndex": 25299,
               "textRun": {
                 "content": ", peak ridership was ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25048,
-              "startIndex": 25014,
+              "endIndex": 25354,
+              "startIndex": 25320,
               "textRun": {
                 "content": "already above the maximum capacity",
                 "textStyle": {
@@ -6485,16 +6528,16 @@
               }
             },
             {
-              "endIndex": 25122,
-              "startIndex": 25048,
+              "endIndex": 25428,
+              "startIndex": 25354,
               "textRun": {
                 "content": " of street-running LRT, rendering street-running LRT infeasible, and then ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25153,
-              "startIndex": 25122,
+              "endIndex": 25459,
+              "startIndex": 25428,
               "textRun": {
                 "content": "pushed for an All Faiths tunnel",
                 "textStyle": {
@@ -6515,16 +6558,16 @@
               }
             },
             {
-              "endIndex": 25159,
-              "startIndex": 25153,
+              "endIndex": 25465,
+              "startIndex": 25459,
               "textRun": {
                 "content": ", the ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25183,
-              "startIndex": 25159,
+              "endIndex": 25489,
+              "startIndex": 25465,
               "textRun": {
                 "content": "MTA announced the tunnel",
                 "textStyle": {
@@ -6545,33 +6588,33 @@
               }
             },
             {
-              "endIndex": 25402,
-              "startIndex": 25183,
+              "endIndex": 25708,
+              "startIndex": 25489,
               "textRun": {
                 "content": ". After ETA members suggested in the Draft Scoping Public Comment that the IBX should consider 1500 V DC catenary, not just 750 V, in order to reduce the number of substations and thus takings needed, the MTA studied it",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25403,
+              "endIndex": 25709,
               "footnoteReference": {
                 "footnoteId": "kix.xlv315vp2fsl",
                 "footnoteNumber": "33",
                 "textStyle": {}
               },
-              "startIndex": 25402
+              "startIndex": 25708
             },
             {
-              "endIndex": 25412,
-              "startIndex": 25403,
+              "endIndex": 25718,
+              "startIndex": 25709,
               "textRun": {
                 "content": " and has ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25445,
-              "startIndex": 25412,
+              "endIndex": 25751,
+              "startIndex": 25718,
               "textRun": {
                 "content": "shifted to planning for 1500 V DC",
                 "textStyle": {
@@ -6592,16 +6635,16 @@
               }
             },
             {
-              "endIndex": 25447,
-              "startIndex": 25445,
+              "endIndex": 25753,
+              "startIndex": 25751,
               "textRun": {
                 "content": ", ",
                 "textStyle": {}
               }
             },
             {
-              "endIndex": 25495,
-              "startIndex": 25447,
+              "endIndex": 25801,
+              "startIndex": 25753,
               "textRun": {
                 "content": "reducing the number of substations from 16 to 10",
                 "textStyle": {
@@ -6622,8 +6665,8 @@
               }
             },
             {
-              "endIndex": 25792,
-              "startIndex": 25495,
+              "endIndex": 26098,
+              "startIndex": 25801,
               "textRun": {
                 "content": ". This shows the MTA choosing the more optimal technology without being beholden to existing constraints or outdated assumptions. We hope the MTA will continue to recognize the merits of our suggestions and build the IBX as ALM: fully automated with PSDs and high-floor light metro rolling stock.\n",
                 "textStyle": {}
@@ -6643,7 +6686,7 @@
             }
           }
         },
-        "startIndex": 24878
+        "startIndex": 25184
       }
     ]
   },
@@ -6934,7 +6977,7 @@
     "kix.1lrumktil480": {
       "content": [
         {
-          "endIndex": 306,
+          "endIndex": 455,
           "paragraph": {
             "elements": [
               {
@@ -6976,10 +7019,10 @@
                 }
               },
               {
-                "endIndex": 306,
+                "endIndex": 455,
                 "startIndex": 38,
                 "textRun": {
-                  "content": ", a bit longer than the 260 ft Hitachi Driverless Metro trains on Honolulu Skyline. The 260 ft length and 800/train capacity of Honolulu\u2019s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.\n",
+                  "content": ", a bit longer than the 260 ft Hitachi Driverless Metro trains on Honolulu Skyline. However, this is an upper bound for IBX stations, as they are just ensuring everything is built for at least 325 ft until rolling stock is selected. The 260 ft length and 800/train capacity of Honolulu\u2019s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.\n",
                   "textStyle": {
                     "fontSize": {
                       "magnitude": 10,
@@ -11492,7 +11535,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-16T16:47:27.797Z",
+  "modifiedTime": "2026-10-16T17:19:26.782Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
