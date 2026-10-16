@@ -24,7 +24,6 @@
     [the #raw("Header") section has no #raw("Publish Due Date:") line],
     [the #raw("Header") section has no #raw("Goals:") line],
     [the #raw("Header") section has no #raw("Audience:") line],
-    [the #raw("Header") section has no #raw("Short:") line],
     [the #raw("Header") section has no #raw("SEO Description:") line],
     [the #raw("Header") section has no #raw("Social Title Card:") line],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...o make is the one that you don't have to think about.")],

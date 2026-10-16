@@ -307,7 +307,6 @@ Header
 Project Manager: Khyber Sen
 Phase: published
 URL: /reports/digging-out-deep-hole-sas-west
-Short: A 125 St subway should be a slam dunk. But at $7.7B ...
 SEO Description: A 125 St subway should be a slam dunk ...
 ```
 
@@ -316,7 +315,7 @@ The converter reads that block into metadata and keeps it out of the body.
 rather than published under a guess at it.
 `SEO Description:` becomes the page description
 and the summary on the report's card in the site index,
-`Short:` is not published,
+`Short:` is no longer used and warns, to be deleted,
 `Public Contributors:` becomes the byline,
 named the way the header lists them,
 and `Final Due Date:` becomes the dateline.
@@ -471,7 +470,7 @@ and the line looks correct.
 In a terminal they are highlighted as well as drawn.
 
 These read the whole document: the body, the headings, the captions,
-the footnotes, and the header's own prose in `Short:` and `SEO Description:`.
+the footnotes, and the header's own prose in `SEO Description:`.
 
 # How it works
 

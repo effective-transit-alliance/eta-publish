@@ -10,7 +10,6 @@
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
     [10 suggestions still open on this tab; the build publishes the document without them, as it reads today],
-    [the #raw("Header") section has no #raw("Short:") line],
   ),
   hero: [
 #figure(

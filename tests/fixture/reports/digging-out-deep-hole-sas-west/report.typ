@@ -9,6 +9,7 @@
   contributors: (),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
+    [the #raw("Short:") line is no longer used; delete it from the #raw("Header") section],
     [the #raw("Header") section has an unrecognized #raw("MTA SAS West Feasibility Study:") line; check it for a typo],
   ),
 )

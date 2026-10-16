@@ -166,9 +166,9 @@ def test_a_figure_missing_both_says_both(doc: Document) -> None:
 
 def test_an_unfinished_header_line_is_flagged(doc: Document) -> None:
     """The body walk never sees the header: it is consumed before that walk begins."""
-    doc.meta["Short"] = "TODO write this"
+    doc.meta["SEO Description"] = "TODO write this"
     check(doc)
-    assert [str(w) for w in doc.warnings] == ["`Short:` is still marked unfinished"]
+    assert [str(w) for w in doc.warnings] == ["`SEO Description:` is still marked unfinished"]
 
 
 def test_open_suggestions_are_flagged(doc: Document) -> None:
@@ -306,16 +306,17 @@ def test_all_the_tagged_sources_are_listed_together(doc: Document) -> None:
 
 
 def test_a_header_field_in_the_body_is_warned_about(doc: Document) -> None:
-    """A `Short:` line under the headline is not the header's `Short:`.
+    """A `SEO Description:` line under the headline is not the header's.
 
     It publishes as a paragraph, and the field it was meant to fill
     is reported missing elsewhere in the same build.
     """
-    doc.blocks = [Paragraph(content=_labelled("Short", ": A 125 St subway should be a slam dunk."))]
+    line = _labelled("SEO Description", ": A 125 St subway should be a slam dunk.")
+    doc.blocks = [Paragraph(content=line)]
     check(doc)
     assert [str(w) for w in doc.warnings] == [
-        "`Short:` is a `Header` field, and this one is outside it: "
-        "`Short: A 125 St subway should be a slam dunk.`"
+        "`SEO Description:` is a `Header` field, and this one is outside it: "
+        "`SEO Description: A 125 St subway should be a slam dunk.`"
     ]
 
 

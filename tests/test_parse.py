@@ -70,12 +70,14 @@ def test_an_unrecognized_header_key_is_kept_and_does_not_end_the_scan(doc: Docum
     assert doc.meta["SEO Description"] == "Cheaper, shallower, faster."
 
 
-def test_the_fixture_raises_only_the_unrecognized_field_warning(doc: Document) -> None:
-    """The one warning is the `MTA SAS West Feasibility Study:` line above,
-    which is a reference the header carries and not a field anything reads."""
+def test_the_fixture_raises_only_the_header_field_warnings(doc: Document) -> None:
+    """The `MTA SAS West Feasibility Study:` line above is a reference the header
+    carries and not a field anything reads, and its `Short:` is from before
+    the SEO description replaced it."""
     assert [str(w) for w in doc.warnings] == [
+        "the `Short:` line is no longer used; delete it from the `Header` section",
         "the `Header` section has an unrecognized "
-        "`MTA SAS West Feasibility Study:` line; check it for a typo"
+        "`MTA SAS West Feasibility Study:` line; check it for a typo",
     ]
 
 
@@ -318,3 +320,11 @@ def test_a_social_title_card_line_with_no_picture_under_it_warns() -> None:
     doc = _social_card_doc(_field_para("Social Title Card: card.png"))
     assert doc.card is None
     assert [w for w in doc.warnings if "has no picture under it" in str(w)]
+
+
+def test_a_short_line_is_said_to_be_no_longer_used() -> None:
+    """Not a typo to check for, as an unknown field is, but a line to delete."""
+    doc = _social_card_doc(_field_para("Short: The short."))
+    warnings = [str(w) for w in doc.warnings]
+    assert "the `Short:` line is no longer used; delete it from the `Header` section" in warnings
+    assert not [w for w in warnings if "unrecognized" in w]

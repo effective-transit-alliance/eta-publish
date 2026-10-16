@@ -90,7 +90,6 @@ REQUIRED_FIELDS = (
     "Public Contributors",
     "Private Contributors",
     "URL",
-    "Short",
     "SEO Description",
     "Social Title Card",
 )
@@ -125,12 +124,19 @@ SOCIAL_CARD = "Social Title Card"
 What Squarespace calls the page's social image: what a link to the report unfurls as.
 The value is the file's name, linked to the file; the picture is what publishes."""
 
+RETIRED_FIELDS = frozenset({"Short"})
+"""Fields older reports carry that nothing reads any more.
+
+`Short:` was the summary before the SEO description took over everywhere one shows.
+Said apart from an unknown field, which is likelier a typo to fix than a line to delete.
+"""
+
 KNOWN_FIELDS = frozenset(REQUIRED_FIELDS) | frozenset(OPTIONAL_FIELDS)
 """Every field name the header is allowed to use.
 
 A key outside this is kept and warned about rather than dropped:
 the likeliest reason for one is a misspelling,
-and a misspelled `Short:` is a report that publishes with no short at all
+and a misspelled `SEO Description:` is a report that publishes with no description at all
 and says nothing about why.
 """
 
@@ -1459,8 +1465,8 @@ class Parser:
                 "no front matter found; expected a leading {} section with {}, {}, and {} lines",
                 Shown("Header"),
                 Shown("URL:"),
-                Shown("Short:"),
                 Shown("SEO Description:"),
+                Shown("Social Title Card:"),
             )
             return content
 
@@ -1551,8 +1557,8 @@ class Parser:
                 Shown("Header"),
                 Shown("Key: value"),
                 Shown("URL:"),
-                Shown("Short:"),
                 Shown("SEO Description:"),
+                Shown("Social Title Card:"),
             )
         return [content[i] for i in pictures if i < end] + content[end:]
 
@@ -1611,11 +1617,17 @@ class Parser:
     def _meta_line(self, key: str, value: str) -> str:
         """Record one `Key: value` header line, and answer which key it set."""
         value = value.strip()
-        if key not in KNOWN_FIELDS:
+        if key in RETIRED_FIELDS:
+            self.doc.warn(
+                "the {} line is no longer used; delete it from the {} section",
+                Shown(f"{key}:"),
+                Shown("Header"),
+            )
+        elif key not in KNOWN_FIELDS:
             # A field nothing reads is a field nobody notices is missing.
             # Worth a warning even though the value is kept,
             # because the likeliest reason for one is a misspelling,
-            # and a misspelled `Short:` publishes as no short at all.
+            # and a misspelled `URL:` publishes nowhere at all.
             self.doc.warn(
                 "the {} section has an unrecognized {} line; check it for a typo",
                 Shown("Header"),

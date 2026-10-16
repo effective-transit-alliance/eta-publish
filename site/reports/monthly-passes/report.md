@@ -25,7 +25,6 @@
 - the `Header` section has no `Publish Due Date:` line
 - the `Header` section has no `Goals:` line
 - the `Header` section has no `Audience:` line
-- the `Header` section has no `Short:` line
 - the `Header` section has no `SEO Description:` line
 - the `Header` section has no `Social Title Card:` line
 - style: an apostrophe should be `’`, not `'`: `...o make is the one that you don't have to think about.`
