@@ -474,8 +474,8 @@ def _built(
             paste = [
                 ("SEO title", doc.title),
                 ("SEO description", doc.meta.get("SEO Description", "")),
-                # A blog post's only; a page has no excerpt, and prints none.
-                ("Excerpt", doc.meta.get("Excerpt", "")),
+                # A blog post's excerpt, or a page's line in `What's New`.
+                ("Short", doc.meta.get("Short", "")),
                 ("Social image", social_image(doc, path)),
             ]
             console.write(console.built(named, path, doc.warnings, log, paste), log)
@@ -560,8 +560,8 @@ def index_page(site: Site) -> str:
                 *thumbnail,
                 *phase,
                 tag.a(href=f"{built.path}/")[tag.strong[doc.title]],
-                # What Squarespace previews in a search result, so the card says the same.
-                tag.div(class_="short")[doc.meta.get("SEO Description", "")],
+                # What a blog post's excerpt or `What's New` says, so the card says the same.
+                tag.div(class_="short")[doc.meta.get("Short", "")],
                 tag.div(class_="meta")[" · ".join(meta), warned],
             ]
         )

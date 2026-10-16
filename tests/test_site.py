@@ -515,14 +515,14 @@ def test_the_index_lists_what_built_and_what_did_not(doc: Document) -> None:
     assert "Next: not found" in page
 
 
-def test_a_card_summarizes_the_report_by_its_seo_description(doc: Document) -> None:
-    """What Squarespace previews in a search result, not `Short:`, which is not published."""
+def test_a_card_summarizes_the_report_by_its_short(doc: Document) -> None:
+    """What a blog post's excerpt or `What's New` says, not the search result's preview."""
     doc.meta["Short"] = "The short."
     doc.meta["SEO Description"] = "The SEO description."
     site = Site(built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="r/s")])
     page = index_page(site)
-    assert "The SEO description." in page
-    assert "The short." not in page
+    assert "The short." in page
+    assert "The SEO description." not in page
 
 
 def test_only_one_document_or_list_at_a_time() -> None:

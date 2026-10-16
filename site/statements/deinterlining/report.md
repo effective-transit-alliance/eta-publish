@@ -37,6 +37,7 @@
 - the `Header` section has no `Publish Due Date:` line
 - the `Header` section has no `Goals:` line
 - the `Header` section has no `Audience:` line
+- the `Header` section has no `Short:` line
 - the `Header` section has no `SEO Description:` line
 - the `Header` section has no `Social Title Card:` line
 - style: an apostrophe should be `’`, not `'`: `...ry train is running at a snail's pace, all due to an incident...`

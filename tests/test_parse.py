@@ -72,11 +72,8 @@ def test_an_unrecognized_header_key_is_kept_and_does_not_end_the_scan(doc: Docum
 
 def test_the_fixture_raises_only_the_header_field_warnings(doc: Document) -> None:
     """The `MTA SAS West Feasibility Study:` line above is a reference the header
-    carries and not a field anything reads, and its `Short:` is from before
-    the SEO description replaced it."""
+    carries and not a field anything reads."""
     assert [str(w) for w in doc.warnings] == [
-        "the `Short:` line is no longer used; if it is a blog post's excerpt, "
-        "rename it `Excerpt:`, and otherwise delete it",
         "the `Header` section has an unrecognized "
         "`MTA SAS West Feasibility Study:` line; check it for a typo",
     ]
@@ -324,21 +321,18 @@ def test_a_social_title_card_line_with_no_picture_under_it_warns() -> None:
     assert [w for w in doc.warnings if "has no picture under it" in str(w)]
 
 
-def test_a_short_line_is_said_to_be_no_longer_used() -> None:
-    """Not a typo to check for, as an unknown field is, but a line to delete."""
-    doc = _social_card_doc(_field_para("Short: The short."))
+def test_an_excerpt_line_is_said_to_be_no_longer_used() -> None:
+    """Not a typo to check for, as an unknown field is, but a line to rename."""
+    doc = _social_card_doc(_field_para("Excerpt: The excerpt."))
     warnings = [str(w) for w in doc.warnings]
-    assert (
-        "the `Short:` line is no longer used; if it is a blog post's excerpt, "
-        "rename it `Excerpt:`, and otherwise delete it"
-    ) in warnings
+    assert "the `Excerpt:` line is no longer used; rename it `Short:`" in warnings
     assert not [w for w in warnings if "unrecognized" in w]
 
 
-def test_an_excerpt_is_a_header_field() -> None:
-    doc = _social_card_doc(_field_para("Excerpt: The excerpt."))
-    assert doc.meta["Excerpt"] == "The excerpt."
-    assert not [w for w in doc.warnings if "Excerpt" in str(w)]
+def test_a_short_is_a_header_field() -> None:
+    doc = _social_card_doc(_field_para("Short: The short."))
+    assert doc.meta["Short"] == "The short."
+    assert not [w for w in doc.warnings if "Short" in str(w)]
 
 
 def test_a_subtitle_finishing_a_headline_that_ends_in_a_colon_is_part_of_the_title() -> None:

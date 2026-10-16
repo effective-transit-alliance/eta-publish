@@ -313,10 +313,10 @@ SEO Description: A 125 St subway should be a slam dunk ...
 The converter reads that block into metadata and keeps it out of the body.
 `URL:` becomes the published path, and a document without one is refused
 rather than published under a guess at it.
-`SEO Description:` becomes the page description
+`SEO Description:` becomes the page description,
+`Short:` is a blog post's Squarespace excerpt, or a page's line in `What's New`,
 and the summary on the report's card in the site index,
-`Excerpt:` is what a Squarespace blog post shows as its summary, and is optional,
-`Short:` is no longer used and warns, suggesting `Excerpt:`,
+`Excerpt:` is no longer used and warns, suggesting `Short:`,
 `Public Contributors:` becomes the byline,
 named the way the header lists them,
 and `Final Due Date:` becomes the dateline.

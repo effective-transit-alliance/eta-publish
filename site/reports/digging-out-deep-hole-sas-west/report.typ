@@ -9,7 +9,6 @@
   contributors: ("Madison Feinberg", "Robert Hale", "Darius Jankauskas", "Tim Lazaroff", "Alon Levy", "Blair Lorenzo", "William Meehan", "Khyber Sen", "Franklin Tang", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
-    [the #raw("Short:") line is no longer used; if it is a blog post's excerpt, rename it #raw("Excerpt:"), and otherwise delete it],
     [write #raw("Image Source") as a #raw("Source:") line above the image instead; it takes a URL as well: #raw("https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement")],
     [write #raw("Image Source") as a #raw("Source:") line above the image instead; it takes a URL as well: #raw("https://mmbiz.qpic.cn/mmbiz_jpg/R3QIfMDE0S8gZDEZoDp8r03hqSf32rQ8sC8poo18ZicPdd2e3RCMhCgKibrXHdwWEibmd29jWrRWxpgE8hf25f9FA/")],
     [write #raw("Image Source") as a #raw("Source:") line above the image instead; it takes a URL as well: #raw("https://mmbiz.qpic.cn/mmbiz_png/ZHDc6XLp5hBdZC053hhqPT42S3vG38tCIgluQfqJmxdOIARqrQMFiaFWFeX6MNEhx8mibVnB36mrTicQicNA5Jzh0Q/")],

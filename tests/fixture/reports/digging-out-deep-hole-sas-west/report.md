@@ -2,7 +2,6 @@
 
 **Warnings**
 
-- the `Short:` line is no longer used; if it is a blog post's excerpt, rename it `Excerpt:`, and otherwise delete it
 - the `Header` section has an unrecognized `MTA SAS West Feasibility Study:` line; check it for a typo
 
 ## The Elephants in the Room

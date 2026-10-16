@@ -138,7 +138,6 @@ KNOWN_WARNINGS = (
     "the `Header` section has no `Goals:` line",
     "the `Header` section has no `Audience:` line",
     "the `Header` section has no `Social Title Card:` line",
-    "the `Short:` line is no longer used",
     "as a `Source:` line above the image instead",
     "unnamed, so each publishes under a hash",
     "suggestions still open on this tab",

@@ -90,6 +90,7 @@ REQUIRED_FIELDS = (
     "Public Contributors",
     "Private Contributors",
     "URL",
+    "Short",
     "SEO Description",
     "Social Title Card",
 )
@@ -116,9 +117,6 @@ OPTIONAL_FIELDS = (
     "Press Due Date",
     "Final Due Date",
     "Title",
-    # What a Squarespace blog post shows as its summary on blog lists and cards.
-    # A page has none, so only a report published as a post needs one.
-    "Excerpt",
 )
 
 SOCIAL_CARD = "Social Title Card"
@@ -127,11 +125,10 @@ SOCIAL_CARD = "Social Title Card"
 What Squarespace calls the page's social image: what a link to the report unfurls as.
 The value is the file's name, linked to the file; the picture is what publishes."""
 
-RETIRED_FIELDS = frozenset({"Short"})
+RETIRED_FIELDS = frozenset({"Excerpt"})
 """Fields older reports carry that nothing reads any more.
 
-`Short:` was the summary before the SEO description took over everywhere one shows;
-a blog post's own summary is its `Excerpt:`, which is likely what it was meant to be.
+`Excerpt:` was a blog post's summary for a while, which is what `Short:` is again.
 Said apart from an unknown field, which is likelier a typo to fix than a line to delete.
 """
 
@@ -1626,10 +1623,9 @@ class Parser:
         value = value.strip()
         if key in RETIRED_FIELDS:
             self.doc.warn(
-                "the {} line is no longer used; if it is a blog post's excerpt, "
-                "rename it {}, and otherwise delete it",
+                "the {} line is no longer used; rename it {}",
                 Shown(f"{key}:"),
-                Shown("Excerpt:"),
+                Shown("Short:"),
             )
         elif key not in KNOWN_FIELDS:
             # A field nothing reads is a field nobody notices is missing.
