@@ -11,7 +11,7 @@ from paths import FIXTURE_DIR, named_images
 
 from eta_publish.emit.base import shown_url
 from eta_publish.emit.html import HtmlEmitter, link_mark, markup, report_page
-from eta_publish.nodes import Document, Heading, Paragraph, Shown, Text
+from eta_publish.nodes import Document, Heading, Image, Paragraph, Shown, Text
 from eta_publish.parse import parse
 
 FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
@@ -544,3 +544,17 @@ def test_the_masthead_links_the_pdf_where_it_is_given(doc: Document) -> None:
 
 def test_the_masthead_links_no_pdf_unless_given(doc: Document) -> None:
     assert 'class="pdf"' not in HtmlEmitter().emit(doc)
+
+
+def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) -> None:
+    """A preview fetches the card from wherever the link was posted,
+    and shows a picture only when `og:image` is absolute."""
+    doc.card = Image(object_id="io.card", filename="card")
+    doc.image_files["io.card"] = "card.jpg"
+    doc.image_shapes["io.card"] = (1200, 628)
+    page = report_page(doc, card_base="https://example.invalid/r/images")
+    assert 'property="og:image" content="https://example.invalid/r/images/card.jpg"' in page
+    assert 'property="og:image:width" content="1200"' in page
+    assert 'property="og:image:height" content="628"' in page
+    assert 'name="twitter:card" content="summary_large_image"' in page
+    assert 'property="og:type" content="article"' in page

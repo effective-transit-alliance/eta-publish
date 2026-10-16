@@ -1238,7 +1238,11 @@ PAGE_CSS = read("page.css")
 
 
 def report_page(
-    doc: Document, image_base: str = IMAGE_DIR, asset_base: str = ASSET_DIR, pdf_href: str = ""
+    doc: Document,
+    image_base: str = IMAGE_DIR,
+    asset_base: str = ASSET_DIR,
+    pdf_href: str = "",
+    card_base: str = "",
 ) -> str:
     """The whole report as a page,
     which is what a build writes as `index.html` and what the site serves.
@@ -1246,6 +1250,10 @@ def report_page(
     Not the fragment with a wrapper bolted on:
     `report.html` is a `div` to paste into a Squarespace code block,
     which inherits the site's typography and has nowhere to put a warning.
+
+    `card_base` is where the site serves the images, as a URL:
+    a link preview fetches the card from wherever the link was posted,
+    so `og:image` has to be absolute, and a relative one shows no picture at all.
     """
     body = HtmlEmitter(
         image_base=image_base,
@@ -1261,10 +1269,20 @@ def report_page(
     description = doc.meta.get("SEO Description", "")
     if doc.card is not None:
         href = doc.image_href(doc.card)
-        src = f"{image_base}/{href}" if image_base else href
+        base = card_base or image_base
+        src = f"{base}/{href}" if base else href
         card.append(htpy.meta(property="og:image", content=src))
+        # So a preview can lay the card out before it has fetched it,
+        # which is what a first share of a link gets otherwise: no picture.
+        size = doc.image_shapes.get(doc.card.object_id)
+        if size is not None:
+            card.append(htpy.meta(property="og:image:width", content=str(size[0])))
+            card.append(htpy.meta(property="og:image:height", content=str(size[1])))
         if doc.card.alt:
             card.append(htpy.meta(property="og:image:alt", content=doc.card.alt))
+        # The card across the whole preview rather than as a small square beside it,
+        # which is what X shows without this.
+        card.append(htpy.meta(name="twitter:card", content="summary_large_image"))
     head: list[Piece] = [
         htpy.meta(charset="utf-8"),
         htpy.meta(name="viewport", content="width=device-width, initial-scale=1"),
@@ -1280,6 +1298,8 @@ def report_page(
         tag.title[doc.title],
         htpy.meta(name="description", content=description),
         # What a link to the report unfurls as, beside the card's picture.
+        htpy.meta(property="og:type", content="article"),
+        htpy.meta(property="og:site_name", content="Effective Transit Alliance"),
         htpy.meta(property="og:title", content=doc.title),
         htpy.meta(property="og:description", content=description),
         *card,
