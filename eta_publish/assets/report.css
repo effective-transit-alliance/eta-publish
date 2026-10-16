@@ -134,6 +134,7 @@
   mask: var(--curve);
 }
 .eta-report .dateline { font-size: .95rem; opacity: .75; }
+.eta-report .pdf { font-size: .95rem; }
 .eta-report .standfirst { font-size: 1.15rem; opacity: .75; }
 /* The build's own notes about this report. A colour and a face of their own,
    because they are the one thing on the page that is not the report and

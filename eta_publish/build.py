@@ -223,7 +223,7 @@ def _link_or_copy(source: Path, dest: Path) -> None:
         shutil.copy2(source, dest)
 
 
-def fragment_emitter(image_base: str, linked: str) -> HtmlEmitter:
+def fragment_emitter(image_base: str, linked: str, pdf_href: str = "") -> HtmlEmitter:
     """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
     and carrying them otherwise."""
     return HtmlEmitter(
@@ -231,6 +231,7 @@ def fragment_emitter(image_base: str, linked: str) -> HtmlEmitter:
         inline_css=not linked,
         inline_js=not linked,
         asset_base=linked,
+        pdf_href=pdf_href,
     )
 
 
@@ -496,6 +497,10 @@ def asset_base(path: str) -> str:
     return "/".join([".."] * len(PurePosixPath(path).parts) + [ASSET_DIR])
 
 
+PDF_NAME = "report.pdf"
+"""What `typst` compiles `report.typ` to, beside it."""
+
+
 def media_base(path: str) -> str:
     """Where the site serves the images of the report at `path`, as a URL."""
     return f"{SITE}/{path}/{IMAGE_DIR}"
@@ -507,12 +512,17 @@ def emit(
     assets: str = ASSET_DIR,
     images: str = IMAGE_DIR,
     linked: str = "",
+    pdf: str = "",
 ) -> dict[str, Path]:
     """Run each emitter,
-    reporting the ones not yet implemented rather than failing the whole build for them."""
+    reporting the ones not yet implemented rather than failing the whole build for them.
+
+    `pdf` is where `report.html` links the PDF: the site's copy, since the fragment
+    is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
+    """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        "report.html": fragment_emitter(images, linked),
+        "report.html": fragment_emitter(images, linked, pdf),
         "report.md": MarkdownEmitter(),
         "report.typ": TypstEmitter(),
     }
@@ -521,7 +531,7 @@ def emit(
     # `/reports/<slug>/` serves the report rather than a listing of files.
     # `report.html` beside it is the fragment, a piece of a page rather than one.
     page = outdir / "index.html"
-    page.write_text(report_page(doc, asset_base=assets))
+    page.write_text(report_page(doc, asset_base=assets, pdf_href=PDF_NAME))
     written[page.name] = page
     for name, emitter in emitters.items():
         try:
@@ -856,7 +866,8 @@ def build_one(
     images = media_base(path) if options.hosted_media else IMAGE_DIR
     console.step("writing the outputs")
     linked = "" if options.embed_assets else f"{SITE}/{ASSET_DIR}"
-    written = emit(doc, dest, asset_base(path), images, linked)
+    pdf = f"{SITE}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
+    written = emit(doc, dest, asset_base(path), images, linked, pdf)
 
     typ = written.get("report.typ")
     if typ is not None:

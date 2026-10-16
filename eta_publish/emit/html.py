@@ -228,6 +228,7 @@ class HtmlEmitter(Emitter):
         inline_js: bool = True,
         inline_phase: bool = True,
         asset_base: str = "",
+        pdf_href: str = "",
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -242,6 +243,8 @@ class HtmlEmitter(Emitter):
         # Off for a page, which writes the phase above the headline itself;
         # on for the fragment, which emits it with the rest of the report.
         self.inline_phase = inline_phase
+        # Where the report's PDF is, as the masthead links it; empty for no link.
+        self.pdf_href = pdf_href
         self._in_tip = False
         """Whether what is being emitted is the box a reference carries,
         which is a copy of a note and so cannot carry boxes of its own."""
@@ -411,6 +414,7 @@ class HtmlEmitter(Emitter):
             Markup(self.report_title(doc)),
             Markup(self.standfirst(doc)),
             Markup(self.dateline(doc)),
+            Markup(self.pdf_link()),
         ]
         hero = self.blocks([doc.hero] if doc.hero is not None else [])
         return markup(
@@ -484,6 +488,12 @@ class HtmlEmitter(Emitter):
         if not date:
             return ""
         return markup(tag.p(class_="dateline", id="date")[self.mark("date", "date"), date])
+
+    def pdf_link(self) -> str:
+        """A link to the report as a PDF, for a reader who wants to print or keep it."""
+        if not self.pdf_href:
+            return ""
+        return markup(tag.p(class_="pdf", id="pdf")[tag.a(href=self.pdf_href)["PDF version"]])
 
     def warnings(self, doc: Document) -> str:
         """Everything the build has to say about this report, where it will be read.
@@ -1215,7 +1225,9 @@ class HtmlEmitter(Emitter):
 PAGE_CSS = read("page.css")
 
 
-def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = ASSET_DIR) -> str:
+def report_page(
+    doc: Document, image_base: str = IMAGE_DIR, asset_base: str = ASSET_DIR, pdf_href: str = ""
+) -> str:
     """The whole report as a page,
     which is what a build writes as `index.html` and what the site serves.
 
@@ -1228,6 +1240,7 @@ def report_page(doc: Document, image_base: str = IMAGE_DIR, asset_base: str = AS
         inline_css=False,
         inline_js=False,
         inline_phase=False,
+        pdf_href=pdf_href,
     ).emit(doc)
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.

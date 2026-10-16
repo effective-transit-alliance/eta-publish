@@ -253,6 +253,9 @@
   font-size: 0.95rem;
   opacity: 0.75;
 }
+.eta-report .pdf {
+  font-size: 0.95rem;
+}
 .eta-report .standfirst {
   font-size: 1.15rem;
   opacity: 0.75;

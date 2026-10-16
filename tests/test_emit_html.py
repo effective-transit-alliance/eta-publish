@@ -532,3 +532,14 @@ def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> N
     assert 'name="description" content="The SEO description."' in page
     assert 'property="og:description" content="The SEO description."' in page
     assert "The short." not in page
+
+
+def test_the_masthead_links_the_pdf_where_it_is_given(doc: Document) -> None:
+    pdf = "https://kkysen.github.io/eta-publish/reports/sas-west/report.pdf"
+    out = HtmlEmitter(pdf_href=pdf).emit(doc)
+    assert f'<p class="pdf" id="pdf"><a href="{pdf}">PDF version</a></p>' in out
+    assert 'href="report.pdf"' in report_page(doc, pdf_href="report.pdf")
+
+
+def test_the_masthead_links_no_pdf_unless_given(doc: Document) -> None:
+    assert 'class="pdf"' not in HtmlEmitter().emit(doc)
