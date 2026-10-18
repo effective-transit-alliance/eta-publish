@@ -13,4 +13,4 @@ cd "$(dirname "$0")/.."
 src=eta_publish/assets/logo.src.svg
 out=eta_publish/assets/logo.svg
 
-cp "$src" "$out"
+mise x -- svgo --quiet --config scripts/logo.svgo.mjs --input "$src" --output "$out"

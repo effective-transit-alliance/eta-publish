@@ -11,6 +11,8 @@
 # `uv` and `pre-commit` are here so that `mise install` is the whole of setup.
 # Python and the Python tools are not: `uv` manages those through `uv.lock`.
 #
+# `svgo` minifies the logo charts carry; see `scripts/build-logo.sh`.
+#
 # `markdownlint-cli2` is an npm package, so it brings `node`, and the `npm` that comes with it.
 # `min_version` because `mise` 2026.5.6 failed with `invalid versions` installing it
 # wherever `npm` is 12, which is what a global `npm = "latest"` is now.
@@ -21,5 +23,6 @@ biome = "2.3.14"
 ffmpeg = "9.0.2"
 node = "24.21.0"
 "npm:markdownlint-cli2" = "0.23.3"
+"npm:svgo" = "4.0.0"
 pre-commit = "4.6.2"
 uv = "0.12.13"
