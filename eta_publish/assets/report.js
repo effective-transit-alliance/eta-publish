@@ -3,6 +3,8 @@
   // Long enough to cross the gap into the box, short enough that a box left
   // behind is gone before the reader wonders why it is still there.
   const HOLD = 200;
+  // About how long a phone waits before calling a touch a long press.
+  const PRESS = 500;
   const closing = new WeakMap();
   // Where an open box came from: while it is open it is a child of `body`
   // rather than of the reference that owns it.
@@ -59,17 +61,21 @@
     if (ref.classList.contains("cited")) return sourceTip(ref);
     return built.get(ref) || ref.querySelector(".footnote-tip");
   };
+  const hovers = () => matchMedia("(hover: hover)").matches;
   const place = (event) => {
     // The stylesheet shows this on hover only where the device hovers, and a
     // tap raises hover on a touch screen. Asking the same question here keeps
     // the two from disagreeing.
-    if (!matchMedia("(hover: hover)").matches) return;
+    if (!hovers()) return;
     const tip = tipOf(event);
     if (!tip) return;
     clearTimeout(closing.get(tip));
     // Already open: the pointer has only moved within the box or back onto
     // the reference, and measuring again would answer the same.
     if (tip.style.position === "fixed") return;
+    show(tip);
+  };
+  const show = (tip) => {
     const from = tip.parentElement;
     const ref = from.getBoundingClientRect();
     // Moved out to the report for as long as it is open, because a box is only
@@ -105,17 +111,69 @@
   // where it belongs so the reference owns it again. After a pause, because the
   // pointer leaves the reference on its way into the box.
   const release = (event) => {
+    // A finger lifting leaves too, and a pressed box stays until a tap.
+    if (!hovers()) return;
     const tip = tipOf(event);
     if (!tip) return;
     clearTimeout(closing.get(tip));
     closing.set(
       tip,
-      setTimeout(() => {
-        tip.style.cssText = "";
-        home.get(tip)?.append(tip);
-      }, HOLD),
+      setTimeout(() => close(tip), HOLD),
     );
   };
+  const close = (tip) => {
+    tip.style.cssText = "";
+    home.get(tip)?.append(tip);
+  };
+  // Where the device does not hover, a long press on a reference opens its
+  // box, and a tap anywhere outside the box closes it. Android says a press
+  // is long with `contextmenu`; iOS says nothing, so a timer says it there.
+  let held = null;
+  let pressing = 0;
+  let pressed = false;
+  const hold = (target) => {
+    clearTimeout(pressing);
+    const tip = tipOf({ target });
+    if (!tip || tip === held) return;
+    if (held) close(held);
+    show(tip);
+    held = tip;
+    pressed = true;
+  };
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      if (hovers()) return;
+      pressed = false;
+      if (held && !held.contains(event.target)) {
+        close(held);
+        held = null;
+      }
+      if (event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+      clearTimeout(pressing);
+      pressing = setTimeout(() => hold(event.target), PRESS);
+    },
+    { passive: true },
+  );
+  for (const name of ["touchend", "touchmove", "touchcancel"]) {
+    document.addEventListener(name, () => clearTimeout(pressing), { passive: true });
+  }
+  document.addEventListener("contextmenu", (event) => {
+    if (hovers() || event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+    event.preventDefault();
+    hold(event.target);
+  });
+  // The press that opened the box is not also a tap on the link.
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!pressed) return;
+      pressed = false;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    true,
+  );
   // An embed is a card until the reader asks for the player: the card is a
   // link to the post, and the click is what swaps it for the platform's own
   // frame. Nothing of the platform's loads before then.

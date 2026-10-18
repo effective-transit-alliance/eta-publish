@@ -261,49 +261,57 @@
   .eta-report .footnote-ref:focus-within .footnote-tip,
   .eta-report .cited:hover .source-tip,
   .eta-report .cited:focus-within .source-tip { display: block; }
-  /* Under the reference rather than over it, which is where the script
-     usually puts it too, and where it goes when there is no script: over it
-     is outside the window whenever the reader arrived by a backlink.
-
-     Which edge has room is a question about the window, and CSS cannot ask
-     it, so this is a fallback and the script measures. */
-  .eta-report .footnote-tip,
-  .eta-report .source-tip {
-      position: absolute; top: 1.6em; left: 50%; transform: translateX(-50%);
-      z-index: 1; width: max-content; max-width: min(24rem, calc(100vw - 2.5rem));
-      padding: .5em .7em; border-radius: .3em;
-      /* The page names these two and a site pasted into does not, where the
-         system pair is the one thing known to be legible against itself.
-         A tooltip needs an opaque surface: it is over text. */
-      background: var(--bg, Canvas); color: var(--fg, CanvasText);
-      border: 1px solid currentColor;
-      /* `rem`, not `em`: this is inside a `sup`, and an `em` size would be a
-         fraction of an already smaller font, twice over in the footnotes
-         section. The rest is set back to running text because a reference can
-         sit inside a heading or an emphasized run. */
-      font-size: .85rem; font-style: normal; font-weight: normal;
-      line-height: 1.5; text-align: left; vertical-align: baseline;
-      white-space: normal;
-      /* The box is the note, links and all, so it takes the pointer. */
-      pointer-events: auto; }
-  /* The gap between the reference and the box is a gap in the hover as well,
-     and a box that closes when the pointer sets out for it cannot be reached.
-     This is the gap, made part of the box, on both sides because the script
-     puts the box above the reference as readily as below it. Behind the box,
-     so it covers the space and not the page. */
-  .eta-report .footnote-tip::before,
-  .eta-report .source-tip::before {
-      content: ""; position: absolute; left: 0; right: 0;
-      top: -.9rem; bottom: -.9rem; z-index: -1; }
   /* Out of the sentence and still in the markup, where the backlinks land,
      the keyboard stops, and the script finds the entry. Not in a note's box,
      where a citation has no box of its own and the number is the way there. */
   .eta-report.no-source-brackets .source-ref:not(.footnote-tip *) {
       position: absolute; width: 1px; height: 1px; overflow: hidden;
       clip-path: inset(50%); white-space: nowrap; }
-  /* Every link in the note is in the box too. */
-  .eta-report .footnote-tip a,
-  .eta-report .source-tip a { text-decoration: underline; }
+}
+/* Styled outside the query, because a long press opens it where the
+   device does not hover.
+
+   Under the reference rather than over it, which is where the script
+   usually puts it too, and where it goes when there is no script: over it
+   is outside the window whenever the reader arrived by a backlink.
+
+   Which edge has room is a question about the window, and CSS cannot ask
+   it, so this is a fallback and the script measures. */
+.eta-report .footnote-tip,
+.eta-report .source-tip {
+    position: absolute; top: 1.6em; left: 50%; transform: translateX(-50%);
+    z-index: 1; width: max-content; max-width: min(24rem, calc(100vw - 2.5rem));
+    padding: .5em .7em; border-radius: .3em;
+    /* The page names these two and a site pasted into does not, where the
+       system pair is the one thing known to be legible against itself.
+       A tooltip needs an opaque surface: it is over text. */
+    background: var(--bg, Canvas); color: var(--fg, CanvasText);
+    border: 1px solid currentColor;
+    /* `rem`, not `em`: this is inside a `sup`, and an `em` size would be a
+       fraction of an already smaller font, twice over in the footnotes
+       section. The rest is set back to running text because a reference can
+       sit inside a heading or an emphasized run. */
+    font-size: .85rem; font-style: normal; font-weight: normal;
+    line-height: 1.5; text-align: left; vertical-align: baseline;
+    white-space: normal;
+    /* The box is the note, links and all, so it takes the pointer. */
+    pointer-events: auto; }
+/* The gap between the reference and the box is a gap in the hover as well,
+   and a box that closes when the pointer sets out for it cannot be reached.
+   This is the gap, made part of the box, on both sides because the script
+   puts the box above the reference as readily as below it. Behind the box,
+   so it covers the space and not the page. */
+.eta-report .footnote-tip::before,
+.eta-report .source-tip::before {
+    content: ""; position: absolute; left: 0; right: 0;
+    top: -.9rem; bottom: -.9rem; z-index: -1; }
+/* Every link in the note is in the box too. */
+.eta-report .footnote-tip a,
+.eta-report .source-tip a { text-decoration: underline; }
+/* A long press opens the box rather than the browser's own preview of the link. */
+@media not (hover: hover) {
+  .eta-report .footnote-ref a,
+  .eta-report .cited a { -webkit-touch-callout: none; }
 }
 @media print {
   .eta-report .footnote-tip,
@@ -344,6 +352,8 @@
   // Long enough to cross the gap into the box, short enough that a box left
   // behind is gone before the reader wonders why it is still there.
   const HOLD = 200;
+  // About how long a phone waits before calling a touch a long press.
+  const PRESS = 500;
   const closing = new WeakMap();
   // Where an open box came from: while it is open it is a child of `body`
   // rather than of the reference that owns it.
@@ -400,17 +410,21 @@
     if (ref.classList.contains("cited")) return sourceTip(ref);
     return built.get(ref) || ref.querySelector(".footnote-tip");
   };
+  const hovers = () => matchMedia("(hover: hover)").matches;
   const place = (event) => {
     // The stylesheet shows this on hover only where the device hovers, and a
     // tap raises hover on a touch screen. Asking the same question here keeps
     // the two from disagreeing.
-    if (!matchMedia("(hover: hover)").matches) return;
+    if (!hovers()) return;
     const tip = tipOf(event);
     if (!tip) return;
     clearTimeout(closing.get(tip));
     // Already open: the pointer has only moved within the box or back onto
     // the reference, and measuring again would answer the same.
     if (tip.style.position === "fixed") return;
+    show(tip);
+  };
+  const show = (tip) => {
     const from = tip.parentElement;
     const ref = from.getBoundingClientRect();
     // Moved out to the report for as long as it is open, because a box is only
@@ -446,17 +460,69 @@
   // where it belongs so the reference owns it again. After a pause, because the
   // pointer leaves the reference on its way into the box.
   const release = (event) => {
+    // A finger lifting leaves too, and a pressed box stays until a tap.
+    if (!hovers()) return;
     const tip = tipOf(event);
     if (!tip) return;
     clearTimeout(closing.get(tip));
     closing.set(
       tip,
-      setTimeout(() => {
-        tip.style.cssText = "";
-        home.get(tip)?.append(tip);
-      }, HOLD),
+      setTimeout(() => close(tip), HOLD),
     );
   };
+  const close = (tip) => {
+    tip.style.cssText = "";
+    home.get(tip)?.append(tip);
+  };
+  // Where the device does not hover, a long press on a reference opens its
+  // box, and a tap anywhere outside the box closes it. Android says a press
+  // is long with `contextmenu`; iOS says nothing, so a timer says it there.
+  let held = null;
+  let pressing = 0;
+  let pressed = false;
+  const hold = (target) => {
+    clearTimeout(pressing);
+    const tip = tipOf({ target });
+    if (!tip || tip === held) return;
+    if (held) close(held);
+    show(tip);
+    held = tip;
+    pressed = true;
+  };
+  document.addEventListener(
+    "touchstart",
+    (event) => {
+      if (hovers()) return;
+      pressed = false;
+      if (held && !held.contains(event.target)) {
+        close(held);
+        held = null;
+      }
+      if (event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+      clearTimeout(pressing);
+      pressing = setTimeout(() => hold(event.target), PRESS);
+    },
+    { passive: true },
+  );
+  for (const name of ["touchend", "touchmove", "touchcancel"]) {
+    document.addEventListener(name, () => clearTimeout(pressing), { passive: true });
+  }
+  document.addEventListener("contextmenu", (event) => {
+    if (hovers() || event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+    event.preventDefault();
+    hold(event.target);
+  });
+  // The press that opened the box is not also a tap on the link.
+  document.addEventListener(
+    "click",
+    (event) => {
+      if (!pressed) return;
+      pressed = false;
+      event.preventDefault();
+      event.stopPropagation();
+    },
+    true,
+  );
   // An embed is a card until the reader asks for the player: the card is a
   // link to the post, and the click is what swaps it for the platform's own
   // frame. Nothing of the platform's loads before then.

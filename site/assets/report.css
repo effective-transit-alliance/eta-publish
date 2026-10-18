@@ -477,58 +477,6 @@
   .eta-report .cited:focus-within .source-tip {
     display: block;
   }
-  /* Under the reference rather than over it, which is where the script
-     usually puts it too, and where it goes when there is no script: over it
-     is outside the window whenever the reader arrived by a backlink.
-
-     Which edge has room is a question about the window, and CSS cannot ask
-     it, so this is a fallback and the script measures. */
-  .eta-report .footnote-tip,
-  .eta-report .source-tip {
-    position: absolute;
-    top: 1.6em;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1;
-    width: max-content;
-    max-width: min(24rem, calc(100vw - 2.5rem));
-    padding: 0.5em 0.7em;
-    border-radius: 0.3em;
-    /* The page names these two and a site pasted into does not, where the
-         system pair is the one thing known to be legible against itself.
-         A tooltip needs an opaque surface: it is over text. */
-    background: var(--bg, Canvas);
-    color: var(--fg, CanvasText);
-    border: 1px solid currentColor;
-    /* `rem`, not `em`: this is inside a `sup`, and an `em` size would be a
-         fraction of an already smaller font, twice over in the footnotes
-         section. The rest is set back to running text because a reference can
-         sit inside a heading or an emphasized run. */
-    font-size: 0.85rem;
-    font-style: normal;
-    font-weight: normal;
-    line-height: 1.5;
-    text-align: left;
-    vertical-align: baseline;
-    white-space: normal;
-    /* The box is the note, links and all, so it takes the pointer. */
-    pointer-events: auto;
-  }
-  /* The gap between the reference and the box is a gap in the hover as well,
-     and a box that closes when the pointer sets out for it cannot be reached.
-     This is the gap, made part of the box, on both sides because the script
-     puts the box above the reference as readily as below it. Behind the box,
-     so it covers the space and not the page. */
-  .eta-report .footnote-tip::before,
-  .eta-report .source-tip::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: -0.9rem;
-    bottom: -0.9rem;
-    z-index: -1;
-  }
   /* Out of the sentence and still in the markup, where the backlinks land,
      the keyboard stops, and the script finds the entry. Not in a note's box,
      where a citation has no box of its own and the number is the way there. */
@@ -540,10 +488,72 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  /* Every link in the note is in the box too. */
-  .eta-report .footnote-tip a,
-  .eta-report .source-tip a {
-    text-decoration: underline;
+}
+/* Styled outside the query, because a long press opens it where the
+   device does not hover.
+
+   Under the reference rather than over it, which is where the script
+   usually puts it too, and where it goes when there is no script: over it
+   is outside the window whenever the reader arrived by a backlink.
+
+   Which edge has room is a question about the window, and CSS cannot ask
+   it, so this is a fallback and the script measures. */
+.eta-report .footnote-tip,
+.eta-report .source-tip {
+  position: absolute;
+  top: 1.6em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2.5rem));
+  padding: 0.5em 0.7em;
+  border-radius: 0.3em;
+  /* The page names these two and a site pasted into does not, where the
+       system pair is the one thing known to be legible against itself.
+       A tooltip needs an opaque surface: it is over text. */
+  background: var(--bg, Canvas);
+  color: var(--fg, CanvasText);
+  border: 1px solid currentColor;
+  /* `rem`, not `em`: this is inside a `sup`, and an `em` size would be a
+       fraction of an already smaller font, twice over in the footnotes
+       section. The rest is set back to running text because a reference can
+       sit inside a heading or an emphasized run. */
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.5;
+  text-align: left;
+  vertical-align: baseline;
+  white-space: normal;
+  /* The box is the note, links and all, so it takes the pointer. */
+  pointer-events: auto;
+}
+/* The gap between the reference and the box is a gap in the hover as well,
+   and a box that closes when the pointer sets out for it cannot be reached.
+   This is the gap, made part of the box, on both sides because the script
+   puts the box above the reference as readily as below it. Behind the box,
+   so it covers the space and not the page. */
+.eta-report .footnote-tip::before,
+.eta-report .source-tip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.9rem;
+  bottom: -0.9rem;
+  z-index: -1;
+}
+/* Every link in the note is in the box too. */
+.eta-report .footnote-tip a,
+.eta-report .source-tip a {
+  text-decoration: underline;
+}
+/* A long press opens the box rather than the browser's own preview of the link. */
+@media not (hover: hover) {
+  .eta-report .footnote-ref a,
+  .eta-report .cited a {
+    -webkit-touch-callout: none;
   }
 }
 @media print {
