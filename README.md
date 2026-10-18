@@ -193,6 +193,7 @@ which `eta-publish add <url>` writes:
 name = "Next Report"
 tab = "Draft 2"
 url = "https://docs.google.com/document/d/<id>/edit?tab=<tab>"
+published = "draft"
 ```
 
 `name` and `tab` are what the document and its tab are called in Drive,
@@ -202,6 +203,12 @@ says which of its drafts an entry points at.
 A build holds both up against the document it fetched
 and refuses the report when they disagree,
 a blank one included: no document is called nothing.
+
+`published` is whether the report is out on Squarespace, and how:
+`automated` when the live page is the pasted `report.html`,
+`manual` when it is a page built by hand,
+and `draft` until it is out.
+It is required, and `add` writes `draft`.
 
 Putting a report on the list is the act that says it is ready:
 nothing published is built from anything else.

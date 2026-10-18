@@ -29,6 +29,7 @@ from eta_publish.parse import parse
 from eta_publish.site import (
     Built,
     Failed,
+    Published,
     Report,
     Site,
     add_report,
@@ -101,7 +102,9 @@ def test_reports_are_read_from_the_list(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
     path.write_text(
         '[[report]]\nname = "SAS West"\ntab = "Draft 2"\nurl = "https://example.invalid/a"\n'
+        'published = "draft"\n'
         '\n[[report]]\nname = "IBX"\ntab = "Live version"\nurl = "https://example.invalid/b"\n'
+        'published = "draft"\n'
     )
     assert load_reports(path) == [
         Report(url="https://example.invalid/a", name="SAS West", tab="Draft 2"),
@@ -118,7 +121,7 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     fields = {"name": "Digging Out of a Very Deep Hole", "tab": "Draft 2"}
     fields[blank] = ""
     site = build_site(
-        [Report(url=str(saved), **fields)],
+        [Report(url=str(saved), name=fields["name"], tab=fields["tab"])],
         tmp_path / "site",
         BuildOptions(images=False, archive=False),
     )
@@ -131,6 +134,7 @@ def test_one_finds_a_report_by_its_name_in_any_case(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
     path.write_text(
         '[[report]]\nname = "IBX Automation"\ntab = "Live"\nurl = "https://example.invalid/b"\n'
+        'published = "draft"\n'
     )
     assert listed_report("ibx automation", path) == Report(
         url="https://example.invalid/b", name="IBX Automation", tab="Live"
@@ -139,7 +143,10 @@ def test_one_finds_a_report_by_its_name_in_any_case(tmp_path: Path) -> None:
 
 def test_one_takes_anything_unlisted_as_the_document_itself(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "IBX"\ntab = "Live"\nurl = "https://example.invalid/b"\n')
+    path.write_text(
+        '[[report]]\nname = "IBX"\ntab = "Live"\nurl = "https://example.invalid/b"\n'
+        'published = "draft"\n'
+    )
     assert listed_report("https://example.invalid/c", path) == Report(
         url="https://example.invalid/c"
     )
@@ -150,7 +157,9 @@ def test_one_refuses_a_name_two_entries_share(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
     path.write_text(
         '[[report]]\nname = "IBX"\ntab = "A"\nurl = "https://example.invalid/a"\n'
+        'published = "draft"\n'
         '\n[[report]]\nname = "IBX"\ntab = "B"\nurl = "https://example.invalid/b"\n'
+        'published = "draft"\n'
     )
     with pytest.raises(ValueError, match="more than one"):
         listed_report("IBX", path)
@@ -163,25 +172,47 @@ def test_an_entry_without_a_url_is_an_error(tmp_path: Path) -> None:
         load_reports(path)
 
 
+def test_an_entry_says_how_it_is_published(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "automated"\n')
+    assert load_reports(path)[0].published is Published.AUTOMATED
+
+
+@pytest.mark.parametrize("published", ["", 'published = ""\n', 'published = "live"\n'])
+def test_an_entry_that_does_not_say_how_it_is_published_is_an_error(
+    tmp_path: Path, published: str
+) -> None:
+    """Either default would be wrong about some report:
+    a draft taken as live is hosted, and a live one taken as a draft loses its pictures."""
+    path = tmp_path / "reports.toml"
+    path.write_text(f'[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n{published}')
+    with pytest.raises(ValueError, match="not one of `automated`, `manual`, `draft`"):
+        load_reports(path)
+
+
 def test_add_names_an_entry_from_the_document(tmp_path: Path) -> None:
     """The whole point of the command: the two names come off the document,
     not off a person reading them out of Drive."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "IBX Automation", "tabTitle": "Live version"}))
     path = tmp_path / "reports.toml"
-    path.write_text('# a comment worth keeping\n\n[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text(
+        '# a comment worth keeping\n\n[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n'
+        'published = "draft"\n'
+    )
 
     added = add_report(str(saved), path)
     assert added == Report(url=str(saved), name="IBX Automation", tab="Live version")
     assert "# a comment worth keeping" in path.read_text()
     assert load_reports(path)[-1] == added
+    assert added.published is Published.DRAFT
 
 
 def test_add_refuses_a_document_already_listed(tmp_path: Path) -> None:
     """Two entries for one document publish it twice to one path,
     and the second build overwrites the first."""
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="already lists"):
         add_report("u", path)
 
@@ -192,7 +223,7 @@ def test_add_refuses_a_document_that_names_no_tab(tmp_path: Path) -> None:
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "Titled", "tabTitle": ""}))
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="no `tab`"):
         add_report(str(saved), path)
     assert len(load_reports(path)) == 1
@@ -215,7 +246,7 @@ def test_add_says_which_tabs_there_are_when_the_url_names_none(
 
     monkeypatch.setattr(build, "load", no_tab)
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
 
     result = CliRunner().invoke(app, ["add", "https://example.invalid/d/x", "-r", str(path)])
     assert result.exit_code != 0
@@ -227,7 +258,7 @@ def test_a_title_with_a_quotation_mark_stays_one_string(tmp_path: Path) -> None:
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": 'The "Deep Hole" Report', "tabTitle": "D2"}))
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
     add_report(str(saved), path)
     assert load_reports(path)[-1].name == 'The "Deep Hole" Report'
 
@@ -836,7 +867,7 @@ def test_what_the_commands_say_is_not_on_stdout(tmp_path: Path) -> None:
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "IBX Automation", "tabTitle": "Live version"}))
     path = tmp_path / "reports.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n')
+    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
 
     result = CliRunner().invoke(app, ["add", str(saved), "-r", str(path)])
     assert result.exit_code == 0
@@ -895,7 +926,7 @@ def test_the_same_document_copied_twice_is_recognized_as_listed(tmp_path: Path) 
     and it is the same document, which is what the refusal is about."""
     path = tmp_path / "reports.toml"
     listed = "https://docs.google.com/document/d/1GB5qDuIjDB/edit?tab=t.0"
-    path.write_text(f'[[report]]\nname = "A"\ntab = "B"\nurl = "{listed}"\n')
+    path.write_text(f'[[report]]\nname = "A"\ntab = "B"\nurl = "{listed}"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="already lists"):
         add_report(f"{listed}&pli=1#heading=h.mkzkbxod1acf", path)
 

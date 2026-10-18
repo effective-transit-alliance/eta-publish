@@ -20,6 +20,7 @@ from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date
+from enum import StrEnum
 from functools import partial
 from pathlib import Path, PurePosixPath
 
@@ -38,6 +39,25 @@ from .nodes import Document
 
 REPORTS = Path("reports.toml")
 """Which documents the site is built from, committed beside the code."""
+
+
+class Published(StrEnum):
+    """Whether, and how, a report is out on Squarespace.
+
+    Not a yes or no, because "out" is two different things here.
+    A page built by hand in Squarespace references nothing this project hosts,
+    and one pasted from `report.html` references every picture, video, and stylesheet
+    it was built with, so only the second needs any of them served.
+    """
+
+    AUTOMATED = "automated"
+    """Live, and the live page is this report's `report.html`."""
+
+    MANUAL = "manual"
+    """Live, as a page built by hand in Squarespace."""
+
+    DRAFT = "draft"
+    """Not out yet."""
 
 
 @dataclass(frozen=True)
@@ -63,6 +83,12 @@ class Report:
     and publishing last year's draft is the mistake nothing else can catch.
 
     `None` on the same terms as `name`."""
+
+    published: Published = Published.DRAFT
+    """Whether it is out, and how.
+
+    A document named on the command line is a draft:
+    nothing says it is out, and assuming it is would host it."""
 
 
 @dataclass
@@ -110,6 +136,12 @@ def load_reports(path: Path = REPORTS) -> list[Report]:
         url = str(entry.get("url", "")).strip()
         if not url:
             raise ValueError(f"{path}: a [[report]] entry has no `url`")
+        # Required rather than defaulted: a draft hosted by mistake is out,
+        # and a live report left as a draft by mistake loses its pictures.
+        published = str(entry.get("published", ""))
+        if published not in set(Published):
+            values = ", ".join(f"`{value}`" for value in Published)
+            raise ValueError(f"{path}: {url} has `published = {published!r}`, not one of {values}")
         # A string either way, never `None`: an entry states an expectation
         # whatever it says, and one that says nothing says the document is
         # named nothing, which is a disagreement like any other.
@@ -118,6 +150,7 @@ def load_reports(path: Path = REPORTS) -> list[Report]:
                 url=url,
                 name=str(entry.get("name", "")).strip(),
                 tab=str(entry.get("tab", "")).strip(),
+                published=Published(published),
             )
         )
     if not reports:
@@ -145,7 +178,7 @@ def listed_report(doc: str, path: Path = REPORTS) -> Report:
     return matches[0] if matches else Report(url=doc)
 
 
-def entry_text(url: str, name: str, tab: str) -> str:
+def entry_text(url: str, name: str, tab: str, published: Published) -> str:
     """One `[[report]]` block, as `reports.toml` writes them.
 
     Built as text rather than dumped from a table
@@ -162,6 +195,7 @@ def entry_text(url: str, name: str, tab: str) -> str:
         f"name = {json.dumps(name)}\n"
         f"tab = {json.dumps(tab)}\n"
         f"url = {json.dumps(url)}\n"
+        f"published = {json.dumps(str(published))}\n"
     )
 
 
@@ -197,6 +231,8 @@ def add_report(url: str, path: Path = REPORTS) -> Report:
     An entry whose `url` is already listed is refused rather than duplicated:
     two entries for one document publish it twice to the same path,
     and the second build silently overwrites the first.
+
+    A document being added is a draft until someone says otherwise.
     """
     from .build import load
 
@@ -212,7 +248,8 @@ def add_report(url: str, path: Path = REPORTS) -> Report:
             # Writing an empty one down is what `load_reports` refuses.
             raise ValueError(f"{url}: the document says no `{field_name}`")
 
-    path.write_text(path.read_text().rstrip("\n") + "\n" + entry_text(url, name, tab))
+    entry = entry_text(url, name, tab, Published.DRAFT)
+    path.write_text(path.read_text().rstrip("\n") + "\n" + entry)
     return Report(url=url, name=name, tab=tab)
 
 

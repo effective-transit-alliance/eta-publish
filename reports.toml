@@ -23,28 +23,42 @@
 # ETA documents have many tabs, several of them obsolete drafts,
 # and the API returns the first tab unless told otherwise,
 # so a URL without one publishes the wrong draft.
+#
+# `published` says whether the report is out on Squarespace, and how:
+# `automated` when the live page is this report's `report.html`,
+# `manual` when it is a page built by hand there,
+# and `draft` when it is not out yet.
+# Only an `automated` report needs its pictures, videos, and stylesheets hosted,
+# since a page built by hand references nothing of ours.
+# Required, because either wrong default is a mistake:
+# a draft treated as live is hosted, and a live report treated as a draft loses its pictures.
 
 [[report]]
 name = "SAS West Feasibility Response"
 tab = "Draft 2"
 url = "https://docs.google.com/document/d/1U-M71SN5azsWSLAnp_1cPaPBj8YDHfb9Z8uoopVopBg/edit?tab=t.ul3yzv5xed4w"
+published = "manual"
 
 [[report]]
 name = "IBX Automation"
 tab = "Live version"
 url = "https://docs.google.com/document/d/1lcWRa-kHvvqSeJRmzPrhyI_h-dpXRTYnFrS_9FNegiQ/edit?tab=t.nfnx93uo764a"
+published = "automated"
 
 [[report]]
 name = "Noise Pollution"
 tab = "Draft 2 (live)"
 url = "https://docs.google.com/document/d/1--AKo1YU2iyFZzKh-DZxU5UlVOURySG2XlfKXC0c2aY/edit?tab=t.wnvaanbw75s"
+published = "manual"
 
 [[report]]
 name = "Deinterlining"
 tab = "Tab 1"
 url = "https://docs.google.com/document/d/1GB5qDuIjDB-Od7kmpmIgTtVDT7pCH5m02WVQ3aG_kRM/edit?tab=t.0"
+published = "manual"
 
 [[report]]
 name = "Monthly Passes"
 tab = "Current v2 Draft (2026-04-21)"
 url = "https://docs.google.com/document/d/1DAySJvDse2ccdWFupVtTkD6bGxd_-ggwovVwXsVuHO0/edit?tab=t.coq3cg52up6c"
+published = "manual"
