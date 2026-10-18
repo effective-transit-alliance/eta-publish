@@ -275,10 +275,11 @@
   // Built out of the figure the link is in, so the markup carries nothing
   // more: without the script the link is to the original, as it was.
   const MEDIA = "#/media/";
-  const figures = () =>
-    [...document.querySelectorAll(".eta-report figure[id]")].filter((f) =>
-      f.querySelector(":scope > .full-size"),
-    );
+  // A picture, a drawing (an SVG, which is its own original), or a video:
+  // not an embed, whose player is the platform's.
+  const mediaOf = (figure) =>
+    figure.querySelector(":scope > .full-size picture, :scope > img, :scope > video");
+  const figures = () => [...document.querySelectorAll(".eta-report figure[id]")].filter(mediaOf);
   let lightbox = null;
   let shown = null;
   const go = (id, replace) => {
@@ -304,13 +305,16 @@
   };
   // The picture's element fills the stage and the picture is fitted inside it,
   // so the dark space either side of a tall one is the element too.
-  const beside = (img, event) => {
-    if (img.tagName !== "IMG" || !img.naturalWidth) return false;
-    const r = img.getBoundingClientRect();
-    const scale = Math.min(r.width / img.naturalWidth, r.height / img.naturalHeight);
+  // Not a video's, whose controls run the width of the element, past the frame.
+  const beside = (el, event) => {
+    const width = el.naturalWidth;
+    const height = el.naturalHeight;
+    if (el.tagName !== "IMG" || !width || !height) return false;
+    const r = el.getBoundingClientRect();
+    const scale = Math.min(r.width / width, r.height / height);
     return (
-      Math.abs(event.clientX - r.left - r.width / 2) > (img.naturalWidth * scale) / 2 ||
-      Math.abs(event.clientY - r.top - r.height / 2) > (img.naturalHeight * scale) / 2
+      Math.abs(event.clientX - r.left - r.width / 2) > (width * scale) / 2 ||
+      Math.abs(event.clientY - r.top - r.height / 2) > (height * scale) / 2
     );
   };
   const build = (root) => {
@@ -318,7 +322,6 @@
     box.className = "lightbox";
     box.innerHTML =
       '<div class="lightbox-bar"><span class="lightbox-count"></span>' +
-      '<a class="lightbox-original" target="_blank" rel="noopener">Original</a>' +
       '<button type="button" class="lightbox-close" aria-label="Close" autofocus>\u00d7</button></div>' +
       '<div class="lightbox-stage"><button type="button" class="lightbox-prev" aria-label="Previous picture">\u2039</button>' +
       '<button type="button" class="lightbox-next" aria-label="Next picture">\u203a</button></div>' +
@@ -331,6 +334,8 @@
     box.addEventListener("click", (event) => {
       const { target } = event;
       if (target === box || target.classList.contains("lightbox-stage") || beside(target, event)) {
+        // Not also the link to the original the picture is.
+        event.preventDefault();
         dismiss();
       }
     });
@@ -352,6 +357,8 @@
     const all = figures();
     if (!figure || !all.includes(figure)) {
       shown = null;
+      // Out of the page, which is what stops a video playing in it.
+      lightbox?.querySelector(".lightbox-media")?.remove();
       if (lightbox?.open) lightbox.close();
       return;
     }
@@ -359,16 +366,34 @@
     shown = figure;
     lightbox ||= build(figure.closest(".eta-report"));
     const stage = lightbox.querySelector(".lightbox-stage");
-    stage.querySelector("picture")?.remove();
-    // The largest copy the page has, chosen for the whole window now rather
-    // than the column; the original is a link away.
-    const picture = figure.querySelector("picture").cloneNode(true);
-    for (const source of picture.querySelectorAll("source, img")) source.sizes = "100vw";
-    const img = picture.querySelector("img");
-    img.removeAttribute("fetchpriority");
-    stage.prepend(picture);
-    lightbox.setAttribute("aria-label", img.alt || "Picture");
-    lightbox.querySelector(".lightbox-original").href = figure.querySelector(".full-size").href;
+    stage.querySelector(".lightbox-media")?.remove();
+    const original = mediaOf(figure);
+    const copy = original.cloneNode(true);
+    let media = document.createElement("div");
+    if (copy.tagName === "VIDEO") {
+      media.append(copy);
+      // Carried on from where the page's copy was, which stops.
+      copy.currentTime = original.currentTime;
+      if (!original.paused) {
+        original.pause();
+        copy.autoplay = true;
+      }
+    } else {
+      // The largest copy the page has, chosen for the whole window now rather
+      // than the column; clicking it opens the original.
+      for (const source of copy.querySelectorAll("source, img")) source.sizes = "100vw";
+      const img = copy.tagName === "IMG" ? copy : copy.querySelector("img");
+      img.removeAttribute("fetchpriority");
+      img.removeAttribute("loading");
+      media = document.createElement("a");
+      media.href = figure.querySelector(":scope > .full-size")?.href || img.src;
+      media.target = "_blank";
+      media.rel = "noopener";
+      media.append(copy);
+    }
+    media.classList.add("lightbox-media");
+    stage.prepend(media);
+    lightbox.setAttribute("aria-label", original.alt || copy.querySelector?.("img")?.alt || "Picture");
     for (const button of lightbox.querySelectorAll(".lightbox-prev, .lightbox-next")) {
       button.hidden = all.length < 2;
     }
@@ -383,7 +408,9 @@
   };
   document.addEventListener("click", (event) => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target.closest?.(".eta-report figure[id] > .full-size");
+    const link = event.target.closest?.(
+      ".eta-report figure[id] > :is(.full-size, img), .eta-report .lightbox-open",
+    );
     if (!link || link.closest(".lightbox")) return;
     event.preventDefault();
     go(link.parentElement.id);
@@ -391,6 +418,15 @@
   addEventListener("popstate", render);
   addEventListener("hashchange", render);
   const ready = () => {
+    // A click on a video is the player's, so a video opens by a button of its own.
+    for (const video of document.querySelectorAll(".eta-report figure[id] > video")) {
+      const open = document.createElement("button");
+      open.type = "button";
+      open.className = "lightbox-open";
+      open.ariaLabel = "Open larger";
+      open.textContent = "\u2922";
+      video.before(open);
+    }
     swooshAll();
     render();
   };
