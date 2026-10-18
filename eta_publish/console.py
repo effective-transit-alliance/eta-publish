@@ -27,7 +27,7 @@ holds no escape sequences to search past and no line broken mid-sentence.
 import os
 import sys
 import time
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager, suppress
 from contextvars import ContextVar
 from dataclasses import dataclass
@@ -155,7 +155,7 @@ not to the one it was on last.
 
 
 @contextmanager
-def about(name: str) -> Iterator[None]:
+def about(name: str) -> Generator[None]:
     """Attribute everything written inside this to `name`.
 
     Reset on the way out rather than left set: the threads that build reports
@@ -184,7 +184,7 @@ def step(state: str) -> None:
 
 
 @contextmanager
-def stepping(say: Callable[[str], None]) -> Iterator[None]:
+def stepping(say: Callable[[str], None]) -> Generator[None]:
     """Send every `step` on this thread to `say` until this ends."""
     token = _STEP.set(say)
     try:
@@ -527,7 +527,7 @@ def _done(task: TaskID) -> None:
 @contextmanager
 def progress(
     template: str, total: int, console: Console | None = None, quiet: bool = False
-) -> Iterator[Callable[[], None]]:
+) -> Generator[Callable[[], None]]:
     """Say how far along something long is, and yield what to call as it goes.
 
     Checking a report against the archive is a hundred and nine questions
@@ -746,7 +746,7 @@ _WATCHING: list[Rows] = []
 
 
 @contextmanager
-def watching(console: Console | None = None) -> Iterator[Rows]:
+def watching(console: Console | None = None) -> Generator[Rows]:
     """Lines under the bar for the things being waited on, gone when this ends."""
     rows = Rows(console or for_stream())
     try:
@@ -784,7 +784,7 @@ _CLEANUPS: list[Callable[[], None]] = []
 
 
 @contextmanager
-def paused() -> Iterator[None]:
+def paused() -> Generator[None]:
     """The bar off the screen, and kept off, while something else has the terminal.
 
     For what writes to it without going through here, such as the sign-in
@@ -803,7 +803,7 @@ def paused() -> Iterator[None]:
 
 
 @contextmanager
-def cleaned_up(undo: Callable[[], None]) -> Iterator[None]:
+def cleaned_up(undo: Callable[[], None]) -> Generator[None]:
     """Run `undo` when this ends, or when the run is stopped while inside it.
 
     A `finally` alone is not enough: a run stopped by `Ctrl+C` exits from the
