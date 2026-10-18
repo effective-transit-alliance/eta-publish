@@ -650,6 +650,17 @@ html:has(.eta-report .lightbox[open]) {
 }
 .eta-report div.lightbox-media {
   cursor: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.eta-report div.lightbox-media video {
+  flex: 1;
+  min-height: 0;
+}
+.eta-report .lightbox .embed-warning {
+  align-self: center;
+  margin: 0;
 }
 .eta-report .lightbox-media picture {
   display: contents;

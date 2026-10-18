@@ -311,12 +311,28 @@
     );
   const figures = () =>
     [...document.querySelectorAll(".eta-report figure[id]")].filter(mediaOf);
+  // The file the figure shows, as the original's name, extension and all, the
+  // way Wikipedia names one: what the address says, and what the reader would
+  // save it as.
+  const originalOf = (figure) => {
+    const media = mediaOf(figure);
+    return (
+      figure.querySelector(":scope > .full-size")?.href ||
+      media.currentSrc ||
+      media.src ||
+      media.querySelector("img").src
+    );
+  };
+  const fileOf = (figure) =>
+    decodeURIComponent(new URL(originalOf(figure)).pathname.split("/").pop());
   let lightbox = null;
   let shown = null;
-  const go = (id, replace) => {
-    const url = id ? MEDIA + id : location.pathname + location.search;
+  const go = (figure, replace) => {
+    const url = figure
+      ? MEDIA + encodeURIComponent(fileOf(figure))
+      : location.pathname + location.search;
     history[replace ? "replaceState" : "pushState"](
-      { lightbox: !!id },
+      { lightbox: !!figure },
       "",
       url,
     );
@@ -325,7 +341,7 @@
   const step = (by) => {
     const all = figures();
     const at = all.indexOf(shown);
-    if (at >= 0) go(all[(at + by + all.length) % all.length].id, true);
+    if (at >= 0) go(all[(at + by + all.length) % all.length], true);
   };
   const dismiss = () => {
     // Back, when the box was opened here, so the entry it added goes rather
@@ -334,7 +350,7 @@
     if (history.state?.lightbox) history.back();
     else {
       const figure = shown;
-      go("");
+      go(null);
       figure?.scrollIntoView({ block: "center" });
     }
   };
@@ -394,9 +410,11 @@
     const id = location.hash.startsWith(MEDIA)
       ? decodeURIComponent(location.hash.slice(MEDIA.length))
       : "";
-    const figure = id && document.getElementById(id);
     const all = figures();
-    if (!figure || !all.includes(figure)) {
+    // By its file, or by its id, as an address written by hand might.
+    const figure =
+      id && (all.find((f) => fileOf(f) === id) || all.find((f) => f.id === id));
+    if (!figure) {
       shown = null;
       // Out of the page, which is what stops a video playing in it.
       lightbox?.querySelector(".lightbox-media")?.remove();
@@ -412,6 +430,9 @@
     const copy = original.cloneNode(true);
     let media = document.createElement("div");
     if (copy.tagName === "VIDEO") {
+      // Its warning still before it, which is what the warning is for.
+      const warning = figure.querySelector(":scope > .embed-warning");
+      if (warning) media.append(warning.cloneNode(true));
       media.append(copy);
       // Carried on from where the page's copy was, which stops.
       copy.currentTime = original.currentTime;
@@ -428,7 +449,7 @@
       img.removeAttribute("fetchpriority");
       img.removeAttribute("loading");
       media = document.createElement("a");
-      media.href = figure.querySelector(":scope > .full-size")?.href || img.src;
+      media.href = originalOf(figure);
       media.target = "_blank";
       media.rel = "noopener";
       media.append(copy);
@@ -471,7 +492,7 @@
     );
     if (!link || link.closest(".lightbox")) return;
     event.preventDefault();
-    go(link.parentElement.id);
+    go(link.parentElement);
   });
   addEventListener("popstate", render);
   addEventListener("hashchange", render);

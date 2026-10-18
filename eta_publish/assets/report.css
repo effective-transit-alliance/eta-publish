@@ -343,7 +343,9 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
 /* Filling the stage and shrunk to fit inside it, rather than sized by itself:
    a percentage height on an image in a grid row did not hold it to the row. */
 .eta-report .lightbox-media { position: absolute; inset: 0 3rem; display: block; cursor: zoom-in; }
-.eta-report div.lightbox-media { cursor: auto; }
+.eta-report div.lightbox-media { cursor: auto; display: flex; flex-direction: column; gap: .5em; }
+.eta-report div.lightbox-media video { flex: 1; min-height: 0; }
+.eta-report .lightbox .embed-warning { align-self: center; margin: 0; }
 .eta-report .lightbox-media picture { display: contents; }
 .eta-report .lightbox-media :is(img, video) { display: block; width: 100%; height: 100%;
                                              object-fit: contain; }
