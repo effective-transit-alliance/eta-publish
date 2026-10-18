@@ -316,6 +316,37 @@
   .eta-report .footnote-ref a,
   .eta-report .cited a { -webkit-touch-callout: none; }
 }
+/* A picture opened over the page, at `#/media/` and its id: the picture as large as
+   the window allows, a bar above it and its caption below. A `dialog`, which
+   the browser puts above everything on the page, whatever the site around
+   the report stacks or transforms. Light on dark, whatever the page is. */
+html:has(.eta-report .lightbox[open]) { overflow: hidden; }
+.eta-report .lightbox { box-sizing: border-box; width: 100vw; height: 100dvh;
+                        max-width: none; max-height: none; margin: 0; padding: 0;
+                        border: 0; background: #111; color: #eee; }
+.eta-report .lightbox[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.eta-report .lightbox::backdrop { background: transparent; }
+.eta-report .lightbox a { color: inherit; }
+.eta-report .lightbox button { font-family: inherit; color: inherit; background: none; border: 0;
+                               padding: .2em .5em; cursor: pointer; line-height: 1; }
+.eta-report .lightbox-bar { display: flex; align-items: center; gap: 1em; padding: .5em 1em; }
+.eta-report .lightbox-count { margin-right: auto; opacity: .7; font-size: .9rem; }
+.eta-report .lightbox-close { font-size: 2rem; }
+.eta-report .lightbox-stage { position: relative; min-height: 0; }
+/* Filling the stage and shrunk to fit inside it, rather than sized by itself:
+   a percentage height on an image in a grid row did not hold it to the row. */
+.eta-report .lightbox-stage picture { position: absolute; inset: 0 3rem; }
+.eta-report .lightbox-stage img { width: 100%; height: 100%; object-fit: contain; }
+.eta-report .lightbox-prev,
+.eta-report .lightbox-next { position: absolute; top: 50%; transform: translateY(-50%);
+                             font-size: 3rem; opacity: .7; }
+.eta-report .lightbox-prev { left: 0; }
+.eta-report .lightbox-next { right: 0; }
+.eta-report .lightbox-prev:hover,
+.eta-report .lightbox-next:hover { opacity: 1; }
+.eta-report .lightbox-caption { max-width: 50rem; margin: 0 auto; padding: .75em 1em 1em;
+                                font-size: .9rem; max-height: 30vh; overflow-y: auto; }
+.eta-report .lightbox-caption figcaption { opacity: 1; margin: 0 0 .3em; }
 @media print {
   .eta-report .footnote-tip,
   .eta-report .source-tip { display: none; }

@@ -92,7 +92,9 @@
     home.set(tip, from);
     // Found by its reference while away, or leaving it closes nothing.
     built.set(from, tip);
-    (from.closest(".eta-report") || document.body).append(tip);
+    // Into the lightbox instead, from a caption in it: the box would be behind
+    // the dialog anywhere else.
+    (from.closest(".lightbox, .eta-report") || document.body).append(tip);
     // Laid out where it can be measured, and not yet shown there: the handler
     // runs before the frame is painted.
     tip.style.cssText =
@@ -293,9 +295,166 @@
       document.fonts?.ready.then(() => swoosh(title));
     }
   };
+  // A picture opens in a lightbox, at `#/media/` and the figure's id, so that it can
+  // be linked to and the browser's back and forward open and close it. The
+  // address is the state: everything here changes the address and then shows
+  // whatever it says. Stepping to the next picture replaces the entry rather
+  // than adding one, so back closes the box rather than walking the pictures.
+  // Built out of the figure the link is in, so the markup carries nothing
+  // more: without the script the link is to the original, as it was.
+  const MEDIA = "#/media/";
+  const figures = () =>
+    [...document.querySelectorAll(".eta-report figure[id]")].filter((f) =>
+      f.querySelector(":scope > .full-size"),
+    );
+  let lightbox = null;
+  let shown = null;
+  const go = (id, replace) => {
+    const url = id ? MEDIA + id : location.pathname + location.search;
+    history[replace ? "replaceState" : "pushState"](
+      { lightbox: !!id },
+      "",
+      url,
+    );
+    render();
+  };
+  const step = (by) => {
+    const all = figures();
+    const at = all.indexOf(shown);
+    if (at >= 0) go(all[(at + by + all.length) % all.length].id, true);
+  };
+  const dismiss = () => {
+    // Back, when the box was opened here, so the entry it added goes rather
+    // than a second one piling up behind it; a new entry when the reader
+    // arrived at the box's address, so that back opens it again.
+    if (history.state?.lightbox) history.back();
+    else {
+      const figure = shown;
+      go("");
+      figure?.scrollIntoView({ block: "center" });
+    }
+  };
+  // The picture's element fills the stage and the picture is fitted inside it,
+  // so the dark space either side of a tall one is the element too.
+  const beside = (img, event) => {
+    if (img.tagName !== "IMG" || !img.naturalWidth) return false;
+    const r = img.getBoundingClientRect();
+    const scale = Math.min(
+      r.width / img.naturalWidth,
+      r.height / img.naturalHeight,
+    );
+    return (
+      Math.abs(event.clientX - r.left - r.width / 2) >
+        (img.naturalWidth * scale) / 2 ||
+      Math.abs(event.clientY - r.top - r.height / 2) >
+        (img.naturalHeight * scale) / 2
+    );
+  };
+  const build = (root) => {
+    const box = document.createElement("dialog");
+    box.className = "lightbox";
+    box.innerHTML =
+      '<div class="lightbox-bar"><span class="lightbox-count"></span>' +
+      '<a class="lightbox-original" target="_blank" rel="noopener">Original</a>' +
+      '<button type="button" class="lightbox-close" aria-label="Close" autofocus>\u00d7</button></div>' +
+      '<div class="lightbox-stage"><button type="button" class="lightbox-prev" aria-label="Previous picture">\u2039</button>' +
+      '<button type="button" class="lightbox-next" aria-label="Next picture">\u203a</button></div>' +
+      '<div class="lightbox-caption"></div>';
+    box.querySelector(".lightbox-close").onclick = dismiss;
+    box.querySelector(".lightbox-prev").onclick = () => step(-1);
+    box.querySelector(".lightbox-next").onclick = () => step(1);
+    // The backdrop and the space around the picture close it, as a click
+    // outside a box does.
+    box.addEventListener("click", (event) => {
+      const { target } = event;
+      if (
+        target === box ||
+        target.classList.contains("lightbox-stage") ||
+        beside(target, event)
+      ) {
+        dismiss();
+      }
+    });
+    // Escape closes a dialog by itself, which the address would not hear of.
+    box.addEventListener("cancel", (event) => {
+      event.preventDefault();
+      dismiss();
+    });
+    box.addEventListener("keydown", (event) => {
+      if (event.key === "ArrowLeft") step(-1);
+      else if (event.key === "ArrowRight") step(1);
+    });
+    root.append(box);
+    return box;
+  };
+  const render = () => {
+    const id = location.hash.startsWith(MEDIA)
+      ? decodeURIComponent(location.hash.slice(MEDIA.length))
+      : "";
+    const figure = id && document.getElementById(id);
+    const all = figures();
+    if (!figure || !all.includes(figure)) {
+      shown = null;
+      if (lightbox?.open) lightbox.close();
+      return;
+    }
+    if (figure === shown && lightbox.open) return;
+    shown = figure;
+    lightbox ||= build(figure.closest(".eta-report"));
+    const stage = lightbox.querySelector(".lightbox-stage");
+    stage.querySelector("picture")?.remove();
+    // The largest copy the page has, chosen for the whole window now rather
+    // than the column; the original is a link away.
+    const picture = figure.querySelector("picture").cloneNode(true);
+    for (const source of picture.querySelectorAll("source, img"))
+      source.sizes = "100vw";
+    const img = picture.querySelector("img");
+    img.removeAttribute("fetchpriority");
+    stage.prepend(picture);
+    lightbox.setAttribute("aria-label", img.alt || "Picture");
+    lightbox.querySelector(".lightbox-original").href =
+      figure.querySelector(".full-size").href;
+    for (const button of lightbox.querySelectorAll(
+      ".lightbox-prev, .lightbox-next",
+    )) {
+      button.hidden = all.length < 2;
+    }
+    lightbox.querySelector(".lightbox-count").textContent =
+      all.length > 1 ? `${all.indexOf(figure) + 1} / ${all.length}` : "";
+    const caption = lightbox.querySelector(".lightbox-caption");
+    caption.replaceChildren(
+      ...[...figure.querySelectorAll(":scope > figcaption")].map((c) =>
+        c.cloneNode(true),
+      ),
+    );
+    // A copy, so not where a backlink lands or a fragment points.
+    for (const el of caption.querySelectorAll("[id]")) el.removeAttribute("id");
+    for (const el of caption.querySelectorAll(".source-tip")) el.remove();
+    if (!lightbox.open) lightbox.showModal();
+  };
+  document.addEventListener("click", (event) => {
+    if (
+      event.button ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const link = event.target.closest?.(".eta-report figure[id] > .full-size");
+    if (!link || link.closest(".lightbox")) return;
+    event.preventDefault();
+    go(link.parentElement.id);
+  });
+  addEventListener("popstate", render);
+  addEventListener("hashchange", render);
+  const ready = () => {
+    swooshAll();
+    render();
+  };
   if (document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", swooshAll);
-  else swooshAll();
+    document.addEventListener("DOMContentLoaded", ready);
+  else ready();
   for (const name of ["pointerover", "focusin"])
     document.addEventListener(name, place);
   for (const name of ["pointerout", "focusout"])
