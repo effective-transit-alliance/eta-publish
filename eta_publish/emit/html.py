@@ -237,6 +237,7 @@ class HtmlEmitter(Emitter):
         inline_phase: bool = True,
         asset_base: str = "",
         pdf_href: str = "",
+        source_brackets: bool = False,
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -253,6 +254,10 @@ class HtmlEmitter(Emitter):
         self.inline_phase = inline_phase
         # Where the report's PDF is, as the masthead links it; empty for no link.
         self.pdf_href = pdf_href
+        # Whether a cited link shows its `[n]` where it hovers. Off, the
+        # number is still in the markup, where the backlinks land, and is the
+        # first thing in the box the link carries.
+        self.source_brackets = source_brackets
         self._in_tip = False
         """Whether what is being emitted is the box a reference carries,
         which is a copy of a note and so cannot carry boxes of its own."""
@@ -372,7 +377,8 @@ class HtmlEmitter(Emitter):
         # before the first and closes after the last, so there is no element
         # here whose children they are. Both hold nothing from the document,
         # which is what makes writing them safe.
-        return [*shell, Markup('<div class="eta-report">'), *group, Markup("</div>")]
+        root = "eta-report" if self.source_brackets else "eta-report no-source-brackets"
+        return [*shell, Markup(f'<div class="{root}">'), *group, Markup("</div>")]
 
     def groups(self, doc: Document) -> list[list[str]]:
         """The report in the groups a split cuts it into: one per `h2` in the body.
@@ -1244,6 +1250,7 @@ def report_page(
     pdf_href: str = "",
     card_base: str = "",
     page_url: str = "",
+    source_brackets: bool = False,
 ) -> str:
     """The whole report as a page,
     which is what a build writes as `index.html` and what the site serves.
@@ -1264,6 +1271,7 @@ def report_page(
         inline_js=False,
         inline_phase=False,
         pdf_href=pdf_href,
+        source_brackets=source_brackets,
     ).emit(doc)
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.

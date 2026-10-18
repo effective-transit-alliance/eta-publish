@@ -561,3 +561,14 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
     assert 'property="og:image:height" content="628"' in page
     assert 'name="twitter:card" content="summary_large_image"' in page
     assert 'property="og:type" content="article"' in page
+
+
+def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str) -> None:
+    """Off, the `[n]` stays in the markup for the backlinks, and the root says to hide it."""
+    from eta_publish.emit.html import REPORT_CSS
+
+    assert '<div class="eta-report no-source-brackets">' in out
+    assert 'id="srcref1-1"' in out
+    assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in REPORT_CSS
+    shown = HtmlEmitter(inline_css=False, source_brackets=True).emit(doc)
+    assert '<div class="eta-report">' in shown

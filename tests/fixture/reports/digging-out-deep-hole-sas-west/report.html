@@ -295,6 +295,12 @@
   .eta-report .source-tip::before {
       content: ""; position: absolute; left: 0; right: 0;
       top: -.9rem; bottom: -.9rem; z-index: -1; }
+  /* Out of the sentence and still in the markup, where the backlinks land,
+     the keyboard stops, and the script finds the entry. Not in a note's box,
+     where a citation has no box of its own and the number is the way there. */
+  .eta-report.no-source-brackets .source-ref:not(.footnote-tip *) {
+      position: absolute; width: 1px; height: 1px; overflow: hidden;
+      clip-path: inset(50%); white-space: nowrap; }
   /* Every link in the note is in the box too. */
   .eta-report .footnote-tip a,
   .eta-report .source-tip a { text-decoration: underline; }
@@ -548,7 +554,7 @@
   for (const name of ["pointerout", "focusout"]) document.addEventListener(name, release);
 })();
 </script>
-<div class="eta-report">
+<div class="eta-report no-source-brackets">
 <div class="masthead">
 <div class="masthead-text"><h1 id="title"><a class="link-mark" href="#title" aria-label="Link to this title"></a>Digging Out of a Very Deep Hole: Saving Billions on 125th Street</h1></div>
 <div class="warnings"><strong>Warnings</strong><ul><li>the <code>Header</code> section has an unrecognized <code>MTA SAS West Feasibility Study:</code> line; check it for a typo</li></ul></div>

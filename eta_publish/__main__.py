@@ -90,6 +90,13 @@ HostedMedia = Annotated[
     bool,
     Option(help="link `report.html`'s images and videos where the site serves them"),
 ]
+SourceBrackets = Annotated[
+    bool,
+    Option(
+        help="show each cited link's bracketed number in the text;"
+        " off, it is in the box hovering opens and in the Sources list"
+    ),
+]
 Comments = Annotated[
     bool,
     Option(help="ask how many comment threads are open; the slowest thing a build does"),
@@ -109,6 +116,7 @@ def build_all(
     split: Split = False,
     hosted_media: HostedMedia = True,
     embed_assets: EmbedAssets = False,
+    source_brackets: SourceBrackets = False,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -143,6 +151,7 @@ def build_all(
         into=into,
         hosted_media=hosted_media,
         embed_assets=embed_assets,
+        source_brackets=source_brackets,
     )
 
 
@@ -165,6 +174,7 @@ def build_one_report(
     split: Split = False,
     hosted_media: HostedMedia = True,
     embed_assets: EmbedAssets = False,
+    source_brackets: SourceBrackets = False,
     images: Images = True,
     archive: Archive = True,
     comments: Comments = True,
@@ -189,6 +199,7 @@ def build_one_report(
         archive=archive,
         hosted_media=hosted_media,
         embed_assets=embed_assets,
+        source_brackets=source_brackets,
     )
 
 
@@ -205,6 +216,7 @@ def publish(
     into: Path | None = None,
     hosted_media: bool = True,
     embed_assets: bool = False,
+    source_brackets: bool = False,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -228,6 +240,7 @@ def publish(
         offline=offline,
         hosted_media=hosted_media,
         embed_assets=embed_assets,
+        source_brackets=source_brackets,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)

@@ -72,6 +72,13 @@ class BuildOptions:
     so embedding is for a fragment to paste before then.
     """
 
+    source_brackets: bool = False
+    """Whether a cited link shows its `[n]` in the text where the device hovers.
+
+    Off, the number is in the box hovering opens and in the Sources list,
+    and not in the sentence, where a second numbering beside the footnotes' clutters it.
+    """
+
     hosted_media: bool = True
     """Whether `report.html` links its images and videos where the site serves them.
 
@@ -223,7 +230,9 @@ def _link_or_copy(source: Path, dest: Path) -> None:
         shutil.copy2(source, dest)
 
 
-def fragment_emitter(image_base: str, linked: str, pdf_href: str = "") -> HtmlEmitter:
+def fragment_emitter(
+    image_base: str, linked: str, pdf_href: str = "", source_brackets: bool = False
+) -> HtmlEmitter:
     """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
     and carrying them otherwise."""
     return HtmlEmitter(
@@ -232,14 +241,19 @@ def fragment_emitter(image_base: str, linked: str, pdf_href: str = "") -> HtmlEm
         inline_js=not linked,
         asset_base=linked,
         pdf_href=pdf_href,
+        source_brackets=source_brackets,
     )
 
 
 def write_split(
-    doc: Document, outdir: Path, image_base: str = IMAGE_DIR, linked: str = ""
+    doc: Document,
+    outdir: Path,
+    image_base: str = IMAGE_DIR,
+    linked: str = "",
+    source_brackets: bool = False,
 ) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
-    emitter = fragment_emitter(image_base, linked)
+    emitter = fragment_emitter(image_base, linked, source_brackets=source_brackets)
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
@@ -515,6 +529,7 @@ def emit(
     pdf: str = "",
     cards: str = "",
     url: str = "",
+    source_brackets: bool = False,
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
@@ -526,7 +541,7 @@ def emit(
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        "report.html": fragment_emitter(images, linked, pdf),
+        "report.html": fragment_emitter(images, linked, pdf, source_brackets),
         "report.md": MarkdownEmitter(),
         "report.typ": TypstEmitter(),
     }
@@ -536,7 +551,14 @@ def emit(
     # `report.html` beside it is the fragment, a piece of a page rather than one.
     page = outdir / "index.html"
     page.write_text(
-        report_page(doc, asset_base=assets, pdf_href=PDF_NAME, card_base=cards, page_url=url)
+        report_page(
+            doc,
+            asset_base=assets,
+            pdf_href=PDF_NAME,
+            card_base=cards,
+            page_url=url,
+            source_brackets=source_brackets,
+        )
     )
     written[page.name] = page
     for name, emitter in emitters.items():
@@ -874,7 +896,15 @@ def build_one(
     linked = "" if options.embed_assets else f"{SITE}/{ASSET_DIR}"
     pdf = f"{SITE}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
     written = emit(
-        doc, dest, asset_base(path), images, linked, pdf, media_base(path), f"{SITE}/{path}/"
+        doc,
+        dest,
+        asset_base(path),
+        images,
+        linked,
+        pdf,
+        media_base(path),
+        f"{SITE}/{path}/",
+        options.source_brackets,
     )
 
     typ = written.get("report.typ")
@@ -883,6 +913,6 @@ def build_one(
         build_pdf(typ, dest, skipped_images=not options.images and bool(doc.images))
 
     if options.split:
-        write_split(doc, dest, images, linked)
+        write_split(doc, dest, images, linked, options.source_brackets)
 
     return doc, path

@@ -23,7 +23,7 @@ def pieces() -> list[str]:
 
 def test_each_piece_is_a_standalone_report_div() -> None:
     for piece in pieces():
-        assert piece.count('<div class="eta-report">') == 1
+        assert piece.count('<div class="eta-report') == 1
         assert piece.rstrip().endswith("</div>")
         assert piece.startswith("<style>")
 
