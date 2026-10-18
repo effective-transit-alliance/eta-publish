@@ -448,15 +448,10 @@ def _is_svg(data: bytes) -> bool:
     return b"<svg" in data and not head.startswith((b"<!doctype html", b"<html"))
 
 
-def crop_svg(data: bytes, crop: Crop) -> bytes:
-    """`data` with the doc's crop of its raster applied, by wrapping it.
+def svg_size(data: bytes, doing: str) -> tuple[int, float, float]:
+    """Where `data`'s root `svg` starts, and the width and height it draws at.
 
-    The crop is fractions of the raster, which is the whole SVG drawn out,
-    so the same fractions of the SVG's own size are the same part of the picture.
-    The original is nested whole inside an `svg` whose `viewBox` is that part,
-    rather than edited: nothing of the drawing is rewritten, so nothing can be lost.
-    The `svg` between them gives the original its full size to draw at,
-    which it needs where it sizes itself to whatever holds it.
+    `doing` is what this is being read for, which is what a failure says it could not do.
     """
     root: dict[str, str] = {}
     start = -1
@@ -472,7 +467,7 @@ def crop_svg(data: bytes, crop: Crop) -> bytes:
     try:
         parser.Parse(data, True)
     except expat.ExpatError as e:
-        raise FetchFailed(f"it could not be read to crop ({e})") from e
+        raise FetchFailed(f"it could not be read to {doing} ({e})") from e
     width = _pixels(root.get("width"))
     height = _pixels(root.get("height"))
     if width is None or height is None:
@@ -480,8 +475,22 @@ def crop_svg(data: bytes, crop: Crop) -> bytes:
         if len(box) != 4:
             # Sized by whatever holds it and drawn at no scale of its own,
             # it has no whole for the raster to have been a picture of.
-            raise FetchFailed("it has neither a `viewBox` nor a fixed size to crop by")
+            raise FetchFailed(f"it has neither a `viewBox` nor a fixed size to {doing} by")
         width, height = float(box[2]), float(box[3])
+    return start, width, height
+
+
+def crop_svg(data: bytes, crop: Crop) -> bytes:
+    """`data` with the doc's crop of its raster applied, by wrapping it.
+
+    The crop is fractions of the raster, which is the whole SVG drawn out,
+    so the same fractions of the SVG's own size are the same part of the picture.
+    The original is nested whole inside an `svg` whose `viewBox` is that part,
+    rather than edited: nothing of the drawing is rewritten, so nothing can be lost.
+    The `svg` between them gives the original its full size to draw at,
+    which it needs where it sizes itself to whatever holds it.
+    """
+    start, width, height = svg_size(data, "crop")
     kept = (
         crop.left * width,
         crop.top * height,
