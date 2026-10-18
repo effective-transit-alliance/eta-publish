@@ -8,20 +8,30 @@ default_install_hook_types: [pre-commit, commit-msg, pre-push]
 default_stages: [pre-commit]
 
 repos:
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.17.1
-    hooks:
-      - id: ruff-check
-      - id: ruff-format
-        args: [--check]
-
-  - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.89
-    hooks:
-      - id: ty
-
   - repo: local
     hooks:
+      # Every Python tool runs from the project's own environment,
+      # at the version `uv.lock` pins, rather than from a copy pinned here:
+      # two pins for one tool drift apart, and a hook and CI then disagree.
+      - id: ruff-check
+        name: ruff check
+        entry: uv run ruff check
+        language: system
+        types_or: [python, pyi]
+
+      - id: ruff-format
+        name: ruff format
+        entry: uv run ruff format --check
+        language: system
+        types_or: [python, pyi]
+
+      - id: ty
+        name: ty
+        entry: uv run ty check
+        language: system
+        types: [python]
+        pass_filenames: false
+
       # From `mise.toml`, where its version is pinned.
       # The rules it skips, and why, are in `.markdownlint-cli2.jsonc`.
       - id: markdownlint-cli2
@@ -30,9 +40,8 @@ repos:
         language: system
         types: [markdown]
 
-      # From the project's own environment rather than pre-commit's,
-      # so it sees exactly the dependencies `uv` installs
-      # instead of a list here that has to be kept in step with `pyproject.toml`.
+      # Like the others, from the project's own environment,
+      # so it sees exactly the dependencies `uv` installs.
       - id: pyrefly
         name: pyrefly
         entry: uv run pyrefly check
