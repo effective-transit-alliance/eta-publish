@@ -279,7 +279,10 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     # And from 245,000 when an underline in the headline became a swoosh:
     # the curve and the script that lays one under each line, about 1.8 KB
     # that every fragment carries, underlined headline or not.
-    assert size < 250_000, f"grown to {size:,} bytes; still fits, worth a look"
+    #
+    # And from 250,000 when a source's box began with its `[n]`, a link to the
+    # entry: about 100 bytes of script on a fragment that was 10 under.
+    assert size < 255_000, f"grown to {size:,} bytes; still fits, worth a look"
 
 
 def test_every_image_has_something_describing_it(doc: Document) -> None:

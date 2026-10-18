@@ -28,7 +28,10 @@
     // The archive goes after the address here: the list puts it first to line
     // it up with the others, and a box has no others to line up with.
     const copy = entry.cloneNode(true);
+    // The number first, a link to the entry, so the box is a way there too.
     tip.append(
+      ref.cloneNode(true),
+      " ",
       copy.querySelector(".source-url"),
       " ",
       copy.querySelector(".source-archived"),

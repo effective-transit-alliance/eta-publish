@@ -27,7 +27,14 @@
     // The archive goes after the address here: the list puts it first to line
     // it up with the others, and a box has no others to line up with.
     const copy = entry.cloneNode(true);
-    tip.append(copy.querySelector(".source-url"), " ", copy.querySelector(".source-archived"));
+    // The number first, a link to the entry, so the box is a way there too.
+    tip.append(
+      ref.cloneNode(true),
+      " ",
+      copy.querySelector(".source-url"),
+      " ",
+      copy.querySelector(".source-archived"),
+    );
     // Every link in the box is a copy of one the entry has, and the entry is a
     // jump away: the keyboard walks past the copy rather than stopping at it.
     for (const link of tip.querySelectorAll("a")) link.tabIndex = -1;
