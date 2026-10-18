@@ -42,29 +42,33 @@
    selecting a heading to quote it should not pick up a stray character.
 
    It hangs in the margin ahead of the block, so that every mark on the page
-   is in the same column. Shown on focus as well as on hover, or it would be
-   a control only a mouse can reach. */
+   is in the same column. Shown on hovering the margin beside it, not the
+   block, so that reading with the pointer over the text leaves the margin
+   empty; and on focus, or it would be a control only a mouse can reach. */
 .eta-report :has(> .link-mark) { position: relative; }
 /* No `top`: an absolutely positioned box with `top: auto` stays at the
    vertical position it would have had in the line, which is beside the
    first line of the block. Pinning it to the top of the box instead put
    the mark of a heading with a rule above it up in the padding between the
    rule and the words. */
-.eta-report .link-mark { position: absolute; left: -1.15em;
+.eta-report .link-mark { position: absolute; left: -2.5em;
                          text-decoration: none; font-weight: normal;
                          opacity: 0; }
+/* The mark's box is the margin beside the first line, out to the text, so
+   that is where hovering finds it. The padding is the margin; the `#` stays
+   where it was, 1.15em ahead of the text. */
+.eta-report .link-mark { padding: .25em .2em .25em 1.35em; margin-top: -.25em; }
 .eta-report .link-mark::before { content: "#"; }
-.eta-report :has(> .link-mark):hover > .link-mark,
 .eta-report .link-mark:focus-visible { opacity: .45; }
-.eta-report .link-mark:hover { opacity: 1; }
+.eta-report .link-mark:hover { opacity: .7; }
 /* Inside a table cell there is no margin to hang a mark in: ahead of a cell
    is the cell before it. Those marks stay in the line instead. */
-.eta-report td .link-mark { position: static; margin-left: .35em; }
+.eta-report td .link-mark { position: static; margin: 0 0 0 .35em; padding: 0; }
 /* A footnote's mark goes outside its number rather than after it, where it
    was crowding the arrow back to the text. The list is indented far enough
    to leave room for both. */
 .eta-report .footnotes ol { padding-left: 2.6em; }
-.eta-report .footnotes li > .link-mark { left: -2.6em; }
+.eta-report .footnotes li > .link-mark { left: -3.95em; }
 @media print { .eta-report .link-mark { display: none; } }
 /* Caption and credit are styled alike, which is what the published report
    does: both are small text, and neither is italic. The classes stay
