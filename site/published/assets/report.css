@@ -1,0 +1,760 @@
+.eta-report figure {
+  margin: 2.5em 0;
+}
+/* Figures the document puts next to each other sit next to each other, if
+   the reader's screen has room. `flex-basis` is what decides, with no width
+   named anywhere and nothing to keep in step with a media query.
+
+   Both the basis and the growth are the image's own aspect ratio, so the
+   pictures come out the same height rather than the same width, which is
+   what makes a cross-section beside the one it is compared with readable
+   across. 1.4 is the landscape photo the report is mostly made of, for an
+   image whose size a build did not learn.
+
+   The 10rem is the wrap point rather than a width: one page's worth of
+   column divided by the widest pair the report puts in a row. */
+.eta-report .figure-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5em;
+  align-items: flex-start;
+  margin: 2.5em 0;
+}
+.eta-report .figure-row > figure {
+  flex: var(--aspect, 1.4) 1 calc(var(--aspect, 1.4) * 10rem);
+  margin: 0;
+}
+.eta-report figure img,
+.eta-report figure video {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+/* A graphic video's warning card is wider than most videos;
+   its own background fills the rest of the frame. */
+.eta-report figure video[poster] {
+  background: #000516;
+}
+/* A picture is a link to the file as the document holds it, for zooming in
+   past the copy the page shows. It reads as the picture, not as a link. */
+.eta-report figure .full-size,
+.eta-report figure picture {
+  display: block;
+  cursor: zoom-in;
+}
+.eta-report figure > img {
+  cursor: zoom-in;
+}
+/* Over a video's corner, without a `top`, so at the top of the video, which
+   is where it would have been in the flow: below a warning, if there is one. */
+.eta-report .lightbox-open {
+  position: absolute;
+  right: 0.4em;
+  margin-top: 0.4em;
+  z-index: 1;
+  font: inherit;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.2em 0.35em;
+  color: #fff;
+  background: rgb(0 0 0 / 0.6);
+  border: 0;
+  border-radius: 0.25em;
+  cursor: zoom-in;
+}
+/* No figure is taller than this: the pictures arrive at whatever size
+   someone dropped them into the document at, and a tall one filled the
+   screen on its own. A `max-width` derived from the picture's own shape
+   rather than a `max-height`, which against the `width: 100%` above would
+   squash it, and which would not keep two figures sharing a row the same
+   height. The 34rem is the PDF's 4.5in cap scaled to this column, so that a
+   picture cut down in one is cut down in the other. */
+.eta-report figure {
+  max-width: calc(var(--aspect, 1.4) * 34rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+/* Links underlined the way the site underlines them in a text block. The
+   report is pasted into an embed block, which that rule does not reach, and
+   the site's own `a` rule takes the underline off everywhere else. The
+   links that are marks rather than words take it off again below. */
+.eta-report a {
+  text-decoration: underline 1px solid currentColor;
+  text-decoration-skip-ink: auto;
+}
+/* Everything with an id carries a link to itself. The `#` is written by the
+   stylesheet rather than by the emitter, so that it is not part of the text:
+   selecting a heading to quote it should not pick up a stray character.
+
+   It hangs in the margin ahead of the block, so that every mark on the page
+   is in the same column. Shown on hovering the margin beside it, not the
+   block, so that reading with the pointer over the text leaves the margin
+   empty; and on focus, or it would be a control only a mouse can reach. */
+.eta-report :has(> .link-mark) {
+  position: relative;
+}
+/* No `top`: an absolutely positioned box with `top: auto` stays at the
+   vertical position it would have had in the line, which is beside the
+   first line of the block. Pinning it to the top of the box instead put
+   the mark of a heading with a rule above it up in the padding between the
+   rule and the words. */
+.eta-report .link-mark {
+  position: absolute;
+  left: -2.5em;
+  text-decoration: none;
+  font-weight: normal;
+  opacity: 0;
+}
+/* The mark's box is the margin beside the first line, out to the text, so
+   that is where hovering finds it. The padding is the margin; the `#` stays
+   where it was, 1.15em ahead of the text. */
+.eta-report .link-mark {
+  padding: 0.25em 0.2em 0.25em 1.35em;
+  margin-top: -0.25em;
+}
+.eta-report .link-mark::before {
+  content: "#";
+}
+.eta-report .link-mark:focus-visible {
+  opacity: 0.45;
+}
+.eta-report .link-mark:hover {
+  opacity: 0.7;
+}
+/* Inside a table cell there is no margin to hang a mark in: ahead of a cell
+   is the cell before it. Those marks stay in the line instead. */
+.eta-report td .link-mark {
+  position: static;
+  margin: 0 0 0 0.35em;
+  padding: 0;
+}
+/* A footnote's mark goes outside its number rather than after it, where it
+   was crowding the arrow back to the text. The list is indented far enough
+   to leave room for both. */
+.eta-report .footnotes ol {
+  padding-left: 2.6em;
+}
+.eta-report .footnotes li > .link-mark {
+  left: -3.95em;
+}
+@media print {
+  .eta-report .link-mark {
+    display: none;
+  }
+}
+/* Caption and credit are styled alike, which is what the published report
+   does: both are small text, and neither is italic. The classes stay
+   distinct so they can be told apart without reading them. */
+.eta-report figcaption {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin-top: 0.6em;
+}
+/* An embed is a card until it is clicked: the thumbnail, what the post says
+   or what the video is called, and who posted it. Drawn in `currentColor`
+   rather than a colour of its own, so that it takes the site's around it.
+
+   A video is the column's width and a post is the width the platforms set
+   their own to, so the player that replaces either is the size of its card. */
+.eta-report .embed {
+  max-width: 34rem;
+}
+/* Above the card, and above the player once the card becomes one. */
+/* A notice, not a heading: tinted and set off, so it is read before the
+   video is, and the name below is what the embed is called. A fixed amber
+   mixed with the page's own background reads in light and dark alike. */
+.eta-report .embed-warning {
+  margin: 0 0 0.5em;
+  padding: 0.5em 0.75em;
+  font-weight: bold;
+  border-left: 0.3em solid #d97706;
+  border-radius: 0.25em;
+  background: color-mix(in srgb, #d97706 18%, transparent);
+}
+.eta-report .embed-warning::before {
+  content: "⚠ ";
+}
+.eta-report .embed-title {
+  font-weight: bold;
+  opacity: 1;
+}
+.eta-report .embed-card {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  border-radius: 0.5em;
+  overflow: hidden;
+}
+.eta-report .embed-card:hover,
+.eta-report .embed-card:focus-visible {
+  border-color: color-mix(in srgb, currentColor 60%, transparent);
+}
+.eta-report .embed-youtube .embed-card img {
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.eta-report .embed-card img {
+  max-height: 24rem;
+  object-fit: cover;
+}
+.eta-report .embed-text {
+  display: block;
+  padding: 0.8em 1em 0;
+}
+.eta-report .embed-youtube .embed-text {
+  font-weight: bold;
+}
+.eta-report .embed-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25em 1em;
+  padding: 0.5em 1em 0.8em;
+  font-size: 0.85rem;
+}
+.eta-report .embed-author {
+  opacity: 0.75;
+}
+.eta-report .embed-play {
+  text-decoration: underline;
+}
+/* The text presentation selector keeps a phone from drawing the triangle as
+   a coloured emoji button. */
+.eta-report .embed-play::before {
+  content: "▶︎";
+  margin-right: 0.4em;
+  display: inline-block;
+  text-decoration: none;
+}
+.eta-report .embed-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+}
+.eta-report .embed-youtube .embed-frame {
+  aspect-ratio: 16 / 9;
+  height: auto;
+}
+/* A post's frame says how tall it is once it has loaded; until then it is
+   given room for a short one, rather than the 150px every frame starts at. */
+.eta-report .embed-x .embed-frame,
+.eta-report .embed-bluesky .embed-frame {
+  height: 32rem;
+}
+/* A Short is filmed upright, so its card and its player are too, and narrow
+   enough that the whole of it fits on a laptop's screen at once. */
+.eta-report .embed-vertical {
+  max-width: 20rem;
+}
+.eta-report .embed-vertical .embed-card img,
+.eta-report .embed-vertical .embed-frame {
+  aspect-ratio: 9 / 16;
+  max-height: none;
+}
+/* An underline in the headline is a swoosh, as the site draws one when its
+   own title sections underline a word: a hand-drawn curve under the words
+   rather than a rule. `report.js` lays one curve under each line the words
+   fall on, which nothing in CSS can do for words that wrap, and marks the
+   headline once it has; until then, or without the script, it is the
+   underline the document has.
+
+   The curve is the mask of a block of colour rather than a picture of a
+   curve, so it takes the site's highlight colour, which a picture could not,
+   and the text's own where there is none. */
+.eta-report .swooshed u {
+  text-decoration: none;
+}
+.eta-report .swoosh {
+  position: absolute;
+  height: 0.28em;
+  margin-top: -0.2em;
+  pointer-events: none;
+  background: var(--text-highlight-color, currentColor);
+  --curve:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-4 0 140 18' preserveAspectRatio='none'%3E%3Cpath d='M0 13.2c16.4-2.3 32.8-7 65.5-9s49.8 0 65.5.8c3.1.2-2.5 2.3-2.6 2.5' fill='none' stroke='%23000' stroke-width='6.5' stroke-linecap='square' stroke-linejoin='bevel'/%3E%3C/svg%3E")
+    0 0 / 100% 100% no-repeat;
+  -webkit-mask: var(--curve);
+  mask: var(--curve);
+}
+.eta-report .dateline {
+  font-size: 0.95rem;
+  opacity: 0.75;
+}
+.eta-report .pdf {
+  font-size: 0.95rem;
+  margin: 0.75em 0 0;
+}
+/* Outlined like an embed card, in the text's own color, so it suits the site's
+   light and dark sections without naming a color of its own. */
+.eta-report .pdf-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.4em 0.9em;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  color: inherit;
+  text-decoration: none;
+  font-weight: 600;
+}
+.eta-report .pdf-button:hover,
+.eta-report .pdf-button:focus-visible {
+  border-color: currentColor;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+.eta-report .standfirst {
+  font-size: 1.15rem;
+  opacity: 0.75;
+}
+/* The build's own notes about this report. A colour and a face of their own,
+   because they are the one thing on the page that is not the report and
+   should not be read as though they were. */
+.eta-report .warnings {
+  border-left: 3px solid #c60;
+  padding: 0.4em 1em;
+  margin: 2em 0;
+  font-size: 0.9rem;
+  font-family: system-ui, sans-serif;
+}
+.eta-report .warnings ul {
+  margin: 0.4em 0 0;
+  padding-left: 1.2em;
+}
+/* A grey of no hue at 15%, which is a tint on a light page and a lift on a
+   dark one, so one rule serves both. */
+.eta-report code {
+  background: rgba(127, 127, 127, 0.15);
+  border-radius: 0.25em;
+  padding: 0.1em 0.3em;
+  font-size: 0.9em;
+}
+/* The part of a value a warning is pointing at. Two spaces are one space in a
+   browser however they are written, so the dots inside say how many there are
+   and this says which characters they are. Coloured here rather than left to
+   the browser's own `mark`, which is black on yellow and unreadable against a
+   dark page. */
+.eta-report .warnings mark {
+  background: rgba(230, 180, 0, 0.35);
+  color: inherit;
+  border-radius: 0.2em;
+}
+/* A value the warning is about, indented so that a long one is read as the
+   quotation it is and not as more of the sentence above it. */
+.eta-report .warnings blockquote {
+  margin: 0.5em 0 0.5em 1em;
+  padding-left: 0.8em;
+  border-left: 2px solid currentColor;
+  opacity: 0.8;
+}
+/* The headline beside the hero, half and half, the way the site's own
+   reports open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the report
+   in a column too narrow for two.
+
+   The warnings come between the two in the markup, which is where they read
+   once the hero is under the headline, and go under both here. `min-width`,
+   or a long address in one holds the row wider than the column.
+
+   Wider than the column, as the site's own title sections are: the width of
+   the page less the site's 3vw gutter each side, up to the site's 1500px,
+   centred on the column, which is centred on the page. Two halves of the
+   column alone left the headline a few words to a line. */
+@media (min-width: 768px) {
+  .eta-report .masthead {
+    --wide: min(94vw, 1500px);
+    width: var(--wide);
+    margin-left: calc((100% - var(--wide)) / 2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 2rem;
+    align-items: flex-start;
+  }
+  .eta-report .masthead-text,
+  .eta-report .masthead > figure {
+    flex: 1 1 15rem;
+  }
+  .eta-report .masthead > figure {
+    margin: 1em 0 0;
+  }
+  .eta-report .masthead > .warnings {
+    order: 1;
+    flex-basis: 100%;
+    min-width: 0;
+  }
+}
+/* Coloured, unlike everything else here, and the loudest thing on the page:
+   this says the report is a draft, and a reader who misses it reads a draft as
+   published. Not uppercased, so it reads as the sentence it is.
+   Unscoped, because the page writes it above the headline,
+   which is outside `.eta-report`. */
+.phase {
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+  font-weight: bold;
+  color: #fff;
+  background: #c0202a;
+  border-radius: 0.2em;
+  display: inline-block;
+  padding: 0.3em 0.7em;
+  margin: 0 0 1em;
+}
+.eta-report .toc > ul {
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+.eta-report .toc ul {
+  list-style: none;
+  margin: 0.2em 0 0;
+  padding-left: 1.4em;
+}
+.eta-report .toc > ul {
+  padding-left: 0;
+}
+.eta-report .footnotes {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+.eta-report .footnote-ref a,
+.eta-report .footnote-back {
+  text-decoration: none;
+}
+/* Sources are set like the footnotes, because that is what they are: back
+   matter a sentence points at rather than part of the argument. */
+.eta-report .sources {
+  font-size: 0.9rem;
+  opacity: 0.85;
+}
+/* Indented only as far as a three-digit number needs, since every em here
+   is one a long address does not get, and on a phone that is a line more. */
+.eta-report .sources ol {
+  padding-left: 2.4em;
+}
+/* Wide enough, an entry's number, arrows, archive and address are each a
+   column, so the archives line up rather than starting wherever the arrows
+   before them happen to end. Numbered by hand, since an item laid out as a
+   grid is no longer a list item and loses its marker.
+   Narrower, the archive would leave the address too little room to read,
+   so the entry is the one line of text it otherwise is.
+   The arrows and archives are capped at about what most entries need, so a
+   source cited seven times, or a capture that failed with a long reason,
+   wraps within its own column rather than narrowing every address. */
+@media (min-width: 40rem) {
+  .eta-report .sources ol {
+    display: grid;
+    grid-template-columns: auto fit-content(5em) fit-content(12.5em) minmax(
+        0,
+        1fr
+      );
+    column-gap: 0.5em;
+    padding-left: 0;
+    counter-reset: source;
+  }
+  .eta-report .sources li {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
+    counter-increment: source;
+  }
+  .eta-report .sources li::before {
+    content: counter(source) ".";
+    text-align: right;
+  }
+}
+.eta-report .source-ref a,
+.eta-report .source-back {
+  text-decoration: none;
+}
+/* The URL itself is the entry, so it has to be able to break: these are long,
+   and a query string with no spaces in it would otherwise run off the page. */
+.eta-report .source-url {
+  word-break: break-word;
+}
+.eta-report .source-none {
+  opacity: 0.8;
+}
+.eta-report .source-archive {
+  white-space: nowrap;
+}
+/* The note itself, shown where the reference is, so that reading a sentence
+   does not mean leaving it. The link stays exactly what it was.
+
+   Only where hovering is a thing the device does: on a touch screen the
+   first tap on a link raises `:hover` instead of following it, which would
+   turn every footnote reference into a two-tap link.
+
+   `display` rather than `opacity`, so the duplicated text is out of the
+   layout, out of print, and out of what a screen reader reads.
+
+   Hidden outside the query and shown inside it, not hidden inside it.
+   The span is in the markup on every device, so a rule that only reaches
+   the ones that hover leaves the rest displaying the note inline, in the
+   middle of the sentence it belongs to. */
+.eta-report .footnote-tip,
+.eta-report .source-tip {
+  display: none;
+}
+@media (hover: hover) {
+  .eta-report .footnote-ref,
+  .eta-report .cited {
+    position: relative;
+  }
+  .eta-report .footnote-ref:hover .footnote-tip,
+  .eta-report .footnote-ref:focus-within .footnote-tip,
+  .eta-report .cited:hover .source-tip,
+  .eta-report .cited:focus-within .source-tip {
+    display: block;
+  }
+  /* Out of the sentence and still in the markup, where the backlinks land,
+     the keyboard stops, and the script finds the entry. Not in a note's box,
+     where a citation has no box of its own and the number is the way there. */
+  .eta-report.no-source-brackets .source-ref:not(.footnote-tip *) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+/* Styled outside the query, because a long press opens it where the
+   device does not hover.
+
+   Under the reference rather than over it, which is where the script
+   usually puts it too, and where it goes when there is no script: over it
+   is outside the window whenever the reader arrived by a backlink.
+
+   Which edge has room is a question about the window, and CSS cannot ask
+   it, so this is a fallback and the script measures. */
+.eta-report .footnote-tip,
+.eta-report .source-tip {
+  position: absolute;
+  top: 1.6em;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  width: max-content;
+  max-width: min(24rem, calc(100vw - 2.5rem));
+  padding: 0.5em 0.7em;
+  border-radius: 0.3em;
+  /* The page names these two and a site pasted into does not, where the
+       system pair is the one thing known to be legible against itself.
+       A tooltip needs an opaque surface: it is over text. */
+  background: var(--bg, Canvas);
+  color: var(--fg, CanvasText);
+  border: 1px solid currentColor;
+  /* `rem`, not `em`: this is inside a `sup`, and an `em` size would be a
+       fraction of an already smaller font, twice over in the footnotes
+       section. The rest is set back to running text because a reference can
+       sit inside a heading or an emphasized run. */
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 1.5;
+  text-align: left;
+  vertical-align: baseline;
+  white-space: normal;
+  /* The box is the note, links and all, so it takes the pointer. */
+  pointer-events: auto;
+}
+/* The gap between the reference and the box is a gap in the hover as well,
+   and a box that closes when the pointer sets out for it cannot be reached.
+   This is the gap, made part of the box, on both sides because the script
+   puts the box above the reference as readily as below it. Behind the box,
+   so it covers the space and not the page. */
+.eta-report .footnote-tip::before,
+.eta-report .source-tip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -0.9rem;
+  bottom: -0.9rem;
+  z-index: -1;
+}
+/* Every link in the note is in the box too. */
+.eta-report .footnote-tip a,
+.eta-report .source-tip a {
+  text-decoration: underline;
+}
+/* A long press opens the box rather than the browser's own preview of the link. */
+@media not (hover: hover) {
+  .eta-report .footnote-ref a,
+  .eta-report .cited a {
+    -webkit-touch-callout: none;
+  }
+}
+/* A picture opened over the page, at `#/media/` and its id: the picture as large as
+   the window allows, a bar above it and its caption below. A `dialog`, which
+   the browser puts above everything on the page, whatever the site around
+   the report stacks or transforms. Light on dark, whatever the page is. */
+html:has(.eta-report .lightbox[open]) {
+  overflow: hidden;
+}
+.eta-report .lightbox {
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #111;
+  color: #eee;
+}
+.eta-report .lightbox[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+.eta-report .lightbox::backdrop {
+  background: transparent;
+}
+.eta-report .lightbox a {
+  color: inherit;
+}
+.eta-report .lightbox button {
+  font-family: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0.2em 0.5em;
+  cursor: pointer;
+  line-height: 1;
+}
+.eta-report .lightbox-bar {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.5em 1em;
+}
+.eta-report .lightbox-count {
+  margin-right: auto;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+.eta-report .lightbox-close {
+  font-size: 2rem;
+}
+.eta-report .lightbox-stage {
+  position: relative;
+  min-height: 0;
+}
+/* Filling the stage and shrunk to fit inside it, rather than sized by itself:
+   a percentage height on an image in a grid row did not hold it to the row. */
+.eta-report .lightbox-media {
+  position: absolute;
+  inset: 0 3rem;
+  display: block;
+  cursor: zoom-in;
+}
+.eta-report div.lightbox-media {
+  cursor: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+}
+.eta-report div.lightbox-media video {
+  flex: 1;
+  min-height: 0;
+}
+.eta-report .lightbox .embed-warning {
+  align-self: center;
+  margin: 0;
+}
+.eta-report .lightbox-media picture {
+  display: contents;
+}
+.eta-report .lightbox-media :is(img, video) {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.eta-report .lightbox-prev,
+.eta-report .lightbox-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 3rem;
+  opacity: 0.7;
+}
+.eta-report .lightbox-prev {
+  left: 0;
+}
+.eta-report .lightbox-next {
+  right: 0;
+}
+.eta-report .lightbox-prev:hover,
+.eta-report .lightbox-next:hover {
+  opacity: 1;
+}
+.eta-report .lightbox-caption {
+  max-width: 50rem;
+  margin: 0 auto;
+  padding: 0.75em 1em 1em;
+  font-size: 0.9rem;
+  max-height: 30vh;
+  overflow-y: auto;
+}
+.eta-report .lightbox-caption figcaption {
+  opacity: 1;
+  margin: 0 0 0.3em;
+}
+@media print {
+  .eta-report .footnote-tip,
+  .eta-report .source-tip {
+    display: none;
+  }
+}
+.eta-report .contributors {
+  font-size: 0.95rem;
+}
+/* The names in two columns, read down the first and then the second, the way
+   the site's own reports lay them out. At 768px, where the site stacks its
+   own columns: a phone gets one. */
+@media (min-width: 768px) {
+  .eta-report .contributors ul {
+    columns: 2;
+  }
+  .eta-report .contributors li {
+    break-inside: avoid;
+  }
+}
+/* The back matter is set off by space, not by a rule. A page gives every
+   `h2` a rule of its own, so a separator here drew a second one. */
+.eta-report .footnotes,
+.eta-report .sources,
+.eta-report .contributors {
+  margin-top: 3em;
+}
+.eta-report .table-scroll {
+  overflow-x: auto;
+}
+.eta-report table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+.eta-report td {
+  border: 1px solid currentColor;
+  padding: 0.4em 0.6em;
+  vertical-align: top;
+}
+/* Squarespace, outside the report: the Embed block it is pasted into.
+   The block pads its bottom by 56.25% for a 16:9 video, which the report is
+   not, and the editor sets the block's height in grid rows, which is never
+   the report's own height for long: it changes with every paste and every
+   screen width. Where the report is the section's only block, the section
+   is one row as tall as the report; where it shares the section with other
+   blocks, their layout is left as the editor set it. */
+.embed-block-wrapper:has(> .eta-report) {
+  /* biome-ignore lint/complexity/noImportantStyles: the padding is an inline style. */
+  padding-bottom: 0 !important;
+}
+.fluid-engine:has(> .fe-block:only-child .eta-report) {
+  grid-template-rows: auto;
+}
+.fluid-engine:has(> .fe-block:only-child .eta-report) > .fe-block {
+  grid-row: 1 / 2;
+}

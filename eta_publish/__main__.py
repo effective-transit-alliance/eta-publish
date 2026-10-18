@@ -29,13 +29,16 @@ from typer import Argument, BadParameter, Exit, Option, Typer
 from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
 from .naming import ASSET_DIR, UNPUBLISHED_DIR
+from .published import write_published
 from .site import (
     REPORTS,
+    Failed,
     Report,
     Site,
     add_report,
     build_site,
     index_page,
+    label,
     listed_report,
     load_reports,
     saved_for,
@@ -147,6 +150,7 @@ def build_all(
         comments,
         offline,
         archive,
+        listed=listed,
         whole=True,
         into=into,
         hosted_media=hosted_media,
@@ -187,6 +191,9 @@ def build_one_report(
     """
     try:
         report = listed_report(doc, reports)
+        # The whole list, since what is hosted is every `automated` report there is,
+        # and one report built is not the others taken off the host.
+        listed = load_reports(reports) if reports.exists() else []
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
     publish(
@@ -197,6 +204,7 @@ def build_one_report(
         images,
         comments,
         archive=archive,
+        listed=listed,
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
@@ -212,6 +220,7 @@ def publish(
     comments: bool,
     offline: bool = False,
     archive: bool = True,
+    listed: list[Report] | None = None,
     whole: bool = False,
     into: Path | None = None,
     hosted_media: bool = True,
@@ -230,6 +239,9 @@ def publish(
     like an image taken out of a document, outlives it. `whole` is a build of
     the entire list, which replaces the entire site; otherwise only the reports
     built are replaced. `into` builds there and leaves `outdir` as it is.
+
+    Then `published/` is written from what was installed, for the `automated`
+    reports in `listed`, the whole list whichever of it was built.
     """
     options = BuildOptions(
         suggestions=str(suggestions),
@@ -244,6 +256,7 @@ def publish(
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)
+        host(site, into, listed or [], images)
     else:
         outdir.mkdir(parents=True, exist_ok=True)
         abandoned(outdir.parent, f".{outdir.name}-building-")
@@ -253,8 +266,22 @@ def publish(
         with console.cleaned_up(lambda: shutil.rmtree(staging, ignore_errors=True)):
             site = write_site(reports, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
+        host(site, outdir, listed or [], images)
     report_outcome(site)
     return site
+
+
+def host(site: Site, root: Path, listed: list[Report], images: bool) -> None:
+    """Write `root`'s `published/`, counting a live page left missing a file as a failure.
+
+    A failure rather than a warning: the report built,
+    but a page already out is linking a picture nobody is serving.
+    """
+    log = console.for_stream()
+    for report, problem in write_published(root, listed, complete=images):
+        log.line()
+        console.write(console.failed(label(report), problem), log)
+        site.failed.append(Failed(report=report, error=problem))
 
 
 def abandoned(parent: Path, prefix: str) -> None:

@@ -806,6 +806,17 @@ a report at its published path with its `doc.json` and everything emitted from i
 and `site/unpublished/assets/` holding the one copy of the stylesheets and script
 that every report page links.
 It is what GitHub Pages serves.
+
+`site/published/` is the part of it a live page needs:
+for each `published = "automated"` report,
+its `report.html` and any `--split` pieces, its `report.md`,
+and every file that `report.html` links on the site,
+at the same paths, so either directory serves the same URLs.
+It is written from `site/unpublished/` after every build,
+so a report that failed to build keeps hosting its last copy,
+and a build with the pictures on disk fails
+when a live page links one that is not there.
+Only its text is committed, as with the rest.
 It doubles as the project's main test corpus,
 because an actual `documents.get` response for a real report
 is where every bug that mattered came from.

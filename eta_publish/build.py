@@ -215,10 +215,10 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
-            _link_or_copy(previous / name, dest / name)
+            link_or_copy(previous / name, dest / name)
 
 
-def _link_or_copy(source: Path, dest: Path) -> None:
+def link_or_copy(source: Path, dest: Path) -> None:
     """`source` at `dest` as a second name for the same file, or a copy across filesystems."""
     import os
     import shutil

@@ -28,6 +28,12 @@ the previews, which is not the same thing as what is out.
 `SITE` serves this directory, so every path below is relative to it.
 """
 
+PUBLISHED_DIR = "published"
+"""The directory beside `UNPUBLISHED_DIR` holding only what the live pages link.
+
+At the same paths as in `UNPUBLISHED_DIR`, so either one serves the URLs `SITE` names.
+"""
+
 ASSET_DIR = "assets"
 """The directory the shared stylesheets and script go in, at the site root.
 
