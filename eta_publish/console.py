@@ -784,6 +784,25 @@ _CLEANUPS: list[Callable[[], None]] = []
 
 
 @contextmanager
+def paused() -> Iterator[None]:
+    """The bar off the screen, and kept off, while something else has the terminal.
+
+    For what writes to it without going through here, such as the sign-in
+    flow printing the link to sign in at: under a bar, the next redraw covers
+    it. Every other writer waits under the lock until this is done.
+    """
+    with _BAR_LOCK:
+        bar = _BAR
+        if bar is not None:
+            bar.stop()
+        try:
+            yield
+        finally:
+            if bar is not None and _BAR is bar:
+                bar.start()
+
+
+@contextmanager
 def cleaned_up(undo: Callable[[], None]) -> Iterator[None]:
     """Run `undo` when this ends, or when the run is stopped while inside it.
 

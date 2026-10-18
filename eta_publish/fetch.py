@@ -342,7 +342,9 @@ def _sign_in() -> Credentials:
                 ),
             )
         flow = InstalledAppFlow.from_client_secrets_file(str(CLIENT_SECRETS), SCOPES)
-        creds = flow.run_local_server(port=0)
+        # It prints the link to sign in at itself, which a bar would draw over.
+        with console.paused():
+            creds = flow.run_local_server(port=0)
         TOKEN_PATH.parent.mkdir(parents=True, exist_ok=True)
         TOKEN_PATH.write_text(creds.to_json())
     return creds
