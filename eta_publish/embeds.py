@@ -16,10 +16,12 @@ from pathlib import Path
 from urllib.parse import quote
 
 import requests
+lazy from yt_dlp import YoutubeDL
 
 from .docs_json import JsonObject
 from .naming import IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
 from .nodes import VIDEO_TYPES, Card, Document, Embed, Platform, Shown
+lazy from .fetch import download_drive_file, drive_file_type
 
 EMBEDS_JSON = "embeds.json"
 
@@ -180,8 +182,6 @@ def _describe(embed: Embed, http: requests.Session) -> Card:
                 did=did,
             )
         case Platform.DRIVE:
-            from .fetch import drive_file_type
-
             return Card(mime=drive_file_type(embed.key))
 
 
@@ -271,8 +271,6 @@ def _thumbnail(card: Card, stem: str, outdir: Path, http: requests.Session) -> s
 
 
 def _video(embed: Embed, card: Card, stem: str, outdir: Path, doc: Document) -> str:
-    from .fetch import download_drive_file
-
     data = download_drive_file(embed.key)
     _check_size(embed, len(data), doc)
     name = f"{stem}{VIDEO_TYPES[card.mime]}"
@@ -289,8 +287,6 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
     which an older iPhone does not play. Joining a separate video and audio
     stream into one takes `ffmpeg`.
     """
-    from yt_dlp import YoutubeDL
-
     outdir.mkdir(parents=True, exist_ok=True)
     options = {
         "format": (

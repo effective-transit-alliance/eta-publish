@@ -31,7 +31,7 @@ from rich.console import Console
 from . import console
 from .archive import Stopped
 from .assets import read
-from .build import DOC_JSON, BuildOptions, build_one, has_its_images, media_base
+from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
 from .naming import IMAGE_DIR
@@ -234,8 +234,6 @@ def add_report(url: str, path: Path = REPORTS) -> Report:
 
     A document being added is a draft until someone says otherwise.
     """
-    from .build import load
-
     url = canonical(url)
     if any(canonical(report.url) == url for report in load_reports(path)):
         raise ValueError(f"{path}: already lists {url}")
@@ -279,8 +277,6 @@ def saved_responses(outdir: Path) -> dict[tuple[str, str], Path]:
 
 def saved_for(report: Report, saved: dict[tuple[str, str], Path]) -> Path | None:
     """Where the last build of `report` wrote its response, if it is still there."""
-    from .fetch import parse_ref
-
     doc_id, tab = parse_ref(report.url)
     return saved.get((doc_id, tab or ""))
 

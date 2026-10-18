@@ -30,15 +30,20 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import cache
 from pathlib import Path
 from threading import Lock
-from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
+
+lazy import google.auth
+lazy from google.auth.credentials import Credentials
+lazy from google.auth.exceptions import DefaultCredentialsError, RefreshError
+lazy from google.auth.transport.requests import AuthorizedSession, Request
+lazy from google.oauth2.credentials import Credentials as UserCredentials
+lazy from google_auth_oauthlib.flow import InstalledAppFlow
+lazy from googleapiclient.discovery import build
+lazy from googleapiclient.errors import HttpError
 
 from . import console
 from .docs_json import JsonObject
 from .nodes import Shown
-
-if TYPE_CHECKING:
-    from google.auth.credentials import Credentials
 
 SCOPES = [
     "https://www.googleapis.com/auth/documents.readonly",
@@ -78,8 +83,6 @@ def _explain(error: object) -> str:
     `HttpError`'s own string is a wall of JSON with the useful sentence buried in it,
     and the failures worth naming here have a specific fix.
     """
-    from googleapiclient.errors import HttpError
-
     if not isinstance(error, HttpError):
         return str(error)
 
@@ -310,16 +313,10 @@ def _sign_in() -> Credentials:
     if ambient is not None:
         return ambient
 
-    from google.auth.transport.requests import Request
-    from google.oauth2.credentials import Credentials
-    from google_auth_oauthlib.flow import InstalledAppFlow
-
     creds = None
     if TOKEN_PATH.exists() and _granted_scopes() >= set(SCOPES):
-        creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
+        creds = UserCredentials.from_authorized_user_file(str(TOKEN_PATH), SCOPES)
     if creds and creds.expired and creds.refresh_token:
-        from google.auth.exceptions import RefreshError
-
         try:
             creds.refresh(Request())
         except RefreshError as e:
@@ -362,9 +359,6 @@ def _ambient_credentials() -> Credentials | None:
     if not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
         return None
 
-    import google.auth
-    from google.auth.exceptions import DefaultCredentialsError
-
     try:
         creds, _ = google.auth.default(scopes=SCOPES)
     except DefaultCredentialsError as e:
@@ -390,8 +384,6 @@ def _granted_scopes() -> set[str]:
 
 def fetch_document(doc_id: str, suggestions: str = "rejected") -> JsonObject:
     """The whole document, every tab included, suggestions resolved."""
-    from googleapiclient.discovery import build
-
     service = build("docs", "v1", credentials=_credentials())
     # `build` returns a `Resource` whose methods are generated at runtime
     # from the API's discovery document, so no static type knows about `documents`.
@@ -490,8 +482,6 @@ def open_comments_on_tab(doc_id: str, tab: str | None) -> int | None:
     as clean. Hence the shape check, the retries,
     and `None` rather than a zero this cannot stand behind.
     """
-    from google.auth.transport.requests import AuthorizedSession
-
     session = AuthorizedSession(_credentials())
     url = f"https://docs.google.com/document/d/{doc_id}/export"
     params = {"format": "txt"}
@@ -523,8 +513,6 @@ def modified_time(doc_id: str) -> str | None:
     is a reason to fetch it, which is what this was trying to avoid
     and not something it may decide against.
     """
-    from googleapiclient.discovery import build
-
     try:
         service = build("drive", "v3", credentials=_credentials())
         files = service.files()  # pyrefly: ignore[missing-attribute]
@@ -636,8 +624,6 @@ def fetch(
 
 def download_drive_file(file_id: str) -> bytes:
     """The raw bytes of a Drive file, for vectors the document links."""
-    from googleapiclient.discovery import build
-
     service = build("drive", "v3", credentials=_credentials())
     files = service.files()  # pyrefly: ignore[missing-attribute]
     try:
@@ -652,8 +638,6 @@ def drive_file_type(file_id: str) -> str:
     A Drive link says nothing about what it links: an embed needs to know it
     is a video before it can play one.
     """
-    from googleapiclient.discovery import build
-
     service = build("drive", "v3", credentials=_credentials())
     files = service.files()  # pyrefly: ignore[missing-attribute]
     try:

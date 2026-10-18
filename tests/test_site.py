@@ -238,14 +238,14 @@ def test_add_says_which_tabs_there_are_when_the_url_names_none(
     not the traceback it used to be printed as."""
     from typer.testing import CliRunner
 
-    from eta_publish import build
+    from eta_publish import site
     from eta_publish.__main__ import app
     from eta_publish.fetch import TabNotFound
 
     def no_tab(ref: str, suggestions: str = "rejected") -> object:
         raise TabNotFound("this document has 2 tabs; pass the URL including\n  t.a  Live version")
 
-    monkeypatch.setattr(build, "load", no_tab)
+    monkeypatch.setattr(site, "load", no_tab)
     path = tmp_path / "reports.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
 
@@ -301,13 +301,13 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
 
     A site missing a report beats no site, and the last copy of it beats a missing one.
     """
-    import eta_publish.fetch as fetch
+    import eta_publish.build as build
     from eta_publish.__main__ import Suggestions, publish
 
     def unreachable(*args: object, **kwargs: object) -> object:
         raise RuntimeError("Google is not answering")
 
-    monkeypatch.setattr(fetch, "fetch", unreachable)
+    monkeypatch.setattr(build, "fetch", unreachable)
     root = tmp_path / "site"
     out = root / UNPUBLISHED_DIR
     seed_image_index(out)
@@ -940,7 +940,7 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
     """Sixteen sources that all had to get through one build together never did,
     and a capture can still be running a day later."""
 
-    from eta_publish import archive
+    from eta_publish import archive, build
     from eta_publish.nodes import Archived
 
     answered: list[str] = []
@@ -958,7 +958,7 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
             )
         return 1, 0
 
-    monkeypatch.setattr(archive, "capture", capture)
+    monkeypatch.setattr(build, "capture", capture)
 
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
@@ -981,7 +981,7 @@ def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     def capture(doc: Document, **_: object) -> tuple[int, int]:
         return 0, 0
 
-    monkeypatch.setattr(archive, "capture", capture)
+    monkeypatch.setattr(build, "capture", capture)
     monkeypatch.delenv(archive.ACCESS_KEY, raising=False)
     monkeypatch.delenv(archive.SECRET_KEY, raising=False)
     monkeypatch.delenv(archive.CI, raising=False)

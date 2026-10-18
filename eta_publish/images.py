@@ -22,8 +22,13 @@ import os
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+lazy import shutil
+lazy from xml.etree import ElementTree
+lazy from xml.parsers import expat
 
 import requests
+lazy from PIL import Image as Pillow
+lazy from PIL import ImageChops, ImageStat
 
 from .naming import (
     WEB_DIR,
@@ -35,6 +40,8 @@ from .naming import (
     web_widths,
 )
 from .nodes import Crop, Document, Image, Shown
+lazy from .build import IMAGES_JSON
+lazy from .fetch import FetchFailed, download_drive_file
 
 EXTENSIONS = {
     "image/png": ".png",
@@ -71,10 +78,6 @@ def _renamed(image: Image, outdir: Path) -> Path | None:
     The picture is the same one, since a saved response is only reused
     for a document nobody has edited since it was saved.
     """
-    import shutil
-
-    from .build import IMAGES_JSON
-
     try:
         recorded = json.loads((outdir.parent / IMAGES_JSON).read_text())
     except OSError, ValueError:
@@ -313,11 +316,6 @@ def _same_pixels(pasted: bytes, live: bytes) -> bool:
     """
     if pasted == live:
         return True
-    import io
-
-    from PIL import Image as Pillow
-    from PIL import ImageChops, ImageStat
-
     try:
         with Pillow.open(io.BytesIO(pasted)) as first, Pillow.open(io.BytesIO(live)) as second:
             if first.width * first.height <= second.width * second.height:
@@ -390,8 +388,6 @@ def _fetch_vector(
     if vector is None:
         return False
 
-    from .fetch import FetchFailed, download_drive_file
-
     original = outdir / original_name(image)
     dest = outdir / vector.filename
     if not original.exists() and not image.crop.trims and dest.exists():
@@ -462,10 +458,6 @@ def crop_svg(data: bytes, crop: Crop) -> bytes:
     The `svg` between them gives the original its full size to draw at,
     which it needs where it sizes itself to whatever holds it.
     """
-    from xml.parsers import expat
-
-    from .fetch import FetchFailed
-
     root: dict[str, str] = {}
     start = -1
     parser = expat.ParserCreate()
@@ -542,8 +534,6 @@ def svg_description(data: bytes) -> str:
     Only the root's, not those of the shapes inside it,
     which describe one bar of the chart rather than the chart.
     """
-    from xml.etree import ElementTree
-
     try:
         root = ElementTree.fromstring(data)
     except ElementTree.ParseError:
@@ -563,10 +553,6 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
     """Trim `data` to the image's crop, returning it unchanged if there is none."""
     if not image.crop.trims:
         return data
-
-    import io
-
-    from PIL import Image as Pillow
 
     try:
         with Pillow.open(io.BytesIO(data)) as opened:
@@ -602,8 +588,6 @@ def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
     saving. It is paid in the PDF only: `images/` keeps what the document
     holds, and that is what each picture in the PDF links to.
     """
-    import shutil
-
     dest.mkdir(parents=True, exist_ok=True)
     copies: dict[str, Path] = {}
     if not written:
@@ -639,8 +623,6 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
     encoded again, and anything else in `WEB_DIR` is removed, so a picture
     taken out of the document takes its copies with it.
     """
-    from PIL import Image as Pillow
-
     web = images / WEB_DIR
     web.mkdir(parents=True, exist_ok=True)
     try:
@@ -694,8 +676,6 @@ than AVIF's default 6 halves the time for a file a few percent larger.
 
 def _for_web(path: Path, width: int, extension: str) -> bytes:
     """`path` at `width` pixels wide in `extension`, keeping any transparency."""
-    from PIL import Image as Pillow
-
     with Pillow.open(path) as opened:
         opened.load()
         picture = opened
@@ -725,10 +705,6 @@ def _for_print(path: Path) -> bytes | None:
     Both are decided by what the file is rather than by how well it compresses,
     so the name in `PRINT_DIR` stays a function of the name it arrived under.
     """
-    import io
-
-    from PIL import Image as Pillow
-
     if path.suffix.lower() == ".svg":
         return None
     with Pillow.open(path) as opened:

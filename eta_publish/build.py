@@ -7,31 +7,53 @@ import threading
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
+lazy import os
+lazy import shutil
 
 from rich.console import RenderableType
+lazy from PIL import Image as Pillow
+lazy from PIL import UnidentifiedImageError
 
 from . import console
 from .archive import (
     ACCESS_KEY,
+    ANONYMOUS_EVERY,
+    ARCHIVES_JSON,
+    IA_CONFIG,
     KEYS_PAGE,
     SECRET_KEY,
+    anonymous_allowed,
+    capture,
     check_pending,
     count_pages,
+    have_keys,
+    missing,
     read_archive_index,
     uncounted,
     write_archive_index,
 )
 from .checks import check, check_described, check_pages, plural
 from .docs_json import JsonObject
-from .embeds import check_embeds, look_up, read_embed_index, write_embed_index
+from .embeds import EMBEDS_JSON, check_embeds, look_up, read_embed_index, write_embed_index
 from .embeds import download as download_embeds
-from .emit.html import HtmlEmitter, report_page
+from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
 from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
+lazy from .assets import read
+lazy from .fetch import fetch
+lazy from .images import (
+    download,
+    original_name,
+    svg_description,
+    write_print_copies,
+    write_web_copies,
+)
+lazy from .pdf import TypstMissing, compile_pdf, install_template
+lazy from .site import report_path
 
 
 @dataclass(frozen=True)
@@ -129,8 +151,6 @@ def load(
     if path.is_file():
         return json.loads(path.read_text())
 
-    from .fetch import fetch
-
     return fetch(ref, suggestions=suggestions, comments=comments, cached=cached)
 
 
@@ -183,12 +203,6 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
 
     Not the print copies, the PDF, or the outputs: every build writes those.
     """
-    import shutil
-
-    from .archive import ARCHIVES_JSON
-    from .embeds import EMBEDS_JSON
-    from .images import original_name
-
     if previous.resolve() == dest.resolve():
         return
     dest.mkdir(parents=True, exist_ok=True)
@@ -220,9 +234,6 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
 
 def link_or_copy(source: Path, dest: Path) -> None:
     """`source` at `dest` as a second name for the same file, or a copy across filesystems."""
-    import os
-    import shutil
-
     dest.unlink(missing_ok=True)
     try:
         os.link(source, dest)
@@ -316,10 +327,8 @@ def _pixel_size(path: Path) -> dict[str, int]:
     Nothing else reads a size it did not get,
     so this stays a missing key rather than a guess.
     """
-    from PIL import Image, UnidentifiedImageError
-
     try:
-        with Image.open(path) as opened:
+        with Pillow.open(path) as opened:
             return {"width": opened.width, "height": opened.height}
     except OSError, UnidentifiedImageError:
         return {}
@@ -329,8 +338,6 @@ def _description(path: Path) -> dict[str, str]:
     """What an SVG says it shows, as alt text, or nothing for any other file."""
     if path.suffix != ".svg":
         return {}
-    from .images import svg_description
-
     alt = svg_description(path.read_bytes())
     return {"alt": alt} if alt else {}
 
@@ -490,8 +497,6 @@ def write_assets(siteroot: Path) -> list[Path]:
     Written as they are; `format.tree` lays out and checks the whole build
     afterwards, these among the rest.
     """
-    from .assets import read
-
     dest = siteroot / ASSET_DIR
     dest.mkdir(parents=True, exist_ok=True)
     written = []
@@ -579,8 +584,6 @@ ANONYMOUS_WARNED = threading.Event()
 
 def anonymous_warning() -> RenderableType:
     """What capturing without keys costs, and how not to."""
-    from .archive import ANONYMOUS_EVERY, IA_CONFIG
-
     return console.alarm(
         "Capturing sources WITHOUT archive.org keys",
         "No archive.org keys were found, so new captures are asked for anonymously:\n"
@@ -619,8 +622,6 @@ _WARNING_ANONYMOUS = threading.Lock()
 
 def counted_pages(doc: Document, only: set[str] | None = None) -> None:
     """Count the pages of the PDFs cited by page, saying which are being downloaded."""
-    from .archive import uncounted
-
     wanted = [url for url in uncounted(doc) if only is None or url in only]
     if not wanted:
         return
@@ -654,8 +655,6 @@ def archive_sources(doc: Document) -> None:
     Asking for a new capture needs keys, and without them the sources nothing
     has captured are left as they are, to be asked for by a build that can.
     """
-    from .archive import anonymous_allowed, capture, have_keys, missing
-
     wanted = missing(doc)
     if not wanted:
         return
@@ -701,8 +700,6 @@ def check_code_block_size(doc: Document, report: Path) -> None:
     will be when it is pasted: laying it out adds around an eighth to it,
     and a limit checked against the bytes before that is not the limit.
     """
-    from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN
-
     size = report.stat().st_size
     if size > CODE_BLOCK_LIMIT:
         doc.warn(
@@ -725,8 +722,6 @@ def build_pdf(source: Path, outdir: Path, skipped_images: bool) -> Path | None:
     The `.typ` is written either way,
     so a missing `typst` or a compile error costs the PDF and nothing else.
     """
-    from .pdf import TypstMissing, compile_pdf, install_template
-
     if skipped_images:
         console.write(
             console.note(
@@ -790,8 +785,6 @@ def build_one(
     was not this one: what it recorded is carried over before anything reads it.
     Without one, it is the report's own path under `read_from`, the last site.
     """
-    from .site import report_path
-
     options = options or BuildOptions()
     console.step("reading the saved response" if options.offline else "fetching the document")
     document = load(ref, options.suggestions, options.comments, cached)
@@ -841,8 +834,6 @@ def build_one(
 
     if doc.images:
         if options.images:
-            from .images import download, write_print_copies, write_web_copies
-
             console.step("reusing the images" if options.offline else "downloading the images")
             written_images = download(doc, dest / IMAGE_DIR, offline=options.offline)
             write_image_index(dest, written_images, doc.unpublished)
