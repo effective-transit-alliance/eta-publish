@@ -13,8 +13,4 @@ cd "$(dirname "$0")/.."
 src=eta_publish/assets/logo.src.svg
 out=eta_publish/assets/logo.svg
 
-flat=$(mktemp --suffix .svg)
-trap 'rm -f "$flat"' EXIT
-
-uv run python scripts/flatten-svg.py "$src" "$flat"
-mise x -- svgo --quiet --config scripts/logo.svgo.mjs --input "$flat" --output "$out"
+mise x -- svgo --quiet --config scripts/logo.svgo.mjs --input "$src" --output "$out"

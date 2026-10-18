@@ -27,7 +27,6 @@ dev = [
     "ruff>=0.17.1",
     "ty>=0.0.70",
     "types-requests>=2.32",
-    "svgelements>=1.9.6",
 ]
 
 [build-system]
@@ -54,11 +53,7 @@ search-path = ["tests"]
 # `pymdown-extensions` ships no `py.typed`, so a strict check refuses to read it at all.
 # The one thing imported from it is a slug function taking and returning `str`,
 # and `naming.slugify` states that signature.
-# `svgelements` declares itself ISO-8859-1 in its first line,
-# and both checkers read a file they cannot decode as UTF-8 as empty,
-# so every name in it is missing rather than untyped.
-# Only `scripts/flatten-svg.py` imports it.
-replace-imports-with-any = ["pymdownx.slugs", "svgelements", "svgelements.**"]
+replace-imports-with-any = ["pymdownx.slugs"]
 
 [tool.ty.rules]
 blanket-ignore-comment = "warn"
@@ -77,7 +72,3 @@ testpaths = ["tests"]
 # so neither CI nor a pre-commit hook ever needs Google credentials.
 markers = ["network: needs internet access and Google credentials"]
 addopts = "-m 'not network'"
-
-[tool.ty.analysis]
-# `svgelements` reads as empty; see `[tool.pyrefly]`.
-replace-imports-with-any = ["svgelements", "svgelements.**"]
