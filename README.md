@@ -142,6 +142,10 @@ uv run eta-publish all drafts.toml -o preview
 # Add a document to the list, named as the document names itself.
 uv run eta-publish add <google-doc-url>
 
+# Write `eta_publish/assets/logo.svg` from `logo.src.svg`, after editing the logo.
+# Every build does this first anyway.
+uv run eta-publish logo
+
 # Without the slowest question a build asks, when the counts can wait.
 uv run eta-publish all --no-comments
 

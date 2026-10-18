@@ -11,7 +11,7 @@
 # `uv` and `pre-commit` are here so that `mise install` is the whole of setup.
 # Python and the Python tools are not: `uv` manages those through `uv.lock`.
 #
-# `svgo` minifies the logo charts carry; see `scripts/build-logo.sh`.
+# `svgo` minifies the logo charts carry; see `eta_publish/logo.py`.
 #
 # `markdownlint-cli2` is an npm package, so it brings `node`, and the `npm` that comes with it.
 # `min_version` because `mise` 2026.5.6 failed with `invalid versions` installing it

@@ -26,7 +26,6 @@ class MiseMissing(RuntimeError):
     pass
 
 
-@cache
 def biome() -> str:
     """The `biome` that `mise.toml` pins.
 
@@ -34,6 +33,13 @@ def biome() -> str:
     which version runs. The output is committed, and a different `biome`
     would rewrite every report without a report having changed, which
     `check-committed-site.sh` would report as the documents changing.
+    """
+    return pinned("biome", "biome")
+
+
+@cache
+def pinned(tool: str, binary: str) -> str:
+    """Where the `binary` of `tool`, at the version `mise.toml` pins, is.
 
     Asked once, and for the path rather than by running `mise x` per call:
     `mise` re-reads the pin every time it is asked.
@@ -42,10 +48,10 @@ def biome() -> str:
     done on its own.
     """
     try:
-        path = _mise("which", "biome")
+        path = _mise("which", binary)
     except MiseMissing:
-        _mise("install", "biome")
-        path = _mise("which", "biome")
+        _mise("install", tool)
+        path = _mise("which", binary)
     return path
 
 
@@ -61,9 +67,8 @@ def _mise(*args: str) -> str:
         )
     except FileNotFoundError as e:
         raise MiseMissing(
-            "`mise` is not on PATH, so `biome` could not be resolved and "
-            "nothing was formatted. Install it from https://mise.jdx.dev, "
-            "then rerun."
+            "`mise` is not on PATH, so the tools `mise.toml` pins could not be found. "
+            "Install it from https://mise.jdx.dev, then rerun."
         ) from e
     if result.returncode != 0:
         raise MiseMissing(f"`mise {' '.join(args)}` failed:\n{result.stderr.strip()}")

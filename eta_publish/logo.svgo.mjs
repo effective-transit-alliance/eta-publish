@@ -1,4 +1,4 @@
-// What `svgo` does to the logo, for `scripts/build-logo.sh`.
+// What `svgo` does to the logo, for `logo.py`.
 //
 // Its default optimizations, which drop what Inkscape leaves behind for itself,
 // merge paths, apply transforms to the coordinates they move,

@@ -1,10 +1,13 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Three commands, because there are three things to do:
+Four commands, because there are four things to do:
 
     eta-publish all             every report in `reports.toml`, into `site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
+    eta-publish logo            write the logo charts carry from the logo as drawn
+
+`all` and `one` write the logo first too, so an edited one is never left behind.
 
 `all` is what the workflow runs and what the committed site is built from.
 `one` is for a document before it is on the list, or one report off it,
@@ -24,10 +27,13 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
+from rich.text import Text
 from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
+from .format import ROOT
+from .logo import LOGO, write_logo
 from .naming import ASSET_DIR, UNPUBLISHED_DIR
 from .published import write_published
 from .site import (
@@ -243,6 +249,7 @@ def publish(
     Then `published/` is written from what was installed, for the `automated`
     reports in `listed`, the whole list whichever of it was built.
     """
+    write_logo()
     options = BuildOptions(
         suggestions=str(suggestions),
         split=split,
@@ -442,6 +449,17 @@ def add(
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
     console.write(console.added(reports, added.name or "", added.tab or "", log), log)
+
+
+@app.command()
+def logo() -> None:
+    """Write `assets/logo.svg` from `assets/logo.src.svg`, minified by `svgo`.
+
+    Every build does this first anyway; this is for an edit to the logo on its own.
+    """
+    log = console.for_stream()
+    changed = write_logo()
+    console.write(Text(f"{'wrote' if changed else 'unchanged:'} {LOGO.relative_to(ROOT)}"), log)
 
 
 def main() -> None:
