@@ -947,7 +947,10 @@ class HtmlEmitter(Emitter):
         # A figure whose SVG could not be had is published without a picture,
         # never with the raster standing in for it.
         unpublished = node.image.object_id in self.doc.unpublished
-        parts: list[Piece] = [] if unpublished else [self.image(node.image)]
+        # The caption as the picture's `title` too, which a pointer resting on
+        # the picture shows, beside the `alt` that says what is in it.
+        title = plain_text(node.caption) if node.caption else None
+        parts: list[Piece] = [] if unpublished else [self.image(node.image, title)]
         if node.caption:
             parts.append(tag.figcaption(class_="figure-caption")[self.inlines(node.caption)])
         if node.credit:
@@ -1062,8 +1065,12 @@ class HtmlEmitter(Emitter):
         warning = (
             tag.p(class_="embed-warning", role="note")[GRAPHIC_WARNING] if node.graphic else None
         )
+        # A video has no `alt`; its name is what it is labeled by, and what
+        # resting the pointer on it shows, as a picture's caption is.
         video = tag.video(
             src=self.media_src(file, VIDEO_DIR),
+            title=node.title or None,
+            aria_label=node.title or None,
             controls=True,
             preload="metadata",
             poster=GRAPHIC_POSTER if node.graphic else None,
@@ -1165,7 +1172,7 @@ class HtmlEmitter(Emitter):
         )
 
     @override
-    def image(self, node: Image) -> str:
+    def image(self, node: Image, title: str | None = None) -> str:
         """The picture, at the size of the file that was written.
 
         `width` and `height` are the file's own pixels, not how wide it is
@@ -1203,6 +1210,7 @@ class HtmlEmitter(Emitter):
                 htpy.img(
                     src=src,
                     alt=node.alt,
+                    title=title,
                     loading=None if hero else "lazy",
                     fetchpriority="high" if hero else None,
                     width=width,
@@ -1229,6 +1237,7 @@ class HtmlEmitter(Emitter):
         img = htpy.img(
             src=copy(largest, WEB_FORMATS[-1]),
             alt=node.alt,
+            title=title,
             loading=None if hero else "lazy",
             fetchpriority="high" if hero else None,
             width=largest,

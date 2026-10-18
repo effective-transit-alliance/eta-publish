@@ -285,7 +285,10 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     #
     # And from 255,000 when a picture began opening in a lightbox: about 5.5 KB
     # of script and stylesheet, carried only when they are not linked.
-    assert size < 265_000, f"grown to {size:,} bytes; still fits, worth a look"
+    #
+    # And from 265,000 when a picture's caption became its `title` as well,
+    # which a resting pointer shows: each caption written twice, about 3 KB.
+    assert size < 275_000, f"grown to {size:,} bytes; still fits, worth a look"
 
 
 def test_every_image_has_something_describing_it(doc: Document) -> None:
