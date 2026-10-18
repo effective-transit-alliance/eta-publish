@@ -398,6 +398,13 @@ so adding a field to a future report is safe.
   and `Credit:` appears 26 times.
   When an image has no alt text in Docs, its caption is used,
   which is what the live page does by hand.
+- **A chart credited to ETA carries the ETA logo.**
+  An SVG whose `Credit:` line starts with `ETA` gets the logo in its top right corner,
+  where that corner is empty.
+  Where it is not, the chart grows a strip along its top, in its own background color,
+  and the logo goes there, so it never covers anything the chart draws.
+  The chart is drawn with `resvg` to see which,
+  with DejaVu standing in for whatever fonts it names.
 - **A `Source:` in our GitHub repos is the picture.**
   When a `Source:` links a file in an `effective-transit-alliance` or `kkysen` repo on GitHub,
   or a release asset of one,

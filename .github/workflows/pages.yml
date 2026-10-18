@@ -92,6 +92,17 @@ jobs:
             "typst-x86_64-unknown-linux-musl/typst"
           echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
 
+      # A chart credited to ETA is drawn to see whether its top right corner is empty
+      # for the logo, with DejaVu standing in for the fonts it names.
+      # Without DejaVu its text draws as nothing, so the build puts every logo
+      # above its chart, and the committed charts no longer match.
+      - name: Install the fonts charts are drawn in
+        run: |
+          if ! fc-list | grep -q "DejaVu Sans"; then
+            sudo apt-get update
+            sudo apt-get install -y fonts-dejavu-core
+          fi
+
       # Which documents to build lives in `reports.toml`,
       # so adding the next report is a pull request rather than an edit to this file.
       #

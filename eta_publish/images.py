@@ -40,6 +40,7 @@ from .naming import (
     web_widths,
 )
 from .nodes import Crop, Document, Image, Shown
+lazy from .branding import credited_to_eta, with_logo
 lazy from .build import IMAGES_JSON
 lazy from .fetch import FetchFailed, download_drive_file
 
@@ -424,12 +425,24 @@ def _fetch_vector(
         replace_bytes(original, data)
 
     data = original.read_bytes()
+    downloaded = data
+    description = svg_description(data)
+    cropped = Crop()
     if image.crop.trims:
         try:
             data = crop_svg(data, image.crop)
+            cropped = image.crop
         except FetchFailed as e:
             doc.warn(
                 f"could not crop the vector {{}} ({e}); it is published uncropped",
+                Shown(vector.title or vector.uri),
+            )
+    if credited_to_eta(doc, image):
+        try:
+            data = with_logo(data, downloaded, cropped, description)
+        except FetchFailed as e:
+            doc.warn(
+                f"could not put the ETA logo on the vector {{}} ({e}); it is published without it",
                 Shown(vector.title or vector.uri),
             )
     if not dest.exists() or dest.read_bytes() != data:
