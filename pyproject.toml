@@ -24,7 +24,7 @@ eta-publish = "eta_publish.__main__:main"
 dev = [
     "pytest>=9.1.1",
     "pyrefly>=1.2.0",
-    "ruff>=0.16.2",
+    "ruff>=0.17.1",
     "ty>=0.0.70",
     "types-requests>=2.32",
 ]
