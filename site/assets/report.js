@@ -302,7 +302,8 @@
   // than adding one, so back closes the box rather than walking the pictures.
   // Built out of the figure the link is in, so the markup carries nothing
   // more: without the script the link is to the original, as it was.
-  const MEDIA = "#/media/";
+  // Wikipedia's form, `File:` and all.
+  const MEDIA = "#/media/File:";
   // A picture, a drawing (an SVG, which is its own original), or a video:
   // not an embed, whose player is the platform's.
   const mediaOf = (figure) =>
@@ -407,9 +408,10 @@
     return box;
   };
   const render = () => {
-    const id = location.hash.startsWith(MEDIA)
-      ? decodeURIComponent(location.hash.slice(MEDIA.length))
-      : "";
+    // Without `File:` too, as the first addresses were written.
+    const id = decodeURIComponent(
+      location.hash.match(/^#\/media\/(?:File:)?(.+)/)?.[1] || "",
+    );
     const all = figures();
     // By its file, or by its id, as an address written by hand might.
     const figure =
