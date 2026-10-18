@@ -49,7 +49,8 @@
     if (open) return open;
     const ref = refOf(e);
     if (!ref) return null;
-    return ref.classList.contains("cited") ? sourceTip(ref) : ref.querySelector(".footnote-tip");
+    if (ref.classList.contains("cited")) return sourceTip(ref);
+    return built.get(ref) || ref.querySelector(".footnote-tip");
   };
   const place = (event) => {
     // The stylesheet shows this on hover only where the device hovers, and a
@@ -75,6 +76,8 @@
     // place on the screen and loses its background, which is worse than the
     // caption showing through it.
     home.set(tip, from);
+    // Found by its reference while away, or leaving it closes nothing.
+    built.set(from, tip);
     (from.closest(".eta-report") || document.body).append(tip);
     // Laid out where it can be measured, and not yet shown there: the handler
     // runs before the frame is painted.
