@@ -1,6 +1,6 @@
 """The real SAS West report, parsed, checked, and emitted in process.
 
-`site/` is literally a publish of the real report,
+`site/unpublished/` is literally a publish of the real report,
 at the top level because it is the site this project publishes
 rather than a test fixture:
 

@@ -105,7 +105,7 @@ jobs:
           GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/key.json
         run: scripts/check-committed-site.sh
 
-      # The deploy is a copy of `site/`, minus one file.
+      # The deploy is a copy of `site/unpublished/`, minus one file.
       #
       # `doc.json` is the API response as fetched,
       # so it carries the email address behind every person chip,
@@ -121,7 +121,7 @@ jobs:
 
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: site
+          path: site/unpublished
 
       - id: deploy
         uses: actions/deploy-pages@v5

@@ -22,10 +22,10 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from paths import ROOT, SITE
+from paths import ROOT, SITE, UNPUBLISHED
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
-from eta_publish.naming import IMAGE_DIR, PRINT_DIR, print_href
+from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, print_href
 
 
 def committed() -> set[str]:
@@ -90,13 +90,15 @@ def test_the_committed_site_is_what_an_offline_build_writes(
 
 
 def reports() -> list[str]:
-    """Every report directory in the committed site, by its path under `site/`."""
-    return sorted(p.parent.relative_to(SITE).as_posix() for p in SITE.glob("*/*/doc.json"))
+    """Every report directory in the committed site, by its path under `site/unpublished/`."""
+    return sorted(
+        p.parent.relative_to(UNPUBLISHED).as_posix() for p in UNPUBLISHED.glob("*/*/doc.json")
+    )
 
 
 @pytest.fixture(params=reports())
 def report(request: pytest.FixtureRequest, built_site: Path) -> Path:
-    return built_site / request.param
+    return built_site / UNPUBLISHED_DIR / request.param
 
 
 def without_warnings(html: str) -> str:
@@ -168,7 +170,7 @@ def test_the_records_are_json(report: Path) -> None:
 
 @pytest.fixture(params=reports())
 def report_with_images(request: pytest.FixtureRequest, built_with_images: Path) -> Path:
-    return built_with_images / request.param
+    return built_with_images / UNPUBLISHED_DIR / request.param
 
 
 def test_every_image_is_served_and_has_a_print_copy(report_with_images: Path) -> None:

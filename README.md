@@ -130,7 +130,7 @@ and sources with no capture publish saying they have no archive, which is true.
 ## Building
 
 ```sh
-# Every report in `reports.toml`, into `site/`.
+# Every report in `reports.toml`, into `site/unpublished/`.
 uv run eta-publish all
 
 # Or one document, before it is on the list, somewhere scratch.
@@ -801,10 +801,11 @@ and `git push --no-verify` skips it when those are what is missing.
 When it fails, the rebuilt files are left in the working tree,
 which is what to read and commit.
 
-`site/` is the published site, committed:
+`site/unpublished/` is every report, drafts included, committed:
 a report at its published path with its `doc.json` and everything emitted from it,
-and `site/assets/` holding the one copy of the stylesheets and script
+and `site/unpublished/assets/` holding the one copy of the stylesheets and script
 that every report page links.
+It is what GitHub Pages serves.
 It doubles as the project's main test corpus,
 because an actual `documents.get` response for a real report
 is where every bug that mattered came from.
@@ -816,11 +817,11 @@ for the tests that want to be fast rather than real.
 Every build saves the response as `doc.json` in the report's own directory,
 so the pipeline re-runs against the last fetch with no network: pass the directory.
 That is what the tests do.
-Either `site/` or `tests/fixture/` can be rebuilt that way,
+Either `site/unpublished/` or `tests/fixture/` can be rebuilt that way,
 which reads the saved response and needs no credentials:
 
 ```sh
-uv run eta-publish one site/reports/digging-out-deep-hole-sas-west
+uv run eta-publish one site/unpublished/reports/digging-out-deep-hole-sas-west
 ```
 
 Add `--no-images` and it needs no network at all.

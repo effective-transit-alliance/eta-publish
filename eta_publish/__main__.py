@@ -2,7 +2,7 @@
 
 Three commands, because there are three things to do:
 
-    eta-publish all             every report in `reports.toml`, into `site/`
+    eta-publish all             every report in `reports.toml`, into `site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
 
@@ -28,7 +28,7 @@ from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
-from .naming import ASSET_DIR
+from .naming import ASSET_DIR, UNPUBLISHED_DIR
 from .site import (
     REPORTS,
     Report,
@@ -57,7 +57,7 @@ app = Typer(context_settings={"help_option_names": ["-h", "--help"]}, help=__doc
 
 Outdir = Annotated[
     Path,
-    Option("-o", "--outdir", help="where the site is written; `site/` is published"),
+    Option("-o", "--outdir", help="where the site is written; `site/` is the committed one"),
 ]
 Suggested = Annotated[
     Suggestions,
@@ -284,9 +284,13 @@ def _running(pid: int) -> bool:
     return True
 
 
-def write_site(reports: list[Report], outdir: Path, options: BuildOptions, read_from: Path) -> Site:
-    """Build the reports into `outdir`, reading what the last build left in `read_from`."""
-    site = build_site(reports, outdir, options, read_from=read_from)
+def write_site(reports: list[Report], root: Path, options: BuildOptions, read_from: Path) -> Site:
+    """Build the reports under `root`, reading what the last build left under `read_from`.
+
+    Both are output directories, holding `UNPUBLISHED_DIR` and not the reports themselves.
+    """
+    outdir = root / UNPUBLISHED_DIR
+    site = build_site(reports, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
 
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "index.html").write_text(index_page(site))
@@ -319,10 +323,12 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
     site at all, and an older copy of it beats a missing one.
     Otherwise each report built replaces its own directory and nothing else,
     along with the index and the shared assets every page links.
+
+    Both are output directories, holding `UNPUBLISHED_DIR`.
     """
     if whole:
         for failed in site.failed:
-            previous = saved_for(failed.report, saved_responses(outdir))
+            previous = saved_for(failed.report, saved_responses(outdir / UNPUBLISHED_DIR))
             if previous is None:
                 continue
             kept = built / previous.relative_to(outdir)
@@ -333,6 +339,9 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
         built.rename(outdir)
         shutil.rmtree(old)
         return
+    built = built / UNPUBLISHED_DIR
+    outdir = outdir / UNPUBLISHED_DIR
+    outdir.mkdir(exist_ok=True)
     for entry in site.built:
         shutil.rmtree(outdir / entry.path, ignore_errors=True)
         (outdir / entry.path).parent.mkdir(parents=True, exist_ok=True)

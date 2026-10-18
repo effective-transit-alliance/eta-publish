@@ -13,7 +13,7 @@ token.json
 # Scratch output directories from ad-hoc runs.
 /out*/
 
-# `site/` is the published site, written by `eta-publish`, and
+# `site/` is the site, written by `eta-publish`, and
 # `tests/fixture/` is the same shape built from a hand-written document.
 # Only the text is committed: the images are 18 MB and the PDF 19 MB, and
 # every re-fetch would add another copy to history forever. Both are
@@ -23,8 +23,8 @@ token.json
 /site/**/videos/
 /site/**/report.pdf
 /site/**/template.typ
-/site/index.html
-/site/robots.txt
+/site/unpublished/index.html
+/site/unpublished/robots.txt
 /tests/fixture/**/images/
 /tests/fixture/**/print/
 /tests/fixture/**/videos/

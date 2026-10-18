@@ -45,6 +45,7 @@ class _Build:
 
     def __init__(self) -> None:
         from eta_publish.build import has_its_images
+        from eta_publish.naming import UNPUBLISHED_DIR
 
         root = Path(__file__).parent.parent
         # Beside `site/` rather than in the system's temporary directory, which
@@ -56,7 +57,8 @@ class _Build:
         self.dir = Path(tempfile.mkdtemp(dir=root, prefix=f".site-test-{os.getpid()}-"))
         self.out = self.dir / "site"
         self.log = (self.dir / "build.log").open("w")
-        reports = [saved.parent for saved in (root / "site").glob("*/*/doc.json")]
+        unpublished = root / "site" / UNPUBLISHED_DIR
+        reports = [saved.parent for saved in unpublished.glob("*/*/doc.json")]
         images = all((report / "images").is_dir() and has_its_images(report) for report in reports)
         self.images = images
         self.process = subprocess.Popen(

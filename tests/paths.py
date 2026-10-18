@@ -4,7 +4,7 @@ Both are publish directories of the same shape,
 so a test says which document it wants rather than how that document is stored:
 
     tests/fixture/reports/<slug>/doc.json   hand-written, small, fast
-    site/reports/<slug>/doc.json            a real `documents.get` response
+    site/unpublished/reports/<slug>/doc.json  a real `documents.get` response
 
 The real one is not under `tests/` at all:
 it is the published site, at the top level, and the tests read it there.
@@ -19,6 +19,7 @@ and why a test that emits a page has to stand in for the download.
 
 from pathlib import Path
 
+from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document
 
 TESTS = Path(__file__).parent
@@ -29,7 +30,8 @@ FIXTURE = TESTS / "fixture"
 FIXTURE_DIR = FIXTURE / SLUG
 
 SITE = ROOT / "site"
-REAL_DIR = SITE / SLUG
+UNPUBLISHED = SITE / UNPUBLISHED_DIR
+REAL_DIR = UNPUBLISHED / SLUG
 
 
 def named_images(doc: Document) -> Document:

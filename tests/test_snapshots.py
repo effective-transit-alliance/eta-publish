@@ -8,7 +8,7 @@ and doubles as the diff that shows what a parser change actually did to the outp
 
 The snapshots sit in `tests/fixture/reports/<slug>/`,
 beside the `doc.json` they are emitted from,
-which is the same shape as `site/`:
+which is the same shape as `site/unpublished/`:
 a report directory holding a document and what it produces.
 
 Regenerate with `pytest --regenerate-snapshots` after checking the diff.

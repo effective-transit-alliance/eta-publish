@@ -1313,7 +1313,7 @@ def report_page(
         # and it is the only one of the two that a project page can carry at all,
         # since `robots.txt` is read from the root of the host
         # and these pages are served from a path under it.
-        # Remove this, and `site/robots.txt`, when the reports go out.
+        # Remove this, and `site/unpublished/robots.txt`, when the reports go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
         tag.title[doc.title],
         htpy.meta(name="description", content=description),

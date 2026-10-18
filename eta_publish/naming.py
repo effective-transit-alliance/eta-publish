@@ -20,6 +20,14 @@ from urllib.parse import unquote, urlsplit
 
 from pymdownx.slugs import slugify as _slugify
 
+UNPUBLISHED_DIR = "unpublished"
+"""The directory under the output directory that a build writes every report into.
+
+Every report, drafts included, with its index:
+the previews, which is not the same thing as what is out.
+`SITE` serves this directory, so every path below is relative to it.
+"""
+
 ASSET_DIR = "assets"
 """The directory the shared stylesheets and script go in, at the site root.
 

@@ -24,6 +24,7 @@ from eta_publish.build import (
     require_image_index,
     write_image_index,
 )
+from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
@@ -307,7 +308,8 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
         raise RuntimeError("Google is not answering")
 
     monkeypatch.setattr(fetch, "fetch", unreachable)
-    out = tmp_path / "site"
+    root = tmp_path / "site"
+    out = root / UNPUBLISHED_DIR
     seed_image_index(out)
     kept = out / "reports" / "kept"
     kept.mkdir(parents=True)
@@ -323,7 +325,7 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
     ]
 
     with pytest.raises(Exit):
-        publish(reports, out, Suggestions.REJECTED, False, False, False, archive=False, whole=True)
+        publish(reports, root, Suggestions.REJECTED, False, False, False, archive=False, whole=True)
 
     assert (kept / "report.html").read_text() == "the last build of a report that failed"
     assert not (out / "reports" / "dropped").exists()
@@ -334,7 +336,8 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
 def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
     from eta_publish.__main__ import Suggestions, publish
 
-    out = tmp_path / "site"
+    root = tmp_path / "site"
+    out = root / UNPUBLISHED_DIR
     seed_image_index(out)
     (out / SLUG / "stale.html").write_text("written by an older build of this report")
     (out / "reports" / "other").mkdir()
@@ -342,7 +345,7 @@ def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
     good = tmp_path / "good.json"
     good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
 
-    publish([Report(url=str(good))], out, Suggestions.REJECTED, False, False, False, archive=False)
+    publish([Report(url=str(good))], root, Suggestions.REJECTED, False, False, False, archive=False)
 
     assert not (out / SLUG / "stale.html").exists()
     assert (out / SLUG / "report.html").is_file()
@@ -612,7 +615,7 @@ def test_a_report_directory_is_a_document(tmp_path: Path) -> None:
 
     from eta_publish.__main__ import app
 
-    seed_image_index(tmp_path / "site")
+    seed_image_index(tmp_path / "site" / UNPUBLISHED_DIR)
     result = CliRunner().invoke(
         app,
         # `--no-archive`, because the docstring's "no network" is the point of
@@ -620,7 +623,7 @@ def test_a_report_directory_is_a_document(tmp_path: Path) -> None:
         ["one", str(FIXTURE_DIR), "-o", str(tmp_path / "site"), "--no-images", "--no-archive"],
     )
     assert result.exit_code == 0, result.output
-    built = tmp_path / "site" / "reports" / "digging-out-deep-hole-sas-west"
+    built = tmp_path / "site" / UNPUBLISHED_DIR / "reports" / "digging-out-deep-hole-sas-west"
     assert (built / "report.md").is_file()
     assert (built / "doc.json").is_file()
 
