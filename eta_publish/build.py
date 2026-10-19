@@ -5,7 +5,7 @@ import hashlib
 import json
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 lazy import os
 lazy import shutil
@@ -262,13 +262,14 @@ def write_split(
     image_base: str = IMAGE_DIR,
     linked: str = "",
     source_brackets: bool = False,
+    stem: str = "report",
 ) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
     emitter = fragment_emitter(image_base, linked, source_brackets=source_brackets)
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
-        dest = outdir / f"report.part{n:02d}.html"
+        dest = outdir / f"{stem}.part{n:02d}.html"
         dest.write_text(piece)
         written.append(dest)
     return written
@@ -519,6 +520,12 @@ def asset_base(path: str) -> str:
 PDF_NAME = "report.pdf"
 """What `typst` compiles `report.typ` to, beside it."""
 
+UNWARNED = "published"
+"""What names a report's outputs rendered again without its warnings, as `report.published.html`.
+
+Warnings are for whoever is reviewing a build, never for a reader:
+`site/published/` takes these in place of the ones with warnings, under the usual names."""
+
 
 def media_base(path: str) -> str:
     """Where the site serves the images of the report at `path`, as a URL."""
@@ -535,6 +542,7 @@ def emit(
     cards: str = "",
     url: str = "",
     source_brackets: bool = False,
+    stem: str = "report",
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
@@ -543,14 +551,18 @@ def emit(
     is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
     `cards` is where the site serves the images, for the share card's absolute URL,
     and `url` is where it serves this report, for `og:url`.
+    A `stem` other than `report` writes only the files `site/published/` takes,
+    so not `index.html`, which is the preview.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        "report.html": fragment_emitter(images, linked, pdf, source_brackets),
-        "report.md": MarkdownEmitter(),
-        "report.typ": TypstEmitter(),
+        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets),
+        f"{stem}.md": MarkdownEmitter(),
+        f"{stem}.typ": TypstEmitter(),
     }
     written: dict[str, Path] = {}
+    if stem != "report":
+        return _emit_each(doc, outdir, emitters, written)
     # `index.html`, so a report directory is a page at its own URL:
     # `/reports/<slug>/` serves the report rather than a listing of files.
     # `report.html` beside it is the fragment, a piece of a page rather than one.
@@ -566,6 +578,16 @@ def emit(
         )
     )
     written[page.name] = page
+    return _emit_each(doc, outdir, emitters, written)
+
+
+def _emit_each(
+    doc: Document,
+    outdir: Path,
+    emitters: dict[str, HtmlEmitter | MarkdownEmitter | TypstEmitter],
+    written: dict[str, Path],
+) -> dict[str, Path]:
+    """Run each emitter into `outdir`, adding what it wrote to `written`."""
     for name, emitter in emitters.items():
         try:
             source = emitter.emit(doc)
@@ -898,12 +920,39 @@ def build_one(
         options.source_brackets,
     )
 
+    skipped_images = not options.images and bool(doc.images)
     typ = written.get("report.typ")
     if typ is not None:
         console.step("compiling the PDF")
-        build_pdf(typ, dest, skipped_images=not options.images and bool(doc.images))
+        build_pdf(typ, dest, skipped_images)
 
     if options.split:
         write_split(doc, dest, images, linked, options.source_brackets)
+
+    for stale in dest.glob(f"report.{UNWARNED}.*"):
+        # From a build that had warnings, which this one may not.
+        stale.unlink()
+    if doc.warnings:
+        # Only for a report with warnings: without any, the outputs above are already these.
+        console.step("writing the outputs without their warnings")
+        unwarned = replace(doc, warnings=[])
+        stem = f"report.{UNWARNED}"
+        written = emit(
+            unwarned,
+            dest,
+            asset_base(path),
+            images,
+            linked,
+            pdf,
+            media_base(path),
+            f"{SITE}/{path}/",
+            options.source_brackets,
+            stem=stem,
+        )
+        typ = written.get(f"{stem}.typ")
+        if typ is not None:
+            build_pdf(typ, dest, skipped_images)
+        if options.split:
+            write_split(unwarned, dest, images, linked, options.source_brackets, stem=stem)
 
     return doc, path

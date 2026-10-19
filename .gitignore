@@ -22,6 +22,7 @@ token.json
 /site/**/print/
 /site/**/videos/
 /site/**/report.pdf
+/site/**/report.published.pdf
 /site/**/template.typ
 /site/unpublished/index.html
 /site/unpublished/robots.txt
@@ -30,5 +31,6 @@ token.json
 /tests/fixture/**/videos/
 /tests/fixture/**/report.pdf
 /tests/fixture/**/template.typ
+/tests/fixture/**/report.published.pdf
 /tests/fixture/index.html
 /tests/fixture/robots.txt

@@ -131,3 +131,22 @@ def test_a_split_page_hosts_its_pieces_and_what_they_link(tmp_path: Path) -> Non
     assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
     assert "reports/a/report.part01.html" in files(tmp_path)
     assert "reports/a/images/a.jpg" in files(tmp_path)
+
+
+def test_a_report_with_warnings_publishes_its_copies_without_them(tmp_path: Path) -> None:
+    """Warnings are for reviewing a build; a published page, its Markdown and its PDF carry none."""
+    built(tmp_path, "reports/a", "a", "")
+    directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
+    (directory / "report.html").write_text('<div class="warnings">Warnings</div>')
+    (directory / "report.published.md").write_text("clean")
+    (directory / "report.pdf").write_bytes(b"warned")
+    (directory / "report.published.pdf").write_bytes(b"clean")
+    (directory / "report.published.html").write_text(
+        f'<p>clean</p><a href="{SITE}/reports/a/report.pdf">PDF</a>'
+    )
+    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    published = tmp_path / PUBLISHED_DIR / "reports/a"
+    assert (published / "report.html").read_text().startswith("<p>clean</p>")
+    assert (published / "report.md").read_text() == "clean"
+    assert (published / "report.pdf").read_bytes() == b"clean"
+    assert not list(published.glob("report.published.*"))

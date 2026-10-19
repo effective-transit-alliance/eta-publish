@@ -22,7 +22,7 @@ import shutil
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
-from .build import link_or_copy
+from .build import UNWARNED, link_or_copy
 from .naming import PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
 from .site import Published, Report, saved_for, saved_responses
 
@@ -83,6 +83,18 @@ def referenced(html: str, path: str) -> set[str]:
     return found
 
 
+def unwarned(path: Path) -> Path:
+    """The copy of `path` rendered without the report's warnings, if the report has any.
+
+    A report with none writes no such copy: what it wrote is already that.
+    """
+    stem, dot, rest = path.name.partition(".")
+    if stem != "report":
+        return path
+    clean = path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
+    return clean if clean.is_file() else path
+
+
 def write_published(root: Path, reports: list[Report], complete: bool) -> list[tuple[Report, str]]:
     """Write `root`'s `published/` from its `unpublished/`, for every `automated` report.
 
@@ -114,10 +126,10 @@ def write_published(root: Path, reports: list[Report], complete: bool) -> list[t
         for page in pages:
             files.add(f"{path}/{page.name}")
             if page.is_file():
-                files |= referenced(page.read_text(), path)
+                files |= referenced(unwarned(page).read_text(), path)
         missing = []
         for name in sorted(files):
-            source = unpublished / name
+            source = unwarned(unpublished / name)
             if not source.is_file():
                 missing.append(name)
                 continue
