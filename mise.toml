@@ -21,7 +21,7 @@ min_version = "2026.10.3"
 [tools]
 biome = "2.3.14"
 ffmpeg = "9.0.2"
-node = "24.21.0"
+node = "26.12.0"
 "npm:markdownlint-cli2" = "0.23.3"
 "npm:svgo" = "4.0.0"
 pre-commit = "4.6.2"
