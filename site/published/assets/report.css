@@ -830,6 +830,13 @@ html:has(.eta-report .lightbox[open]) {
   /* biome-ignore lint/complexity/noImportantStyles: the padding is an inline style. */
   padding-bottom: 0 !important;
 }
+/* The section's top padding, which left a white bar between the site's
+   header and the masthead's navy, where the site's own title sections
+   start right under the header. Only in the section holding a masthead. */
+.page-section:has(.eta-report > .masthead) > .content-wrapper {
+  /* biome-ignore lint/complexity/noImportantStyles: the site's own rule is more specific than any selector here. */
+  padding-top: 0 !important;
+}
 .fluid-engine:has(> .fe-block:only-child .eta-report) {
   grid-template-rows: auto;
 }
