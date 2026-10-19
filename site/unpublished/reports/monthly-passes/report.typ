@@ -30,6 +30,7 @@
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...o make is the one that you don't have to think about.")],
     [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...rch Record (2000, 1745(1), 101-112). https://doi.org/10.3141/...")],
     [the image #raw("img-ae6ddd33") has no alt text and no caption; add a description to it in the doc],
+    [the alt text of image #raw("img-cf3f2056") says #raw("Image"), which a screen reader already says; give the image alt text without it in the doc (right-click, Alt text)],
   ),
   hero: [
 #figure(

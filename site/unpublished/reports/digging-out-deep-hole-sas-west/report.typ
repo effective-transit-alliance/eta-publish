@@ -62,6 +62,7 @@
     [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...he Continental norm, usually 3-5%. If the soft cost share wer...")],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...7 St. So even if the MTA doesn't wish to reuse the Freedom Tu...")],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("... still simpler and cheaper: it's on publicly owned land, at a...")],
+    [the alt text of image #raw("img-6fb0f9c4") says #raw("image"), which a screen reader already says; give the image alt text without it in the doc (right-click, Alt text)],
   ),
   hero: [
 #figure(

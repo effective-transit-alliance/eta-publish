@@ -1147,3 +1147,14 @@ def test_a_renamed_image_is_found_under_its_old_name(tmp_path: Path) -> None:
     download(doc, images, session=Serving(b""), offline=True)
     assert doc.image_files["io.card"] == "ibx_automation-0c475eea.jpg"
     assert (images / "ibx_automation-0c475eea.jpg").read_bytes() == b"card"
+
+
+def test_an_alt_text_saying_image_elsewhere_is_warned_about() -> None:
+    """Dropping "image" from "Composite image of" would leave "Composite of",
+    which only a person can judge."""
+    doc = build([image(), para("Composite image of two stations."), field("Credit: MTA")])
+    figure = next(b for b in doc.blocks if isinstance(b, Figure))
+    assert figure.image.alt == "Composite image of two stations."
+    check_described(doc)
+    [warning] = [w for w in map(str, doc.warnings) if "screen reader" in w]
+    assert "says `image`" in warning

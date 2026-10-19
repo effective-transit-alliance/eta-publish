@@ -68,6 +68,7 @@ August 19, 2026
 - style: a range should use an en dash, `–`, not a hyphen: `...he Continental norm, usually 3-5%. If the soft cost share wer...`
 - style: an apostrophe should be `’`, not `'`: `...7 St. So even if the MTA doesn't wish to reuse the Freedom Tu...`
 - style: an apostrophe should be `’`, not `'`: `... still simpler and cheaper: it's on publicly owned land, at a...`
+- the alt text of image `img-6fb0f9c4` says `image`, which a screen reader already says; give the image alt text without it in the doc (right-click, Alt text)
 
 ![Composite image of the MTA’s SAS West St Nicholas Av station diagram and a Grand Central Madison escalator.](<images/img-6fb0f9c4.jpg>)\
 Composite image of the MTA’s [SAS West St Nicholas Av station diagram](<https://www.mta.info/document/196361#page=28>)<sup>\[1\]</sup> and a Grand Central Madison escalator.\

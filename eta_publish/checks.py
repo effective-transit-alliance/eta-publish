@@ -183,6 +183,10 @@ def _check_stray_fields(doc: Document) -> None:
                 )
 
 
+# The words `biome`'s `noRedundantAlt` looks for.
+_ANNOUNCING = re.compile(r"\b(?:image|photo|picture)\b", re.IGNORECASE)
+
+
 def check_described(doc: Document) -> None:
     """Give a figure its SVG's description, and warn about one with none at all.
 
@@ -200,6 +204,13 @@ def check_described(doc: Document) -> None:
             doc.warn(
                 "the image {} has no alt text and no caption; add a description to it in the doc",
                 Shown(figure.image.filename),
+            )
+        elif word := _ANNOUNCING.search(figure.image.alt):
+            doc.warn(
+                "the alt text of image {} says {}, which a screen reader already says;"
+                " give the image alt text without it in the doc (right-click, Alt text)",
+                Shown(figure.image.filename),
+                Shown(word.group()),
             )
 
 

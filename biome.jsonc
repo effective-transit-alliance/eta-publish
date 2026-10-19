@@ -12,10 +12,12 @@
         // Every empty link here is a `#` mark with an `aria-label`,
         // which is its accessible name; this rule's HTML half does not read `aria-label`.
         "useAnchorContent": "off",
-        // What these two flag is the document's: an alt text that says "photo",
-        // a video with no captions track. A build is not where to fix either,
-        // and failing on them would hold a report back over its writing.
+        // An alt text that says "photo" is the document's to fix, not the build's:
+        // the build warns the author about it instead (`checks.py`),
+        // and drops an opening "A photo" from a caption standing in as alt text.
         "noRedundantAlt": "off",
+        // A video with no captions track is the document's too,
+        // and failing on it would hold a report back over its writing.
         "useMediaCaption": "off"
       }
     }
