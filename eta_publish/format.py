@@ -88,10 +88,11 @@ def tree(root: Path) -> None:
     It lays out the saved API responses too, which changes how
     they are punctuated and not what they say.
 
-    Once, not until it settles. `biome` 2.3.14 is not idempotent on HTML: run
-    over its own output it breaks a handful of `<a href="...">` tags it had
-    just fitted onto one line, four places in these reports. That is a bug in
-    the formatter, and chasing it costs a whole further invocation to find out
+    Once, not until it settles. `biome` is not idempotent on HTML: run
+    over its own output, 2.3.14 broke a handful of `<a href="...">` tags it had
+    just fitted onto one line, and 2.5.15 breaks the line after a `<code>` or `<em>`
+    that it had just joined to the next word, a few dozen places in these reports.
+    That is a bug in the formatter, and chasing it costs a whole further invocation to find out
     nothing is left, on a build where a run of `biome` is mostly the fixed
     cost of starting one.
 
@@ -113,11 +114,12 @@ def tree(root: Path) -> None:
             # Every space in the prose is one somebody typed, so none of them
             # move.
             #
-            # The default breaks a long line where the rendering would not
-            # notice, which is wrong for a footnote reference: `biome` 2.3.14
-            # will break between a sentence and the `<sup>` welded to its full
-            # stop, and that newline renders as a space between the two.
-            # Under `strict` it moves nothing. The markup is uglier where a
+            # The default breaks a long line where it judges the rendering
+            # would not notice, which was wrong for a footnote reference:
+            # `biome` 2.3.14 broke between a sentence and the `<sup>` welded to
+            # its full stop, and that newline renders as a space between the two.
+            # 2.5.15 no longer does, but the judgment is still the formatter's,
+            # and under `strict` it moves nothing. The markup is uglier where a
             # line has to wrap mid-tag; the page is correct, and the page is
             # what publishes.
             "--html-formatter-whitespace-sensitivity=strict",

@@ -5,5 +5,19 @@
     // and a lint rule one of them breaks would stop a build over a file nobody here can edit.
     // `biome` 2.3 never read an SVG; 2.5 formats and lints them.
     "includes": ["**", "!**/*.svg"]
+  },
+  "linter": {
+    "rules": {
+      "a11y": {
+        // Every empty link here is a `#` mark with an `aria-label`,
+        // which is its accessible name; this rule's HTML half does not read `aria-label`.
+        "useAnchorContent": "off",
+        // What these two flag is the document's: an alt text that says "photo",
+        // a video with no captions track. A build is not where to fix either,
+        // and failing on them would hold a report back over its writing.
+        "noRedundantAlt": "off",
+        "useMediaCaption": "off"
+      }
+    }
   }
 }

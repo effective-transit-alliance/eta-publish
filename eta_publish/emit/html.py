@@ -634,9 +634,9 @@ class HtmlEmitter(Emitter):
         the brackets are what tells `[12]` from footnote 12 at a glance.
 
         Built as a `sup` around an `a`, the same shape `footnote_ref` writes,
-        rather than one `a` carrying both. Not only for the symmetry: `biome`
-        2.3.14 fails to lay out a long caption with the flatter form, with an
-        internal error rather than a complaint about the markup.
+        rather than one `a` carrying both, for the symmetry. (`biome` 2.3.14
+        also failed to lay out a long caption with the flatter form, with an
+        internal error; 2.5.15 lays out either.)
 
         Inside the box a reference carries it gets no id and does not count as
         a use: that box is a copy of a note emitted a second time, and the
@@ -1136,9 +1136,10 @@ class HtmlEmitter(Emitter):
             link = self.link(node.href)[out]
             ref = self.source_ref(node.href)
             # Held together in one element rather than set side by side: a
-            # citation and the link it is of do not wrap apart, and `biome`
-            # 2.3.14 fails with an internal error laying out a `sup` welded to
-            # the end of a link long enough to need breaking.
+            # citation and the link it is of do not wrap apart.
+            # (`biome` 2.3.14 also failed with an internal error laying out a
+            # `sup` welded to the end of a link long enough to need breaking;
+            # 2.5.15 does not.)
             out = tag.span(class_="cited")[link, ref] if ref is not None else link
         return markup(out)
 
