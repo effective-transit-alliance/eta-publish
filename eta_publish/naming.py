@@ -382,3 +382,7 @@ def replace_bytes(path: Path, data: bytes) -> None:
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
         raise
+
+
+CAPTIONS_LANGUAGE = "en"
+"""The language the reports are written in, and so the captions a copied video comes with."""

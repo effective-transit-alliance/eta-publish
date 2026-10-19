@@ -371,6 +371,16 @@ class Embed:
 
 
 @dataclass(frozen=True)
+class Captions:
+    """The captions a copied video came with, as a WebVTT file beside it."""
+
+    file: str
+    automatic: bool = False
+    """Whether the platform made them by recognizing the speech, rather than somebody writing them:
+    usually close, and never checked by anyone."""
+
+
+@dataclass(frozen=True)
 class Card:
     """What the platform said about an embed, which is what the page shows until it is played.
 
@@ -700,6 +710,11 @@ class Document:
 
     Recorded in `embeds.json` for the same reason as `image_files`:
     the extension is learned by fetching."""
+
+    media_captions: dict[str, Captions] = field(default_factory=dict)
+    """Embed URL to the captions its copied video came with, under `VIDEO_DIR`.
+
+    Recorded in `embeds.json`, so an offline build writes the same `<track>`."""
 
     @property
     def embeds(self) -> list[Embed]:

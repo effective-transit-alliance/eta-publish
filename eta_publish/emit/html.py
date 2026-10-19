@@ -20,6 +20,7 @@ from markupsafe import Markup
 from ..assets import read
 from ..naming import (
     ASSET_DIR,
+    CAPTIONS_LANGUAGE,
     IMAGE_DIR,
     VIDEO_DIR,
     WEB_FORMATS,
@@ -1074,7 +1075,10 @@ class HtmlEmitter(Emitter):
             controls=True,
             preload="metadata",
             poster=GRAPHIC_POSTER if node.graphic else None,
-        )[tag.a(href=node.url)["Watch the video"] if not node.copy else None]
+        )[
+            self.captions_track(node),
+            tag.a(href=node.url)["Watch the video"] if not node.copy else None,
+        ]
         return markup(
             tag.figure(id=anchor)[
                 self.mark(anchor, "video"),
@@ -1084,6 +1088,19 @@ class HtmlEmitter(Emitter):
                 credit,
                 cited if caption is None else None,
             ]
+        )
+
+    def captions_track(self, node: Embed) -> Element | None:
+        """The captions a copied video came with, labelled as recognized where nobody wrote them."""
+        captions = self.doc.media_captions.get(node.url)
+        if captions is None:
+            return None
+        label = "English (automatic)" if captions.automatic else "English"
+        return tag.track(
+            kind="captions",
+            src=self.media_src(captions.file, VIDEO_DIR),
+            srclang=CAPTIONS_LANGUAGE,
+            label=label,
         )
 
     def media_src(self, file: str, directory: str) -> str:

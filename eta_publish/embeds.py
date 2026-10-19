@@ -11,16 +11,19 @@ it had. The thumbnail and a Drive video are files, rebuilt like the images.
 
 import hashlib
 import json
+import re
 from collections import defaultdict
+from collections.abc import Mapping
 from pathlib import Path
+from typing import Any
 from urllib.parse import quote
 
 import requests
 lazy from yt_dlp import YoutubeDL
 
 from .docs_json import JsonObject
-from .naming import IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
-from .nodes import VIDEO_TYPES, Card, Document, Embed, Platform, Shown
+from .naming import CAPTIONS_LANGUAGE, IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
+from .nodes import VIDEO_TYPES, Captions, Card, Document, Embed, Platform, Shown
 lazy from .fetch import download_drive_file, drive_file_type
 
 EMBEDS_JSON = "embeds.json"
@@ -36,6 +39,9 @@ deleted, never was, or made private."""
 PAGES_FILE_LIMIT = 100_000_000
 """The largest file GitHub Pages will publish."""
 
+_RECORDED = frozenset({"file", "captions", "captions_automatic"})
+"""What `embeds.json` records about an embed beside its card."""
+
 
 def read_embed_index(dest: Path, doc: Document) -> None:
     """Tell `doc` what every embed's platform said about it, as last recorded."""
@@ -43,10 +49,13 @@ def read_embed_index(dest: Path, doc: Document) -> None:
     if not index.exists():
         return
     for url, entry in json.loads(index.read_text()).items():
-        card = {k: v for k, v in entry.items() if k != "file"}
+        card = {k: v for k, v in entry.items() if k not in _RECORDED}
         doc.cards.setdefault(url, Card(**card))
         if entry.get("file"):
             doc.media_files.setdefault(url, entry["file"])
+        if entry.get("captions"):
+            captions = Captions(entry["captions"], bool(entry.get("captions_automatic")))
+            doc.media_captions.setdefault(url, captions)
 
 
 def write_embed_index(dest: Path, doc: Document) -> None:
@@ -64,6 +73,10 @@ def write_embed_index(dest: Path, doc: Document) -> None:
         entry = {k: v for k, v in card.__dict__.items() if v}
         if embed.url in doc.media_files:
             entry["file"] = doc.media_files[embed.url]
+        if captions := doc.media_captions.get(embed.url):
+            entry["captions"] = captions.file
+            if captions.automatic:
+                entry["captions_automatic"] = True
         entries[embed.url] = entry
     if not entries:
         index.unlink(missing_ok=True)
@@ -122,7 +135,11 @@ def check_embeds(doc: Document) -> None:
                 Shown(embed.url),
                 Shown(card.mime or "unknown"),
             )
-        elif doc.served_video(embed) and not embed.uncaptioned:
+        elif (
+            doc.served_video(embed)
+            and embed.url not in doc.media_captions
+            and not embed.uncaptioned
+        ):
             # Only one the site serves: a platform's own player shows the platform's captions.
             doc.warn(
                 "the video {} has no captions; if nothing said in it matters, "
@@ -295,6 +312,9 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
     and H.264 in it before anything newer: YouTube's best MP4 is often AV1,
     which an older iPhone does not play. Joining a separate video and audio
     stream into one takes `ffmpeg`.
+
+    Its captions come with it where the platform has any, for the page to offer:
+    `yt-dlp` finds them the same way on every site it reads.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     options = {
@@ -312,10 +332,98 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
     with YoutubeDL(options) as ydl:
         info = ydl.extract_info(embed.url, download=True)
         path = Path(ydl.prepare_filename(info)).with_suffix(".mp4")
-    if not path.exists():
-        raise ValueError(f"{path.name} was not written")
-    _check_size(embed, path.stat().st_size, doc)
+        if not path.exists():
+            raise ValueError(f"{path.name} was not written")
+        _check_size(embed, path.stat().st_size, doc)
+        doc.media_captions.pop(embed.url, None)
+        (outdir / f"{stem}.vtt").unlink(missing_ok=True)
+        try:
+            captions = _captions(ydl, info, outdir, stem)
+        except Exception as e:
+            doc.warn("could not download the captions of {} ({})", Shown(embed.url), str(e))
+        else:
+            if captions is not None:
+                doc.media_captions[embed.url] = captions
     return path.name
+
+
+def _captions(ydl: YoutubeDL, info: Mapping[str, Any], outdir: Path, stem: str) -> Captions | None:
+    """Write the video's captions as `<stem>.vtt`, if the platform has any in the reports' language.
+
+    Captions somebody wrote before any the platform recognized from the speech.
+    Of those, the `-orig` track is the speech as recognized,
+    where a bare language can be a translation of a track in another.
+    """
+    for automatic, key in ((False, "subtitles"), (True, "automatic_captions")):
+        tracks: dict[str, list[dict[str, Any]]] = info.get(key) or {}
+        languages = [
+            language
+            for language in tracks
+            if language == CAPTIONS_LANGUAGE or language.startswith(f"{CAPTIONS_LANGUAGE}-")
+        ]
+        languages.sort(key=lambda language: (not language.endswith("-orig"), language))
+        for language in languages:
+            formats = {track.get("ext"): track for track in tracks[language] if track.get("url")}
+            if "vtt" in formats:
+                text = ydl.urlopen(formats["vtt"]["url"]).read().decode("utf-8-sig")
+            elif "srt" in formats:
+                text = srt_to_vtt(ydl.urlopen(formats["srt"]["url"]).read().decode("utf-8-sig"))
+            else:
+                continue
+            if not text.lstrip().startswith("WEBVTT"):
+                continue
+            name = f"{stem}.vtt"
+            # Only recognized captions roll; written ones are kept as written.
+            replace_bytes(outdir / name, (unrolled(text) if automatic else text).encode())
+            return Captions(name, automatic)
+    return None
+
+
+def srt_to_vtt(srt: str) -> str:
+    """SubRip as WebVTT, which differs in its header and its decimal comma."""
+    body = re.sub(r"(\d\d:\d\d:\d\d),(\d\d\d)", r"\1.\2", srt.replace("\r\n", "\n"))
+    return f"WEBVTT\n\n{body.strip()}\n"
+
+
+_TIMING = re.compile(r"^(\S+ --> \S+)")
+_TAG = re.compile(r"<[^>]*>")
+
+
+def _seconds(timestamp: str) -> float:
+    parts = [float(part) for part in timestamp.split(":")]
+    return sum(part * 60**power for power, part in enumerate(reversed(parts)))
+
+
+def unrolled(vtt: str) -> str:
+    """Captions with one cue a line, from YouTube's rolling ones.
+
+    YouTube's recognized captions scroll: each cue repeats the line before it
+    over the one being spoken, timed word by word, with a cue a hundredth of a second long
+    between each pair to hold the finished line. Played in a browser, every line shows twice.
+    Each cue here is only what it adds, with the word timings dropped.
+    Captions that do not roll come through with only their cue settings dropped.
+    """
+    cues: list[tuple[str, list[str]]] = []
+    # Split only at an empty line: YouTube's rolling cues open with a line of one space.
+    for block in re.split(r"\n\n+", vtt.replace("\r\n", "\n")):
+        lines = block.strip("\n").split("\n")
+        timed = next((n for n, line in enumerate(lines) if "-->" in line), None)
+        if timed is None:
+            continue
+        timing = _TIMING.match(lines[timed])
+        if timing is None:
+            continue
+        start, _, end = timing.group(1).partition(" --> ")
+        if _seconds(end) - _seconds(start) < 0.05:
+            continue
+        text = [_TAG.sub("", line).strip() for line in lines[timed + 1 :]]
+        text = [line for line in text if line]
+        if cues and len(text) > 1 and text[0] == cues[-1][1][-1]:
+            text = text[1:]
+        if text:
+            cues.append((timing.group(1), text))
+    body = "\n\n".join("\n".join([timing, *text]) for timing, text in cues)
+    return f"WEBVTT\n\n{body}\n"
 
 
 def _check_size(embed: Embed, size: int, doc: Document) -> None:

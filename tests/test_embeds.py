@@ -1,5 +1,6 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
+from pathlib import Path
 from typing import cast
 
 import pytest
@@ -7,10 +8,18 @@ import requests
 from test_conventions import build, field, image, para
 
 from eta_publish.docs_json import JsonObject
-from eta_publish.embeds import _stems, check_embeds, look_up
+from eta_publish.embeds import (
+    _stems,
+    check_embeds,
+    look_up,
+    read_embed_index,
+    srt_to_vtt,
+    unrolled,
+    write_embed_index,
+)
 from eta_publish.emit.html import GRAPHIC_POSTER, HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
-from eta_publish.nodes import Card, Embed, Figure, Paragraph, Platform, Text
+from eta_publish.nodes import Captions, Card, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
 
@@ -386,3 +395,63 @@ def test_a_platform_player_is_not_warned_about_captions() -> None:
     doc.cards[url] = Card(author="someone", text="a video")
     check_embeds(doc)
     assert not [w for w in map(str, doc.warnings) if "no captions" in w]
+
+
+ROLLING = """WEBVTT
+Kind: captions
+Language: en
+
+00:00:02.880 --> 00:00:05.030 align:start position:0%
+\x20
+Hello<00:00:03.200><c> everyone.</c><00:00:03.840><c> The</c>
+
+00:00:05.030 --> 00:00:05.040 align:start position:0%
+Hello everyone. The
+\x20
+
+00:00:05.040 --> 00:00:07.190 align:start position:0%
+Hello everyone. The
+Department<00:00:05.680><c> would</c>
+"""
+
+
+def test_rolling_captions_show_each_line_once() -> None:
+    """Too Damn Loud's, as YouTube recognized them."""
+    assert unrolled(ROLLING) == (
+        "WEBVTT\n\n"
+        "00:00:02.880 --> 00:00:05.030\nHello everyone. The\n\n"
+        "00:00:05.040 --> 00:00:07.190\nDepartment would\n"
+    )
+
+
+def test_subrip_captions_become_webvtt() -> None:
+    srt = "1\r\n00:00:01,000 --> 00:00:02,500\r\nHello\r\n"
+    assert srt_to_vtt(srt) == "WEBVTT\n\n1\n00:00:01.000 --> 00:00:02.500\nHello\n"
+
+
+def test_a_copy_offers_its_captions() -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    doc.media_captions[url] = Captions("embed-1.vtt", automatic=True)
+    html = HtmlEmitter(image_base="images").emit(doc)
+    assert (
+        '<track kind="captions" src="videos/embed-1.vtt" srclang="en" label="English (automatic)">'
+        in html
+    )
+    check_embeds(doc)
+    assert not [w for w in map(str, doc.warnings) if "no captions" in w]
+
+
+def test_captions_are_recorded_for_an_offline_build(tmp_path: Path) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    doc.media_captions[url] = Captions("embed-1.vtt", automatic=True)
+    write_embed_index(tmp_path, doc)
+    again = build([para("Headline", "TITLE"), copied(url)])
+    read_embed_index(tmp_path, again)
+    assert again.media_captions == {url: Captions("embed-1.vtt", automatic=True)}
+    assert again.cards[url] == Card(author="someone", text="a post")
