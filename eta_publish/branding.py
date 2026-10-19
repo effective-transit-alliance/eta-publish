@@ -29,6 +29,7 @@ lazy import resvg_py
 lazy from PIL import Image as Pillow
 
 from .assets import read
+from .dark import LOGO_CLASS
 from .images import svg_size
 from .nodes import Crop, Document, Figure, Image, plain_text
 
@@ -133,7 +134,9 @@ def with_logo(data: bytes, original: bytes, crop: Crop, description: str = "") -
     x = width - margin - side
     y = margin - grown
     placed = _logo().replace(
-        "<svg ", f'<svg x="{x:g}" y="{y:g}" width="{side:g}" height="{side:g}" ', 1
+        "<svg ",
+        f'<svg x="{x:g}" y="{y:g}" width="{side:g}" height="{side:g}" class="{LOGO_CLASS}" ',
+        1,
     )
     # On a baseline a fifth of its size above the bottom of its room,
     # which is about where a sans serif's descenders end, and `etany.org` has one.

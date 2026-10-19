@@ -42,6 +42,7 @@ from .naming import (
 from .nodes import Crop, Document, Image, Shown
 lazy from .branding import credited_to_eta, with_logo
 lazy from .build import IMAGES_JSON
+lazy from .dark import with_dark_mode
 lazy from .fetch import FetchFailed, download_drive_file
 
 EXTENSIONS = {
@@ -445,6 +446,7 @@ def _fetch_vector(
                 f"could not put the ETA logo on the vector {{}} ({e}); it is published without it",
                 Shown(vector.title or vector.uri),
             )
+    data = with_dark_mode(data, downloaded)
     if not dest.exists() or dest.read_bytes() != data:
         replace_bytes(dest, data)
     written[image.object_id] = dest
