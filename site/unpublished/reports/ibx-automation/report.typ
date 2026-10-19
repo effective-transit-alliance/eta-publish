@@ -8,9 +8,6 @@
   dateline: "October 21, 2026",
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
-  warnings: (
-    [the video #raw("https://x.com/ThoughtPolic3HQ/status/1874861375857541619/video/1") has no captions; if nothing said in it matters, add #raw("No Captions") to its line, as in #raw("Video (Copy, No Captions):")],
-  ),
   hero: [
 #figure(
   link("https://kkysen.github.io/eta-publish/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg")[#capped_image("print/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg", alt: "A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).")],
