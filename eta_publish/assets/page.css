@@ -1,8 +1,14 @@
 :root { color-scheme: light dark; --fg: #1a1a1a; --bg: #fff; }
 @media (prefers-color-scheme: dark) { :root { --fg: #eaeaea; --bg: #141414; } }
+/* The masthead's band is the window's width, which counts a scrollbar the
+   page does not have room for. */
+html { overflow-x: clip; }
 body { background: var(--bg); color: var(--fg); max-width: 46rem;
        margin: 0 auto; padding: 3rem 1.25rem 6rem;
        font: 17px/1.65 Georgia, "Times New Roman", serif; }
+/* The masthead's band starts at the top of the window, as the site's starts
+   under its own header, unless a draft's phase is above it. */
+body > .eta-report:first-child > .masthead:first-child { margin-top: -3rem; }
 h1, h2, h3, h4 { font-family: system-ui, sans-serif; line-height: 1.25; }
 h1 { font-size: 2.1rem; margin-bottom: .2em; }
 h2 { margin-top: 2.5em; border-top: 1px solid currentColor; padding-top: .8em; }

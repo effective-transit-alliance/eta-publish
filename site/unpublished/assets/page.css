@@ -9,6 +9,11 @@
     --bg: #141414;
   }
 }
+/* The masthead's band is the window's width, which counts a scrollbar the
+   page does not have room for. */
+html {
+  overflow-x: clip;
+}
 body {
   background: var(--bg);
   color: var(--fg);
@@ -19,6 +24,11 @@ body {
     17px / 1.65 Georgia,
     "Times New Roman",
     serif;
+}
+/* The masthead's band starts at the top of the window, as the site's starts
+   under its own header, unless a draft's phase is above it. */
+body > .eta-report:first-child > .masthead:first-child {
+  margin-top: -3rem;
 }
 h1,
 h2,
