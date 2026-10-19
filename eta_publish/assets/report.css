@@ -213,16 +213,29 @@
          color: #fff; background: #c0202a;
          border-radius: .2em;
          display: inline-block; padding: .3em .7em; margin: 0 0 1em; }
-.eta-report .toc > ul { font-size: 1.1rem; line-height: 1.8; }
 /* A bullet per level, the outline sequence readers already know,
    so the nesting shows on a phone where the indent alone is easy to miss.
    The top level's bullets hang in the margin, keeping its titles on the
    body text's left edge. */
 .eta-report .toc ul { list-style: disc; margin: .2em 0 0; padding-left: 1.4em; }
-.eta-report .toc > ul { padding-left: 0; }
+.eta-report .toc details > ul { font-size: 1.1rem; line-height: 1.8; padding-left: 0; }
 .eta-report .toc ul ul { list-style: circle; }
 .eta-report .toc ul ul ul { list-style: "\2013  "; }
 .eta-report .toc li::marker { color: #888; }
+/* The summary is the heading itself, with a triangle after it rather than
+   the browser's before it, which would sit on a line of its own above a
+   block heading. */
+.eta-report .toc summary { list-style: none; cursor: pointer; }
+.eta-report .toc summary::-webkit-details-marker { display: none; }
+.eta-report .toc summary h2::after { content: "\25B8"; display: inline-block;
+                                      margin-left: .4em; font-size: .8em; opacity: .6;
+                                      transition: transform .15s; }
+.eta-report .toc details[open] summary h2::after { transform: rotate(90deg); }
+/* Printed whole: paper has nothing to click. */
+@media print {
+  .eta-report .toc details::details-content { content-visibility: visible; display: block; }
+  .eta-report .toc summary h2::after { display: none; }
+}
 .eta-report .footnotes { font-size: .9rem; opacity: .85; }
 .eta-report .footnote-ref a,
 .eta-report .footnote-back { text-decoration: none; }
