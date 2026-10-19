@@ -16,8 +16,8 @@
         // the build warns the author about it instead (`checks.py`),
         // and drops an opening "A photo" from a caption standing in as alt text.
         "noRedundantAlt": "off",
-        // A video with no captions track is the document's too,
-        // and failing on it would hold a report back over its writing.
+        // Our videos are footage, not speech: what little is said in them
+        // is not what they are there to show.
         "useMediaCaption": "off"
       }
     }
