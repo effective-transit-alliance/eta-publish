@@ -17,7 +17,7 @@ from eta_publish.embeds import (
     unrolled,
     write_embed_index,
 )
-from eta_publish.emit.html import HtmlEmitter
+from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.naming import SITE
 from eta_publish.nodes import Captions, Card, Embed, Figure, Paragraph, Platform, Text
@@ -465,3 +465,13 @@ def test_a_fragment_links_the_card_where_the_site_is_served() -> None:
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images", site_url="https://reports.example.org").emit(doc)
     assert 'poster="https://reports.example.org/assets/graphic-warning.svg"' in html
+
+
+def test_a_preview_page_links_the_card_beside_it() -> None:
+    """As it links its stylesheet: a preview works wherever it is opened."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    page = report_page(doc, asset_base="../../assets")
+    assert 'poster="../../assets/graphic-warning.svg"' in page

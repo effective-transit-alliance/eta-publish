@@ -230,11 +230,15 @@ class HtmlEmitter(Emitter):
         pdf_href: str = "",
         source_brackets: bool = False,
         site_url: str = SITE,
+        page_assets: str = "",
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
         # Where the site is served, for what a fragment links there with no `asset_base`.
         self.site_url = site_url
+        # Where a page finds the site's assets beside it, as it links its stylesheet;
+        # empty for the fragment, whose `asset_base` says where they are.
+        self.page_assets = page_assets
         # Turn off once `REPORT_CSS` lives in the site's Custom CSS.
         self.inline_css = inline_css
         # Off for a page, which links one copy; on for the fragment, which
@@ -1091,7 +1095,7 @@ class HtmlEmitter(Emitter):
         its stylesheet inline links the site's copy, since Squarespace has none.
         The stylesheet fills the rest of a video of another shape with its background.
         """
-        base = self.asset_base or f"{self.site_url}/{ASSET_DIR}"
+        base = self.page_assets or self.asset_base or f"{self.site_url}/{ASSET_DIR}"
         return f"{base}/{GRAPHIC_POSTER}"
 
     def captions_track(self, node: Embed) -> Element | None:
@@ -1303,6 +1307,7 @@ def report_page(
         inline_phase=False,
         pdf_href=pdf_href,
         source_brackets=source_brackets,
+        page_assets=asset_base,
     ).emit(doc)
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.
