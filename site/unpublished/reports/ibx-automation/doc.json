@@ -2558,7 +2558,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://github.com/kkysen/ibx-ridership-charts/"
+                    "url": "https://github.com/effective-transit-alliance/ibx-ridership-charts/"
                   },
                   "underline": true
                 }
@@ -11535,7 +11535,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-19T05:03:04.604Z",
+  "modifiedTime": "2026-10-19T05:18:20.184Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
