@@ -227,6 +227,10 @@
 /* White by name, not by inheritance: the site's theme colors its headings
    and links itself, which on the navy left the headline all but invisible. */
 .eta-report .masthead :is(h1, a, figcaption) { color: #fff; }
+/* The headline's swoosh is in the theme's highlight color, which on the
+   site's white sections is this same navy. White, as on the site's own navy
+   title sections, whose `bright` theme sets it so. */
+.eta-report .masthead { --text-highlight-color: #fff; }
 /* Coloured, unlike everything else here, and the loudest thing on the page:
    this says the report is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
