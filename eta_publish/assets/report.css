@@ -1,4 +1,13 @@
 .eta-report figure { margin: 2.5em 0; }
+/* No figure is taller than this: the pictures arrive at whatever size
+   someone dropped them into the document at, and a tall one filled the
+   screen on its own. A `max-width` derived from the picture's own shape
+   rather than a `max-height`, which against the `width: 100%` below would
+   squash it, and which would not keep two figures sharing a row the same
+   height. The 34rem is the PDF's 4.5in cap scaled to this column, so that a
+   picture cut down in one is cut down in the other. */
+.eta-report figure { max-width: calc(var(--aspect, 1.4) * 34rem);
+                     margin-left: auto; margin-right: auto; }
 /* Figures the document puts next to each other sit next to each other, if
    the reader's screen has room. `flex-basis` is what decides, with no width
    named anywhere and nothing to keep in step with a media query.
@@ -29,15 +38,6 @@
                              font: inherit; font-size: 1.3rem; line-height: 1; padding: .2em .35em;
                              color: #fff; background: rgb(0 0 0 / .6); border: 0;
                              border-radius: .25em; cursor: zoom-in; }
-/* No figure is taller than this: the pictures arrive at whatever size
-   someone dropped them into the document at, and a tall one filled the
-   screen on its own. A `max-width` derived from the picture's own shape
-   rather than a `max-height`, which against the `width: 100%` above would
-   squash it, and which would not keep two figures sharing a row the same
-   height. The 34rem is the PDF's 4.5in cap scaled to this column, so that a
-   picture cut down in one is cut down in the other. */
-.eta-report figure { max-width: calc(var(--aspect, 1.4) * 34rem);
-                     margin-left: auto; margin-right: auto; }
 /* Links underlined the way the site underlines them in a text block. The
    report is pasted into an embed block, which that rule does not reach, and
    the site's own `a` rule takes the underline off everywhere else. The
@@ -103,8 +103,8 @@
 .eta-report .embed-card:hover,
 .eta-report .embed-card:focus-visible {
   border-color: color-mix(in srgb, currentColor 60%, transparent); }
-.eta-report .embed-youtube .embed-card img { aspect-ratio: 16 / 9; object-fit: cover; }
 .eta-report .embed-card img { max-height: 24rem; object-fit: cover; }
+.eta-report .embed-youtube .embed-card img { aspect-ratio: 16 / 9; object-fit: cover; }
 .eta-report .embed-text { display: block; padding: .8em 1em 0; }
 .eta-report .embed-youtube .embed-text { font-weight: bold; }
 .eta-report .embed-meta { display: flex; flex-wrap: wrap; justify-content: space-between;
