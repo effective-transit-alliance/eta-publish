@@ -1296,7 +1296,7 @@ class Parser:
                 # The published page uses the caption as alt text as well as showing it,
                 # so an image with no description in Docs is not left unlabelled.
                 caption = plain_text(block.caption)
-                block.image = replace(block.image, alt=caption.strip())
+                block.image = replace(block.image, alt=_unannounced(caption.strip()))
         return out
 
     def _claim_name(self, figure: Figure, source: list[Inline]) -> None:
@@ -1830,3 +1830,22 @@ def read_review(doc: Document, document: JsonObject) -> None:
 
 def parse(doc_json: JsonObject) -> Document:
     return Parser(doc_json).parse()
+
+
+# A screen reader already says it is reading an image,
+# so a caption that opens by saying so says it twice once it is the alt text.
+_ANNOUNCED = re.compile(r"(?:an? )?(?:image|photo|picture)(?: of)?\s+", re.IGNORECASE)
+
+
+def _unannounced(caption: str) -> str:
+    """A caption as alt text, less an opening "A photo" a screen reader would say again.
+
+    Only the opening, where the words are only ever saying what the picture is:
+    elsewhere they can carry meaning, as in "composite image",
+    and only a person can tell what a sentence still needs without them.
+    """
+    match = _ANNOUNCED.match(caption)
+    if not match or match.end() == len(caption):
+        return caption
+    rest = caption[match.end() :]
+    return rest[0].upper() + rest[1:]

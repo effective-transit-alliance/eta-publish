@@ -18,7 +18,17 @@ from eta_publish.emit.html import HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.images import crop_svg, download, svg_description
-from eta_publish.nodes import Crop, Document, Figure, Heading, Image, Inline, Paragraph, Text
+from eta_publish.nodes import (
+    Crop,
+    Document,
+    Figure,
+    Heading,
+    Image,
+    Inline,
+    Paragraph,
+    Text,
+    plain_text,
+)
 from eta_publish.parse import parse
 
 
@@ -219,9 +229,11 @@ def test_the_underline_marking_a_label_is_not_published() -> None:
 
 def test_the_caption_becomes_alt_text_when_docs_has_none(appendix: Document) -> None:
     """On the live page the caption appears twice:
-    as the image's `alt` and as visible small text beneath it."""
+    as the image's `alt` and as visible small text beneath it.
+    The `alt` drops the opening "A photo", which a screen reader would say again."""
     figure = next(b for b in appendix.blocks if isinstance(b, Figure))
-    assert figure.image.alt == "A photo inside the Freedom Tunnel, showing room for 4 tracks."
+    assert figure.image.alt == "Inside the Freedom Tunnel, showing room for 4 tracks."
+    assert figure.caption and plain_text(figure.caption).startswith("A photo inside")
 
 
 def test_a_real_description_wins_over_the_caption() -> None:

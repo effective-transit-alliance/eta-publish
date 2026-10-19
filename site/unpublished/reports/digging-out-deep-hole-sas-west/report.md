@@ -604,7 +604,7 @@ Otherwise, it will simply become impossible for the region to build the transit 
 
 ### Appendix A: Freedom Tunnel
 
-![A photo inside the Freedom Tunnel, showing room for 4 tracks.](<images/img-d4734d4b.jpg>)\
+![Inside the Freedom Tunnel, showing room for 4 tracks.](<images/img-d4734d4b.jpg>)\
 A photo inside the Freedom Tunnel, showing room for 4 tracks.\
 [Credit: Logan Hicks](<https://www.flickr.com/photos/loganhicks/4490800374/in/photostream/>)<sup>\[97\]</sup>
 <!-- [Image Source](<https://www.flickr.com/photo_download.gne?id=4490800374&secret=db20eed4be&size=o&source=photoPageEngagement>): -->

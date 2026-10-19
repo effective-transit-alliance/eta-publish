@@ -641,7 +641,7 @@ Otherwise, it will simply become impossible for the region to build the transit 
 == Appendix A: Freedom Tunnel
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-d4734d4b.jpg")[#capped_image("print/img-d4734d4b.jpg", alt: "A photo inside the Freedom Tunnel, showing room for 4 tracks.")],
+  link("https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/img-d4734d4b.jpg")[#capped_image("print/img-d4734d4b.jpg", alt: "Inside the Freedom Tunnel, showing room for 4 tracks.")],
   caption: [A photo inside the Freedom Tunnel, showing room for 4 tracks. \
   #link("https://www.flickr.com/photos/loganhicks/4490800374/in/photostream/")[Credit: Logan Hicks]#super[#link(<src97>)[\[97\]]]],
 )
