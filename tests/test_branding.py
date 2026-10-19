@@ -13,6 +13,9 @@ from eta_publish.branding import (
     GAP_SHARE,
     LOGO_SHARE,
     MARGIN_SHARE,
+    SITE_CLASS,
+    SITE_COLOR,
+    SITE_DARK_COLOR,
     SITE_SHARE,
     credited_to_eta,
     with_logo,
@@ -165,3 +168,10 @@ def test_a_chart_is_credited_to_eta_when_its_credit_starts_with_eta(
     credit: str, expected: bool
 ) -> None:
     assert credited(credit) is expected
+
+
+def test_etany_org_turns_lighter_on_a_chart_drawn_dark() -> None:
+    svg = branded(chart(BAR)).decode()
+    assert f'class="{SITE_CLASS}" fill="{SITE_COLOR}">etany.org<' in svg
+    dark = svg.partition("@media (prefers-color-scheme: dark)")[2]
+    assert f".{SITE_CLASS}{{fill:{SITE_DARK_COLOR}}}" in dark

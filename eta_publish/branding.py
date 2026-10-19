@@ -50,6 +50,17 @@ GAP_SHARE = 0.1
 SITE_COLOR = "#001faa"
 """The logo's own navy."""
 
+SITE_DARK_COLOR = "#8fa6ff"
+"""`etany.org` on a chart drawn dark, where the navy all but disappears.
+
+The logo keeps its navy: its squares are their own background."""
+
+SITE_CLASS = "eta-site"
+"""What `etany.org` is marked with, for its dark color to find it.
+
+Named for this, since the chart's own stylesheet is in the same document
+and can have a class of nearly any name."""
+
 SITE_FONTS = "system-ui, -apple-system, Segoe UI, Helvetica, Arial, DejaVu Sans, sans-serif"
 """Whatever sans serif the reader's system draws its own text in."""
 
@@ -130,9 +141,13 @@ def with_logo(data: bytes, original: bytes, crop: Crop, description: str = "") -
         f'<text x="{x:g}" y="{y + side + gap + size * 0.8:g}" font-size="{size:g}"'
         f' textLength="{side:g}" lengthAdjust="spacingAndGlyphs"'
         f' font-family="{SITE_FONTS}"'
-        f' fill="{SITE_COLOR}">etany.org</text>'
+        f' class="{SITE_CLASS}" fill="{SITE_COLOR}">etany.org</text>'
     )
-    closing = f"</svg>{placed}{site}</svg>\n"
+    style = (
+        f"<style>@media (prefers-color-scheme: dark)"
+        f"{{.{SITE_CLASS}{{fill:{SITE_DARK_COLOR}}}}}</style>"
+    )
+    closing = f"</svg>{placed}{site}{style}</svg>\n"
     return data[:start] + "".join(parts).encode() + chart + closing.encode()
 
 
