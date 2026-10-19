@@ -5,7 +5,7 @@
   headline: [No Need to Wait: #underline[Automated Light Metro] is Right for the IBX],
   subtitle: none,
   phase: "",
-  dateline: "October 16, 2026",
+  dateline: "October 21, 2026",
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   hero: [

@@ -1,6 +1,6 @@
 # No Need to Wait: Automated Light Metro is Right for the IBX
 
-October 16, 2026
+October 21, 2026
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
@@ -61,7 +61,7 @@ This has been driven by all of the following factors:
 ![The ridership of the various IBX projections, as well as comparable lines in NYC. Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.](<images/ridership.svg>)\
 The ridership of the various IBX projections, as well as comparable lines in NYC.[^4] Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.[^5]\
 [Credit: ETA (Khyber Sen)](<https://github.com/kkysen/ibx-ridership-charts/>)<sup>\[20\]</sup>
-<!-- SVG: [ridership.svg](<https://raw.githubusercontent.com/kkysen/ibx-ridership-charts/refs/heads/main/ridership.svg>) -->
+<!-- SVG: [ridership.svg](<https://raw.githubusercontent.com/effective-transit-alliance/ibx-ridership-charts/refs/heads/main/ridership.svg>) -->
 
 Ridership could also rise further with additional transit-oriented development (TOD) along the line, since the models referenced above assume present-day land use.
 The Mamdani administration is interested in [extending City of Yes upzoning to the IBX](<https://gothamist.com/news/mamdani-eyes-sweeping-housing-plan-for-blocks-south-of-brooklyns-prospect-park>)<sup>\[21\]</sup> and [upzoning south of Prospect Park](<https://www.nyc.gov/mayors-office/news/2026/05/mamdani-administration-advances-first-neighborhood-plans-for-whi>)<sup>\[22\]</sup>.

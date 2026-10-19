@@ -387,11 +387,11 @@
               "dateElement": {
                 "dateElementProperties": {
                   "dateFormat": "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED",
-                  "displayText": "Oct 16, 2026 5:00\u202fAM EDT",
+                  "displayText": "Oct 21, 2026 12:01\u202fAM EDT",
                   "locale": "en",
                   "timeFormat": "TIME_FORMAT_HOUR_MINUTE_TIMEZONE",
                   "timeZoneId": "America/New_York",
-                  "timestamp": "2026-10-16T09:00:00Z"
+                  "timestamp": "2026-10-21T04:01:00Z"
                 },
                 "dateId": "kix.r4q2i49pp489",
                 "textStyle": {}
@@ -2634,7 +2634,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://raw.githubusercontent.com/kkysen/ibx-ridership-charts/refs/heads/main/ridership.svg"
+                    "url": "https://raw.githubusercontent.com/effective-transit-alliance/ibx-ridership-charts/refs/heads/main/ridership.svg"
                   },
                   "underline": true
                 }
@@ -11535,7 +11535,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-16T17:19:26.782Z",
+  "modifiedTime": "2026-10-19T05:02:14.422Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [
