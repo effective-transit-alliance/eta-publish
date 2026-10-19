@@ -24,7 +24,7 @@ from eta_publish.build import (
     require_image_index,
     write_image_index,
 )
-from eta_publish.naming import UNPUBLISHED_DIR
+from eta_publish.naming import SITE, UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
@@ -39,6 +39,7 @@ from eta_publish.site import (
     index_page,
     listed_report,
     load_reports,
+    load_site_url,
     report_path,
     reusable,
     saved_responses,
@@ -1074,3 +1075,23 @@ def test_a_card_shows_the_reports_share_card_where_it_has_one(doc: Document) -> 
     assert 'src="r/s/images/card.jpg"' in index_page(site)
     doc.card = None
     assert 'class="card"' not in index_page(site)
+
+
+def test_the_site_url_is_the_lists_own(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text('site = "https://reports.example.org/"\n')
+    assert load_site_url(path) == "https://reports.example.org"
+    path.write_text("")
+    assert load_site_url(path) == SITE
+    assert load_site_url(tmp_path / "missing.toml") == SITE
+
+
+def test_a_site_url_that_is_not_https_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "reports.toml"
+    path.write_text('site = "reports.example.org"\n')
+    with pytest.raises(ValueError, match="not an `https://` URL"):
+        load_site_url(path)
+
+
+def test_the_committed_list_names_the_site() -> None:
+    assert load_site_url() == SITE

@@ -2,7 +2,7 @@
 
 A report published from its `report.html` is that fragment pasted into one code block,
 and the fragment links its pictures, its videos, its PDF, and the shared stylesheet and script
-at `SITE`, since Squarespace has no way to be handed a directory of them.
+at the site's URL, since Squarespace has no way to be handed a directory of them.
 Those files have to be served for as long as the page is up,
 so they are what this directory holds, beside the fragment itself and `report.md`.
 
@@ -44,7 +44,7 @@ A build writes text in place, so a second name for one of these
 would change along with the file it was linked from."""
 
 
-def referenced(html: str, path: str) -> set[str]:
+def referenced(html: str, path: str, site_url: str = SITE) -> set[str]:
     """Every file `html` links that the site serves, relative to the site.
 
     `path` is where the report is, which a relative link is relative to:
@@ -64,8 +64,8 @@ def referenced(html: str, path: str) -> set[str]:
             url = candidate.split(" ")[0].partition("#")[0].partition("?")[0]
             if not url:
                 continue
-            if url.startswith(f"{SITE}/"):
-                url = url.removeprefix(f"{SITE}/")
+            if url.startswith(f"{site_url}/"):
+                url = url.removeprefix(f"{site_url}/")
             elif _EXTERNAL.match(url):
                 continue
             else:
@@ -95,7 +95,9 @@ def unwarned(path: Path) -> Path:
     return clean if clean.is_file() else path
 
 
-def write_published(root: Path, reports: list[Report], complete: bool) -> list[tuple[Report, str]]:
+def write_published(
+    root: Path, reports: list[Report], complete: bool, site_url: str = SITE
+) -> list[tuple[Report, str]]:
     """Write `root`'s `published/` from its `unpublished/`, for every `automated` report.
 
     Replaced whole each time, so a report no longer `automated` is no longer hosted.
@@ -126,7 +128,7 @@ def write_published(root: Path, reports: list[Report], complete: bool) -> list[t
         for page in pages:
             files.add(f"{path}/{page.name}")
             if page.is_file():
-                files |= referenced(unwarned(page).read_text(), path)
+                files |= referenced(unwarned(page).read_text(), path, site_url)
         missing = []
         for name in sorted(files):
             source = unwarned(unpublished / name)

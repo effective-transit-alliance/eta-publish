@@ -86,9 +86,13 @@ class TypstEmitter(Emitter):
     # A blank line between blocks, as Typst separates them.
     separator = "\n\n"
 
-    def __init__(self, template: str = "template.typ", image_dir: str = PRINT_DIR) -> None:
+    def __init__(
+        self, template: str = "template.typ", image_dir: str = PRINT_DIR, site_url: str = SITE
+    ) -> None:
         super().__init__()
         self.template = template
+        # Where the site serves what the PDF links: the pictures and videos at full size.
+        self.site_url = site_url
         self.image_dir = image_dir.rstrip("/")
 
     @override
@@ -243,7 +247,7 @@ class TypstEmitter(Emitter):
         if served is not None:
             # Ours, so named as the document names it and linked to our copy.
             slug = self.doc.slug.strip("/")
-            href = f"{SITE}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
+            href = f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
             return self.linked_embed(
                 node, node.title or "Video", href, "" if node.copy else self.source_ref(node.url)
             )
@@ -332,4 +336,4 @@ class TypstEmitter(Emitter):
         and a link to where it would go if it had one would be a broken one.
         """
         slug = self.doc.slug.strip("/")
-        return f"{SITE}/{slug}/{IMAGE_DIR}/{href}" if slug else ""
+        return f"{self.site_url}/{slug}/{IMAGE_DIR}/{href}" if slug else ""

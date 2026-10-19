@@ -229,9 +229,12 @@ class HtmlEmitter(Emitter):
         asset_base: str = "",
         pdf_href: str = "",
         source_brackets: bool = False,
+        site_url: str = SITE,
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
+        # Where the site is served, for what a fragment links there with no `asset_base`.
+        self.site_url = site_url
         # Turn off once `REPORT_CSS` lives in the site's Custom CSS.
         self.inline_css = inline_css
         # Off for a page, which links one copy; on for the fragment, which
@@ -1088,7 +1091,7 @@ class HtmlEmitter(Emitter):
         its stylesheet inline links the site's copy, since Squarespace has none.
         The stylesheet fills the rest of a video of another shape with its background.
         """
-        base = self.asset_base or f"{SITE}/{ASSET_DIR}"
+        base = self.asset_base or f"{self.site_url}/{ASSET_DIR}"
         return f"{base}/{GRAPHIC_POSTER}"
 
     def captions_track(self, node: Embed) -> Element | None:

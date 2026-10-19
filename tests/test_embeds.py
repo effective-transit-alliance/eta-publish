@@ -456,3 +456,12 @@ def test_captions_are_recorded_for_an_offline_build(tmp_path: Path) -> None:
     read_embed_index(tmp_path, again)
     assert again.media_captions == {url: Captions("embed-1.vtt", automatic=True)}
     assert again.cards[url] == Card(author="someone", text="a post")
+
+
+def test_a_fragment_links_the_card_where_the_site_is_served() -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    html = HtmlEmitter(image_base="images", site_url="https://reports.example.org").emit(doc)
+    assert 'poster="https://reports.example.org/assets/graphic-warning.svg"' in html

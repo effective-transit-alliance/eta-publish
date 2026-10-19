@@ -34,7 +34,7 @@ from . import console, format
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
 from .format import ROOT
 from .logo import LOGO, write_logo
-from .naming import ASSET_DIR, UNPUBLISHED_DIR
+from .naming import ASSET_DIR, SITE, UNPUBLISHED_DIR
 from .published import write_published
 from .site import (
     REPORTS,
@@ -47,6 +47,7 @@ from .site import (
     label,
     listed_report,
     load_reports,
+    load_site_url,
     saved_for,
     saved_responses,
 )
@@ -144,6 +145,7 @@ def build_all(
     """
     try:
         listed = load_reports(reports)
+        site_url = load_site_url(reports)
     except (OSError, ValueError) as e:
         # Typer's own wording for a bad argument, because that is what it is.
         raise BadParameter(str(e), param_hint="LIST") from e
@@ -162,6 +164,7 @@ def build_all(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
+        site_url=site_url,
     )
 
 
@@ -200,6 +203,7 @@ def build_one_report(
         # The whole list, since what is hosted is every `automated` report there is,
         # and one report built is not the others taken off the host.
         listed = load_reports(reports) if reports.exists() else []
+        site_url = load_site_url(reports)
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
     publish(
@@ -214,6 +218,7 @@ def build_one_report(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
+        site_url=site_url,
     )
 
 
@@ -232,6 +237,7 @@ def publish(
     hosted_media: bool = True,
     embed_assets: bool = False,
     source_brackets: bool = False,
+    site_url: str = SITE,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -260,10 +266,11 @@ def publish(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
+        site_url=site_url,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)
-        host(site, into, listed or [], images)
+        host(site, into, listed or [], images, site_url)
     else:
         outdir.mkdir(parents=True, exist_ok=True)
         abandoned(outdir.parent, f".{outdir.name}-building-")
@@ -273,19 +280,19 @@ def publish(
         with console.cleaned_up(lambda: shutil.rmtree(staging, ignore_errors=True)):
             site = write_site(reports, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
-        host(site, outdir, listed or [], images)
+        host(site, outdir, listed or [], images, site_url)
     report_outcome(site)
     return site
 
 
-def host(site: Site, root: Path, listed: list[Report], images: bool) -> None:
+def host(site: Site, root: Path, listed: list[Report], images: bool, site_url: str = SITE) -> None:
     """Write `root`'s `published/`, counting a live page left missing a file as a failure.
 
     A failure rather than a warning: the report built,
     but a page already out is linking a picture nobody is serving.
     """
     log = console.for_stream()
-    for report, problem in write_published(root, listed, complete=images):
+    for report, problem in write_published(root, listed, complete=images, site_url=site_url):
         log.line()
         console.write(console.failed(label(report), problem), log)
         site.failed.append(Failed(report=report, error=problem))

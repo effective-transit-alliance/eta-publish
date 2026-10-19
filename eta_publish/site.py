@@ -34,7 +34,7 @@ from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import IMAGE_DIR
+from .naming import IMAGE_DIR, SITE
 from .nodes import Document
 
 REPORTS = Path("reports.toml")
@@ -113,14 +113,28 @@ class Site:
     failed: list[Failed] = field(default_factory=list)
 
 
-def social_image(doc: Document, path: str) -> str:
+def social_image(doc: Document, path: str, site_url: str = SITE) -> str:
     """Where the site serves the share card, for uploading as Squarespace's social image.
 
     Nothing where there is no card, or where no picture of it was written.
     """
     if doc.card is None or doc.card.object_id not in doc.image_files:
         return ""
-    return f"{media_base(path)}/{doc.image_href(doc.card)}"
+    return f"{media_base(path, site_url)}/{doc.image_href(doc.card)}"
+
+
+def load_site_url(path: Path = REPORTS) -> str:
+    """Where the site is served: the list's own `site`, or `SITE` where it names none.
+
+    In the list rather than on the command line, because what is committed is built against it:
+    a build that took it from a flag would write a different site for whoever forgot the flag.
+    """
+    if not path.exists():
+        return SITE
+    url = str(tomllib.loads(path.read_text()).get("site", SITE)).strip().rstrip("/")
+    if not url.startswith("https://"):
+        raise ValueError(f"{path}: `site = {url!r}` is not an `https://` URL")
+    return url
 
 
 def load_reports(path: Path = REPORTS) -> list[Report]:
@@ -476,7 +490,7 @@ def build_site(
         console.progress("building reports", len(reports), quiet=True) as along,
         console.watching() as rows,
     ):
-        return _built(reports, build, site, log)
+        return _built(reports, build, site, log, options.site_url)
 
 
 def _built(
@@ -484,6 +498,7 @@ def _built(
     build: Callable[[Report], tuple[Document, str]],
     site: Site,
     log: Console,
+    site_url: str = SITE,
 ) -> Site:
     """Run `build` over every report at once, writing each out in list order as it is done."""
     pool = ThreadPoolExecutor(max_workers=max(1, min(len(reports), MAX_AT_ONCE)))
@@ -510,7 +525,7 @@ def _built(
                 ("SEO description", doc.meta.get("SEO Description", "")),
                 # A blog post's excerpt, or a page's line in `What's New`.
                 ("Short", doc.meta.get("Short", "")),
-                ("Social image", social_image(doc, path)),
+                ("Social image", social_image(doc, path, site_url)),
             ]
             console.write(console.built(named, path, doc.warnings, log, paste), log)
             site.built.append(Built(report=report, doc=doc, path=path))

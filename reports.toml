@@ -33,6 +33,12 @@
 # Required, because either wrong default is a mistake:
 # a draft treated as live is hosted, and a live report treated as a draft loses its pictures.
 
+# `site` is where the site is served, which every absolute link to it starts with:
+# the pasted `report.html` links its stylesheet, pictures, videos, and PDF there.
+# Here rather than on the command line, because the committed site is built against it.
+# Moving the site is this line, then a rebuild, then repasting each `automated` report.
+site = "https://kkysen.github.io/eta-publish"
+
 [[report]]
 name = "SAS West Feasibility Response"
 tab = "Draft 2"

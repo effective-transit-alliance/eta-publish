@@ -41,6 +41,7 @@ Every report page links one copy rather than carrying its own.
 """
 
 SITE = "https://kkysen.github.io/eta-publish"
+"""Where the site is served, unless `reports.toml` names another as its `site`."""
 """Where the built site is served, with no trailing slash.
 
 Only the PDF needs this. Every other output links within itself

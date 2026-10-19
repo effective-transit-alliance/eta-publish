@@ -150,3 +150,9 @@ def test_a_report_with_warnings_publishes_its_copies_without_them(tmp_path: Path
     assert (published / "report.md").read_text() == "clean"
     assert (published / "report.pdf").read_bytes() == b"clean"
     assert not list(published.glob("report.published.*"))
+
+
+def test_a_site_served_elsewhere_hosts_what_links_there() -> None:
+    other = "https://reports.example.org"
+    html = f'<img src="{other}/{PATH}/images/a.jpg"><img src="{SITE}/{PATH}/images/b.jpg">'
+    assert referenced(html, PATH, other) == {f"{PATH}/images/a.jpg"}

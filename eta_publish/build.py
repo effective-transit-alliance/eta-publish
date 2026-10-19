@@ -86,6 +86,10 @@ class BuildOptions:
     A rebuild of what is committed, for a change to this code rather than to a doc.
     """
 
+    site_url: str = SITE
+    """Where the site is served, which every absolute link to it starts with:
+    `reports.toml`'s `site`, or `SITE` where it names none."""
+
     embed_assets: bool = False
     """Whether `report.html` carries its stylesheet and script rather than linking them.
 
@@ -243,7 +247,11 @@ def link_or_copy(source: Path, dest: Path) -> None:
 
 
 def fragment_emitter(
-    image_base: str, linked: str, pdf_href: str = "", source_brackets: bool = False
+    image_base: str,
+    linked: str,
+    pdf_href: str = "",
+    source_brackets: bool = False,
+    site_url: str = SITE,
 ) -> HtmlEmitter:
     """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
     and carrying them otherwise."""
@@ -254,6 +262,7 @@ def fragment_emitter(
         asset_base=linked,
         pdf_href=pdf_href,
         source_brackets=source_brackets,
+        site_url=site_url,
     )
 
 
@@ -264,9 +273,12 @@ def write_split(
     linked: str = "",
     source_brackets: bool = False,
     stem: str = "report",
+    site_url: str = SITE,
 ) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
-    emitter = fragment_emitter(image_base, linked, source_brackets=source_brackets)
+    emitter = fragment_emitter(
+        image_base, linked, source_brackets=source_brackets, site_url=site_url
+    )
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
@@ -532,9 +544,9 @@ Warnings are for whoever is reviewing a build, never for a reader:
 `site/published/` takes these in place of the ones with warnings, under the usual names."""
 
 
-def media_base(path: str) -> str:
+def media_base(path: str, site_url: str = SITE) -> str:
     """Where the site serves the images of the report at `path`, as a URL."""
-    return f"{SITE}/{path}/{IMAGE_DIR}"
+    return f"{site_url}/{path}/{IMAGE_DIR}"
 
 
 def emit(
@@ -548,6 +560,7 @@ def emit(
     url: str = "",
     source_brackets: bool = False,
     stem: str = "report",
+    site_url: str = SITE,
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
@@ -561,9 +574,9 @@ def emit(
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets),
+        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets, site_url),
         f"{stem}.md": MarkdownEmitter(),
-        f"{stem}.typ": TypstEmitter(),
+        f"{stem}.typ": TypstEmitter(site_url=site_url),
     }
     written: dict[str, Path] = {}
     if stem != "report":
@@ -909,10 +922,11 @@ def build_one(
     # Written here rather than once per site, so that building a single
     # report produces a page with everything it links.
     write_assets(outdir)
-    images = media_base(path) if options.hosted_media else IMAGE_DIR
+    site_url = options.site_url
+    images = media_base(path, site_url) if options.hosted_media else IMAGE_DIR
     console.step("writing the outputs")
-    linked = "" if options.embed_assets else f"{SITE}/{ASSET_DIR}"
-    pdf = f"{SITE}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
+    linked = "" if options.embed_assets else f"{site_url}/{ASSET_DIR}"
+    pdf = f"{site_url}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
     written = emit(
         doc,
         dest,
@@ -920,9 +934,10 @@ def build_one(
         images,
         linked,
         pdf,
-        media_base(path),
-        f"{SITE}/{path}/",
+        media_base(path, site_url),
+        f"{site_url}/{path}/",
         options.source_brackets,
+        site_url=site_url,
     )
 
     skipped_images = not options.images and bool(doc.images)
@@ -932,7 +947,7 @@ def build_one(
         build_pdf(typ, dest, skipped_images)
 
     if options.split:
-        write_split(doc, dest, images, linked, options.source_brackets)
+        write_split(doc, dest, images, linked, options.source_brackets, site_url=site_url)
 
     for stale in dest.glob(f"report.{UNWARNED}.*"):
         # From a build that had warnings, which this one may not.
@@ -949,15 +964,24 @@ def build_one(
             images,
             linked,
             pdf,
-            media_base(path),
-            f"{SITE}/{path}/",
+            media_base(path, site_url),
+            f"{site_url}/{path}/",
             options.source_brackets,
             stem=stem,
+            site_url=site_url,
         )
         typ = written.get(f"{stem}.typ")
         if typ is not None:
             build_pdf(typ, dest, skipped_images)
         if options.split:
-            write_split(unwarned, dest, images, linked, options.source_brackets, stem=stem)
+            write_split(
+                unwarned,
+                dest,
+                images,
+                linked,
+                options.source_brackets,
+                stem=stem,
+                site_url=site_url,
+            )
 
     return doc, path
