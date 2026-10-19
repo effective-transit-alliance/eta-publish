@@ -7,7 +7,7 @@ import requests
 from test_conventions import build, field, image, para
 
 from eta_publish.docs_json import JsonObject
-from eta_publish.embeds import _stems, look_up
+from eta_publish.embeds import _stems, check_embeds, look_up
 from eta_publish.emit.html import GRAPHIC_POSTER, HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.nodes import Card, Embed, Figure, Paragraph, Platform, Text
@@ -353,3 +353,36 @@ def test_only_an_answer_about_the_post_is_recorded(status: int, recorded: bool) 
     doc = build([para("Headline", "TITLE"), video(url)])
     look_up(doc, cast(requests.Session, Answering(status)))
     assert (url in doc.cards) is recorded
+
+
+def test_a_served_video_with_no_captions_is_warned_about() -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    check_embeds(doc)
+    [warning] = [w for w in map(str, doc.warnings) if "no captions" in w]
+    assert "`Video (Copy, No Captions):`" in warning
+
+
+def test_a_video_marked_no_captions_is_not_warned_about() -> None:
+    """The Lynskey video in IBX: train noise and a radio, nothing a reader needs to read."""
+    url = "https://x.com/someone/status/123"
+    line = linked((": ", None), (url, url), underline="Video (Graphic Warning, Copy, No Captions)")
+    doc = build([para("Headline", "TITLE"), line])
+    assert not [w for w in doc.warnings if "not a modifier" in str(w)]
+    (embed,) = doc.blocks
+    assert isinstance(embed, Embed) and embed.uncaptioned
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    check_embeds(doc)
+    assert not [w for w in map(str, doc.warnings) if "no captions" in w]
+
+
+def test_a_platform_player_is_not_warned_about_captions() -> None:
+    """YouTube's own player shows YouTube's captions."""
+    url = "https://www.youtube.com/watch?v=abc"
+    doc = build([para("Headline", "TITLE"), linked((": ", None), (url, url), underline="Video")])
+    doc.cards[url] = Card(author="someone", text="a video")
+    check_embeds(doc)
+    assert not [w for w in map(str, doc.warnings) if "no captions" in w]

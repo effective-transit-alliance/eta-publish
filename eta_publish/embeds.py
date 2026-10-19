@@ -122,6 +122,15 @@ def check_embeds(doc: Document) -> None:
                 Shown(embed.url),
                 Shown(card.mime or "unknown"),
             )
+        elif doc.served_video(embed) and not embed.uncaptioned:
+            # Only one the site serves: a platform's own player shows the platform's captions.
+            doc.warn(
+                "the video {} has no captions; if nothing said in it matters, "
+                "add {} to its line, as in {}",
+                Shown(embed.url),
+                Shown("No Captions"),
+                Shown("Video (Copy, No Captions):"),
+            )
 
 
 def _describe(embed: Embed, http: requests.Session) -> Card:

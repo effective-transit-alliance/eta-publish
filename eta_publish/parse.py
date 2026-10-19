@@ -174,11 +174,12 @@ def unfinished(text: str) -> bool:
 VIDEO_LABEL = "video"
 GRAPHIC_WARNING = "graphic warning"
 COPY = "copy"
+NO_CAPTIONS = "no captions"
 
 # What each label may be modified by, in parentheses after it:
 # `Video (Graphic Warning):`. A label missing here takes none.
 LABEL_MODIFIERS: dict[str, frozenset[str]] = {
-    VIDEO_LABEL: frozenset({GRAPHIC_WARNING, COPY}),
+    VIDEO_LABEL: frozenset({GRAPHIC_WARNING, COPY, NO_CAPTIONS}),
 }
 
 
@@ -205,6 +206,11 @@ def is_graphic_video_note(line: list[Inline]) -> bool:
 def is_copied_video_note(line: list[Inline]) -> bool:
     """Whether `line` is a `Video (Copy):` line, whose video the site serves itself."""
     return is_video_note(line) and COPY in labelled(line).modified_by()
+
+
+def is_uncaptioned_video_note(line: list[Inline]) -> bool:
+    """Whether `line` is a `Video (No Captions):` line, whose video needs none."""
+    return is_video_note(line) and NO_CAPTIONS in labelled(line).modified_by()
 
 
 def after_label(line: list[Inline]) -> list[Inline]:
@@ -1226,6 +1232,7 @@ class Parser:
                     continue
                 embed.graphic = is_graphic_video_note(inlines)
                 embed.copy = is_copied_video_note(inlines)
+                embed.uncaptioned = is_uncaptioned_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
                 embed.name = video_title(
                     [i for i in after_label(inlines) if isinstance(i, Text) and i.href]

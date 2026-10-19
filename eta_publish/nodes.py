@@ -354,6 +354,10 @@ class Embed:
     """Whether its line was `Video (Copy):`, so the build downloads the video
     and the site serves it, rather than leaving it to a post that can be deleted."""
 
+    uncaptioned: bool = False
+    """Whether its line said `No Captions`: nothing said in it is what it is there to show,
+    so a video the site serves without captions is not warned about."""
+
     title: str = ""
     """What its `Video:` line says after the label, which names the video on the page,
     or empty where the link reads as its own URL."""
