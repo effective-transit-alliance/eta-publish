@@ -30,6 +30,7 @@ from eta_publish.parse import parse
 from eta_publish.site import (
     Built,
     Failed,
+    Hosts,
     Published,
     Report,
     Site,
@@ -38,8 +39,8 @@ from eta_publish.site import (
     canonical,
     index_page,
     listed_report,
+    load_hosts,
     load_reports,
-    load_site_url,
     report_path,
     reusable,
     saved_responses,
@@ -1077,21 +1078,27 @@ def test_a_card_shows_the_reports_share_card_where_it_has_one(doc: Document) -> 
     assert 'class="card"' not in index_page(site)
 
 
-def test_the_site_url_is_the_lists_own(tmp_path: Path) -> None:
+def test_the_hosts_are_the_lists_own(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
-    path.write_text('site = "https://reports.example.org/"\n')
-    assert load_site_url(path) == "https://reports.example.org"
+    path.write_text(
+        '[site]\npublished = "https://reports.example.org/"\n'
+        'unpublished = "https://preview.example.org"\n'
+    )
+    assert load_hosts(path) == Hosts(
+        published="https://reports.example.org", unpublished="https://preview.example.org"
+    )
     path.write_text("")
-    assert load_site_url(path) == SITE
-    assert load_site_url(tmp_path / "missing.toml") == SITE
+    assert load_hosts(path) == Hosts(published=SITE, unpublished=SITE)
+    assert load_hosts(tmp_path / "missing.toml") == Hosts()
 
 
-def test_a_site_url_that_is_not_https_is_refused(tmp_path: Path) -> None:
+def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
     path = tmp_path / "reports.toml"
-    path.write_text('site = "reports.example.org"\n')
+    path.write_text('[site]\npublished = "reports.example.org"\n')
     with pytest.raises(ValueError, match="not an `https://` URL"):
-        load_site_url(path)
+        load_hosts(path)
 
 
-def test_the_committed_list_names_the_site() -> None:
-    assert load_site_url() == SITE
+def test_the_committed_list_publishes_under_its_preview_for_now() -> None:
+    """Until `reports.etany.org`: one Pages site, `site/published/` under `/published/`."""
+    assert load_hosts() == Hosts(published=f"{SITE}/published", unpublished=SITE)

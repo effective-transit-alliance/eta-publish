@@ -37,6 +37,9 @@ _ATTRIBUTE = re.compile(r'\s(src|href|poster|srcset)="([^"]*)"')
 _EXTERNAL = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|//|#)", re.IGNORECASE)
 """A URL with a scheme, a host, or only a fragment: nothing that is a file here."""
 
+_OUTPUTS = frozenset({".html", ".md", ".pdf"})
+"""What a report writes of its own, once for its preview and once to publish."""
+
 _COPIED = frozenset({".html", ".md", ".css", ".js"})
 """What is copied rather than linked.
 
@@ -83,16 +86,18 @@ def referenced(html: str, path: str, site_url: str = SITE) -> set[str]:
     return found
 
 
-def unwarned(path: Path) -> Path:
-    """The copy of `path` rendered without the report's warnings, if the report has any.
+def published_copy(path: Path) -> Path:
+    """The copy of a report's output `path` written for `site/published/`.
 
-    A report with none writes no such copy: what it wrote is already that.
+    A published report writes each of its outputs twice, and this is the second:
+    linking the published host rather than the preview's, and without the warnings.
+    Anything else the page links, a picture or the stylesheet, is the same file for both.
     """
     stem, dot, rest = path.name.partition(".")
-    if stem != "report":
+    # Not `assets/report.css`, which is shared and written once.
+    if stem != "report" or path.suffix not in _OUTPUTS:
         return path
-    clean = path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
-    return clean if clean.is_file() else path
+    return path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
 
 
 def write_published(
@@ -124,14 +129,15 @@ def write_published(
             continue
         path = directory.relative_to(unpublished).as_posix()
         pages = [directory / "report.html", *sorted(directory.glob(SPLIT_FILES))]
+        pages = [page for page in pages if UNWARNED not in page.name]
         files = {f"{path}/{name}" for name in PUBLISHED_FILES}
         for page in pages:
             files.add(f"{path}/{page.name}")
-            if page.is_file():
-                files |= referenced(unwarned(page).read_text(), path, site_url)
+            if published_copy(page).is_file():
+                files |= referenced(published_copy(page).read_text(), path, site_url)
         missing = []
         for name in sorted(files):
-            source = unwarned(unpublished / name)
+            source = published_copy(unpublished / name)
             if not source.is_file():
                 missing.append(name)
                 continue

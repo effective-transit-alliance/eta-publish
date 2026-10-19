@@ -86,9 +86,13 @@ class BuildOptions:
     A rebuild of what is committed, for a change to this code rather than to a doc.
     """
 
-    site_url: str = SITE
-    """Where the site is served, which every absolute link to it starts with:
-    `reports.toml`'s `site`, or `SITE` where it names none."""
+    unpublished_url: str = SITE
+    """Where `site/unpublished/` is served, which a preview's absolute links start with:
+    `reports.toml`'s `[site] unpublished`, or `SITE` where it names none."""
+
+    published_url: str = SITE
+    """Where `site/published/` is served, which a live page's absolute links start with:
+    `reports.toml`'s `[site] published`, or `SITE` where it names none."""
 
     embed_assets: bool = False
     """Whether `report.html` carries its stylesheet and script rather than linking them.
@@ -538,10 +542,8 @@ PDF_NAME = "report.pdf"
 """What `typst` compiles `report.typ` to, beside it."""
 
 UNWARNED = "published"
-"""What names a report's outputs rendered again without its warnings, as `report.published.html`.
-
-Warnings are for whoever is reviewing a build, never for a reader:
-`site/published/` takes these in place of the ones with warnings, under the usual names."""
+"""What names a published report's outputs as `site/published/` takes them,
+as `report.published.html`: linking the published host, and without the warnings."""
 
 
 def media_base(path: str, site_url: str = SITE) -> str:
@@ -795,6 +797,47 @@ def build_pdf(source: Path, outdir: Path, skipped_images: bool) -> Path | None:
     return None
 
 
+def write_outputs(
+    doc: Document,
+    dest: Path,
+    path: str,
+    options: BuildOptions,
+    site_url: str,
+    stem: str,
+    skipped_images: bool,
+) -> None:
+    """Write the report's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
+
+    Twice for a report that is published: as `report.*` for the preview, linking the preview's
+    host, and as `report.published.*` for `site/published/`, linking the published host
+    and without the warnings, which are for whoever reviews a build and never for a reader.
+    """
+    images = media_base(path, site_url) if options.hosted_media else IMAGE_DIR
+    linked = "" if options.embed_assets else f"{site_url}/{ASSET_DIR}"
+    pdf = f"{site_url}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
+    written = emit(
+        doc,
+        dest,
+        asset_base(path),
+        images,
+        linked,
+        pdf,
+        media_base(path, site_url),
+        f"{site_url}/{path}/",
+        options.source_brackets,
+        stem=stem,
+        site_url=site_url,
+    )
+    typ = written.get(f"{stem}.typ")
+    if typ is not None:
+        console.step("compiling the PDF")
+        build_pdf(typ, dest, skipped_images)
+    if options.split:
+        write_split(
+            doc, dest, images, linked, options.source_brackets, stem=stem, site_url=site_url
+        )
+
+
 def build_one(
     ref: str,
     outdir: Path,
@@ -803,8 +846,12 @@ def build_one(
     cached: Path | None = None,
     previous: Path | None = None,
     read_from: Path | None = None,
+    publishes: bool = False,
 ) -> tuple[Document, str]:
     """Build one report, returning it and the site-relative path it went to.
+
+    `publishes` is a report out on a live page this build writes,
+    which writes its outputs a second time for `site/published/`.
 
     The whole per-document order of operations lives here, and only here.
 
@@ -922,66 +969,22 @@ def build_one(
     # Written here rather than once per site, so that building a single
     # report produces a page with everything it links.
     write_assets(outdir)
-    site_url = options.site_url
-    images = media_base(path, site_url) if options.hosted_media else IMAGE_DIR
     console.step("writing the outputs")
-    linked = "" if options.embed_assets else f"{site_url}/{ASSET_DIR}"
-    pdf = f"{site_url}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
-    written = emit(
-        doc,
-        dest,
-        asset_base(path),
-        images,
-        linked,
-        pdf,
-        media_base(path, site_url),
-        f"{site_url}/{path}/",
-        options.source_brackets,
-        site_url=site_url,
-    )
-
     skipped_images = not options.images and bool(doc.images)
-    typ = written.get("report.typ")
-    if typ is not None:
-        console.step("compiling the PDF")
-        build_pdf(typ, dest, skipped_images)
-
-    if options.split:
-        write_split(doc, dest, images, linked, options.source_brackets, site_url=site_url)
-
+    write_outputs(doc, dest, path, options, options.unpublished_url, "report", skipped_images)
     for stale in dest.glob(f"report.{UNWARNED}.*"):
-        # From a build that had warnings, which this one may not.
+        # From a build that published it, which this one may not.
         stale.unlink()
-    if doc.warnings:
-        # Only for a report with warnings: without any, the outputs above are already these.
-        console.step("writing the outputs without their warnings")
-        unwarned = replace(doc, warnings=[])
-        stem = f"report.{UNWARNED}"
-        written = emit(
-            unwarned,
+    if publishes:
+        console.step("writing the outputs to publish")
+        write_outputs(
+            replace(doc, warnings=[]),
             dest,
-            asset_base(path),
-            images,
-            linked,
-            pdf,
-            media_base(path, site_url),
-            f"{site_url}/{path}/",
-            options.source_brackets,
-            stem=stem,
-            site_url=site_url,
+            path,
+            options,
+            options.published_url,
+            f"report.{UNWARNED}",
+            skipped_images,
         )
-        typ = written.get(f"{stem}.typ")
-        if typ is not None:
-            build_pdf(typ, dest, skipped_images)
-        if options.split:
-            write_split(
-                unwarned,
-                dest,
-                images,
-                linked,
-                options.source_brackets,
-                stem=stem,
-                site_url=site_url,
-            )
 
     return doc, path

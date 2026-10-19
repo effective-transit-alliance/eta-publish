@@ -59,12 +59,14 @@ def test_a_link_out_of_the_site_is_refused() -> None:
 
 
 def built(root: Path, path: str, doc_id: str, html: str) -> None:
-    """A report directory as a build leaves it, with a response saying which document it is."""
+    """A report directory as a build leaves it, with a response saying which document it is,
+    and the copies a published report writes for `site/published/`."""
     directory = root / UNPUBLISHED_DIR / path
     directory.mkdir(parents=True)
     (directory / "doc.json").write_text(f'{{"documentId": "{doc_id}", "tabId": "t"}}')
-    (directory / "report.html").write_text(html)
-    (directory / "report.md").write_text("# r\n")
+    for stem in ("report", "report.published"):
+        (directory / f"{stem}.html").write_text(html)
+        (directory / f"{stem}.md").write_text("# r\n")
     (directory / "index.html").write_text("the preview")
 
 
@@ -124,8 +126,9 @@ def test_a_report_no_longer_automated_is_no_longer_hosted(tmp_path: Path) -> Non
 
 def test_a_split_page_hosts_its_pieces_and_what_they_link(tmp_path: Path) -> None:
     built(tmp_path, "reports/a", "a", "")
-    piece = tmp_path / UNPUBLISHED_DIR / "reports/a/report.part01.html"
-    piece.write_text(f'<img src="{SITE}/reports/a/images/a.jpg">')
+    for name in ("report.part01.html", "report.published.part01.html"):
+        piece = tmp_path / UNPUBLISHED_DIR / "reports/a" / name
+        piece.write_text(f'<img src="{SITE}/reports/a/images/a.jpg">')
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images").mkdir()
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images/a.jpg").write_bytes(b"a")
     assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []

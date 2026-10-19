@@ -39,6 +39,7 @@ from .published import write_published
 from .site import (
     REPORTS,
     Failed,
+    Hosts,
     Report,
     Site,
     add_report,
@@ -46,8 +47,8 @@ from .site import (
     index_page,
     label,
     listed_report,
+    load_hosts,
     load_reports,
-    load_site_url,
     saved_for,
     saved_responses,
 )
@@ -145,7 +146,7 @@ def build_all(
     """
     try:
         listed = load_reports(reports)
-        site_url = load_site_url(reports)
+        hosts = load_hosts(reports)
     except (OSError, ValueError) as e:
         # Typer's own wording for a bad argument, because that is what it is.
         raise BadParameter(str(e), param_hint="LIST") from e
@@ -164,7 +165,7 @@ def build_all(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
-        site_url=site_url,
+        hosts=hosts,
     )
 
 
@@ -203,7 +204,7 @@ def build_one_report(
         # The whole list, since what is hosted is every `automated` report there is,
         # and one report built is not the others taken off the host.
         listed = load_reports(reports) if reports.exists() else []
-        site_url = load_site_url(reports)
+        hosts = load_hosts(reports)
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
     publish(
@@ -218,7 +219,7 @@ def build_one_report(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
-        site_url=site_url,
+        hosts=hosts,
     )
 
 
@@ -237,7 +238,7 @@ def publish(
     hosted_media: bool = True,
     embed_assets: bool = False,
     source_brackets: bool = False,
-    site_url: str = SITE,
+    hosts: Hosts | None = None,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -266,11 +267,12 @@ def publish(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
-        site_url=site_url,
+        unpublished_url=(hosts or Hosts()).unpublished,
+        published_url=(hosts or Hosts()).published,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)
-        host(site, into, listed or [], images, site_url)
+        host(site, into, listed or [], images, options.published_url)
     else:
         outdir.mkdir(parents=True, exist_ok=True)
         abandoned(outdir.parent, f".{outdir.name}-building-")
@@ -280,7 +282,7 @@ def publish(
         with console.cleaned_up(lambda: shutil.rmtree(staging, ignore_errors=True)):
             site = write_site(reports, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
-        host(site, outdir, listed or [], images, site_url)
+        host(site, outdir, listed or [], images, options.published_url)
     report_outcome(site)
     return site
 
