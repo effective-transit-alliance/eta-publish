@@ -39,7 +39,8 @@ from .embeds import download as download_embeds
 from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
-from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR
+from .logo import LOGO, graphic_warning
+from .naming import ASSET_DIR, GRAPHIC_POSTER, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -505,6 +506,10 @@ def write_assets(siteroot: Path) -> list[Path]:
         path = dest / name
         path.write_text(read(name))
         written.append(path)
+    # Made from the logo rather than kept, so an edit to the logo reaches it.
+    path = dest / GRAPHIC_POSTER
+    path.write_text(graphic_warning(LOGO.read_text()))
+    written.append(path)
     return written
 
 

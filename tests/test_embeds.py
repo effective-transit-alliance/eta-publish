@@ -17,8 +17,9 @@ from eta_publish.embeds import (
     unrolled,
     write_embed_index,
 )
-from eta_publish.emit.html import GRAPHIC_POSTER, HtmlEmitter
+from eta_publish.emit.html import HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
+from eta_publish.naming import SITE
 from eta_publish.nodes import Captions, Card, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
@@ -258,7 +259,7 @@ def test_a_graphic_video_opens_on_the_warning_card() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
-    assert f'poster="{GRAPHIC_POSTER}"' in html
+    assert f'poster="{SITE}/assets/graphic-warning.svg"' in html
 
 
 def test_a_video_is_named_after_its_link_text() -> None:

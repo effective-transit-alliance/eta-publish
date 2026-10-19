@@ -21,7 +21,9 @@ from ..assets import read
 from ..naming import (
     ASSET_DIR,
     CAPTIONS_LANGUAGE,
+    GRAPHIC_POSTER,
     IMAGE_DIR,
+    SITE,
     VIDEO_DIR,
     WEB_FORMATS,
     content_anchor,
@@ -140,18 +142,6 @@ def lines(parts: Iterable[Piece]) -> Piece:
     and it is what makes a diff of a rebuilt report readable.
     """
     return joined("\n", parts)
-
-
-GRAPHIC_POSTER = (
-    "https://images.squarespace-cdn.com/content/6172f286c4e030728d09f143"
-    "/9c923cd2-7826-4dac-8eea-eec542fb1f63/graphic_content.png"
-)
-"""What a graphic video shows until it is played, rather than its first frame:
-ETA's logo beside "WARNING: Graphic Content", as the site's own videos open with.
-
-The site's copy, rather than one shipped here, since it is the site's card.
-The stylesheet fills the rest of a video of another shape with its background.
-"""
 
 
 def markup(node: Piece) -> Markup:
@@ -1074,7 +1064,7 @@ class HtmlEmitter(Emitter):
             aria_label=node.title or None,
             controls=True,
             preload="metadata",
-            poster=GRAPHIC_POSTER if node.graphic else None,
+            poster=self.graphic_poster() if node.graphic else None,
         )[
             self.captions_track(node),
             tag.a(href=node.url)["Watch the video"] if not node.copy else None,
@@ -1089,6 +1079,17 @@ class HtmlEmitter(Emitter):
                 cited if caption is None else None,
             ]
         )
+
+    def graphic_poster(self) -> str:
+        """What a graphic video shows until it is played, rather than its first frame:
+        ETA's logo beside "WARNING: Graphic Content", as the site's own videos open with.
+
+        From the site's assets, beside the stylesheet; a fragment that carries
+        its stylesheet inline links the site's copy, since Squarespace has none.
+        The stylesheet fills the rest of a video of another shape with its background.
+        """
+        base = self.asset_base or f"{SITE}/{ASSET_DIR}"
+        return f"{base}/{GRAPHIC_POSTER}"
 
     def captions_track(self, node: Embed) -> Element | None:
         """The captions a copied video came with, labelled as recognized where nobody wrote them."""

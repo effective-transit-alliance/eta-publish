@@ -82,3 +82,25 @@ def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = No
         return False
     logo.write_text(svg)
     return True
+
+
+def graphic_warning(logo: str) -> str:
+    """What a graphic video shows until it is played: the logo beside "WARNING: Graphic Content".
+
+    Laid out as ETA's own card for its videos, the logo on the dark blue it sits on,
+    and made from the logo here, so an edit to the logo reaches it too.
+    The words are text in the report's own type, `system-ui`:
+    an SVG shown as a picture cannot use the page's fonts, only the reader's.
+    """
+    opening, _, rest = logo.partition(">")
+    view_box = opening.split('viewBox="', 1)[1].split('"', 1)[0]
+    drawing = rest.rsplit("</svg>", 1)[0]
+    lines = [("WARNING:", 297), ("Graphic", 437), ("Content", 572)]
+    text = "".join(f'<tspan x="835" y="{y}">{line}</tspan>' for line, y in lines)
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1719 787">'
+        '<rect width="1719" height="787" fill="#000516"/>'
+        f'<svg x="316" y="147" width="487" height="487" viewBox="{view_box}">{drawing}</svg>'
+        '<text fill="#fff" font-family="system-ui, sans-serif" font-size="128">'
+        f"{text}</text></svg>\n"
+    )
