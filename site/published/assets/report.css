@@ -843,6 +843,15 @@ html:has(.eta-report .lightbox[open]) {
   /* biome-ignore lint/complexity/noImportantStyles: the site's own rule is more specific than any selector here. */
   padding-top: 0 !important;
 }
+/* The site's header is fixed over the top of the first section, which pads
+   itself to clear it, and that padding is white: Firefox shows it for a
+   moment when scrolling up fast. The navy reaches up behind the header,
+   only in the first section, where there is nothing above it to cover. */
+.page-section:first-child:has(.eta-report > .masthead)
+  .eta-report
+  .masthead::before {
+  top: -100vh;
+}
 .fluid-engine:has(> .fe-block:only-child .eta-report) {
   grid-template-rows: auto;
 }
