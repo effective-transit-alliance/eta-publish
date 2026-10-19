@@ -1,4 +1,4 @@
-"""The ETA logo in the top right corner of every chart credited to ETA.
+"""The ETA logo and `etany.org` in the top right corner of every chart credited to ETA.
 
 A chart is credited to ETA when its figure's `Credit:` line starts with `ETA`,
 and it is a chart when it is an SVG: a photograph credited to ETA is a photograph.
@@ -38,6 +38,21 @@ LOGO_SHARE = 0.055
 MARGIN_SHARE = 1 / 3
 """The space around the logo, as a share of the logo's own width."""
 
+SITE_SHARE = 0.22
+"""How tall `etany.org` is set, as a share of the logo's width.
+
+Stretched or squeezed to exactly the logo's width whatever font draws it,
+so the two read as one mark and the corner it needs is known before it is drawn."""
+
+GAP_SHARE = 0.1
+"""The space between the logo and `etany.org`, as a share of the logo's width."""
+
+SITE_COLOR = "#001faa"
+"""The logo's own navy."""
+
+SITE_FONTS = "system-ui, -apple-system, Segoe UI, Helvetica, Arial, DejaVu Sans, sans-serif"
+"""Whatever sans serif the reader's system draws its own text in."""
+
 TOLERANCE = 8
 """How far a pixel's channels can be from the background's and still be background:
 the antialiasing at the edge of a background drawn as a rectangle."""
@@ -74,14 +89,18 @@ def with_logo(data: bytes, original: bytes, crop: Crop, description: str = "") -
     start, width, height = svg_size(data, "place the logo")
     side = width * LOGO_SHARE
     margin = side * MARGIN_SHARE
+    size = side * SITE_SHARE
+    gap = side * GAP_SHARE
+    # The logo, the gap, and `etany.org`, which descends no further than its size.
+    mark = side + gap + size
     drawn = _drawn(original, crop)
     background = _background(drawn) if drawn is not None else None
     clear = (
         drawn is not None
         and background is not None
-        and _clear(drawn, background, width - side - 2 * margin, side + 2 * margin)
+        and _clear(drawn, background, width - side - 2 * margin, mark + 2 * margin)
     )
-    grown = 0.0 if clear else side + 2 * margin
+    grown = 0.0 if clear else mark + 2 * margin
     # `-0` where nothing grew, which is a valid number and an odd one to read.
     top = -grown or 0.0
     tall = height + grown
@@ -100,13 +119,21 @@ def with_logo(data: bytes, original: bytes, crop: Crop, description: str = "") -
         )
     parts.append(f'<svg width="{width:g}" height="{height:g}">')
     chart = data[start:].rstrip()
+    x = width - margin - side
     y = margin - grown
     placed = _logo().replace(
-        "<svg ",
-        f'<svg x="{width - margin - side:g}" y="{y:g}" width="{side:g}" height="{side:g}" ',
-        1,
+        "<svg ", f'<svg x="{x:g}" y="{y:g}" width="{side:g}" height="{side:g}" ', 1
     )
-    return data[:start] + "".join(parts).encode() + chart + f"</svg>{placed}</svg>\n".encode()
+    # On a baseline a fifth of its size above the bottom of its room,
+    # which is about where a sans serif's descenders end, and `etany.org` has one.
+    site = (
+        f'<text x="{x:g}" y="{y + side + gap + size * 0.8:g}" font-size="{size:g}"'
+        f' textLength="{side:g}" lengthAdjust="spacingAndGlyphs"'
+        f' font-family="{SITE_FONTS}"'
+        f' fill="{SITE_COLOR}">etany.org</text>'
+    )
+    closing = f"</svg>{placed}{site}</svg>\n"
+    return data[:start] + "".join(parts).encode() + chart + closing.encode()
 
 
 @cache

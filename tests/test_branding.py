@@ -9,7 +9,14 @@ import re
 import pytest
 
 from eta_publish import branding
-from eta_publish.branding import LOGO_SHARE, MARGIN_SHARE, credited_to_eta, with_logo
+from eta_publish.branding import (
+    GAP_SHARE,
+    LOGO_SHARE,
+    MARGIN_SHARE,
+    SITE_SHARE,
+    credited_to_eta,
+    with_logo,
+)
 from eta_publish.nodes import Crop, Document, Figure, Image, Text
 
 
@@ -22,6 +29,8 @@ WIDTH = 400
 HEIGHT = 200
 SIDE = WIDTH * LOGO_SHARE
 MARGIN = SIDE * MARGIN_SHARE
+MARK = SIDE * (1 + GAP_SHARE + SITE_SHARE)
+"""The logo and `etany.org` under it."""
 
 
 def chart(*shapes: str, background: str = '<rect width="400" height="200" fill="#fff"/>') -> bytes:
@@ -62,12 +71,30 @@ def test_an_empty_corner_takes_the_logo_and_the_chart_keeps_its_size() -> None:
 
 def test_a_corner_with_something_in_it_grows_the_chart_upward() -> None:
     svg = branded(chart(BAR, CORNER))
-    grown = SIDE + 2 * MARGIN
+    grown = MARK + 2 * MARGIN
     # Written to six significant digits, as every number in the wrapper is.
     assert view(svg) == pytest.approx([0, -grown, WIDTH, HEIGHT + grown], abs=1e-3)
     assert logo_at(svg) == pytest.approx((WIDTH - MARGIN - SIDE, MARGIN - grown), abs=1e-3)
     # The strip is the chart's own background, so it reads as more of the chart.
     assert b'fill="#ffffff"' in svg
+
+
+def test_etany_org_is_set_under_the_logo_and_as_wide() -> None:
+    svg = branded(chart(BAR))
+    found = re.search(
+        rb'<text x="([^"]*)" y="([^"]*)"[^>]* textLength="([^"]*)"[^>]*>etany.org<', svg
+    )
+    assert found is not None
+    x, y, length = (float(n) for n in found.groups())
+    assert x == pytest.approx(WIDTH - MARGIN - SIDE, abs=1e-3)
+    assert length == pytest.approx(SIDE, abs=1e-3)
+    assert MARGIN + SIDE < y <= MARGIN + MARK
+
+
+def test_something_where_etany_org_would_go_grows_the_chart() -> None:
+    """Below the logo's own corner, and still in the way."""
+    under = f'<rect x="{WIDTH - MARGIN - SIDE:g}" y="{MARGIN + SIDE + 2:g}" width="20" height="4"/>'
+    assert view(branded(chart(BAR, under)))[1] < 0
 
 
 def test_a_background_with_rounded_corners_is_still_an_empty_corner() -> None:
