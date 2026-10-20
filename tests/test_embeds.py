@@ -377,9 +377,16 @@ def test_a_served_video_with_no_captions_is_warned_about() -> None:
     assert "`Captions:`" in warning
 
 
+def indented(text: str) -> JsonObject:
+    """A paragraph indented with Tab, as Docs records it."""
+    paragraph = para(text)
+    paragraph["paragraph"]["paragraphStyle"]["indentStart"] = {"magnitude": 36, "unit": "PT"}
+    return paragraph
+
+
 def captions(*lines: str) -> list[JsonObject]:
-    """A `Captions:` line, and its captions after it a paragraph each."""
-    return [linked((":", None), underline="Captions"), *map(para, lines)]
+    """A `Captions:` line, and its captions after it indented a paragraph each."""
+    return [linked((":", None), underline="Captions"), *map(indented, lines)]
 
 
 def test_an_empty_captions_line_says_there_are_none() -> None:
@@ -424,15 +431,34 @@ def test_written_captions_are_read_a_line_each() -> None:
     )
 
 
-def test_a_caption_ending_before_it_starts_is_left_out() -> None:
+@pytest.mark.parametrize("line", ["Jesus", "0:04 Jesus", "0:04-0:04.7: Jesus", "0:05-0:04 Jesus"])
+def test_a_caption_that_is_not_one_is_warned_about(line: str) -> None:
     url = "https://x.com/someone/status/123"
-    doc = build(
-        [para("Headline", "TITLE"), copied(url), *captions("0:05\u20130:04 Jesus", "0:01-0:02 Hi")]
-    )
+    doc = build([para("Headline", "TITLE"), copied(url), *captions(line, "0:01-0:02 Hi")])
     (embed,) = doc.blocks
     assert isinstance(embed, Embed) and embed.captions == [Cue(1000, 2000, "Hi")]
     [warning] = [w for w in map(str, doc.warnings) if "caption" in w]
     assert "leaving it out" in warning
+
+
+def test_a_caption_can_be_on_the_captions_line() -> None:
+    url = "https://x.com/someone/status/123"
+    line = linked((": 0:01-0:02 Hi", None), underline="Captions")
+    doc = build([para("Headline", "TITLE"), copied(url), line, indented("0:02-0:03 There")])
+    (embed,) = doc.blocks
+    assert isinstance(embed, Embed)
+    assert embed.captions == [Cue(1000, 2000, "Hi"), Cue(2000, 3000, "There")]
+
+
+def test_the_first_line_not_indented_ends_the_captions() -> None:
+    """However much it looks like one."""
+    url = "https://x.com/someone/status/123"
+    doc = build(
+        [para("Headline", "TITLE"), copied(url), *captions("0:01-0:02 Hi"), para("0:02-0:03 Hm")]
+    )
+    embed, after = doc.blocks
+    assert isinstance(embed, Embed) and embed.captions == [Cue(1000, 2000, "Hi")]
+    assert isinstance(after, Paragraph)
 
 
 def test_written_captions_are_served_with_the_video(tmp_path: Path) -> None:

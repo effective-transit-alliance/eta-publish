@@ -237,6 +237,13 @@ def cue(text: str) -> Cue | None:
     return Cue(start=start, end=end, text=match.group(7))
 
 
+def indented(para: JsonObject) -> bool:
+    """Whether a paragraph is indented, by its style or by a tab or spaces before its text."""
+    start = para.get("paragraphStyle", {}).get("indentStart", {}).get("magnitude", 0)
+    text = "".join(element_text(el) for el in para.get("elements", []))
+    return start > 0 or text[:1] in ("\t", " ")
+
+
 def _milliseconds(hours: str | None, minutes: str, seconds: str) -> int:
     return round(((int(hours or 0) * 60 + int(minutes)) * 60 + float(seconds)) * 1000)
 
@@ -1152,6 +1159,8 @@ class Parser:
         pending_source: list[Inline] | None = None
         # 1 while the paragraph directly after a figure is still unclaimed.
         caption_slot = 0
+        # The embed whose `Captions:` the indented lines that follow belong to.
+        captioning: Embed | None = None
 
         def drop_pending() -> None:
             nonlocal pending_source
@@ -1183,6 +1192,7 @@ class Parser:
             if "bullet" in para:
                 drop_pending()
                 caption_slot = 0
+                captioning = None
                 node, i = self._consume_list(content, i)
                 out.append(node)
                 continue
@@ -1194,6 +1204,13 @@ class Parser:
             if not text and not has_image(para):
                 caption_slot = 0
                 continue
+
+            if captioning is not None and captioning.captions is not None:
+                if indented(para):
+                    lines = split_lines(self.inlines(para))
+                    captioning.captions += self._cues(plain_text(line) for line in lines)
+                    continue
+                captioning = None
 
             if style in HEADING_LEVELS and not text and has_image(para):
                 # An image inserted while a heading style was still active.
@@ -1284,18 +1301,13 @@ class Parser:
             # and a report with 50-odd figures has a great many.
             last = out[-1] if out else None
             if isinstance(last, Embed) and is_captions_note(inlines):
+                # On the same line, or indented on the lines after it,
+                # up to the first that is not.
                 self._check_label(inlines)
                 lines = split_lines(inlines)
                 written = [labelled(lines[0]).value] + [plain_text(line) for line in lines[1:]]
                 last.captions = (last.captions or []) + self._cues(written)
-                continue
-            if (
-                isinstance(last, Embed)
-                and last.captions is not None
-                and all(cue(plain_text(line)) for line in split_lines(inlines))
-            ):
-                # A line each, where the writer pressed Enter rather than Shift+Enter.
-                last.captions += self._cues(plain_text(line) for line in split_lines(inlines))
+                captioning = last
                 continue
             if isinstance(last, Embed) and not last.credit and is_credit_note(inlines):
                 # Credited the way a figure is, by the line right under it.

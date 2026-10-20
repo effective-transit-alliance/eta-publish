@@ -147,8 +147,9 @@ def check_embeds(doc: Document) -> None:
                 )
         elif embed.url not in doc.media_captions and not embed.uncaptioned:
             doc.warn(
-                "the video {} has no captions; write them under it after {}, "
-                "a line each like {}, or leave {} empty if nothing said in it matters",
+                "the video {} has no captions; write them after a {} line under it, "
+                "each on a line of its own indented like {}, "
+                "or leave {} empty if nothing said in it matters",
                 Shown(embed.url),
                 Shown("Captions:"),
                 Shown("0:04\u20130:04.7 Jesus"),
