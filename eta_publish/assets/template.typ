@@ -22,6 +22,18 @@
   }
 })
 
+// The notice above a video with a `Warning:` line, as the page draws it:
+// bold, after a ⚠, on a tint of amber with a bar of it down the left.
+#let warning_amber = rgb("#d97706")
+#let video_warning(body) = block(
+  width: 100%,
+  inset: (x: .75em, y: .5em),
+  radius: .25em,
+  fill: warning_amber.transparentize(82%),
+  stroke: (left: .3em + warning_amber),
+  strong[⚠ #body],
+)
+
 #let report(
   // Plain text, for the PDF's metadata, which holds nothing else.
   title: "",

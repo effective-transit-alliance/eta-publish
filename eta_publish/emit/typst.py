@@ -111,7 +111,7 @@ class TypstEmitter(Emitter):
         internal dates and channels, and this file is committed.
         """
         header = (
-            f"#import {string(self.template)}: capped_image, report\n\n"
+            f"#import {string(self.template)}: capped_image, report, video_warning\n\n"
             f"#show: report.with(\n"
             f"  title: {string(doc.title)},\n"
             f"  headline: [{self.inlines(doc.headline) if doc.headline else escape(doc.title)}],\n"
@@ -259,21 +259,37 @@ class TypstEmitter(Emitter):
                 # Its figure on the live page, which the page names after the file,
                 # so the warning and the captions come before the video does.
                 href = f"{self.page_url}#{Path(served).stem}"
-            linked = self.linked_embed(
-                node, node.title or "Video", href, "" if node.copy else self.source_ref(node.url)
-            )
             if not node.warning:
-                return linked
-            # What the page shows before the video plays, as the PDF's picture of it,
-            # under the warning and above its name, linked to where it plays.
-            poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
-            alt = f"WARNING: {node.warning_kind}"
-            call = f"capped_image({string(poster)}, alt: {string(alt)})"
-            figure = f"#link({string(href)})[#{call}]" if href else f"#{call}"
-            warning, _, rest = linked.partition(self.separator)
-            # One unbreakable block, so a page never ends between the warning and the card.
-            return self.join([f"#block(breakable: false)[\n{warning}\n\n{figure}\n]", rest])
+                return self.linked_embed(
+                    node,
+                    node.title or "Video",
+                    href,
+                    "" if node.copy else self.source_ref(node.url),
+                )
+            return self.served_video(node, href)
         return self.linked_embed(node, embed_label(node, card))
+
+    def served_video(self, node: Embed, href: str) -> str:
+        """A video the site serves, as the page shows it before it plays:
+        its warning, then its poster, captioned with its name and credit like a picture.
+
+        Kept to one page, so a page never ends between the warning and what it warns of.
+        """
+        written = "".join(i.text for i in node.warning if isinstance(i, Text)).strip()
+        warning = f"#video_warning[{escape(written)}]"
+        poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
+        alt = f"WARNING: {node.warning_kind}"
+        call = f"capped_image({string(poster)}, alt: {string(alt)})"
+        body = f"link({string(href)})[#{call}]" if href else call
+        # Named as the page's caption names it, and linked, since the poster is all that is here.
+        title = escape(node.title or "Video")
+        name = f"#link({string(href)})[{title}]" if href else title
+        cite = "" if node.copy else self.source_ref(node.url)
+        caption = " \\\n  ".join(
+            [name + cite, *([self.inlines(node.credit)] if node.credit else [])]
+        )
+        figure = f"#figure(\n  {body},\n  caption: [{caption}],\n)"
+        return f"#block(breakable: false)[\n{warning}\n\n{figure}\n]"
 
     @override
     def table(self, node: Table) -> str:

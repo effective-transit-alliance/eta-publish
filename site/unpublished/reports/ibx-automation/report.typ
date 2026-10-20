@@ -1,4 +1,4 @@
-#import "template.typ": capped_image, report
+#import "template.typ": capped_image, report, video_warning
 
 #show: report.with(
   title: "No Need to Wait: Automated Light Metro is Right for the IBX",
@@ -196,14 +196,14 @@ In fact, the #link("https://ny1.com/nyc/brooklyn/transit/2025/11/22/mta-ordered-
 Automation and PSDs are generally considered together as PSDs make it simpler for trains to operate unattended, but the safety benefits of PSDs are so strong that they should be installed on the IBX regardless.
 
 #block(breakable: false)[
-#strong[Warning: Graphic Content: Someone pushed in front of a moving train.]
+#video_warning[Warning: Graphic Content: Someone pushed in front of a moving train.]
 
-#link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[#capped_image("print/warning-Graphic_Content.svg", alt: "WARNING: Graphic Content")]
+#figure(
+  link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[#capped_image("print/warning-Graphic_Content.svg", alt: "WARNING: Graphic Content")],
+  caption: [#link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St.] \
+  Credit: MTA security camera footage],
+)
 ]
-
-#link("https://kkysen.github.io/eta-publish/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St.]
-
-Credit: MTA security camera footage
 
 Honolulu provides virtually the only US example#footnote[There are numerous Automated People Movers (APMs) at airports in the US.
 Every single one is automated with PSDs.

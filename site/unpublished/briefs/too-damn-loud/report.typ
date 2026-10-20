@@ -1,4 +1,4 @@
-#import "template.typ": capped_image, report
+#import "template.typ": capped_image, report, video_warning
 
 #show: report.with(
   title: "Too Damn Loud: Announcements on NYC Transit are Out of Control",

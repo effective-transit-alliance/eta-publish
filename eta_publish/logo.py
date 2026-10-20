@@ -111,6 +111,8 @@ def warning_poster(logo: str, kind: str) -> str:
     and made from the logo here, so an edit to the logo reaches it too.
     The words are text in the report's own type, `system-ui`:
     an SVG shown as a picture cannot use the page's fonts, only the reader's.
+    DejaVu Sans after it is for the PDF, since Typst has no `system-ui`
+    and would otherwise set the words in the PDF's serif.
     """
     opening, _, rest = logo.partition(">")
     view_box = opening.split('viewBox="', 1)[1].split('"', 1)[0]
@@ -133,7 +135,7 @@ def warning_poster(logo: str, kind: str) -> str:
         f'<svg x="{LOGO_LEFT}" y="147" width="487" height="487" viewBox="{view_box}">'
         f"{drawing}</svg>"
         f"{_warning_sign(SIGN_LEFT, 147 + (487 + 150) // 2)}"
-        '<text fill="#fff" font-family="system-ui, sans-serif" font-size="128">'
+        '<text fill="#fff" font-family="system-ui, DejaVu Sans, sans-serif" font-size="128">'
         f"{text}</text></svg>\n"
     )
 

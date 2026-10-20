@@ -1,4 +1,4 @@
-#import "template.typ": capped_image, report
+#import "template.typ": capped_image, report, video_warning
 
 #show: report.with(
   title: "Digging Out of a Very Deep Hole: Saving Billions on 125th Street",

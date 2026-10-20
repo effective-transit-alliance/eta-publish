@@ -610,5 +610,5 @@ def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
     doc.media_files[url] = "embed-1.mp4"
     page = "https://www.etany.org/reports/someone"
     typst = TypstEmitter(page_url=page).emit(doc)
-    poster = f'#link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
-    assert typst.index("#strong[Warning: Graphic Content]") < typst.index(poster)
+    poster = f'link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
+    assert typst.index("#video_warning[Warning: Graphic Content]") < typst.index(poster)
