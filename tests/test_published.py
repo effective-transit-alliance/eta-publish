@@ -187,3 +187,26 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
     }
     published = tmp_path / PUBLISHED_DIR / "reports/a/report.min.html"
     assert published.read_text() == "the live page's"
+
+
+def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> None:
+    """Each piece's own, published copy and not the preview's, and not itself as a piece."""
+    built(tmp_path, "reports/a", "a", "")
+    directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
+    for name in ("report.part01.html", "report.published.part01.html"):
+        (directory / name).write_text("")
+    (directory / "report.part01.min.html").write_text("the preview's")
+    (directory / "report.published.part01.min.html").write_text("the live page's")
+    assets = tmp_path / UNPUBLISHED_DIR / "assets"
+    assets.mkdir()
+    for name in ("report.min.css", "report.min.js"):
+        (assets / name).write_text(name)
+        (assets / f"{name}.map").write_text("{}")
+
+    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    hosted = files(tmp_path)
+    assert "reports/a/report.part01.min.html" in hosted
+    assert "reports/a/report.part01.min.min.html" not in hosted
+    assert "assets/report.min.js.map" in hosted
+    published = tmp_path / PUBLISHED_DIR / "reports/a/report.part01.min.html"
+    assert published.read_text() == "the live page's"

@@ -69,3 +69,10 @@ def test_the_assets_are_minified_with_maps_of_what_they_came_from(tmp_path: Path
         sourcemap = json.loads((tmp_path / f"{name}.map").read_text())
         assert sourcemap["sources"] == [name.replace(".min", "")]
         assert sourcemap["sourcesContent"] == [source]
+
+
+def test_a_minified_copy_is_told_apart_from_its_original() -> None:
+    """What a glob for `report.part*.html` also finds."""
+    assert minify.is_min("report.part01.min.html")
+    assert minify.is_min("report.published.min.html")
+    assert not minify.is_min("report.part01.html")

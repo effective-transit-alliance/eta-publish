@@ -31,11 +31,17 @@ from rich.text import Text
 from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console, format, minify
-from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
+from .build import (
+    ANONYMOUS_WARNED,
+    UNWARNED,
+    BuildOptions,
+    anonymous_warning,
+    check_code_block_size,
+)
 from .format import ROOT
 from .logo import LOGO, write_logo
 from .naming import ASSET_DIR, SITE, UNPUBLISHED_DIR
-from .published import published_copy, write_published
+from .published import write_published
 from .site import (
     REPORTS,
     Failed,
@@ -355,13 +361,13 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
     if site.built and not options.embed_assets:
         minify.assets(outdir / ASSET_DIR)
         for built in site.built:
-            for name, url in (
-                ("report.html", options.unpublished_url),
-                (published_copy(Path("report.html")).name, options.published_url),
-            ):
-                page = outdir / built.path / name
-                if page.exists():
-                    minify.page(page, f"{url}/{ASSET_DIR}")
+            # `report.html`, its `--split` pieces, and the published copy of each.
+            for page in sorted((outdir / built.path).glob("report*.html")):
+                if minify.is_min(page.name):
+                    continue
+                published = page.name.split(".")[1] == UNWARNED
+                url = options.published_url if published else options.unpublished_url
+                minify.page(page, f"{url}/{ASSET_DIR}")
 
     # The one to paste, and so the one whose size matters.
     for built in site.built:

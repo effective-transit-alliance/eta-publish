@@ -23,7 +23,7 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
-from .minify import MIN_ASSETS, min_name
+from .minify import MIN_ASSETS, is_min, min_name
 from .naming import ASSET_DIR, PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
 from .site import Published, Report, saved_for, saved_responses
 
@@ -130,17 +130,17 @@ def write_published(
             continue
         path = directory.relative_to(unpublished).as_posix()
         pages = [directory / "report.html", *sorted(directory.glob(SPLIT_FILES))]
-        pages = [page for page in pages if UNWARNED not in page.name]
+        pages = [page for page in pages if UNWARNED not in page.name and not is_min(page.name)]
         files = {f"{path}/{name}" for name in PUBLISHED_FILES}
         for page in pages:
             files.add(f"{path}/{page.name}")
             if published_copy(page).is_file():
                 files |= referenced(published_copy(page).read_text(), path, site_url)
-        # Named rather than read off the page: it links what `report.html` does,
-        # but the `.min` assets for the others, and a map is linked from its file, not the page.
-        if published_copy(directory / min_name("report.html")).is_file():
-            files.add(f"{path}/{min_name('report.html')}")
-            files |= {f"{ASSET_DIR}/{f}" for name in MIN_ASSETS for f in (name, f"{name}.map")}
+            # Named rather than read off the page: it links what its original does,
+            # but the `.min` assets for the others, and a map is linked from its file, not the page.
+            if published_copy(page.with_name(min_name(page.name))).is_file():
+                files.add(f"{path}/{min_name(page.name)}")
+                files |= {f"{ASSET_DIR}/{f}" for name in MIN_ASSETS for f in (name, f"{name}.map")}
         missing = []
         for name in sorted(files):
             source = published_copy(unpublished / name)

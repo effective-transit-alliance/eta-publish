@@ -34,6 +34,11 @@ def min_name(name: str) -> str:
     return f"{stem}.min{dot}{suffix}"
 
 
+def is_min(name: str) -> bool:
+    """Whether `name` is one of the `.min` copies, which a glob for the originals also finds."""
+    return ".min." in name
+
+
 def assets(directory: Path) -> list[Path]:
     """Write `report.min.css` and `report.min.js` beside `report.css` and `report.js`,
     with their source maps, returning what was written."""
