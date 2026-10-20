@@ -85,8 +85,19 @@ def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = No
     return True
 
 
-TEXT_LEFT = 835
-"""Where the poster's words start, beside the logo, and the warning sign above them."""
+SIGN_WIDTH = 170
+"""How wide the poster's warning sign is: a little taller than the words beside it."""
+
+
+LOGO_LEFT = 171
+"""Where the poster's logo starts: what centres the logo, the warning sign,
+and the words after them, `WARNING:` the widest of those."""
+
+SIGN_LEFT = LOGO_LEFT + 487 + 40
+"""Where the poster's warning sign starts, between the logo and the words."""
+
+TEXT_LEFT = SIGN_LEFT + SIGN_WIDTH + 40
+"""Where the poster's words start."""
 
 POSTER_LINE = 12
 """The most characters a line of a warning poster holds, at its size beside the logo."""
@@ -110,27 +121,21 @@ def warning_poster(logo: str, kind: str) -> str:
             lines[-1] += f" {word}"
         else:
             lines.append(word)
-    # A row each for the warning sign and the lines under it, a row every 138,
-    # centred on the logo's middle as the words' capitals sit on it.
-    rows = len(lines) + 1
-    ys = [round(450 + (i - (rows - 1) / 2) * 138) for i in range(rows)]
+    # Centred on the logo's middle, a line every 138.
+    ys = [round(435 + (i - (len(lines) - 1) / 2) * 138) for i in range(len(lines))]
     text = "".join(
         f'<tspan x="{TEXT_LEFT}" y="{y}">{escape(line)}</tspan>'
-        for y, line in zip(ys[1:], lines, strict=True)
+        for y, line in zip(ys, lines, strict=True)
     )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1719 787">'
         '<rect width="1719" height="787" fill="#000516"/>'
-        f'<svg x="316" y="147" width="487" height="487" viewBox="{view_box}">'
+        f'<svg x="{LOGO_LEFT}" y="147" width="487" height="487" viewBox="{view_box}">'
         f"{drawing}</svg>"
-        f"{_warning_sign(TEXT_LEFT, ys[0])}"
+        f"{_warning_sign(SIGN_LEFT, 147 + (487 + 150) // 2)}"
         '<text fill="#fff" font-family="system-ui, sans-serif" font-size="128">'
         f"{text}</text></svg>\n"
     )
-
-
-SIGN_WIDTH = 170
-"""How wide the poster's warning sign is: a little taller than the words under it."""
 
 
 def _warning_sign(left: int, baseline: int) -> str:
