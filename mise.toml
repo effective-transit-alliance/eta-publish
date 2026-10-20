@@ -5,7 +5,8 @@
 # without a report having changed.
 #
 # `ffmpeg` is what `yt-dlp` joins a `Video (Copy):` video's separate video and audio
-# streams with. Off `PATH`, since the video is not committed and so its bytes
+# streams with, and what takes a video's first frame for the PDF and the Markdown.
+# Off `PATH`, since neither the video nor the frame is committed, and so their bytes
 # changing between versions changes nothing anyone reviews.
 #
 # `uv` and `pre-commit` are here so that `mise install` is the whole of setup.
