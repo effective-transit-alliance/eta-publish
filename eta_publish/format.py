@@ -55,6 +55,19 @@ def pinned(tool: str, binary: str) -> str:
     return path
 
 
+@cache
+def installed(tool: str) -> str:
+    """Where `tool`, at the version `mise.toml` pins, is installed:
+    for a library with no binary to ask `pinned` about, such as an npm package used from Node.
+    """
+    try:
+        path = _mise("where", tool)
+    except MiseMissing:
+        _mise("install", tool)
+        path = _mise("where", tool)
+    return path
+
+
 def _mise(*args: str) -> str:
     """What `mise` printed, or `MiseMissing` saying what it said instead."""
     try:

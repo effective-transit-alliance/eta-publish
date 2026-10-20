@@ -14,8 +14,9 @@
 #
 # `svgo` minifies the logo charts carry; see `eta_publish/logo.py`.
 #
-# `minhtml`, `esbuild`, and `swc` make the `.min` copies of a report's page,
-# stylesheet, and script; see `eta_publish/minify.py`.
+# `minhtml`, `lightningcss`, and `oxc-minify` make the `.min` copies of a report's page,
+# stylesheets, and script; see `eta_publish/minify.py`.
+# The last two are libraries that `eta_publish/minify.mjs` runs on `node`.
 # Run through `mise` like `biome`, so the pin here is which version runs.
 # `minhtml` is renamed from the `minhtml-<version>` its release names it,
 # so finding it does not depend on the version.
@@ -28,11 +29,11 @@ min_version = "2026.10.3"
 [tools]
 biome = "2.5.15"
 ffmpeg = "9.0.2"
-"github:swc-project/swc" = "1.16.18"
 "github:wilsonzlin/minify-html" = { version = "0.18.1", bin = "minhtml" }
 node = "26.12.0"
-"npm:esbuild" = "0.28.2"
+"npm:lightningcss" = "1.33.0"
 "npm:markdownlint-cli2" = "0.23.3"
+"npm:oxc-minify" = "0.155.0"
 "npm:svgo" = "4.1.0"
 pre-commit = "4.7.0"
 uv = "0.13.1"

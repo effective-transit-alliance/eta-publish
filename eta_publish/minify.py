@@ -10,19 +10,16 @@ and these are made from them by tools that `mise.toml` pins, on every build,
 locally and on GitHub Pages alike.
 
 `minhtml` for the page, which drops a space between two tags only where it draws nothing.
-`esbuild` for the stylesheet, and `swc` for the script, as `report.swcrc` says.
-Each writes a source map carrying the file as written,
-so a browser's tools show the stylesheet and the script with their comments.
-Run from the directory the files are in and given their bare names,
-so the maps name them that way rather than by where the build happened to run.
+`lightningcss` for the stylesheets and `oxc` for the script, as `minify.mjs` says,
+each writing a source map that carries the file as written.
 """
 
 import subprocess
 from pathlib import Path
 
-from .format import pinned
+from .format import installed, pinned
 
-SWC_CONFIG = Path(__file__).with_name("report.swcrc")
+SCRIPT = Path(__file__).with_name("minify.mjs")
 
 FRAGMENT_ASSETS = ("report.css", "report.js")
 """What `report.html` links, and so what `report.min.html` links the `.min` copies of."""
@@ -48,28 +45,14 @@ def is_min(name: str) -> bool:
 def assets(directory: Path) -> list[Path]:
     """Write the `.min` copy of each of `PAGE_ASSETS` beside it,
     with its source map, returning what was written."""
-    for css in ("page.css", "report.css"):
-        _run(
-            [
-                pinned("npm:esbuild", "esbuild"),
-                css,
-                "--minify",
-                "--sourcemap",
-                "--sources-content=true",
-                "--log-level=warning",
-                f"--outfile={min_name(css)}",
-            ],
-            directory,
-        )
     _run(
         [
-            pinned("github:swc-project/swc", "swc"),
-            "compile",
-            "--config-file",
-            str(SWC_CONFIG),
-            "--out-file",
-            "report.min.js",
-            "report.js",
+            pinned("node", "node"),
+            str(SCRIPT),
+            installed("npm:lightningcss"),
+            installed("npm:oxc-minify"),
+            str(directory),
+            *PAGE_ASSETS,
         ],
         directory,
     )
