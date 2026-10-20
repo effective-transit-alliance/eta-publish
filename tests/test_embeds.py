@@ -600,3 +600,15 @@ def test_the_published_pdf_opens_a_video_on_its_live_figure() -> None:
     page = "https://www.etany.org/reports/someone"
     assert f'#link("{page}#embed-1")' in TypstEmitter(page_url=page).emit(doc)
     assert f"{SITE}/reports/someone/videos/embed-1.mp4" in TypstEmitter().emit(doc)
+
+
+def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
+    """The picture the page shows before the video plays, under the warning, linked."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    page = "https://www.etany.org/reports/someone"
+    typst = TypstEmitter(page_url=page).emit(doc)
+    poster = f'#link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
+    assert typst.index("#strong[Warning: Graphic Content]") < typst.index(poster)

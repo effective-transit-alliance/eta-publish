@@ -20,7 +20,7 @@ import re
 from pathlib import Path
 from typing import override
 
-from ..naming import IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, print_href
+from ..naming import IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, print_href, warning_poster_name
 from ..nodes import (
     Card,
     Document,
@@ -259,9 +259,20 @@ class TypstEmitter(Emitter):
                 # Its figure on the live page, which the page names after the file,
                 # so the warning and the captions come before the video does.
                 href = f"{self.page_url}#{Path(served).stem}"
-            return self.linked_embed(
+            linked = self.linked_embed(
                 node, node.title or "Video", href, "" if node.copy else self.source_ref(node.url)
             )
+            if not node.warning:
+                return linked
+            # What the page shows before the video plays, as the PDF's picture of it,
+            # under the warning and above its name, linked to where it plays.
+            poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
+            alt = f"WARNING: {node.warning_kind}"
+            call = f"capped_image({string(poster)}, alt: {string(alt)})"
+            figure = f"#link({string(href)})[#{call}]" if href else f"#{call}"
+            warning, _, rest = linked.partition(self.separator)
+            # One unbreakable block, so a page never ends between the warning and the card.
+            return self.join([f"#block(breakable: false)[\n{warning}\n\n{figure}\n]", rest])
         return self.linked_embed(node, embed_label(node, card))
 
     @override

@@ -538,8 +538,19 @@ def write_assets(siteroot: Path, doc: Document) -> list[Path]:
         path = dest / name
         path.write_text(read(name))
         written.append(path)
-    # Made from the logo rather than kept, so an edit to the logo reaches them:
-    # one for each kind of warning this report's videos carry.
+    written += write_posters(doc, dest)
+    return written
+
+
+def write_posters(doc: Document, dest: Path) -> list[Path]:
+    """What each kind of warning this report's videos carry shows before its video does.
+
+    Made from the logo rather than kept, so an edit to the logo reaches them.
+    Into the site's assets for the page, and beside the print copies for the PDF,
+    which can only read what is under the report.
+    """
+    dest.mkdir(parents=True, exist_ok=True)
+    written = []
     for kind in sorted({embed.warning_kind for embed in doc.embeds if embed.warning}):
         path = dest / warning_poster_name(kind)
         path.write_text(warning_poster(LOGO.read_text(), kind))
@@ -992,6 +1003,7 @@ def build_one(
     # Written here rather than once per site, so that building a single
     # report produces a page with everything it links.
     write_assets(outdir, doc)
+    write_posters(doc, dest / PRINT_DIR)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
     write_outputs(doc, dest, path, options, options.unpublished_url, "report", skipped_images)
