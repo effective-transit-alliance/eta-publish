@@ -21,6 +21,7 @@ from eta_publish.embeds import (
 )
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
+from eta_publish.emit.typst import TypstEmitter
 from eta_publish.naming import SITE
 from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
@@ -587,3 +588,15 @@ def test_a_preview_page_links_the_card_beside_it() -> None:
     doc.media_files[url] = "embed-1.mp4"
     page = report_page(doc, asset_base="../../assets")
     assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
+
+
+def test_the_published_pdf_opens_a_video_on_its_live_figure() -> None:
+    """Where its warning and captions come first, not the bare file, which has neither."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
+    doc.meta["URL"] = "/reports/someone"
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    page = "https://www.etany.org/reports/someone"
+    assert f'#link("{page}#embed-1")' in TypstEmitter(page_url=page).emit(doc)
+    assert f"{SITE}/reports/someone/videos/embed-1.mp4" in TypstEmitter().emit(doc)

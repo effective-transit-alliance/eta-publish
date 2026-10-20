@@ -17,6 +17,7 @@ which carries the house style.
 
 import json
 import re
+from pathlib import Path
 from typing import override
 
 from ..naming import IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, print_href
@@ -87,12 +88,18 @@ class TypstEmitter(Emitter):
     separator = "\n\n"
 
     def __init__(
-        self, template: str = "template.typ", image_dir: str = PRINT_DIR, site_url: str = SITE
+        self,
+        template: str = "template.typ",
+        image_dir: str = PRINT_DIR,
+        site_url: str = SITE,
+        page_url: str = "",
     ) -> None:
         super().__init__()
         self.template = template
         # Where the site serves what the PDF links: the pictures and videos at full size.
         self.site_url = site_url
+        # The live page, for a video to open on its figure there; empty where there is none.
+        self.page_url = page_url
         self.image_dir = image_dir.rstrip("/")
 
     @override
@@ -248,6 +255,10 @@ class TypstEmitter(Emitter):
             # Ours, so named as the document names it and linked to our copy.
             slug = self.doc.slug.strip("/")
             href = f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
+            if self.page_url:
+                # Its figure on the live page, which the page names after the file,
+                # so the warning and the captions come before the video does.
+                href = f"{self.page_url}#{Path(served).stem}"
             return self.linked_embed(
                 node, node.title or "Video", href, "" if node.copy else self.source_ref(node.url)
             )

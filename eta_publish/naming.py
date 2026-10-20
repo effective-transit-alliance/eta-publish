@@ -40,6 +40,13 @@ ASSET_DIR = "assets"
 Every report page links one copy rather than carrying its own.
 """
 
+LIVE_SITE = "https://www.etany.org"
+"""Where ETA's own site serves the live reports, each at its document's `URL:`.
+
+What the published PDF links a video to: the figure on the live page,
+which shows its warning and captions, rather than the bare file, which shows neither.
+"""
+
 SITE = "https://kkysen.github.io/eta-publish"
 """Where the site is served, unless `reports.toml` names another as its `site`."""
 """Where the built site is served, with no trailing slash.

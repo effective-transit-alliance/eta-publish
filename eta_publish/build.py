@@ -47,7 +47,16 @@ from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_pa
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
 from .logo import LOGO, warning_poster
-from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR, warning_poster_name
+from .naming import (
+    ASSET_DIR,
+    IMAGE_DIR,
+    LIVE_SITE,
+    PRINT_DIR,
+    SITE,
+    VIDEO_DIR,
+    WEB_DIR,
+    warning_poster_name,
+)
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -572,6 +581,7 @@ def emit(
     source_brackets: bool = False,
     stem: str = "report",
     site_url: str = SITE,
+    page_url: str = "",
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
@@ -580,6 +590,7 @@ def emit(
     is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
     `cards` is where the site serves the images, for the share card's absolute URL,
     and `url` is where it serves this report, for `og:url`.
+    `page_url` is the live page, for the PDF to link its videos' figures on.
     A `stem` other than `report` writes only the files `site/published/` takes,
     so not `index.html`, which is the preview.
     """
@@ -587,7 +598,7 @@ def emit(
     emitters = {
         f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets, site_url),
         f"{stem}.md": MarkdownEmitter(),
-        f"{stem}.typ": TypstEmitter(site_url=site_url),
+        f"{stem}.typ": TypstEmitter(site_url=site_url, page_url=page_url),
     }
     written: dict[str, Path] = {}
     if stem != "report":
@@ -814,6 +825,7 @@ def write_outputs(
     site_url: str,
     stem: str,
     skipped_images: bool,
+    page_url: str = "",
 ) -> None:
     """Write the report's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
 
@@ -836,6 +848,7 @@ def write_outputs(
         options.source_brackets,
         stem=stem,
         site_url=site_url,
+        page_url=page_url,
     )
     typ = written.get(f"{stem}.typ")
     if typ is not None:
@@ -995,6 +1008,7 @@ def build_one(
             options.published_url,
             f"report.{UNWARNED}",
             skipped_images,
+            f"{LIVE_SITE}{doc.slug}" if doc.slug else "",
         )
 
     return doc, path

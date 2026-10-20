@@ -197,7 +197,7 @@ Automation and PSDs are generally considered together as PSDs make it simpler fo
 
 #strong[Warning: Graphic Content: Someone pushed in front of a moving train.]
 
-#link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St.]
+#link("https://www.etany.org/reports/ibx-automation#Joseph_Lynskey_hit_by_the_1_train_at_18_St")[Joseph Lynskey hit by the 1 train at 18 St.]
 
 Credit: MTA security camera footage
 
