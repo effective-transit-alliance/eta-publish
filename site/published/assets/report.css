@@ -464,6 +464,15 @@
 .eta-report .toc li::marker {
   color: #888;
 }
+/* Followed by an `h3`'s space rather than a section's, which is more than twice that.
+   On the opened list rather than the outline, since a closed one already ends
+   in its heading's margin, which a margin after it would add to. */
+.eta-report .toc details[open] {
+  margin-bottom: 1.17em;
+}
+.eta-report .toc + h2 {
+  margin-top: 0;
+}
 /* The summary is the heading itself, with a triangle after it rather than
    the browser's before it, which would sit on a line of its own above a
    block heading. */
@@ -498,6 +507,9 @@
   .eta-report .toc details::details-content {
     content-visibility: visible;
     display: block;
+  }
+  .eta-report .toc details {
+    margin-bottom: 1.17em;
   }
   .eta-report .toc summary h2::after {
     display: none;
