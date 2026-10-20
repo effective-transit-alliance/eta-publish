@@ -23,7 +23,8 @@ from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
-from .naming import PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
+from .minify import MIN_ASSETS, min_name
+from .naming import ASSET_DIR, PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
 from .site import Published, Report, saved_for, saved_responses
 
 PUBLISHED_FILES = ("report.html", "report.md")
@@ -135,6 +136,11 @@ def write_published(
             files.add(f"{path}/{page.name}")
             if published_copy(page).is_file():
                 files |= referenced(published_copy(page).read_text(), path, site_url)
+        # Named rather than read off the page: it links what `report.html` does,
+        # but the `.min` assets for the others, and a map is linked from its file, not the page.
+        if published_copy(directory / min_name("report.html")).is_file():
+            files.add(f"{path}/{min_name('report.html')}")
+            files |= {f"{ASSET_DIR}/{f}" for name in MIN_ASSETS for f in (name, f"{name}.map")}
         missing = []
         for name in sorted(files):
             source = published_copy(unpublished / name)

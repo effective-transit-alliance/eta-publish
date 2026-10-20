@@ -159,3 +159,31 @@ def test_a_site_served_elsewhere_hosts_what_links_there() -> None:
     other = "https://reports.example.org"
     html = f'<img src="{other}/{PATH}/images/a.jpg"><img src="{SITE}/{PATH}/images/b.jpg">'
     assert referenced(html, PATH, other) == {f"{PATH}/images/a.jpg"}
+
+
+def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
+    tmp_path: Path,
+) -> None:
+    """Named rather than read off it: its links are unquoted, and a map is linked from its file."""
+    built(tmp_path, "reports/a", "a", "")
+    directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
+    (directory / "report.min.html").write_text("the preview's")
+    (directory / "report.published.min.html").write_text("the live page's")
+    assets = tmp_path / UNPUBLISHED_DIR / "assets"
+    assets.mkdir()
+    for name in ("report.min.css", "report.min.js"):
+        (assets / name).write_text(name)
+        (assets / f"{name}.map").write_text("{}")
+
+    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    assert files(tmp_path) == {
+        "reports/a/report.html",
+        "reports/a/report.md",
+        "reports/a/report.min.html",
+        "assets/report.min.css",
+        "assets/report.min.css.map",
+        "assets/report.min.js",
+        "assets/report.min.js.map",
+    }
+    published = tmp_path / PUBLISHED_DIR / "reports/a/report.min.html"
+    assert published.read_text() == "the live page's"

@@ -14,6 +14,12 @@
 #
 # `svgo` minifies the logo charts carry; see `eta_publish/logo.py`.
 #
+# `minhtml`, `esbuild`, and `swc` make the `.min` copies of a report's page,
+# stylesheet, and script; see `eta_publish/minify.py`.
+# Run through `mise` like `biome`, so the pin here is which version runs.
+# `minhtml` is renamed from the `minhtml-<version>` its release names it,
+# so finding it does not depend on the version.
+#
 # `markdownlint-cli2` is an npm package, so it brings `node`, and the `npm` that comes with it.
 # `min_version` because `mise` 2026.5.6 failed with `invalid versions` installing it
 # wherever `npm` is 12, which is what a global `npm = "latest"` is now.
@@ -22,7 +28,10 @@ min_version = "2026.10.3"
 [tools]
 biome = "2.5.15"
 ffmpeg = "9.0.2"
+"github:swc-project/swc" = "1.16.18"
+"github:wilsonzlin/minify-html" = { version = "0.18.1", bin = "minhtml" }
 node = "26.12.0"
+"npm:esbuild" = "0.28.2"
 "npm:markdownlint-cli2" = "0.23.3"
 "npm:svgo" = "4.1.0"
 pre-commit = "4.7.0"

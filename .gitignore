@@ -34,3 +34,7 @@ token.json
 /tests/fixture/**/report.published.pdf
 /tests/fixture/index.html
 /tests/fixture/robots.txt
+
+# The `.min` copies and their source maps, which every build makes from the committed files.
+/site/**/*.min.*
+/tests/fixture/**/*.min.*

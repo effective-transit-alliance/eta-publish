@@ -4,7 +4,9 @@
     // so laying them out would change their bytes for nothing,
     // and a lint rule one of them breaks would stop a build over a file nobody here can edit.
     // `biome` 2.3 never read an SVG; 2.5 formats and lints them.
-    "includes": ["**", "!**/*.svg"]
+    // Nor the `.min` copies, which a build with `--into` finds left by the last one:
+    // laid out, they would no longer be minified, and minified code breaks every rule.
+    "includes": ["**", "!**/*.svg", "!**/*.min.*"]
   },
   "linter": {
     "rules": {

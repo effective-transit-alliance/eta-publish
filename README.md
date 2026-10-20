@@ -54,6 +54,7 @@ Reads the Google Doc, builds a document tree, and emits from that tree:
 | Output | Purpose |
 | --- | --- |
 | `report.html` | One fragment to paste into a single Squarespace code block, linking its images and videos on GitHub Pages (`--no-hosted-media` links them relative to itself) |
+| `report.min.html` | `report.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/report.min.css` and `assets/report.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
 | `index.html` | Standalone page for review, including any warnings |
@@ -823,6 +824,7 @@ It is what GitHub Pages serves.
 `site/published/` is the part of it a live page needs:
 for each `published = "automated"` report,
 its `report.html` and any `--split` pieces, its `report.md`,
+its `report.min.html` with the `.min` assets and their source maps,
 and every file that `report.html` links on the site,
 at the same paths, so either directory serves the same URLs.
 It is written from `site/unpublished/` after every build,

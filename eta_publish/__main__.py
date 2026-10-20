@@ -30,12 +30,12 @@ from typing import Annotated
 from rich.text import Text
 from typer import Argument, BadParameter, Exit, Option, Typer
 
-from . import console, format
+from . import console, format, minify
 from .build import ANONYMOUS_WARNED, BuildOptions, anonymous_warning, check_code_block_size
 from .format import ROOT
 from .logo import LOGO, write_logo
 from .naming import ASSET_DIR, SITE, UNPUBLISHED_DIR
-from .published import write_published
+from .published import published_copy, write_published
 from .site import (
     REPORTS,
     Failed,
@@ -350,10 +350,26 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
     # written: `biome` costs far more to start than to run.
     format.tree(outdir)
 
-    # After the formatting, which is what decides how big the file to paste is.
+    # After the formatting, which `minify` starts from and `biome` would undo.
+    # Not for a fragment carrying its stylesheet and script, which links no `.min` ones.
+    if site.built and not options.embed_assets:
+        minify.assets(outdir / ASSET_DIR)
+        for built in site.built:
+            for name, url in (
+                ("report.html", options.unpublished_url),
+                (published_copy(Path("report.html")).name, options.published_url),
+            ):
+                page = outdir / built.path / name
+                if page.exists():
+                    minify.page(page, f"{url}/{ASSET_DIR}")
+
+    # The one to paste, and so the one whose size matters.
     for built in site.built:
         report = outdir / built.path / "report.html"
-        if report.exists():
+        pasted = report.with_name(minify.min_name(report.name))
+        if pasted.exists():
+            check_code_block_size(built.doc, pasted)
+        elif report.exists():
             check_code_block_size(built.doc, report)
     return site
 
