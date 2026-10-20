@@ -69,3 +69,11 @@ def test_only_a_real_crop_changes_the_filename(crop: Crop, expected: str) -> Non
     so it must not keep the old name and the old cached file.
     An uncropped image keeps the name it always had."""
     assert crop.key == expected
+
+
+def test_a_leftover_offset_is_no_crop() -> None:
+    """What Docs stores for a side nobody trimmed, which named the file as if it were cropped."""
+    crop = Crop(left=1.110223e-16, right=1.110223e-16)
+    assert not crop.trims
+    assert crop.key == ""
+    assert Crop(left=0.01).trims

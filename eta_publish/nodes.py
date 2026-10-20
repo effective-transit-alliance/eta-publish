@@ -164,7 +164,12 @@ class Crop:
 
     @property
     def trims(self) -> bool:
-        return any((self.left, self.right, self.top, self.bottom))
+        """Whether any side is trimmed by more than `key` rounds away.
+
+        Docs stores an untrimmed side as a leftover like `1.1e-16` as well as a negative one,
+        which is no crop, but would otherwise name the file as though it were.
+        """
+        return any(round(side, 6) for side in (self.left, self.right, self.top, self.bottom))
 
     @property
     def key(self) -> str:
