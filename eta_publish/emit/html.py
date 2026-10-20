@@ -1360,6 +1360,8 @@ def report_page(
         # Remove this, and `site/unpublished/robots.txt`, when the reports go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
         tag.title[doc.title],
+        # Without one a browser shows whatever it last cached for the host, or nothing.
+        htpy.link(rel="icon", type="image/svg+xml", href=f"{asset_base}/logo.svg"),
         htpy.meta(name="description", content=description),
         # What a link to the report unfurls as, beside the card's picture.
         htpy.meta(property="og:type", content="article"),

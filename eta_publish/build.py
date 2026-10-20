@@ -524,6 +524,8 @@ SHARED_ASSETS = (
     "page.css",
     "report.css",
     "report.js",
+    # The pages' tab icon, as well as what a chart credited to ETA carries.
+    "logo.svg",
 )
 
 

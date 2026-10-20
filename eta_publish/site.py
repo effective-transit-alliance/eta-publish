@@ -34,7 +34,7 @@ from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import IMAGE_DIR, SITE
+from .naming import ASSET_DIR, IMAGE_DIR, SITE
 from .nodes import Document
 
 REPORTS = Path("reports.toml")
@@ -668,6 +668,7 @@ def index_page(site: Site) -> str:
         # Remove this, and `site/unpublished/robots.txt`, when the reports go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
         tag.title["ETA report previews"],
+        htpy.link(rel="icon", type="image/svg+xml", href=f"{ASSET_DIR}/logo.svg"),
         tag.style[Markup(f"\n{INDEX_CSS}")],
         tag.h1["ETA report previews"],
         tag.p["Built from the Google Docs, warnings included. Not the published pages."],
