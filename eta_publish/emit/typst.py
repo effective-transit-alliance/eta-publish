@@ -20,7 +20,15 @@ import re
 from pathlib import Path
 from typing import override
 
-from ..naming import IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, print_href, warning_poster_name
+from ..naming import (
+    IMAGE_DIR,
+    PRINT_DIR,
+    SITE,
+    VIDEO_DIR,
+    print_href,
+    video_frame_name,
+    warning_poster_name,
+)
 from ..nodes import (
     Card,
     Document,
@@ -259,26 +267,25 @@ class TypstEmitter(Emitter):
                 # Its figure on the live page, which the page names after the file,
                 # so the warning and the captions come before the video does.
                 href = f"{self.page_url}#{Path(served).stem}"
-            if not node.warning:
-                return self.linked_embed(
-                    node,
-                    node.title or "Video",
-                    href,
-                    "" if node.copy else self.source_ref(node.url),
-                )
-            return self.served_video(node, href)
+            return self.served_video(node, served, href)
         return self.linked_embed(node, embed_label(node, card))
 
-    def served_video(self, node: Embed, href: str) -> str:
+    def served_video(self, node: Embed, file: str, href: str) -> str:
         """A video the site serves, as the page shows it before it plays:
-        its warning, then its poster, captioned with its name and credit like a picture.
+        its warning and the warning card, or else its first frame,
+        captioned with its name and credit like a picture.
 
         Kept to one page, so a page never ends between the warning and what it warns of.
         """
-        written = "".join(i.text for i in node.warning if isinstance(i, Text)).strip()
-        warning = f"#video_warning[{escape(written)}]"
-        poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
-        alt = f"WARNING: {node.warning_kind}"
+        warning = ""
+        if node.warning:
+            written = "".join(i.text for i in node.warning if isinstance(i, Text)).strip()
+            warning = f"#video_warning[{escape(written)}]\n\n"
+            poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
+            alt = f"WARNING: {node.warning_kind}"
+        else:
+            poster = f"{self.image_dir}/{video_frame_name(file)}"
+            alt = node.title or "Video"
         call = f"capped_image({string(poster)}, alt: {string(alt)})"
         body = f"link({string(href)})[#{call}]" if href else call
         # Named as the page's caption names it, and linked, since the poster is all that is here.
@@ -289,7 +296,9 @@ class TypstEmitter(Emitter):
             [name + cite, *([self.inlines(node.credit)] if node.credit else [])]
         )
         figure = f"#figure(\n  {body},\n  caption: [{caption}],\n)"
-        return f"#block(breakable: false)[\n{warning}\n\n{figure}\n]"
+        if not warning:
+            return figure
+        return f"#block(breakable: false)[\n{warning}{figure}\n]"
 
     @override
     def table(self, node: Table) -> str:

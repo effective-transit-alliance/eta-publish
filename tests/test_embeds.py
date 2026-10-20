@@ -1,5 +1,7 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
+import shutil
+import subprocess
 from pathlib import Path
 from typing import cast
 
@@ -7,6 +9,7 @@ import pytest
 import requests
 from test_conventions import build, field, image, para
 
+from eta_publish.build import write_frames
 from eta_publish.docs_json import JsonObject
 from eta_publish.embeds import (
     _stems,
@@ -22,7 +25,7 @@ from eta_publish.embeds import (
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
-from eta_publish.naming import SITE
+from eta_publish.naming import PRINT_DIR, SITE, VIDEO_DIR
 from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
@@ -612,3 +615,37 @@ def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
     typst = TypstEmitter(page_url=page).emit(doc)
     poster = f'link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
     assert typst.index("#video_warning[Warning: Graphic Content]") < typst.index(poster)
+
+
+def test_the_pdf_shows_a_video_with_no_warning_as_its_first_frame() -> None:
+    """What the page shows of it until it plays, captioned with its name."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    typst = TypstEmitter().emit(doc)
+    assert 'capped_image("print/embed-1.frame.jpg", alt: "Video")' in typst
+    assert "video_warning[" not in typst
+
+
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="needs `ffmpeg`")
+def test_a_video_with_no_warning_gets_its_first_frame(tmp_path: Path) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.media_files[url] = "embed-1.mp4"
+    (tmp_path / VIDEO_DIR).mkdir()
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-loglevel",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "color=red:s=64x36:d=1",
+            str(tmp_path / VIDEO_DIR / "embed-1.mp4"),
+        ],
+        check=True,
+    )
+    write_frames(doc, tmp_path)
+    assert (tmp_path / PRINT_DIR / "embed-1.frame.jpg").stat().st_size > 0

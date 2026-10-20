@@ -9,6 +9,7 @@ from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 lazy import os
 lazy import shutil
+lazy import subprocess
 
 from rich.console import RenderableType
 lazy from PIL import Image as Pillow
@@ -55,6 +56,7 @@ from .naming import (
     SITE,
     VIDEO_DIR,
     WEB_DIR,
+    video_frame_name,
     warning_poster_name,
 )
 from .nodes import Document, Shown, Span
@@ -542,6 +544,57 @@ def write_assets(siteroot: Path, doc: Document) -> list[Path]:
     return written
 
 
+def write_frames(doc: Document, dest: Path) -> None:
+    """The first frame of each served video with no `Warning:`, for the PDF:
+    what the page shows of it until it plays.
+
+    Made from the video on disk, so offline as well, and again only when the video is newer.
+    A video not on disk has no frame, and its PDF is not built, as for a missing picture.
+    """
+    for embed in doc.embeds:
+        file = doc.served_video(embed)
+        if file is None or embed.warning:
+            continue
+        video = dest / VIDEO_DIR / file
+        frame = dest / PRINT_DIR / video_frame_name(file)
+        if not video.exists() or (
+            frame.exists() and frame.stat().st_mtime >= video.stat().st_mtime
+        ):
+            continue
+        ffmpeg = shutil.which("ffmpeg")
+        if ffmpeg is None:
+            doc.warn(
+                "{} is not on PATH, so {} has no frame for the PDF", Shown("ffmpeg"), Shown(file)
+            )
+            return
+        frame.parent.mkdir(parents=True, exist_ok=True)
+        result = subprocess.run(
+            [
+                ffmpeg,
+                "-y",
+                "-loglevel",
+                "error",
+                "-i",
+                str(video),
+                "-frames:v",
+                "1",
+                "-q:v",
+                "3",
+                str(frame),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            doc.warn(
+                "{} could not take a frame from {}: {}",
+                Shown("ffmpeg"),
+                Shown(file),
+                result.stderr.strip(),
+            )
+
+
 def write_posters(doc: Document, dest: Path) -> list[Path]:
     """What each kind of warning this report's videos carry shows before its video does.
 
@@ -979,6 +1032,7 @@ def build_one(
         look_up(doc)
         if options.images:
             download_embeds(doc, dest)
+    write_frames(doc, dest)
     write_captions(doc, dest)
     write_embed_index(dest, doc)
     check_embeds(doc)

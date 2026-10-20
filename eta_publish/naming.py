@@ -396,6 +396,13 @@ CAPTIONS_LANGUAGE = "en"
 """The language the reports are written in, and so the captions a copied video comes with."""
 
 
+def video_frame_name(file: str) -> str:
+    """The first frame of the served video `file`, under `PRINT_DIR`:
+    what the page shows of a video with no `Warning:` until it plays,
+    for the PDF to show in its place."""
+    return f"{Path(file).stem}.frame.jpg"
+
+
 def warning_poster_name(kind: str) -> str:
     """What a video warned of as `kind` shows until it is played, under `ASSET_DIR`:
     see `logo.warning_poster`."""
