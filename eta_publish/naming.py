@@ -397,9 +397,9 @@ CAPTIONS_LANGUAGE = "en"
 
 
 def video_frame_name(file: str) -> str:
-    """The first frame of the served video `file`, under `PRINT_DIR`:
-    what the page shows of a video with no `Warning:` until it plays,
-    for the PDF to show in its place."""
+    """The first frame of the served video `file`, under `IMAGE_DIR`:
+    what a video with no `Warning:` shows until it plays, on the page,
+    and in its place in the PDF and the Markdown."""
     return f"{Path(file).stem}.frame.jpg"
 
 

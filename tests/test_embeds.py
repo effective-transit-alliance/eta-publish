@@ -25,7 +25,7 @@ from eta_publish.embeds import (
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
-from eta_publish.naming import PRINT_DIR, SITE, VIDEO_DIR
+from eta_publish.naming import IMAGE_DIR, SITE, VIDEO_DIR
 from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
@@ -624,7 +624,7 @@ def test_the_pdf_shows_a_video_with_no_warning_as_its_first_frame() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     typst = TypstEmitter().emit(doc)
-    assert 'capped_image("print/embed-1.frame.jpg", alt: "Video")' in typst
+    assert 'capped_image("images/embed-1.frame.jpg", alt: "Video")' in typst
     assert "video_warning[" not in typst
 
 
@@ -648,4 +648,4 @@ def test_a_video_with_no_warning_gets_its_first_frame(tmp_path: Path) -> None:
         check=True,
     )
     write_frames(doc, tmp_path)
-    assert (tmp_path / PRINT_DIR / "embed-1.frame.jpg").stat().st_size > 0
+    assert (tmp_path / IMAGE_DIR / "embed-1.frame.jpg").stat().st_size > 0

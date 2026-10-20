@@ -545,8 +545,8 @@ def write_assets(siteroot: Path, doc: Document) -> list[Path]:
 
 
 def write_frames(doc: Document, dest: Path) -> None:
-    """The first frame of each served video with no `Warning:`, for the PDF:
-    what the page shows of it until it plays.
+    """The first frame of each served video with no `Warning:`:
+    what the page, the PDF, and the Markdown show of it until it plays.
 
     Made from the video on disk, so offline as well, and again only when the video is newer.
     A video not on disk has no frame, and its PDF is not built, as for a missing picture.
@@ -556,7 +556,7 @@ def write_frames(doc: Document, dest: Path) -> None:
         if file is None or embed.warning:
             continue
         video = dest / VIDEO_DIR / file
-        frame = dest / PRINT_DIR / video_frame_name(file)
+        frame = dest / IMAGE_DIR / video_frame_name(file)
         if not video.exists() or (
             frame.exists() and frame.stat().st_mtime >= video.stat().st_mtime
         ):

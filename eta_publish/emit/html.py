@@ -27,6 +27,7 @@ from ..naming import (
     WEB_FORMATS,
     content_anchor,
     has_web_copies,
+    video_frame_name,
     warning_poster_name,
     web_href,
     web_widths,
@@ -1084,7 +1085,10 @@ class HtmlEmitter(Emitter):
             aria_label=node.title or None,
             controls=True,
             preload="metadata",
-            poster=self.warning_poster(node.warning_kind) if node.warning else None,
+            # The first frame, as the PDF shows it, rather than whichever the browser picks.
+            poster=self.warning_poster(node.warning_kind)
+            if node.warning
+            else self.media_src(video_frame_name(file), IMAGE_DIR),
         )[
             self.captions_track(node),
             tag.a(href=node.url)["Watch the video"] if not node.copy else None,

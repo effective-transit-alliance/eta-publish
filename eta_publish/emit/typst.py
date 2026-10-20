@@ -284,7 +284,8 @@ class TypstEmitter(Emitter):
             poster = f"{self.image_dir}/{warning_poster_name(node.warning_kind)}"
             alt = f"WARNING: {node.warning_kind}"
         else:
-            poster = f"{self.image_dir}/{video_frame_name(file)}"
+            # Beside the pictures rather than their print copies, since the page shows it too.
+            poster = f"{IMAGE_DIR}/{video_frame_name(file)}"
             alt = node.title or "Video"
         call = f"capped_image({string(poster)}, alt: {string(alt)})"
         body = f"link({string(href)})[#{call}]" if href else call
