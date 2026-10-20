@@ -4,8 +4,7 @@ October 21, 2026
 
 **Warnings**
 
-- `No Captions` is not a modifier `Video:` takes; ignoring it: `Video (Graphic Warning, Copy, No Captions): Joseph Lynskey...`
-- the video `https://x.com/ThoughtPolic3HQ/status/1874861375857541619/video/1` has no captions; write them under it after `Captions:`, a line each like `0:04–0:04.7 Jesus`, or leave `Captions:` empty if nothing said in it matters
+- 2 suggestions still open on this tab; the build publishes the document without them, as it reads today
 
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\

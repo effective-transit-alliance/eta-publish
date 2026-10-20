@@ -9,8 +9,7 @@
   contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
-    [#raw("No Captions") is not a modifier #raw("Video:") takes; ignoring it: #raw("Video (Graphic Warning, Copy, No Captions): Joseph Lynskey...")],
-    [the video #raw("https://x.com/ThoughtPolic3HQ/status/1874861375857541619/video/1") has no captions; write them under it after #raw("Captions:"), a line each like #raw("0:04–0:04.7 Jesus"), or leave #raw("Captions:") empty if nothing said in it matters],
+    [2 suggestions still open on this tab; the build publishes the document without them, as it reads today],
   ),
   hero: [
 #figure(
