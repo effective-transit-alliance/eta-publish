@@ -14,6 +14,7 @@ So the answer is cached, keyed on everything that decides it.
 import hashlib
 import json
 import subprocess
+from html import escape
 from pathlib import Path
 
 import platformdirs
@@ -84,8 +85,13 @@ def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = No
     return True
 
 
-def graphic_warning(logo: str) -> str:
-    """What a graphic video shows until it is played: the logo beside "WARNING: Graphic Content".
+POSTER_LINE = 12
+"""The most characters a line of a warning poster holds, at its size beside the logo."""
+
+
+def warning_poster(logo: str, kind: str) -> str:
+    """What a video with a `Warning:` shows until it is played:
+    the logo beside "WARNING:" and what it warns of, "Graphic Content" say.
 
     Laid out as ETA's own card for its videos, the logo on the dark blue it sits on,
     and made from the logo here, so an edit to the logo reaches it too.
@@ -95,8 +101,17 @@ def graphic_warning(logo: str) -> str:
     opening, _, rest = logo.partition(">")
     view_box = opening.split('viewBox="', 1)[1].split('"', 1)[0]
     drawing = rest.rsplit("</svg>", 1)[0]
-    lines = [("WARNING:", 297), ("Graphic", 437), ("Content", 572)]
-    text = "".join(f'<tspan x="835" y="{y}">{line}</tspan>' for line, y in lines)
+    lines = ["WARNING:"]
+    for word in kind.split():
+        if len(lines) > 1 and len(f"{lines[-1]} {word}") <= POSTER_LINE:
+            lines[-1] += f" {word}"
+        else:
+            lines.append(word)
+    # Centred on the logo's middle, a line every 138.
+    text = "".join(
+        f'<tspan x="835" y="{round(435 + (i - (len(lines) - 1) / 2) * 138)}">{escape(line)}</tspan>'
+        for i, line in enumerate(lines)
+    )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1719 787">'
         '<rect width="1719" height="787" fill="#000516"/>'

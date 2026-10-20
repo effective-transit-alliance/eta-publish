@@ -201,10 +201,12 @@ class Emitter(ABC):
         # `cite` is the post's citation, for a link that goes somewhere else.
         target = href or ("" if node.copy else node.url)
         link = self.paragraph(Paragraph([Text(label, href=target)])) + cite
-        warning = self.paragraph(Paragraph([Text(GRAPHIC_WARNING, bold=True)]))
+        # One run, however the line was written, so it reads as one bold line.
+        written = "".join(i.text for i in node.warning if isinstance(i, Text)).strip()
+        warning = self.paragraph(Paragraph([Text(written, bold=True)]))
         credit = self.paragraph(Paragraph(node.credit))
         return self.join(
-            [*([warning] if node.graphic else []), link, *([credit] if node.credit else [])]
+            [*([warning] if node.warning else []), link, *([credit] if node.credit else [])]
         )
 
     def inlines(self, content: list[Inline]) -> str:
@@ -267,10 +269,6 @@ PLATFORM_NAMES = {
     Platform.BLUESKY: "Bluesky",
     Platform.DRIVE: "",
 }
-
-
-GRAPHIC_WARNING = "Warning, graphic video"
-"""What a `Video (Graphic Warning):` embed is headed with, before anything else about it."""
 
 
 def embed_label(node: Embed, card: Card) -> str:

@@ -173,13 +173,12 @@ def unfinished(text: str) -> bool:
 
 
 VIDEO_LABEL = "video"
-GRAPHIC_WARNING = "graphic warning"
 COPY = "copy"
 
 # What each label may be modified by, in parentheses after it:
 # `Video (Graphic Warning):`. A label missing here takes none.
 LABEL_MODIFIERS: dict[str, frozenset[str]] = {
-    VIDEO_LABEL: frozenset({GRAPHIC_WARNING, COPY}),
+    VIDEO_LABEL: frozenset({COPY}),
 }
 
 
@@ -191,16 +190,10 @@ def is_video_note(line: list[Inline]) -> bool:
     a `Credit: MTA` linked whole to the video each was taken from, and a link
     pasted on a line of its own is as often a citation nobody gave words to.
 
-    A `Video (Graphic Warning):` line is one too, for a video the reader is
-    warned about before playing it.
+    A `Video (Copy):` line is one too, for a video the site serves itself.
     """
     note = labelled(line)
     return note.underlined and note.mark == ":" and note.label.casefold() == VIDEO_LABEL
-
-
-def is_graphic_video_note(line: list[Inline]) -> bool:
-    """Whether `line` is a `Video (Graphic Warning):` line."""
-    return is_video_note(line) and GRAPHIC_WARNING in labelled(line).modified_by()
 
 
 def is_copied_video_note(line: list[Inline]) -> bool:
@@ -209,6 +202,16 @@ def is_copied_video_note(line: list[Inline]) -> bool:
 
 
 CAPTIONS_LABEL = "captions"
+WARNING_LABEL = "warning"
+
+
+def is_warning_note(line: list[Inline]) -> bool:
+    """Whether `line` is a `Warning:` line, under a `Video:` line, warning of what it shows.
+
+    `Warning: <kind>` or `Warning: <kind>: <details>`.
+    """
+    note = labelled(line)
+    return _written_as_a_label(note) and note.mark == ":" and note.label.casefold() == WARNING_LABEL
 
 
 def is_captions_note(line: list[Inline]) -> bool:
@@ -416,7 +419,7 @@ class Labelled:
 
     modifiers: tuple[str, ...]
     """What the label is qualified by, as written: the comma-separated
-    `Graphic Warning` of `Video (Graphic Warning):`."""
+    `Copy` of `Video (Copy):`."""
 
     mark: str
     """`:` where the line was typed, `]` where the label is the text of a link,
@@ -1275,7 +1278,6 @@ class Parser:
                     )
                     out.append(Paragraph(content=unmarked(inlines)))
                     continue
-                embed.graphic = is_graphic_video_note(inlines)
                 embed.copy = is_copied_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
                 embed.name = video_title(
@@ -1300,6 +1302,19 @@ class Parser:
             # Matching on length would swallow short body paragraphs,
             # and a report with 50-odd figures has a great many.
             last = out[-1] if out else None
+            if isinstance(last, Embed) and not last.warning and is_warning_note(inlines):
+                self._check_label(inlines)
+                kind = labelled(inlines).value.partition(":")[0].strip()
+                if not kind:
+                    self.doc.warn(
+                        "a {} line has to say what it warns of, as in {}; ignoring it",
+                        Shown("Warning:"),
+                        Shown("Warning: Graphic Content"),
+                    )
+                    continue
+                last.warning = unmarked(inlines)
+                last.warning_kind = kind
+                continue
             if isinstance(last, Embed) and is_captions_note(inlines):
                 # On the same line, or indented on the lines after it,
                 # up to the first that is not.

@@ -46,8 +46,8 @@ from .embeds import download as download_embeds
 from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
-from .logo import LOGO, graphic_warning
-from .naming import ASSET_DIR, GRAPHIC_POSTER, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR
+from .logo import LOGO, warning_poster
+from .naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, SITE, VIDEO_DIR, WEB_DIR, warning_poster_name
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
@@ -516,7 +516,7 @@ SHARED_ASSETS = (
 )
 
 
-def write_assets(siteroot: Path) -> list[Path]:
+def write_assets(siteroot: Path, doc: Document) -> list[Path]:
     """The one copy of what every report page links.
 
     Written as they are; `format.tree` lays out and checks the whole build
@@ -529,10 +529,12 @@ def write_assets(siteroot: Path) -> list[Path]:
         path = dest / name
         path.write_text(read(name))
         written.append(path)
-    # Made from the logo rather than kept, so an edit to the logo reaches it.
-    path = dest / GRAPHIC_POSTER
-    path.write_text(graphic_warning(LOGO.read_text()))
-    written.append(path)
+    # Made from the logo rather than kept, so an edit to the logo reaches them:
+    # one for each kind of warning this report's videos carry.
+    for kind in sorted({embed.warning_kind for embed in doc.embeds if embed.warning}):
+        path = dest / warning_poster_name(kind)
+        path.write_text(warning_poster(LOGO.read_text(), kind))
+        written.append(path)
     return written
 
 
@@ -976,7 +978,7 @@ def build_one(
 
     # Written here rather than once per site, so that building a single
     # report produces a page with everything it links.
-    write_assets(outdir)
+    write_assets(outdir, doc)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
     write_outputs(doc, dest, path, options, options.unpublished_url, "report", skipped_images)

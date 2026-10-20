@@ -347,8 +347,13 @@ class Embed:
     """Whether it is a YouTube Short, which is taller than it is wide.
     Played in a landscape frame, it is a strip down the middle of one."""
 
-    graphic: bool = False
-    """Whether its line was `Video (Graphic Warning):`, so the reader is warned first."""
+    warning: list[Inline] = field(default_factory=list)
+    """The `Warning:` line under it, label and all, which the reader is shown first:
+    `Warning: Graphic Content: a man is hit by a train`, or empty where there is none."""
+
+    warning_kind: str = ""
+    """What its `Warning:` line warns of, without the details after it:
+    `Graphic Content`, which the video shows until it is played."""
 
     copy: bool = False
     """Whether its line was `Video (Copy):`, so the build downloads the video

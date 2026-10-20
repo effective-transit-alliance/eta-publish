@@ -389,5 +389,7 @@ CAPTIONS_LANGUAGE = "en"
 """The language the reports are written in, and so the captions a copied video comes with."""
 
 
-GRAPHIC_POSTER = "graphic-warning.svg"
-"""What a graphic video shows until it is played, under `ASSET_DIR`: see `logo.graphic_warning`."""
+def warning_poster_name(kind: str) -> str:
+    """What a video warned of as `kind` shows until it is played, under `ASSET_DIR`:
+    see `logo.warning_poster`."""
+    return f"warning-{media_stem(kind) or 'video'}.svg"

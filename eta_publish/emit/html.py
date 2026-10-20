@@ -21,13 +21,13 @@ from ..assets import read
 from ..naming import (
     ASSET_DIR,
     CAPTIONS_LANGUAGE,
-    GRAPHIC_POSTER,
     IMAGE_DIR,
     SITE,
     VIDEO_DIR,
     WEB_FORMATS,
     content_anchor,
     has_web_copies,
+    warning_poster_name,
     web_href,
     web_widths,
 )
@@ -57,7 +57,6 @@ from ..nodes import (
 )
 from .base import (
     CONTRIBUTORS_NOTE,
-    GRAPHIC_WARNING,
     PLATFORM_NAMES,
     Emitter,
     shown_url,
@@ -998,7 +997,9 @@ class HtmlEmitter(Emitter):
         # A notice rather than a heading: the `#` that links to the embed goes
         # on its name, so the warning is not what the embed reads as called.
         warning = (
-            tag.p(class_="embed-warning", role="note")[GRAPHIC_WARNING] if node.graphic else None
+            tag.p(class_="embed-warning", role="note")[self.inlines(node.warning)]
+            if node.warning
+            else None
         )
         what = "post" if node.platform in (Platform.X, Platform.BLUESKY) else "video"
         # The citation follows the name, where there is one, as it follows a link.
@@ -1071,7 +1072,9 @@ class HtmlEmitter(Emitter):
             else None
         )
         warning = (
-            tag.p(class_="embed-warning", role="note")[GRAPHIC_WARNING] if node.graphic else None
+            tag.p(class_="embed-warning", role="note")[self.inlines(node.warning)]
+            if node.warning
+            else None
         )
         # A video has no `alt`; its name is what it is labeled by, and what
         # resting the pointer on it shows, as a picture's caption is.
@@ -1081,7 +1084,7 @@ class HtmlEmitter(Emitter):
             aria_label=node.title or None,
             controls=True,
             preload="metadata",
-            poster=self.graphic_poster() if node.graphic else None,
+            poster=self.warning_poster(node.warning_kind) if node.warning else None,
         )[
             self.captions_track(node),
             tag.a(href=node.url)["Watch the video"] if not node.copy else None,
@@ -1097,8 +1100,8 @@ class HtmlEmitter(Emitter):
             ]
         )
 
-    def graphic_poster(self) -> str:
-        """What a graphic video shows until it is played, rather than its first frame:
+    def warning_poster(self, kind: str) -> str:
+        """What a video with a `Warning:` shows until it is played, rather than its first frame:
         ETA's logo beside "WARNING: Graphic Content", as the site's own videos open with.
 
         From the site's assets, beside the stylesheet; a fragment that carries
@@ -1106,7 +1109,7 @@ class HtmlEmitter(Emitter):
         The stylesheet fills the rest of a video of another shape with its background.
         """
         base = self.page_assets or self.asset_base or f"{self.site_url}/{ASSET_DIR}"
-        return f"{base}/{GRAPHIC_POSTER}"
+        return f"{base}/{warning_poster_name(kind)}"
 
     def captions_track(self, node: Embed) -> Element | None:
         """The captions a copied video came with, labelled as recognized where nobody wrote them."""

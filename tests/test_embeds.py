@@ -78,15 +78,29 @@ def test_a_video_line_is_embedded() -> None:
     assert doc.blocks == [Embed(url=url, platform=Platform.X, key="1874861375857541619")]
 
 
-def test_a_graphic_video_line_is_embedded_with_a_warning() -> None:
+def warning(text: str) -> JsonObject:
+    """A `Warning:` line."""
+    return linked((f": {text}", None), underline="Warning")
+
+
+@pytest.mark.parametrize(
+    ("text", "kind"),
+    [("Graphic Content", "Graphic Content"), ("Graphic Content: a man is hit", "Graphic Content")],
+)
+def test_a_warning_line_warns_of_its_video(text: str, kind: str) -> None:
     url = "https://www.youtube.com/watch?v=abc"
-    doc = build(
-        [
-            para("Headline", "TITLE"),
-            linked((": ", None), (url, url), underline="Video (Graphic Warning)"),
-        ]
-    )
-    assert doc.blocks == [Embed(url=url, platform=Platform.YOUTUBE, key="abc", graphic=True)]
+    doc = build([para("Headline", "TITLE"), video(url), warning(text)])
+    (embed,) = doc.blocks
+    assert isinstance(embed, Embed) and embed.warning_kind == kind
+    assert "".join(i.text for i in embed.warning if isinstance(i, Text)) == f"Warning: {text}"
+
+
+def test_a_warning_of_nothing_is_warned_about() -> None:
+    url = "https://www.youtube.com/watch?v=abc"
+    doc = build([para("Headline", "TITLE"), video(url), warning("")])
+    (embed,) = doc.blocks
+    assert isinstance(embed, Embed) and not embed.warning
+    assert [w for w in map(str, doc.warnings) if "what it warns of" in w]
 
 
 def test_a_video_line_ended_with_a_full_stop_is_still_a_video() -> None:
@@ -116,10 +130,10 @@ def test_an_unknown_modifier_is_warned_about_and_ignored() -> None:
     doc = build(
         [
             para("Headline", "TITLE"),
-            linked((": ", None), (url, url), underline="Video (graphic warning, Grafic)"),
+            linked((": ", None), (url, url), underline="Video (copy, Grafic)"),
         ]
     )
-    assert doc.blocks == [Embed(url=url, platform=Platform.YOUTUBE, key="abc", graphic=True)]
+    assert doc.blocks == [Embed(url=url, platform=Platform.YOUTUBE, key="abc", copy=True)]
     warnings = [str(w) for w in doc.warnings if "not a modifier" in str(w)]
     assert len(warnings) == 1
     assert "Grafic" in warnings[0]
@@ -239,14 +253,19 @@ def test_a_drive_video_plays_from_the_site() -> None:
 
 
 def copied(url: str) -> JsonObject:
-    """A `Video (Graphic Warning, Copy):` line."""
-    return linked((": ", None), (url, url), underline="Video (Graphic Warning, Copy)")
+    """A `Video (Copy):` line."""
+    return linked((": ", None), (url, url), underline="Video (Copy)")
+
+
+def graphic(url: str) -> list[JsonObject]:
+    """A `Video (Copy):` line with a `Warning: Graphic Content` under it."""
+    return [copied(url), warning("Graphic Content")]
 
 
 def test_a_copied_video_plays_from_the_site() -> None:
     url = "https://x.com/someone/status/123"
     doc = build([para("Headline", "TITLE"), copied(url)])
-    assert doc.blocks == [Embed(url=url, platform=Platform.X, key="123", graphic=True, copy=True)]
+    assert doc.blocks == [Embed(url=url, platform=Platform.X, key="123", copy=True)]
     assert not [w for w in doc.warnings if "not a modifier" in str(w)]
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
@@ -257,11 +276,11 @@ def test_a_copied_video_plays_from_the_site() -> None:
 def test_a_graphic_video_opens_on_the_warning_card() -> None:
     """Rather than on its first frame, which may be the very thing warned of."""
     url = "https://x.com/someone/status/123"
-    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
-    assert f'poster="{SITE}/assets/graphic-warning.svg"' in html
+    assert f'poster="{SITE}/assets/warning-Graphic_Content.svg"' in html
 
 
 def test_a_video_is_named_after_its_link_text() -> None:
@@ -292,14 +311,12 @@ def test_a_copied_video_is_a_figure_like_an_image() -> None:
     its anchor is its file's name, its `#` is on the figure,
     and the warning is a notice of its own."""
     url = "https://x.com/someone/status/123"
-    line = linked(
-        (": ", None), ("Hit by the 1 train", url), underline="Video (Graphic Warning, Copy)"
-    )
-    doc = build([para("Headline", "TITLE"), line])
+    line = linked((": ", None), ("Hit by the 1 train", url), underline="Video (Copy)")
+    doc = build([para("Headline", "TITLE"), line, warning("Graphic Content: a man is hit")])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "Hit_by_the_1_train.mp4"
     html = HtmlEmitter(image_base="images").emit(doc)
-    assert '<p class="embed-warning" role="note">Warning, graphic video</p>' in html
+    assert '<p class="embed-warning" role="note">Warning: Graphic Content: a man is hit</p>' in html
     assert '<figure id="Hit_by_the_1_train"><a class="link-mark"' in html
     assert '<figcaption class="figure-caption">Hit by the 1 train</figcaption>' in html
     assert "embed" not in html[html.index("<figure") : html.index("</figure>")].replace(
@@ -309,7 +326,7 @@ def test_a_copied_video_is_a_figure_like_an_image() -> None:
     markdown = MarkdownEmitter().emit(doc)
     # Ours, so named as the document names it and linked to our copy.
     link = "[Hit by the 1 train](<videos/Hit_by_the_1_train.mp4>)"
-    assert f"**Warning, graphic video**\n\n{link}" in markdown
+    assert f"**Warning: Graphic Content: a man is hit**\n\n{link}" in markdown
 
 
 def test_a_video_takes_a_credit_line_as_a_figure_does() -> None:
@@ -555,18 +572,18 @@ def test_captions_are_recorded_for_an_offline_build(tmp_path: Path) -> None:
 
 def test_a_fragment_links_the_card_where_the_site_is_served() -> None:
     url = "https://x.com/someone/status/123"
-    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images", site_url="https://reports.example.org").emit(doc)
-    assert 'poster="https://reports.example.org/assets/graphic-warning.svg"' in html
+    assert 'poster="https://reports.example.org/assets/warning-Graphic_Content.svg"' in html
 
 
 def test_a_preview_page_links_the_card_beside_it() -> None:
     """As it links its stylesheet: a preview works wherever it is opened."""
     url = "https://x.com/someone/status/123"
-    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     page = report_page(doc, asset_base="../../assets")
-    assert 'poster="../../assets/graphic-warning.svg"' in page
+    assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
