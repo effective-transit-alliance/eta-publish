@@ -195,6 +195,8 @@ These do not stop people from falling and dying; PSDs do.
 In fact, the #link("https://ny1.com/nyc/brooklyn/transit/2025/11/22/mta-ordered-to-pay--81-7-million-to-woman-struck-by-subway-in-brooklyn")[MTA has now even been held liable for their failure to do so]#super[#link(<src49>)[\[49\]]].
 Automation and PSDs are generally considered together as PSDs make it simpler for trains to operate unattended, but the safety benefits of PSDs are so strong that they should be installed on the IBX regardless.
 
+#strong[Warning: Graphic Content: Someone pushed in front of a moving train.]
+
 #link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4")[Joseph Lynskey hit by the 1 train at 18 St.]
 
 Credit: MTA security camera footage

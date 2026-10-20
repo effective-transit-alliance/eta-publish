@@ -2,11 +2,6 @@
 
 October 21, 2026
 
-**Warnings**
-
-- `Graphic Warning` is not a modifier `Video:` takes; ignoring it: `Video (Graphic Warning, Copy): Joseph Lynskey hit by the 1...`
-- 2 suggestions still open on this tab; the build publishes the document without them, as it reads today
-
 ![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
 Credit: MTA, [via Gothamist](<https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out>)<sup>\[1\]</sup>
@@ -169,6 +164,8 @@ NYC has played around with blue lighting for suicide prevention, lasers, and mos
 These do not stop people from falling and dying; PSDs do.
 In fact, the [MTA has now even been held liable for their failure to do so](<https://ny1.com/nyc/brooklyn/transit/2025/11/22/mta-ordered-to-pay--81-7-million-to-woman-struck-by-subway-in-brooklyn>)<sup>\[49\]</sup>.
 Automation and PSDs are generally considered together as PSDs make it simpler for trains to operate unattended, but the safety benefits of PSDs are so strong that they should be installed on the IBX regardless.
+
+**Warning: Graphic Content: Someone pushed in front of a moving train.**
 
 [Joseph Lynskey hit by the 1 train at 18 St.](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)
 
