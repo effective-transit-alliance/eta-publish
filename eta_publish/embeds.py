@@ -23,7 +23,7 @@ lazy from yt_dlp import YoutubeDL
 
 from .docs_json import JsonObject
 from .naming import CAPTIONS_LANGUAGE, IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
-from .nodes import VIDEO_TYPES, Captions, Card, Document, Embed, Platform, Shown
+from .nodes import VIDEO_TYPES, Captions, Card, Cue, Document, Embed, Platform, Shown
 lazy from .fetch import download_drive_file, drive_file_type
 
 EMBEDS_JSON = "embeds.json"
@@ -135,18 +135,24 @@ def check_embeds(doc: Document) -> None:
                 Shown(embed.url),
                 Shown(card.mime or "unknown"),
             )
-        elif (
-            doc.served_video(embed)
-            and embed.url not in doc.media_captions
-            and not embed.uncaptioned
-        ):
-            # Only one the site serves: a platform's own player shows the platform's captions.
+        elif not doc.served_video(embed):
+            # A platform's own player shows the platform's captions, and only those.
+            if embed.captions:
+                doc.warn(
+                    "the video {} plays in its platform's player, which shows none of "
+                    "the {} under it; add {} to its line for the site to serve it with them",
+                    Shown(embed.url),
+                    Shown("Captions:"),
+                    Shown("Copy"),
+                )
+        elif embed.url not in doc.media_captions and not embed.uncaptioned:
             doc.warn(
-                "the video {} has no captions; if nothing said in it matters, "
-                "add {} to its line, as in {}",
+                "the video {} has no captions; write them under it after {}, "
+                "a line each like {}, or leave {} empty if nothing said in it matters",
                 Shown(embed.url),
-                Shown("No Captions"),
-                Shown("Video (Copy, No Captions):"),
+                Shown("Captions:"),
+                Shown("0:04\u20130:04.7 Jesus"),
+                Shown("Captions:"),
             )
 
 
@@ -260,6 +266,44 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
             doc.warn("could not download what {} shows ({})", Shown(embed.url), str(e))
 
 
+def write_captions(doc: Document, dest: Path) -> None:
+    """Write the captions each served video has under its `Video:` line, as WebVTT beside it.
+
+    Every build, offline too, since the doc is where they come from.
+    They stand in for any the platform has: somebody wrote these for this report.
+    A `Captions:` line with nothing after it takes the platform's away as well.
+    """
+    stems = _stems(doc.embeds)
+    for embed in doc.embeds:
+        if embed.captions is None or not doc.served_video(embed):
+            continue
+        name = f"{stems[embed.url]}.vtt"
+        if not embed.captions:
+            doc.media_captions.pop(embed.url, None)
+            (dest / VIDEO_DIR / name).unlink(missing_ok=True)
+            continue
+        replace_bytes(dest / VIDEO_DIR / name, to_vtt(embed.captions).encode())
+        doc.media_captions[embed.url] = Captions(name)
+
+
+def to_vtt(cues: list[Cue]) -> str:
+    """Written captions as a WebVTT file."""
+    blocks = [f"{_timestamp(c.start)} --> {_timestamp(c.end)}\n{_vtt_text(c.text)}" for c in cues]
+    return "WEBVTT\n\n" + "\n\n".join(blocks) + "\n"
+
+
+def _timestamp(milliseconds: int) -> str:
+    seconds, milliseconds = divmod(milliseconds, 1000)
+    minutes, seconds = divmod(seconds, 60)
+    hours, minutes = divmod(minutes, 60)
+    return f"{hours:02}:{minutes:02}:{seconds:02}.{milliseconds:03}"
+
+
+def _vtt_text(text: str) -> str:
+    """`text` as a cue shows it: WebVTT reads `<` as a tag and `&` as an entity."""
+    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
 def _stems(embeds: list[Embed]) -> dict[str, str]:
     """A file stem for each embed: its `Video:` link's text, or a hash of its URL.
 
@@ -335,6 +379,9 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
         if not path.exists():
             raise ValueError(f"{path.name} was not written")
         _check_size(embed, path.stat().st_size, doc)
+        if embed.captions is not None:
+            # Written in the doc, or said to be none: `write_captions` has them.
+            return path.name
         doc.media_captions.pop(embed.url, None)
         (outdir / f"{stem}.vtt").unlink(missing_ok=True)
         try:

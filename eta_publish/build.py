@@ -34,7 +34,14 @@ from .archive import (
 )
 from .checks import check, check_described, check_pages, plural
 from .docs_json import JsonObject
-from .embeds import EMBEDS_JSON, check_embeds, look_up, read_embed_index, write_embed_index
+from .embeds import (
+    EMBEDS_JSON,
+    check_embeds,
+    look_up,
+    read_embed_index,
+    write_captions,
+    write_embed_index,
+)
 from .embeds import download as download_embeds
 from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_page
 from .emit.markdown import MarkdownEmitter
@@ -946,6 +953,7 @@ def build_one(
         look_up(doc)
         if options.images:
             download_embeds(doc, dest)
+    write_captions(doc, dest)
     write_embed_index(dest, doc)
     check_embeds(doc)
 

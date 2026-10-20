@@ -354,8 +354,10 @@ class Embed:
     """Whether its line was `Video (Copy):`, so the build downloads the video
     and the site serves it, rather than leaving it to a post that can be deleted."""
 
-    uncaptioned: bool = False
-    """Whether its line said `No Captions`: nothing said in it is what it is there to show,
+    captions: list[Cue] | None = None
+    """The `Captions:` written under it, or `None` where there is no such line.
+
+    Empty where the line is: nothing said in it is what it is there to show,
     so a video the site serves without captions is not warned about."""
 
     title: str = ""
@@ -368,6 +370,21 @@ class Embed:
 
     credit: list[Inline] = field(default_factory=list)
     """The `Credit:` line under it, as a figure has, or empty where there is none."""
+
+    @property
+    def uncaptioned(self) -> bool:
+        """Whether its `Captions:` line said there are none, by saying nothing."""
+        return self.captions == []
+
+
+@dataclass(frozen=True)
+class Cue:
+    """One line of a video's written captions: `0:04–0:04.7 Jesus`."""
+
+    start: int
+    """In milliseconds, as is `end`."""
+    end: int
+    text: str
 
 
 @dataclass(frozen=True)

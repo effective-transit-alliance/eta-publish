@@ -14,13 +14,15 @@ from eta_publish.embeds import (
     look_up,
     read_embed_index,
     srt_to_vtt,
+    to_vtt,
     unrolled,
+    write_captions,
     write_embed_index,
 )
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.naming import SITE
-from eta_publish.nodes import Captions, Card, Embed, Figure, Paragraph, Platform, Text
+from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
 
@@ -372,21 +374,88 @@ def test_a_served_video_with_no_captions_is_warned_about() -> None:
     doc.media_files[url] = "embed-1.mp4"
     check_embeds(doc)
     [warning] = [w for w in map(str, doc.warnings) if "no captions" in w]
-    assert "`Video (Copy, No Captions):`" in warning
+    assert "`Captions:`" in warning
 
 
-def test_a_video_marked_no_captions_is_not_warned_about() -> None:
+def captions(*lines: str) -> list[JsonObject]:
+    """A `Captions:` line, and its captions after it a paragraph each."""
+    return [linked((":", None), underline="Captions"), *map(para, lines)]
+
+
+def test_an_empty_captions_line_says_there_are_none() -> None:
     """The Lynskey video in IBX: train noise and a radio, nothing a reader needs to read."""
     url = "https://x.com/someone/status/123"
-    line = linked((": ", None), (url, url), underline="Video (Graphic Warning, Copy, No Captions)")
-    doc = build([para("Headline", "TITLE"), line])
-    assert not [w for w in doc.warnings if "not a modifier" in str(w)]
+    doc = build([para("Headline", "TITLE"), copied(url), *captions()])
     (embed,) = doc.blocks
     assert isinstance(embed, Embed) and embed.uncaptioned
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     check_embeds(doc)
     assert not [w for w in map(str, doc.warnings) if "no captions" in w]
+
+
+def test_written_captions_are_read_a_line_each() -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build(
+        [
+            para("Headline", "TITLE"),
+            copied(url),
+            *captions(
+                "0:04\u20130:04.7 Jesus",
+                "0:05.2-0:06 Look out!",
+                "1:02:03 --> 1:02:04.25 <loud> & clear",
+            ),
+            para("Back to the report."),
+        ]
+    )
+    embed, after = doc.blocks
+    assert isinstance(embed, Embed) and isinstance(after, Paragraph) and embed.captions
+    assert embed.captions == [
+        Cue(4000, 4700, "Jesus"),
+        Cue(5200, 6000, "Look out!"),
+        Cue(3723000, 3724250, "<loud> & clear"),
+    ]
+    assert not [w for w in map(str, doc.warnings) if "caption" in w]
+    assert to_vtt(embed.captions) == (
+        "WEBVTT\n\n"
+        "00:00:04.000 --> 00:00:04.700\nJesus\n\n"
+        "00:00:05.200 --> 00:00:06.000\nLook out!\n\n"
+        "01:02:03.000 --> 01:02:04.250\n&lt;loud&gt; &amp; clear\n"
+    )
+
+
+def test_a_caption_ending_before_it_starts_is_left_out() -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build(
+        [para("Headline", "TITLE"), copied(url), *captions("0:05\u20130:04 Jesus", "0:01-0:02 Hi")]
+    )
+    (embed,) = doc.blocks
+    assert isinstance(embed, Embed) and embed.captions == [Cue(1000, 2000, "Hi")]
+    [warning] = [w for w in map(str, doc.warnings) if "caption" in w]
+    assert "leaving it out" in warning
+
+
+def test_written_captions_are_served_with_the_video(tmp_path: Path) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url), *captions("0:01-0:02 Hi")])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    doc.media_captions[url] = Captions("embed-1.vtt", automatic=True)
+    write_captions(doc, tmp_path)
+    [(name, captioned)] = doc.media_captions.items()
+    assert name == url and not captioned.automatic
+    assert (tmp_path / "videos" / captioned.file).read_text().startswith("WEBVTT")
+    check_embeds(doc)
+    assert not [w for w in map(str, doc.warnings) if "caption" in w]
+
+
+def test_captions_under_a_platform_player_are_warned_about() -> None:
+    url = "https://www.youtube.com/watch?v=abc"
+    doc = build([para("Headline", "TITLE"), video(url), *captions("0:01-0:02 Hi")])
+    doc.cards[url] = Card(author="someone", text="a video")
+    check_embeds(doc)
+    [warning] = [w for w in map(str, doc.warnings) if "Captions:" in w]
+    assert "platform's player" in warning
 
 
 def test_a_platform_player_is_not_warned_about_captions() -> None:

@@ -15,7 +15,7 @@ because they are facts about how the docs are written:
 """
 
 import re
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import dataclass, replace
 from datetime import datetime
 from urllib.parse import parse_qs, quote, unquote, urlsplit
@@ -31,6 +31,7 @@ from .naming import (
 from .nodes import (
     Block,
     Crop,
+    Cue,
     Document,
     Embed,
     Figure,
@@ -174,12 +175,11 @@ def unfinished(text: str) -> bool:
 VIDEO_LABEL = "video"
 GRAPHIC_WARNING = "graphic warning"
 COPY = "copy"
-NO_CAPTIONS = "no captions"
 
 # What each label may be modified by, in parentheses after it:
 # `Video (Graphic Warning):`. A label missing here takes none.
 LABEL_MODIFIERS: dict[str, frozenset[str]] = {
-    VIDEO_LABEL: frozenset({GRAPHIC_WARNING, COPY, NO_CAPTIONS}),
+    VIDEO_LABEL: frozenset({GRAPHIC_WARNING, COPY}),
 }
 
 
@@ -208,9 +208,37 @@ def is_copied_video_note(line: list[Inline]) -> bool:
     return is_video_note(line) and COPY in labelled(line).modified_by()
 
 
-def is_uncaptioned_video_note(line: list[Inline]) -> bool:
-    """Whether `line` is a `Video (No Captions):` line, whose video needs none."""
-    return is_video_note(line) and NO_CAPTIONS in labelled(line).modified_by()
+CAPTIONS_LABEL = "captions"
+
+
+def is_captions_note(line: list[Inline]) -> bool:
+    """Whether `line` is a `Captions:` line, under a `Video:` line, giving its captions."""
+    note = labelled(line)
+    return (
+        _written_as_a_label(note) and note.mark == ":" and note.label.casefold() == CAPTIONS_LABEL
+    )
+
+
+_TIME = r"(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)"
+CUE = re.compile(rf"\s*{_TIME}\s*(?:-->|[-\u2013\u2014])\s*{_TIME}\s+(\S.*?)\s*")
+"""One line of written captions: a time range, then what is said in it.
+
+`0:04–0:04.7 Jesus`: an en dash as Docs makes of a hyphen between numbers,
+though a hyphen, an em dash, or WebVTT's own `-->` is the same range."""
+
+
+def cue(text: str) -> Cue | None:
+    """The caption `text` writes, if it is a time range and its words."""
+    match = CUE.fullmatch(text)
+    if match is None:
+        return None
+    start = _milliseconds(*match.group(1, 2, 3))
+    end = _milliseconds(*match.group(4, 5, 6))
+    return Cue(start=start, end=end, text=match.group(7))
+
+
+def _milliseconds(hours: str | None, minutes: str, seconds: str) -> int:
+    return round(((int(hours or 0) * 60 + int(minutes)) * 60 + float(seconds)) * 1000)
 
 
 def after_label(line: list[Inline]) -> list[Inline]:
@@ -1232,7 +1260,6 @@ class Parser:
                     continue
                 embed.graphic = is_graphic_video_note(inlines)
                 embed.copy = is_copied_video_note(inlines)
-                embed.uncaptioned = is_uncaptioned_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
                 embed.name = video_title(
                     [i for i in after_label(inlines) if isinstance(i, Text) and i.href]
@@ -1256,6 +1283,20 @@ class Parser:
             # Matching on length would swallow short body paragraphs,
             # and a report with 50-odd figures has a great many.
             last = out[-1] if out else None
+            if isinstance(last, Embed) and is_captions_note(inlines):
+                self._check_label(inlines)
+                lines = split_lines(inlines)
+                written = [labelled(lines[0]).value] + [plain_text(line) for line in lines[1:]]
+                last.captions = (last.captions or []) + self._cues(written)
+                continue
+            if (
+                isinstance(last, Embed)
+                and last.captions is not None
+                and all(cue(plain_text(line)) for line in split_lines(inlines))
+            ):
+                # A line each, where the writer pressed Enter rather than Shift+Enter.
+                last.captions += self._cues(plain_text(line) for line in split_lines(inlines))
+                continue
             if isinstance(last, Embed) and not last.credit and is_credit_note(inlines):
                 # Credited the way a figure is, by the line right under it.
                 self._check_label(inlines)
@@ -1587,6 +1628,29 @@ class Parser:
                     name = self.doc.meta.get(SOCIAL_CARD, "")
                     self._source_names.setdefault(image.object_id, name)
                     return
+
+    def _cues(self, lines: Iterable[str]) -> list[Cue]:
+        """The captions `lines` write, warning about each line that is not one."""
+        cues: list[Cue] = []
+        for line in lines:
+            if not line.strip():
+                continue
+            found = cue(line)
+            if found is None:
+                self.doc.warn(
+                    "a caption has to be a time range and what is said in it, as in {}; "
+                    "leaving it out: {}",
+                    Shown("0:04\u20130:04.7 Jesus"),
+                    Shown(_clipped(line.strip())),
+                )
+            elif found.end <= found.start:
+                self.doc.warn(
+                    "a caption ends before it starts; leaving it out: {}",
+                    Shown(_clipped(line.strip())),
+                )
+            else:
+                cues.append(found)
+        return cues
 
     def _check_label(self, line: list[Inline]) -> None:
         """Warn about anything wrong with how a note's label is written."""
