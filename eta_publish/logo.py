@@ -85,6 +85,13 @@ def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = No
     return True
 
 
+LOGO_LEFT = 180
+"""Where the poster's logo starts: what centres the logo, the warning sign,
+and "WARNING:" after it, the widest of its lines."""
+
+TEXT_LEFT = LOGO_LEFT + 519
+"""Where the poster's words start, beside the logo."""
+
 POSTER_LINE = 12
 """The most characters a line of a warning poster holds, at its size beside the logo."""
 
@@ -108,14 +115,37 @@ def warning_poster(logo: str, kind: str) -> str:
         else:
             lines.append(word)
     # Centred on the logo's middle, a line every 138.
+    ys = [round(435 + (i - (len(lines) - 1) / 2) * 138) for i in range(len(lines))]
+    # The first line follows the warning sign, which stands on its baseline.
+    xs = [TEXT_LEFT + SIGN_WIDTH + 30, *[TEXT_LEFT] * (len(lines) - 1)]
     text = "".join(
-        f'<tspan x="835" y="{round(435 + (i - (len(lines) - 1) / 2) * 138)}">{escape(line)}</tspan>'
-        for i, line in enumerate(lines)
+        f'<tspan x="{x}" y="{y}">{escape(line)}</tspan>'
+        for x, y, line in zip(xs, ys, lines, strict=True)
     )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1719 787">'
         '<rect width="1719" height="787" fill="#000516"/>'
-        f'<svg x="316" y="147" width="487" height="487" viewBox="{view_box}">{drawing}</svg>'
+        f'<svg x="{LOGO_LEFT}" y="147" width="487" height="487" viewBox="{view_box}">'
+        f"{drawing}</svg>"
+        f"{_warning_sign(TEXT_LEFT, ys[0])}"
         '<text fill="#fff" font-family="system-ui, sans-serif" font-size="128">'
         f"{text}</text></svg>\n"
+    )
+
+
+SIGN_WIDTH = 170
+"""How wide the poster's warning sign is: a little taller than the words beside it."""
+
+
+def _warning_sign(left: int, baseline: int) -> str:
+    """The poster's ⚠, drawn rather than written: a picture has only the reader's fonts,
+    which draw the character as an emoji, or as an outline, or not at all.
+    In the amber of the notice above the video."""
+    top = baseline - 150
+    middle = left + SIGN_WIDTH // 2
+    return (
+        f'<path d="M{left + 8} {baseline - 8}H{left + SIGN_WIDTH - 8}L{middle} {top + 8}Z" '
+        'fill="#d97706" stroke="#d97706" stroke-width="16" stroke-linejoin="round"/>'
+        f'<rect x="{middle - 9}" y="{top + 45}" width="18" height="60" rx="9" fill="#000516"/>'
+        f'<circle cx="{middle}" cy="{baseline - 26}" r="11" fill="#000516"/>'
     )
