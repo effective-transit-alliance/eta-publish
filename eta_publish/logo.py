@@ -85,12 +85,8 @@ def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = No
     return True
 
 
-LOGO_LEFT = 180
-"""Where the poster's logo starts: what centres the logo, the warning sign,
-and "WARNING:" after it, the widest of its lines."""
-
-TEXT_LEFT = LOGO_LEFT + 519
-"""Where the poster's words start, beside the logo."""
+TEXT_LEFT = 835
+"""Where the poster's words start, beside the logo, and the warning sign above them."""
 
 POSTER_LINE = 12
 """The most characters a line of a warning poster holds, at its size beside the logo."""
@@ -114,18 +110,18 @@ def warning_poster(logo: str, kind: str) -> str:
             lines[-1] += f" {word}"
         else:
             lines.append(word)
-    # Centred on the logo's middle, a line every 138.
-    ys = [round(435 + (i - (len(lines) - 1) / 2) * 138) for i in range(len(lines))]
-    # The first line follows the warning sign, which stands on its baseline.
-    xs = [TEXT_LEFT + SIGN_WIDTH + 30, *[TEXT_LEFT] * (len(lines) - 1)]
+    # A row each for the warning sign and the lines under it, a row every 138,
+    # centred on the logo's middle as the words' capitals sit on it.
+    rows = len(lines) + 1
+    ys = [round(450 + (i - (rows - 1) / 2) * 138) for i in range(rows)]
     text = "".join(
-        f'<tspan x="{x}" y="{y}">{escape(line)}</tspan>'
-        for x, y, line in zip(xs, ys, lines, strict=True)
+        f'<tspan x="{TEXT_LEFT}" y="{y}">{escape(line)}</tspan>'
+        for y, line in zip(ys[1:], lines, strict=True)
     )
     return (
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1719 787">'
         '<rect width="1719" height="787" fill="#000516"/>'
-        f'<svg x="{LOGO_LEFT}" y="147" width="487" height="487" viewBox="{view_box}">'
+        f'<svg x="316" y="147" width="487" height="487" viewBox="{view_box}">'
         f"{drawing}</svg>"
         f"{_warning_sign(TEXT_LEFT, ys[0])}"
         '<text fill="#fff" font-family="system-ui, sans-serif" font-size="128">'
@@ -134,7 +130,7 @@ def warning_poster(logo: str, kind: str) -> str:
 
 
 SIGN_WIDTH = 170
-"""How wide the poster's warning sign is: a little taller than the words beside it."""
+"""How wide the poster's warning sign is: a little taller than the words under it."""
 
 
 def _warning_sign(left: int, baseline: int) -> str:
