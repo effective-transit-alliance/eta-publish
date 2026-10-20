@@ -3284,7 +3284,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://github.com/kkysen/automated-metro-data"
+                    "url": "https://github.com/effective-transit-alliance/automated-metro-data"
                   },
                   "underline": true
                 }
@@ -3404,7 +3404,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://raw.githubusercontent.com/kkysen/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg"
+                    "url": "https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg"
                   },
                   "underline": true
                 }
@@ -3502,7 +3502,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://github.com/kkysen/automated-metro-data"
+                    "url": "https://github.com/effective-transit-alliance/automated-metro-data"
                   },
                   "underline": true
                 }
@@ -3622,7 +3622,7 @@
                     }
                   },
                   "link": {
-                    "url": "https://raw.githubusercontent.com/kkysen/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg"
+                    "url": "https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg"
                   },
                   "underline": true
                 }
@@ -11595,7 +11595,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-20T00:18:12.630Z",
+  "modifiedTime": "2026-10-20T01:18:43.782Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [

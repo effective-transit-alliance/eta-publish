@@ -110,13 +110,13 @@ The global standard for a new-build metro line today, whether light or heavy, is
 #figure(
   link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_2016_to_2026.svg", alt: "Share of new metro lines worldwide that are automated (> GoA2), by year. 135/361 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-29 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December. \
-  #link("https://github.com/kkysen/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
+  #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
 
 #figure(
   link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_ex_china_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_ex_china_2016_to_2026.svg", alt: "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere. \
-  #link("https://github.com/kkysen/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
+  #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
 
 What’s more, in conversations with ETA at various IBX Open Houses, the MTA IBX staff have expressed a strong preference for automation.
@@ -343,7 +343,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 + (archived #link("https://web.archive.org/web/20250828081856/http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html")[Aug 28, 2025]) #link("http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html")[sn.people.com.cn/n2/2020/0102/c378296-33682040.html] <src28>
 + (archived #link("https://web.archive.org/web/20251027132111/https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part")[Oct 27, 2025]) #link("https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part")[jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part] <src29>
 + (archived #link("https://web.archive.org/web/20261002215033/https://www.innotrans.de/en")[Oct 2, 2026]) #link("https://www.innotrans.de/en")[innotrans.de/en] <src30>
-+ (archived #link("https://web.archive.org/web/20261009033813/https://github.com/kkysen/automated-metro-data")[Oct 9, 2026]) #link("https://github.com/kkysen/automated-metro-data")[github.com/kkysen/automated-metro-data] <src31>
++ (archived #link("https://web.archive.org/web/20261020012211/https://github.com/effective-transit-alliance/automated-metro-data")[Oct 20, 2026]) #link("https://github.com/effective-transit-alliance/automated-metro-data")[github.com/effective-transit-alliance/automated-metro-data] <src31>
 + (archived #link("https://web.archive.org/web/20261005121320/https://www.urbanrail.net/news.htm")[Oct 5, 2026]) #link("https://www.urbanrail.net/news.htm")[urbanrail.net/news.htm] <src32>
 + (archived #link("https://web.archive.org/web/20260609080936/https://www.camet.org.cn/")[Jun 9, 2026]) #link("https://www.camet.org.cn/")[camet.org.cn/] <src33>
 + (archived #link("https://web.archive.org/web/20240921120558id_/https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf#page=5")[Sep 21, 2024]) #link("https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf#page=5")[#box[bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf\#page=]#box[5]] <src34>

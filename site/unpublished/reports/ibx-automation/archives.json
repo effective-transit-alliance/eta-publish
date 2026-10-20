@@ -111,14 +111,15 @@
     "snapshot": "https://web.archive.org/web/20260821175057/https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf",
     "timestamp": "20260821175057"
   },
+  "https://github.com/effective-transit-alliance/automated-metro-data": {
+    "job": "spn2-75b8222243843f46bad63d80c68f328bf114f451",
+    "snapshot": "https://web.archive.org/web/20261020012211/https://github.com/effective-transit-alliance/automated-metro-data",
+    "timestamp": "20261020012211"
+  },
   "https://github.com/effective-transit-alliance/ibx-ridership-charts/": {
     "job": "spn2-38489d3336eae2b64668f332cbdb81f96a2558fc",
     "snapshot": "https://web.archive.org/web/20261019052227/https://github.com/effective-transit-alliance/ibx-ridership-charts/",
     "timestamp": "20261019052227"
-  },
-  "https://github.com/kkysen/automated-metro-data": {
-    "snapshot": "https://web.archive.org/web/20261009033813/https://github.com/kkysen/automated-metro-data",
-    "timestamp": "20261009033813"
   },
   "https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md": {
     "snapshot": "https://web.archive.org/web/20261015042645/https://github.com/kkysen/mta-od-data/blob/raptor/src/mta_od_data/ridership/by_line.md",

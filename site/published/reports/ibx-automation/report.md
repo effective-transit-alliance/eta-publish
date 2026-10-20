@@ -89,13 +89,13 @@ The global standard for a new-build metro line today, whether light or heavy, is
 
 ![Share of new metro lines worldwide that are automated (> GoA2), by year. 135/361 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-29 are automated.](<images/automated_share_by_year_2016_to_2026.svg>)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December.\
-[Credit: ETA (Khyber Sen)](<https://github.com/kkysen/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
-<!-- SVG: [automated\_share\_by\_year\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/kkysen/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg>) -->
+[Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
+<!-- SVG: [automated\_share\_by\_year\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg>) -->
 
 ![Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.](<images/automated_share_by_year_ex_china_2016_to_2026.svg>)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere.\
-[Credit: ETA (Khyber Sen)](<https://github.com/kkysen/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
-<!-- SVG: [automated\_share\_by\_year\_ex\_china\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/kkysen/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg>) -->
+[Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
+<!-- SVG: [automated\_share\_by\_year\_ex\_china\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg>) -->
 
 What’s more, in conversations with ETA at various IBX Open Houses, the MTA IBX staff have expressed a strong preference for automation.
 However, they believe that the final decision is ultimately in the hands of the MTA Board.
@@ -391,7 +391,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 28. (archived [Aug 28, 2025](<https://web.archive.org/web/20250828081856/http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html>)) [sn.people.com.cn/n2/2020/0102/c378296-33682040.html](<http://sn.people.com.cn/n2/2020/0102/c378296-33682040.html>)
 29. (archived [Oct 27, 2025](<https://web.archive.org/web/20251027132111/https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part>)) [jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part](<https://jrurbanenetwork.substack.com/p/guangzhou-metro-2024-openings-part>)
 30. (archived [Oct 2, 2026](<https://web.archive.org/web/20261002215033/https://www.innotrans.de/en>)) [innotrans.de/en](<https://www.innotrans.de/en>)
-31. (archived [Oct 9, 2026](<https://web.archive.org/web/20261009033813/https://github.com/kkysen/automated-metro-data>)) [github.com/kkysen/automated-metro-data](<https://github.com/kkysen/automated-metro-data>)
+31. (archived [Oct 20, 2026](<https://web.archive.org/web/20261020012211/https://github.com/effective-transit-alliance/automated-metro-data>)) [github.com/effective-transit-alliance/automated-metro-data](<https://github.com/effective-transit-alliance/automated-metro-data>)
 32. (archived [Oct 5, 2026](<https://web.archive.org/web/20261005121320/https://www.urbanrail.net/news.htm>)) [urbanrail.net/news.htm](<https://www.urbanrail.net/news.htm>)
 33. (archived [Jun 9, 2026](<https://web.archive.org/web/20260609080936/https://www.camet.org.cn/>)) [camet.org.cn/](<https://www.camet.org.cn/>)
 34. (archived [Sep 21, 2024](<https://web.archive.org/web/20240921120558id_/https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf#page=5>)) [bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf#page=5](<https://bqrail.substack.com/api/v1/file/332c7174-b5cf-4d76-9462-e72ad568bdd8.pdf#page=5>)
