@@ -330,7 +330,9 @@ def test_a_copied_video_is_a_figure_like_an_image() -> None:
     markdown = MarkdownEmitter().emit(doc)
     # Ours, so named as the document names it and linked to our copy.
     link = "[Hit by the 1 train](<videos/Hit_by_the_1_train.mp4>)"
-    assert f"**Warning: Graphic Content: a man is hit**\n\n{link}" in markdown
+    card = "[![WARNING: Graphic Content](<assets/warning-Graphic_Content.svg>)]"
+    assert f"> ⚠ **Warning: Graphic Content: a man is hit**\n\n{card}" in markdown
+    assert f"(<videos/Hit_by_the_1_train.mp4>)\\\n{link}" in markdown
 
 
 def test_a_video_takes_a_credit_line_as_a_figure_does() -> None:

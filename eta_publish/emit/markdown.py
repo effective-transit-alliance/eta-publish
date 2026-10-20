@@ -19,9 +19,10 @@ and `doc.json` beside this file keeps every field verbatim.
 """
 
 import re
+from pathlib import PurePosixPath
 from typing import override
 
-from ..naming import IMAGE_DIR, VIDEO_DIR
+from ..naming import ASSET_DIR, IMAGE_DIR, VIDEO_DIR, video_frame_name, warning_poster_name
 from ..nodes import (
     Card,
     Document,
@@ -318,14 +319,36 @@ class MarkdownEmitter(Emitter):
         # linked to where it does play.
         served = self.doc.served_video(node)
         if served is not None:
-            # Ours, so named as the document names it and linked to our copy.
-            return self.linked_embed(
-                node,
-                node.title or "Video",
-                f"{VIDEO_DIR}/{served}",
-                "" if node.copy else self.source_ref(node.url),
-            )
+            return self.served_video(node, served)
         return self.linked_embed(node, embed_label(node, card))
+
+    def served_video(self, node: Embed, file: str) -> str:
+        """A video the site serves, as the page shows it before it plays:
+        its warning as a quote, the nearest Markdown has to the page's notice,
+        then the warning card or else its first frame, linked to the video,
+        and its name and credit under it like a picture's caption.
+        """
+        href = url(f"{VIDEO_DIR}/{file}")
+        if node.warning:
+            # The page's own card, in the site's assets, which a published copy carries.
+            up = "../" * len(PurePosixPath(self.doc.slug.strip("/")).parts)
+            poster = f"{up}{ASSET_DIR}/{warning_poster_name(node.warning_kind)}"
+            alt = f"WARNING: {node.warning_kind}"
+        else:
+            poster = f"{self.image_dir}/{video_frame_name(file)}"
+            alt = node.title or "Video"
+        # Ours, so named as the document names it and linked to our copy.
+        cite = "" if node.copy else self.source_ref(node.url)
+        lines = [
+            f"[![{escape(alt)}]({url(poster)})]({href})",
+            f"[{escape(node.title or 'Video')}]({href}){cite}",
+            *([self.inlines(node.credit)] if node.credit else []),
+        ]
+        figure = "\\\n".join(lines)
+        if not node.warning:
+            return figure
+        written = "".join(i.text for i in node.warning if isinstance(i, Text)).strip()
+        return self.join([f"> ⚠ **{escape(written)}**", figure])
 
     @override
     def table(self, node: Table) -> str:
