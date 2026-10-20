@@ -36,6 +36,7 @@ from .build import (
     UNWARNED,
     BuildOptions,
     anonymous_warning,
+    asset_base,
     check_code_block_size,
 )
 from .format import ROOT
@@ -357,11 +358,16 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
     format.tree(outdir)
 
     # After the formatting, which `minify` starts from and `biome` would undo.
-    # Not for a fragment carrying its stylesheet and script, which links no `.min` ones.
-    if site.built and not options.embed_assets:
+    minify.page(outdir / "index.html", "", linked=())
+    if site.built:
         minify.assets(outdir / ASSET_DIR)
-        for built in site.built:
-            # `report.html`, its `--split` pieces, and the published copy of each.
+    for built in site.built:
+        minify.page(
+            outdir / built.path / "index.html", asset_base(built.path), linked=minify.PAGE_ASSETS
+        )
+        # `report.html`, its `--split` pieces, and the published copy of each.
+        # Not a fragment carrying its stylesheet and script, which links no `.min` ones.
+        if not options.embed_assets:
             for page in sorted((outdir / built.path).glob("report*.html")):
                 if minify.is_min(page.name):
                     continue
@@ -414,7 +420,7 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
     for shared in (ASSET_DIR,):
         shutil.rmtree(outdir / shared, ignore_errors=True)
         (built / shared).rename(outdir / shared)
-    for name in ("index.html", "robots.txt"):
+    for name in ("index.html", minify.min_name("index.html"), "robots.txt"):
         (built / name).replace(outdir / name)
 
 

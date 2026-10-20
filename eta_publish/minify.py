@@ -24,8 +24,14 @@ from .format import pinned
 
 SWC_CONFIG = Path(__file__).with_name("report.swcrc")
 
+FRAGMENT_ASSETS = ("report.css", "report.js")
+"""What `report.html` links, and so what `report.min.html` links the `.min` copies of."""
+
+PAGE_ASSETS = ("page.css", *FRAGMENT_ASSETS)
+"""What a report's `index.html` links."""
+
 MIN_ASSETS = ("report.min.css", "report.min.js")
-"""What `assets` writes, each with its source map beside it as `<name>.map`."""
+"""What `report.min.html` links, each with its source map beside it as `<name>.map`."""
 
 
 def min_name(name: str) -> str:
@@ -40,20 +46,21 @@ def is_min(name: str) -> bool:
 
 
 def assets(directory: Path) -> list[Path]:
-    """Write `report.min.css` and `report.min.js` beside `report.css` and `report.js`,
-    with their source maps, returning what was written."""
-    _run(
-        [
-            pinned("npm:esbuild", "esbuild"),
-            "report.css",
-            "--minify",
-            "--sourcemap",
-            "--sources-content=true",
-            "--log-level=warning",
-            "--outfile=report.min.css",
-        ],
-        directory,
-    )
+    """Write the `.min` copy of each of `PAGE_ASSETS` beside it,
+    with its source map, returning what was written."""
+    for css in ("page.css", "report.css"):
+        _run(
+            [
+                pinned("npm:esbuild", "esbuild"),
+                css,
+                "--minify",
+                "--sourcemap",
+                "--sources-content=true",
+                "--log-level=warning",
+                f"--outfile={min_name(css)}",
+            ],
+            directory,
+        )
     _run(
         [
             pinned("github:swc-project/swc", "swc"),
@@ -66,18 +73,19 @@ def assets(directory: Path) -> list[Path]:
         ],
         directory,
     )
-    return [directory / f for name in MIN_ASSETS for f in (name, f"{name}.map")]
+    names = [min_name(name) for name in PAGE_ASSETS]
+    return [directory / f for name in names for f in (name, f"{name}.map")]
 
 
-def page(source: Path, asset_base: str) -> Path:
-    """Write `source` minified beside it, linking the `.min` assets at `asset_base`.
+def page(source: Path, asset_base: str, linked: tuple[str, ...] = FRAGMENT_ASSETS) -> Path:
+    """Write `source` minified beside it, linking the `.min` copies of `linked` at `asset_base`.
 
-    A page that does not link each of `report.css` and `report.js` there exactly once
+    A page that does not link each of them there exactly once
     is refused rather than written still linking the unminified ones,
     which would only look like it worked.
     """
     html = source.read_text()
-    for name in ("report.css", "report.js"):
+    for name in linked:
         href = f'"{asset_base}/{name}"'
         if html.count(href) != 1:
             raise RuntimeError(

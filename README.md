@@ -58,6 +58,7 @@ Reads the Google Doc, builds a document tree, and emits from that tree:
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
 | `index.html` | Standalone page for review, including any warnings |
+| `index.min.html` | `index.html` minified, linking the `.min` stylesheets and script; not committed |
 | `images/` | The doc's inline images, for hosting outside Squarespace |
 | `archives.json` | Where each source the report cites is archived |
 
