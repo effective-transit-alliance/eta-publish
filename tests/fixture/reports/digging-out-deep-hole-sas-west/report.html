@@ -253,6 +253,10 @@
    the browser's before it, which would sit on a line of its own above a
    block heading. */
 .eta-report .toc summary { list-style: none; cursor: pointer; }
+/* An `h2` for the outline, since it sits under the title beside the sections,
+   but drawn as an `h3`: it leads to the report rather than being part of it. */
+.eta-report .toc summary h2 { font-size: 1.17em; margin: 1em 0;
+                              border-top: 0; padding-top: 0; }
 .eta-report .toc summary::-webkit-details-marker { display: none; }
 .eta-report .toc summary h2::after { content: "\25B8"; display: inline-block;
                                       margin-left: .4em; font-size: .8em; opacity: .6;
