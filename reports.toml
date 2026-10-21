@@ -41,9 +41,7 @@
 # Required, both of them: there is no default host to fall back on.
 # Moving `published` is this line, a rebuild, a deploy there, and repasting each `automated` report.
 #
-# Both on GitHub Pages for now, `site/published/` deployed under `/published/`;
-# `published` is to be `reports.etany.org`,
-# and `unpublished` a password-protected Cloudflare Pages site.
+# Both on one GitHub Pages site, with `site/published/` deployed under `/published/`.
 [site]
 published = "https://kkysen.github.io/eta-publish/published"
 unpublished = "https://kkysen.github.io/eta-publish"
