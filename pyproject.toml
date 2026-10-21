@@ -18,6 +18,9 @@ dependencies = [
     "yt-dlp>=2026.8.19",
 ]
 
+[project.urls]
+Repository = "https://github.com/kkysen/eta-publish"
+
 [project.scripts]
 eta-publish = "eta_publish.__main__:main"
 

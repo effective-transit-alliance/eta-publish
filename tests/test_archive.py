@@ -3,6 +3,7 @@
 import json
 import threading
 import time
+import tomllib
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
@@ -13,10 +14,10 @@ from typing import cast, override
 
 import pytest
 import requests
-from paths import HOST
+from paths import HOST, ROOT
 from pypdf import PdfWriter
 
-from eta_publish import archive
+from eta_publish import archive, repository
 from eta_publish.archive import (
     ARCHIVES_JSON,
     missing,
@@ -1585,3 +1586,9 @@ def test_a_versioned_source_says_versioned_not_archived() -> None:
         '(versioned <a class="source-archive" href="https://x.org/w/index.php?oldid=1">'
         "Oct 15, 2026</a>)"
     )
+
+
+def test_the_user_agent_names_the_repository_pyproject_does() -> None:
+    """Read from the installed metadata, which only matches once it is reinstalled."""
+    urls = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["urls"]
+    assert repository() == urls["Repository"]

@@ -38,7 +38,7 @@ from pypdf import PdfReader
 from pypdf.errors import PyPdfError
 from requests.adapters import HTTPAdapter
 
-from . import PACKAGE_NAME
+from . import PACKAGE_NAME, repository
 from .checks import plural
 from .console import Rows
 from .nodes import UNREWRITTEN, Archived, Document, Shown, cited_page, document_url, wayback_url
@@ -772,7 +772,7 @@ def _revision(http: requests.Session, url: str, title: str) -> int | None:
                 "format": "json",
                 "formatversion": "2",
             },
-            headers={"User-Agent": f"{PACKAGE_NAME} (https://github.com/kkysen/eta-publish)"},
+            headers={"User-Agent": f"{PACKAGE_NAME} ({repository()})"},
             timeout=30,
         )
         answer.raise_for_status()
