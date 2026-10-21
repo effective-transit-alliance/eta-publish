@@ -28,9 +28,9 @@
     "width": 2048
   },
   "kix.jgxhj1hqsf1i": {
-    "alt": "Share of new metro lines worldwide that are automated (> GoA2), by year. 135/361 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-29 are automated.",
+    "alt": "Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.",
     "file": "automated_share_by_year_2016_to_2026.svg",
-    "sha256": "76d86f7713ce2969af5a4701c1c887b3e5152f5c2f47bfab2722de090898c64a"
+    "sha256": "dade93aa797b7e5438b46e02ea58457d9ff061427a18c02a22182ac974e18082"
   },
   "kix.md2vnbfacwp5": {
     "file": "social_card-ibx_automation.jpg",
@@ -39,9 +39,9 @@
     "width": 1200
   },
   "kix.tx1fjdbmxbaz": {
-    "alt": "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.",
+    "alt": "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.",
     "file": "automated_share_by_year_ex_china_2016_to_2026.svg",
-    "sha256": "1b8a7af3281df0048224b16fcdd8383a8fdab93b66a3e970a14308c3b500bb0f"
+    "sha256": "d9495de0435be52e18ce35d114246720e13c7e91f4f28afdb549da4627d994b7"
   },
   "kix.wy9tafmqauu3": {
     "file": "Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg",

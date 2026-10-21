@@ -1122,9 +1122,9 @@
                   "foregroundColor": {
                     "color": {
                       "rgbColor": {
-                        "blue": 0.21960784,
-                        "green": 0.5019608,
-                        "red": 0.09411765
+                        "blue": 0.8,
+                        "green": 0.33333334,
+                        "red": 0.06666667
                       }
                     }
                   },
@@ -11598,7 +11598,7 @@
       }
     }
   },
-  "modifiedTime": "2026-10-20T18:22:48.204Z",
+  "modifiedTime": "2026-10-21T00:11:19.533Z",
   "namedRanges": {},
   "namedStyles": {
     "styles": [

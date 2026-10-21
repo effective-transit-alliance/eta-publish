@@ -87,12 +87,12 @@ Today, entirely new metro lines in developed and even middle-income countries ar
 In fact, at [InnoTrans](<https://www.innotrans.de/en>)<sup>\[30\]</sup> 2026, major rolling stock vendors who are interested in bidding on the IBX told ETA that they had difficulty understanding why the MTA would ever consider building the IBX unautomated.
 The global standard for a new-build metro line today, whether light or heavy, is automation.
 
-![Share of new metro lines worldwide that are automated (> GoA2), by year. 135/361 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-29 are automated.](<images/automated_share_by_year_2016_to_2026.svg>)\
+![Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](<images/automated_share_by_year_2016_to_2026.svg>)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December.\
 [Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
 <!-- SVG: [automated\_share\_by\_year\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg>) -->
 
-![Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.](<images/automated_share_by_year_ex_china_2016_to_2026.svg>)\
+![Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](<images/automated_share_by_year_ex_china_2016_to_2026.svg>)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere.\
 [Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
 <!-- SVG: [automated\_share\_by\_year\_ex\_china\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg>) -->

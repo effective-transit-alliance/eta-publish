@@ -108,13 +108,13 @@ In fact, at #link("https://www.innotrans.de/en")[InnoTrans]#super[#link(<src30>)
 The global standard for a new-build metro line today, whether light or heavy, is automation.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_2016_to_2026.svg", alt: "Share of new metro lines worldwide that are automated (> GoA2), by year. 135/361 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-29 are automated.")],
+  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_2016_to_2026.svg", alt: "Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December. \
   #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_ex_china_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_ex_china_2016_to_2026.svg", alt: "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 65/127 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-09-05 are automated.")],
+  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_ex_china_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_ex_china_2016_to_2026.svg", alt: "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere. \
   #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
