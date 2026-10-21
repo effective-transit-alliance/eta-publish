@@ -34,7 +34,7 @@
   ),
   hero: [
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/monthly-passes/images/img-ae6ddd33.jpg")[#capped_image("print/img-ae6ddd33.jpg")],
+  link("https://effective-transit-alliance.github.io/eta-publish/reports/monthly-passes/images/img-ae6ddd33.jpg")[#capped_image("print/img-ae6ddd33.jpg")],
 )
   ],
 )
@@ -42,7 +42,7 @@
 = Bring Back the Monthly: The Value of Affordable Transit Passes
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/monthly-passes/images/img-cf3f2056.jpg")[#capped_image("print/img-cf3f2056.jpg", alt: "Image: Tapping onto the subway with OMNY")],
+  link("https://effective-transit-alliance.github.io/eta-publish/reports/monthly-passes/images/img-cf3f2056.jpg")[#capped_image("print/img-cf3f2056.jpg", alt: "Image: Tapping onto the subway with OMNY")],
   caption: [Image: Tapping onto the subway with OMNY],
 )
 
@@ -109,7 +109,7 @@ That means that a full-time worker commuting to and from their job every day wou
 Things are even worse under the current weekly fare capping scheme: at \$35 per week, the equivalent of an unlimited pass now breaks even at #strong[50 rides per month, the highest ratio in the world].
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/monthly-passes/images/img-6b5eb7d1.png")[#capped_image("print/img-6b5eb7d1.jpg", alt: "Worldwide Monthly Pass Ratios")],
+  link("https://effective-transit-alliance.github.io/eta-publish/reports/monthly-passes/images/img-6b5eb7d1.png")[#capped_image("print/img-6b5eb7d1.jpg", alt: "Worldwide Monthly Pass Ratios")],
   caption: [#emph[A comparison of monthly fare pass ratios. Note: for cities with multiple zones, only an inner zone pass is used.]],
 )
 

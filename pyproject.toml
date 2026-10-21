@@ -19,7 +19,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/kkysen/eta-publish"
+Repository = "https://github.com/effective-transit-alliance/eta-publish"
 
 [project.scripts]
 eta-publish = "eta_publish.__main__:main"

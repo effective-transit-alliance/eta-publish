@@ -10,7 +10,7 @@
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   hero: [
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg")[#capped_image("print/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg", alt: "A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg")[#capped_image("print/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg", alt: "A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).")],
   caption: [A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs). \
   Credit: MTA, #link("https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out")[via Gothamist]#super[#link(<src1>)[\[1\]]]],
 )
@@ -69,7 +69,7 @@ This has been driven by all of the following factors:
 - A #link("https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing")[31% ]#super[#link(<src17>)[\[17\]]]increase in speed#footnote[#link("https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing#:~:text=10%20minutes%20less%20than%20the%20initial%20estimate")[42 min]#super[#link(<src67>)[\[67\]]] / #link("https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing#:~:text=32%20minutes")[32 min]#super[#link(<src68>)[\[68\]]] = 1.3125. The original LRT runtime was #link("https://www.mta.info/document/103691#page=5")[39 minutes in the PEL]#super[#link(<src12>)[\[12\]]], but IBX staff told ETA street-running delays were initially underestimated, hence the 10 minutes faster quoted by Hochul.] after #link("https://www.etany.org/ibx-all-faiths-tunnel")[ETA’s analysis]#super[#link(<src4>)[\[4\]]] and #link("https://www.amny.com/nyc-transit/queens-graveyard-hochul-interborough-express/")[Ben Brachfeld’s reporting]#super[#link(<src18>)[\[18\]]] successfully pressured the MTA to #link("https://www.6sqft.com/mta-awards-166m-design-contract-for-interborough-express/")[drop street running]#super[#link(<src19>)[\[19\]]] around All Faiths Cemetery
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/ridership.svg")[#capped_image("print/ridership.svg", alt: "The ridership of the various IBX projections, as well as comparable lines in NYC. Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/ridership.svg")[#capped_image("print/ridership.svg", alt: "The ridership of the various IBX projections, as well as comparable lines in NYC. Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.")],
   caption: [The ridership of the various IBX projections, as well as comparable lines in NYC.#footnote[Sources: #link("https://arxiv.org/abs/2408.01562")[Hai Yang et al.]#super[#link(<src23>)[\[23\]]], #link("https://www.mta.info/document/222046#page=5")[SAS West]#super[#link(<src69>)[\[69\]]], #link("https://www.governor.ny.gov/news/governor-hochul-announces-interborough-express-advancing-planning-active-phase#:~:text=ridership%20projections%20to-,160%2C000,-per%20day%2C%20up")[IBX current]#super[#link(<src14>)[\[14\]]], #link("https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_route.md")[G]#super[#link(<src70>)[\[70\]]], #link("https://www.nyc.gov/html/dot/html/infrastructure/bqecentral.shtml")[BQE]#super[#link(<src71>)[\[71\]]], #link("https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md")[SAS Phase 1]#super[#link(<src25>)[\[25\]]], #link("https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf#page=14")[IBX 20YN]#super[#link(<src72>)[\[72\]]], #link("https://www.mta.info/document/103691#page=5")[IBX PEL]#super[#link(<src12>)[\[12\]]], #link("https://www.transit.dot.gov/sites/fta.dot.gov/files/2023-03/NY-New-York-Second-Avenue-Subway-Phase-2-NSE-Profile-FY24.pdf#page=1")[SAS Phase 2]#super[#link(<src73>)[\[73\]]], #link("https://www.mta.info/document/72081#page=16")[IBX Feasibility]#super[#link(<src10>)[\[10\]]].] Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.#footnote[SAS Phase 2 is the exception here, as its latest projections were made before the pandemic, hence the 2017 projection year.] \
   #link("https://github.com/effective-transit-alliance/ibx-ridership-charts/")[Credit: ETA (Khyber Sen)]#super[#link(<src20>)[\[20\]]]],
 )
@@ -108,13 +108,13 @@ In fact, at #link("https://www.innotrans.de/en")[InnoTrans]#super[#link(<src30>)
 The global standard for a new-build metro line today, whether light or heavy, is automation.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_2016_to_2026.svg", alt: "Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_2016_to_2026.svg", alt: "Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December. \
   #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_ex_china_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_ex_china_2016_to_2026.svg", alt: "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/automated_share_by_year_ex_china_2016_to_2026.svg")[#capped_image("print/automated_share_by_year_ex_china_2016_to_2026.svg", alt: "Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.")],
   caption: [The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere. \
   #link("https://github.com/effective-transit-alliance/automated-metro-data")[Credit: ETA (Khyber Sen)]#super[#link(<src31>)[\[31\]]], #link("https://www.urbanrail.net/news.htm")[UrbanRail.net]#super[#link(<src32>)[\[32\]]], #link("https://www.camet.org.cn/")[CAMET]#super[#link(<src33>)[\[33\]]]],
 )
@@ -135,13 +135,13 @@ Automation is classified in the following internationally standardized grades, e
 - GoA4: unattended operation (UTO): the train runs automatically, with no crew on board except perhaps for security
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/JFK_AirTrain_Front.jpg")[#capped_image("print/JFK_AirTrain_Front.jpg", alt: "The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/JFK_AirTrain_Front.jpg")[#capped_image("print/JFK_AirTrain_Front.jpg", alt: "The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.")],
   caption: [The automated JFK AirTrain. The front of the train is a large window with no cab or driver present. \
   Credit: Seungho Kang],
 )
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg")[#capped_image("print/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg", alt: "An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg")[#capped_image("print/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg", alt: "An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling.")],
   caption: [An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling. \
   Credit: ETA (Khyber Sen)],
 )
@@ -216,7 +216,7 @@ The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 
 The cost is only a small part of the larger project, and yet adds incredible value.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/Skyline_platform_screen_doors.png")[#capped_image("print/Skyline_platform_screen_doors.jpg", alt: "Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/Skyline_platform_screen_doors.png")[#capped_image("print/Skyline_platform_screen_doors.jpg", alt: "Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.")],
   caption: [Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock. \
   #link("https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg")[Credit: Eli Fessler]#super[#link(<src53>)[\[53\]]]],
 )
@@ -247,7 +247,7 @@ Finally, PSDs also increase the effective platform width, as passengers can safe
 This matters for the IBX, as using PSDs to shave a few feet of platform width might mean another overpass doesn’t have to be rebuilt and widened, saving tens of millions, enough to pay for all of the PSDs.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/published/reports/ibx-automation/images/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg")[#capped_image("print/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg", alt: "The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/published/reports/ibx-automation/images/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg")[#capped_image("print/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg", alt: "The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.")],
   caption: [The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform. \
   #link("https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg")[Credit: Sebastian Sinisterra]#super[#link(<src57>)[\[57\]]]],
 )

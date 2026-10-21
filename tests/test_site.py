@@ -392,7 +392,7 @@ def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
     [
         (
             True,
-            'src="https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/',
+            f'src="{HOST}/reports/digging-out-deep-hole-sas-west/images/',
         ),
         (False, 'src="images/'),
     ],
@@ -1205,9 +1205,7 @@ def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
     """What to upload as Squarespace's social image, and nothing without a card."""
     doc.card = Image(object_id="io.card", filename="card")
     doc.image_files["io.card"] = "card.jpg"
-    assert social_image(doc, "reports/r", site_url=HOST) == (
-        "https://kkysen.github.io/eta-publish/reports/r/images/card.jpg"
-    )
+    assert social_image(doc, "reports/r", site_url=HOST) == (f"{HOST}/reports/r/images/card.jpg")
     doc.card = None
     assert social_image(doc, "reports/r", site_url=HOST) == ""
 

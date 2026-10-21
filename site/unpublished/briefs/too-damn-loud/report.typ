@@ -39,7 +39,7 @@
 #link("https://youtube.com/shorts/o90JQBWdgTI?is=I4sZ3txy37d2RiGU")[Video: Too Damn Loud: Announcements on NYC Transit are Out of Control (Effective Transit Alliance on YouTube)]#super[#link(<src1>)[\[1\]]]
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-831248b1.jpg")[#capped_image("print/img-831248b1.jpg")],
+  link("https://effective-transit-alliance.github.io/eta-publish/briefs/too-damn-loud/images/img-831248b1.jpg")[#capped_image("print/img-831248b1.jpg")],
 )
 
 = Too Damn Loud
@@ -61,7 +61,7 @@ Riders should not be subjected to constant sound for 25% of their ride.
 On the Berlin S-Bahn, a complex branched system that must announce train numbers and destinations, the announcements—all short snippets of information about the train’s identity and destination or the door closing warning—are 15 seconds per interstation segment, only about 12.5% of the ride, half as long as on New York City Transit.
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/briefs/too-damn-loud/images/img-b17aa21a.png")[#capped_image("print/img-b17aa21a.jpg", alt: "PNG SVG")],
+  link("https://effective-transit-alliance.github.io/eta-publish/briefs/too-damn-loud/images/img-b17aa21a.png")[#capped_image("print/img-b17aa21a.jpg", alt: "PNG SVG")],
   caption: [#link("https://drive.google.com/file/d/1ceFr--thicXMKXMuKG87Rhxs7oY2xWgC/view?usp=drive_link")[PNG]#super[#link(<src3>)[\[3\]]] #link("https://drive.google.com/file/d/18pQbx_DJ_n_OHNDaQlfHOvRSZqJPd88V/view?usp=drive_link")[SVG]#super[#link(<src4>)[\[4\]]]],
 )
 

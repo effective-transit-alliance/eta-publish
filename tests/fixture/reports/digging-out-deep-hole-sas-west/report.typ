@@ -18,7 +18,7 @@
 SAS West is projected to cost #strong[\$7.7 billion] for 1.25 miles#footnote[Inflation-adjusted from the 2024 capital plan.], per the #link("https://www.mta.info/document/196361")[MTA study]#super[#link(<src1>)[\[1\]]].
 
 #figure(
-  link("https://kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-036.png")[#capped_image("print/sas-west-036.jpg", alt: "SAS West alignment map")],
+  link("https://effective-transit-alliance.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/images/sas-west-036.png")[#capped_image("print/sas-west-036.jpg", alt: "SAS West alignment map")],
   caption: [The SAS West and Phase 2 alignments. \
   Credit: MTA],
 )

@@ -43,8 +43,8 @@
 #
 # Both on one GitHub Pages site, with `site/published/` deployed under `/published/`.
 [site]
-published = "https://kkysen.github.io/eta-publish/published"
-unpublished = "https://kkysen.github.io/eta-publish"
+published = "https://effective-transit-alliance.github.io/eta-publish/published"
+unpublished = "https://effective-transit-alliance.github.io/eta-publish"
 
 [[report]]
 name = "SAS West Feasibility Response"
