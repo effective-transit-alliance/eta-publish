@@ -24,7 +24,7 @@ from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
 from .minify import MIN_ASSETS, is_min, min_name
-from .naming import ASSET_DIR, PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
+from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR
 from .site import Published, Report, saved_for, saved_responses
 
 PUBLISHED_FILES = ("report.html", "report.md")
@@ -48,7 +48,7 @@ A build writes text in place, so a second name for one of these
 would change along with the file it was linked from."""
 
 
-def referenced(html: str, path: str, site_url: str = SITE) -> set[str]:
+def referenced(html: str, path: str, site_url: str) -> set[str]:
     """Every file `html` links that the site serves, relative to the site.
 
     `path` is where the report is, which a relative link is relative to:
@@ -102,7 +102,7 @@ def published_copy(path: Path) -> Path:
 
 
 def write_published(
-    root: Path, reports: list[Report], complete: bool, site_url: str = SITE
+    root: Path, reports: list[Report], complete: bool, site_url: str
 ) -> list[tuple[Report, str]]:
     """Write `root`'s `published/` from its `unpublished/`, for every `automated` report.
 

@@ -41,7 +41,7 @@ from .build import (
 )
 from .format import ROOT
 from .logo import LOGO, write_logo
-from .naming import ASSET_DIR, SITE, UNPUBLISHED_DIR
+from .naming import ASSET_DIR, UNPUBLISHED_DIR
 from .published import write_published
 from .site import (
     REPORTS,
@@ -245,7 +245,8 @@ def publish(
     hosted_media: bool = True,
     embed_assets: bool = False,
     source_brackets: bool = False,
-    hosts: Hosts | None = None,
+    *,
+    hosts: Hosts,
 ) -> Site:
     """Build these reports and write the index over them.
 
@@ -274,8 +275,8 @@ def publish(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
-        unpublished_url=(hosts or Hosts()).unpublished,
-        published_url=(hosts or Hosts()).published,
+        unpublished_url=hosts.unpublished,
+        published_url=hosts.published,
     )
     if into is not None:
         site = write_site(reports, into, options, read_from=outdir)
@@ -294,7 +295,7 @@ def publish(
     return site
 
 
-def host(site: Site, root: Path, listed: list[Report], images: bool, site_url: str = SITE) -> None:
+def host(site: Site, root: Path, listed: list[Report], images: bool, site_url: str) -> None:
     """Write `root`'s `published/`, counting a live page left missing a file as a failure.
 
     A failure rather than a warning: the report built,
@@ -347,8 +348,8 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
 
     # Belt to the `noindex` the pages carry, and the weaker half of the pair:
     # a crawler reads `robots.txt` from the root of the host,
-    # so at `kkysen.github.io/eta-publish/robots.txt` this file asks nothing of
-    # anyone. It is here for whoever serves these pages from a root later,
+    # so under a project page like `<user>.github.io/eta-publish/` this file asks
+    # nothing of anyone. It is here for whoever serves these pages from a root later,
     # and so that the intent is visible in the site rather than only in the
     # emitter. Remove it, and the `noindex`, when the reports go out.
     (outdir / "robots.txt").write_text("User-agent: *\nDisallow: /\n")

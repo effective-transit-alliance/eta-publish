@@ -17,7 +17,7 @@ Regenerate with `pytest --regenerate-snapshots` after checking the diff.
 import json
 
 import pytest
-from paths import FIXTURE_DIR
+from paths import FIXTURE_DIR, HOST
 
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
@@ -56,7 +56,11 @@ def test_html_matches_snapshot(doc: Document, regenerate_snapshots: bool) -> Non
     # so the snapshot is what a build of this document writes
     # rather than a shape only this test produces.
     # Pointing the images somewhere else is covered in `test_emit_html.py`.
-    check("report.html", HtmlEmitter(image_base=IMAGE_DIR).emit(doc), regenerate_snapshots)
+    check(
+        "report.html",
+        HtmlEmitter(image_base=IMAGE_DIR, site_url=HOST).emit(doc),
+        regenerate_snapshots,
+    )
 
 
 def test_markdown_matches_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
@@ -64,11 +68,13 @@ def test_markdown_matches_snapshot(doc: Document, regenerate_snapshots: bool) ->
 
 
 def test_typst_matches_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
-    check("report.typ", TypstEmitter().emit(doc), regenerate_snapshots)
+    check("report.typ", TypstEmitter(site_url=HOST).emit(doc), regenerate_snapshots)
 
 
 def test_page_matches_snapshot(doc: Document, regenerate_snapshots: bool) -> None:
     """Snapshotted for the same reason as the rest:
     it is one of the files a build writes,
     and leaving it out would make this directory something a build cannot reproduce."""
-    check("index.html", report_page(doc, asset_base=ASSET_BASE), regenerate_snapshots)
+    check(
+        "index.html", report_page(doc, asset_base=ASSET_BASE, site_url=HOST), regenerate_snapshots
+    )

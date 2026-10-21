@@ -6,7 +6,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-from paths import FIXTURE_DIR
+from paths import FIXTURE_DIR, HOST
 
 from eta_publish.emit.typst import TypstEmitter, breakable
 from eta_publish.images import write_print_copies
@@ -31,7 +31,7 @@ def doc() -> Document:
 
 @pytest.fixture
 def out(doc: Document) -> str:
-    return TypstEmitter().emit(doc)
+    return TypstEmitter(site_url=HOST).emit(doc)
 
 
 def test_footnote_bodies_are_inlined_at_the_reference(out: str) -> None:
@@ -81,7 +81,7 @@ def test_a_field_name_cannot_be_typst_code(doc: Document) -> None:
     """A field name is written in the document, and was emitted as an argument name:
     `x:read("/etc/hostname"),y` was a call, not a field, and ran at build time."""
     doc.meta['x:read("/etc/hostname"),y'] = "z"
-    assert "read(" not in TypstEmitter().emit(doc)
+    assert "read(" not in TypstEmitter(site_url=HOST).emit(doc)
 
 
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")
@@ -94,7 +94,7 @@ def test_the_emitted_source_compiles(doc: Document, tmp_path: Path) -> None:
     original.write_bytes(PNG)
     write_print_copies({"kix.1": original}, tmp_path / PRINT_DIR)
     source = tmp_path / "report.typ"
-    source.write_text(TypstEmitter().emit(doc))
+    source.write_text(TypstEmitter(site_url=HOST).emit(doc))
     install_template(tmp_path)
 
     pdf = compile_pdf(source)

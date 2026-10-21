@@ -22,7 +22,6 @@ from ..naming import (
     ASSET_DIR,
     CAPTIONS_LANGUAGE,
     IMAGE_DIR,
-    SITE,
     VIDEO_DIR,
     WEB_FORMATS,
     content_anchor,
@@ -229,8 +228,9 @@ class HtmlEmitter(Emitter):
         asset_base: str = "",
         pdf_href: str = "",
         source_brackets: bool = False,
-        site_url: str = SITE,
         page_assets: str = "",
+        *,
+        site_url: str,
     ) -> None:
         super().__init__()
         self.image_base = image_base.rstrip("/")
@@ -1303,6 +1303,8 @@ def report_page(
     card_base: str = "",
     page_url: str = "",
     source_brackets: bool = False,
+    *,
+    site_url: str,
 ) -> str:
     """The whole report as a page,
     which is what a build writes as `index.html` and what the site serves.
@@ -1325,6 +1327,7 @@ def report_page(
         pdf_href=pdf_href,
         source_brackets=source_brackets,
         page_assets=asset_base,
+        site_url=site_url,
     ).emit(doc)
     # The share card is what a link to the report unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.

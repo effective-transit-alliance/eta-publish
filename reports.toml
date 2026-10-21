@@ -38,6 +38,7 @@
 # the pasted `report.html`'s stylesheet, pictures, videos, and PDF.
 # `unpublished` serves `site/unpublished/`: every report's preview, drafts and warnings included.
 # Here rather than on the command line, because the committed site is built against them.
+# Required, both of them: there is no default host to fall back on.
 # Moving `published` is this line, a rebuild, a deploy there, and repasting each `automated` report.
 #
 # Both on GitHub Pages for now, `site/published/` deployed under `/published/`;

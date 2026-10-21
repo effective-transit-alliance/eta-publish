@@ -34,7 +34,7 @@ from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import ASSET_DIR, IMAGE_DIR, SITE
+from .naming import ASSET_DIR, IMAGE_DIR
 from .nodes import Document
 
 REPORTS = Path("reports.toml")
@@ -113,7 +113,7 @@ class Site:
     failed: list[Failed] = field(default_factory=list)
 
 
-def social_image(doc: Document, path: str, site_url: str = SITE) -> str:
+def social_image(doc: Document, path: str, site_url: str) -> str:
     """Where the site serves the share card, for uploading as Squarespace's social image.
 
     Nothing where there is no card, or where no picture of it was written.
@@ -125,30 +125,33 @@ def social_image(doc: Document, path: str, site_url: str = SITE) -> str:
 
 @dataclass(frozen=True)
 class Hosts:
-    """Where each half of the site is served: the list's own `[site]`,
-    or `SITE` for either it leaves out.
+    """Where each half of the site is served: the list's own `[site]`.
 
     In the list rather than on the command line, because what is committed is built against them:
     a build that took them from a flag would write a different site for whoever forgot the flag.
+    And with no default, because a default is a host someone forgot to change,
+    and the PDF, read away from the site, carries its links wherever it goes.
     """
 
-    published: str = SITE
+    published: str
     """Where `site/published/` is served, which the live pages link."""
 
-    unpublished: str = SITE
+    unpublished: str
     """Where `site/unpublished/` is served, which the previews are read at."""
 
 
 def load_hosts(path: Path = REPORTS) -> Hosts:
     """The list's `[site]` URLs, each checked to be one."""
-    if not path.exists():
-        return Hosts()
-    table = tomllib.loads(path.read_text()).get("site", {})
+    table = tomllib.loads(path.read_text()).get("site")
+    if table is None:
+        raise ValueError(f"{path}: has no `[site]` table saying where the site is served")
     if not isinstance(table, dict):
         raise ValueError(f"{path}: `site` is not a `[site]` table")
     urls: dict[str, str] = {}
     for key in ("published", "unpublished"):
-        url = str(table.get(key, SITE)).strip().rstrip("/")
+        if key not in table:
+            raise ValueError(f"{path}: `[site]` has no `{key}` URL")
+        url = str(table[key]).strip().rstrip("/")
         if not url.startswith("https://"):
             raise ValueError(f"{path}: `[site] {key} = {url!r}` is not an `https://` URL")
         urls[key] = url
@@ -448,7 +451,7 @@ at the other end and thirty asking at once is a way to be told to wait.
 def build_site(
     reports: list[Report],
     outdir: Path,
-    options: BuildOptions | None = None,
+    options: BuildOptions,
     read_from: Path | None = None,
 ) -> Site:
     """Build every report, keeping going when one of them cannot be built.
@@ -469,7 +472,6 @@ def build_site(
     What the last build left is read from `read_from`, `outdir` by default,
     and a report built from another directory carries over what it reads.
     """
-    options = options or BuildOptions()
     # Always, not only offline: a fetch reuses one too, when Drive says
     # the document behind it has not been edited since it was written.
     saved = saved_responses(read_from or outdir)

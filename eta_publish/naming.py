@@ -25,13 +25,13 @@ UNPUBLISHED_DIR = "unpublished"
 
 Every report, drafts included, with its index:
 the previews, which is not the same thing as what is out.
-`SITE` serves this directory, so every path below is relative to it.
+`reports.toml`'s `[site] unpublished` serves this directory, so every path below is relative to it.
 """
 
 PUBLISHED_DIR = "published"
 """The directory beside `UNPUBLISHED_DIR` holding only what the live pages link.
 
-At the same paths as in `UNPUBLISHED_DIR`, so either one serves the URLs `SITE` names.
+At the same paths as in `UNPUBLISHED_DIR`, so either one serves the URLs a `[site]` host names.
 """
 
 ASSET_DIR = "assets"
@@ -45,22 +45,6 @@ LIVE_SITE = "https://www.etany.org"
 
 What the published PDF links a video to: the figure on the live page,
 which shows its warning and captions, rather than the bare file, which shows neither.
-"""
-
-SITE = "https://kkysen.github.io/eta-publish"
-"""Where the site is served, unless `reports.toml` names another as its `site`."""
-"""Where the built site is served, with no trailing slash.
-
-Only the PDF needs this. Every other output links within itself
-and so says nothing about where it is hosted,
-but a PDF is read away from the site it came from:
-a link in it has to name the host or name nothing.
-
-One constant rather than an option, because `report.typ` is committed
-and `check-committed-site.sh` refuses a build that differs from it:
-a base that varied per run would make the committed file depend on
-who ran the build. This is the preview host, and it changes when the
-reports are published somewhere else.
 """
 
 IMAGE_DIR = "images"

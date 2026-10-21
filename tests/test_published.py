@@ -3,8 +3,9 @@
 from pathlib import Path
 
 import pytest
+from paths import HOST
 
-from eta_publish.naming import PUBLISHED_DIR, SITE, UNPUBLISHED_DIR
+from eta_publish.naming import PUBLISHED_DIR, UNPUBLISHED_DIR
 from eta_publish.published import referenced, write_published
 from eta_publish.site import Published, Report
 
@@ -13,14 +14,14 @@ PATH = "reports/r"
 
 def test_what_the_fragment_links_at_the_site_is_what_it_needs() -> None:
     html = (
-        f'<link rel="stylesheet" href="{SITE}/assets/report.css">'
-        f'<script src="{SITE}/assets/report.js"></script>'
-        f'<a href="{SITE}/{PATH}/images/a.jpg"><img src="{SITE}/{PATH}/images/web/a-800w.webp"'
-        f' srcset="{SITE}/{PATH}/images/web/a-800w.avif 800w,'
-        f' {SITE}/{PATH}/images/web/a-1600w.avif 1600w"></a>'
-        f'<video src="{SITE}/{PATH}/videos/v.mp4" poster="{SITE}/{PATH}/images/p.jpg"></video>'
+        f'<link rel="stylesheet" href="{HOST}/assets/report.css">'
+        f'<script src="{HOST}/assets/report.js"></script>'
+        f'<a href="{HOST}/{PATH}/images/a.jpg"><img src="{HOST}/{PATH}/images/web/a-800w.webp"'
+        f' srcset="{HOST}/{PATH}/images/web/a-800w.avif 800w,'
+        f' {HOST}/{PATH}/images/web/a-1600w.avif 1600w"></a>'
+        f'<video src="{HOST}/{PATH}/videos/v.mp4" poster="{HOST}/{PATH}/images/p.jpg"></video>'
     )
-    assert referenced(html, PATH) == {
+    assert referenced(html, PATH, site_url=HOST) == {
         "assets/report.css",
         "assets/report.js",
         f"{PATH}/images/a.jpg",
@@ -39,23 +40,23 @@ def test_a_link_anywhere_else_is_not_ours_to_host() -> None:
         '<a href="#fn1">1</a><a href="mailto:a@example.com">a</a>'
         '<a href="https://example.com/?a=1&amp;b=2">b</a>'
     )
-    assert referenced(html, PATH) == set()
+    assert referenced(html, PATH, site_url=HOST) == set()
 
 
 def test_a_relative_link_is_relative_to_the_report() -> None:
     """What a `--no-hosted-media` fragment links: its pictures beside itself."""
     html = '<img src="images/a.jpg"><link href="../../assets/report.css">'
-    assert referenced(html, PATH) == {f"{PATH}/images/a.jpg", "assets/report.css"}
+    assert referenced(html, PATH, site_url=HOST) == {f"{PATH}/images/a.jpg", "assets/report.css"}
 
 
 def test_a_link_names_the_file_percent_encoded() -> None:
-    html = f'<img src="{SITE}/{PATH}/images/Platform%20(east).jpg">'
-    assert referenced(html, PATH) == {f"{PATH}/images/Platform (east).jpg"}
+    html = f'<img src="{HOST}/{PATH}/images/Platform%20(east).jpg">'
+    assert referenced(html, PATH, site_url=HOST) == {f"{PATH}/images/Platform (east).jpg"}
 
 
 def test_a_link_out_of_the_site_is_refused() -> None:
     with pytest.raises(ValueError, match="outside the site"):
-        referenced('<img src="../../../etc/passwd">', PATH)
+        referenced('<img src="../../../etc/passwd">', PATH, site_url=HOST)
 
 
 def built(root: Path, path: str, doc_id: str, html: str) -> None:
@@ -85,7 +86,7 @@ def files(root: Path) -> set[str]:
 
 
 def test_only_an_automated_report_is_hosted_and_only_what_it_links(tmp_path: Path) -> None:
-    html = f'<img src="{SITE}/reports/a/images/a.jpg">'
+    html = f'<img src="{HOST}/reports/a/images/a.jpg">'
     built(tmp_path, "reports/a", "a", html)
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images").mkdir()
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images/a.jpg").write_bytes(b"a")
@@ -98,7 +99,7 @@ def test_only_an_automated_report_is_hosted_and_only_what_it_links(tmp_path: Pat
         entry("d", Published.DRAFT),
     ]
 
-    assert write_published(tmp_path, reports, complete=True) == []
+    assert write_published(tmp_path, reports, complete=True, site_url=HOST) == []
     assert files(tmp_path) == {
         "reports/a/report.html",
         "reports/a/report.md",
@@ -107,20 +108,20 @@ def test_only_an_automated_report_is_hosted_and_only_what_it_links(tmp_path: Pat
 
 
 def test_a_live_page_linking_a_missing_file_is_a_problem(tmp_path: Path) -> None:
-    built(tmp_path, "reports/a", "a", f'<img src="{SITE}/reports/a/images/a.jpg">')
+    built(tmp_path, "reports/a", "a", f'<img src="{HOST}/reports/a/images/a.jpg">')
     report = entry("a", Published.AUTOMATED)
-    [(which, problem)] = write_published(tmp_path, [report], complete=True)
+    [(which, problem)] = write_published(tmp_path, [report], complete=True, site_url=HOST)
     assert which == report
     assert "`reports/a/images/a.jpg`" in problem
     # Without the pictures there is nothing to copy, which is not a problem.
-    assert write_published(tmp_path, [report], complete=False) == []
+    assert write_published(tmp_path, [report], complete=False, site_url=HOST) == []
 
 
 def test_a_report_no_longer_automated_is_no_longer_hosted(tmp_path: Path) -> None:
     built(tmp_path, "reports/a", "a", "")
-    write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True)
+    write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
     assert files(tmp_path)
-    write_published(tmp_path, [entry("a", Published.MANUAL)], complete=True)
+    write_published(tmp_path, [entry("a", Published.MANUAL)], complete=True, site_url=HOST)
     assert files(tmp_path) == set()
 
 
@@ -128,10 +129,13 @@ def test_a_split_page_hosts_its_pieces_and_what_they_link(tmp_path: Path) -> Non
     built(tmp_path, "reports/a", "a", "")
     for name in ("report.part01.html", "report.published.part01.html"):
         piece = tmp_path / UNPUBLISHED_DIR / "reports/a" / name
-        piece.write_text(f'<img src="{SITE}/reports/a/images/a.jpg">')
+        piece.write_text(f'<img src="{HOST}/reports/a/images/a.jpg">')
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images").mkdir()
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images/a.jpg").write_bytes(b"a")
-    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    assert (
+        write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
+        == []
+    )
     assert "reports/a/report.part01.html" in files(tmp_path)
     assert "reports/a/images/a.jpg" in files(tmp_path)
 
@@ -145,9 +149,12 @@ def test_a_report_with_warnings_publishes_its_copies_without_them(tmp_path: Path
     (directory / "report.pdf").write_bytes(b"warned")
     (directory / "report.published.pdf").write_bytes(b"clean")
     (directory / "report.published.html").write_text(
-        f'<p>clean</p><a href="{SITE}/reports/a/report.pdf">PDF</a>'
+        f'<p>clean</p><a href="{HOST}/reports/a/report.pdf">PDF</a>'
     )
-    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    assert (
+        write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
+        == []
+    )
     published = tmp_path / PUBLISHED_DIR / "reports/a"
     assert (published / "report.html").read_text().startswith("<p>clean</p>")
     assert (published / "report.md").read_text() == "clean"
@@ -157,7 +164,7 @@ def test_a_report_with_warnings_publishes_its_copies_without_them(tmp_path: Path
 
 def test_a_site_served_elsewhere_hosts_what_links_there() -> None:
     other = "https://reports.example.org"
-    html = f'<img src="{other}/{PATH}/images/a.jpg"><img src="{SITE}/{PATH}/images/b.jpg">'
+    html = f'<img src="{other}/{PATH}/images/a.jpg"><img src="{HOST}/{PATH}/images/b.jpg">'
     assert referenced(html, PATH, other) == {f"{PATH}/images/a.jpg"}
 
 
@@ -175,7 +182,10 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
         (assets / name).write_text(name)
         (assets / f"{name}.map").write_text("{}")
 
-    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    assert (
+        write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
+        == []
+    )
     assert files(tmp_path) == {
         "reports/a/report.html",
         "reports/a/report.md",
@@ -203,7 +213,10 @@ def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> N
         (assets / name).write_text(name)
         (assets / f"{name}.map").write_text("{}")
 
-    assert write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True) == []
+    assert (
+        write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
+        == []
+    )
     hosted = files(tmp_path)
     assert "reports/a/report.part01.min.html" in hosted
     assert "reports/a/report.part01.min.min.html" not in hosted

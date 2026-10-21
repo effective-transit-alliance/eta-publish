@@ -21,6 +21,7 @@ from pathlib import Path
 
 from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document
+from eta_publish.site import load_hosts
 
 TESTS = Path(__file__).parent
 ROOT = TESTS.parent
@@ -32,6 +33,15 @@ FIXTURE_DIR = FIXTURE / SLUG
 SITE = ROOT / "site"
 UNPUBLISHED = SITE / UNPUBLISHED_DIR
 REAL_DIR = UNPUBLISHED / SLUG
+
+HOSTS = load_hosts(ROOT / "reports.toml")
+"""Where the committed list serves the site, which both corpora were built against.
+
+A test that emits rebuilds what one of them holds, so it links the same hosts.
+"""
+
+HOST = HOSTS.unpublished
+"""What a test passes as `site_url`, the preview host the corpora's own outputs link."""
 
 
 def named_images(doc: Document) -> Document:

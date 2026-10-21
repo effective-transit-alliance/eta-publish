@@ -23,7 +23,6 @@ from typing import override
 from ..naming import (
     IMAGE_DIR,
     PRINT_DIR,
-    SITE,
     VIDEO_DIR,
     print_href,
     video_frame_name,
@@ -99,8 +98,9 @@ class TypstEmitter(Emitter):
         self,
         template: str = "template.typ",
         image_dir: str = PRINT_DIR,
-        site_url: str = SITE,
         page_url: str = "",
+        *,
+        site_url: str,
     ) -> None:
         super().__init__()
         self.template = template

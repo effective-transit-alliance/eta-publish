@@ -5,7 +5,7 @@ import hashlib
 import json
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 lazy import os
 lazy import shutil
@@ -53,7 +53,6 @@ from .naming import (
     IMAGE_DIR,
     LIVE_SITE,
     PRINT_DIR,
-    SITE,
     VIDEO_DIR,
     WEB_DIR,
     video_frame_name,
@@ -104,18 +103,18 @@ class BuildOptions:
     A rebuild of what is committed, for a change to this code rather than to a doc.
     """
 
-    unpublished_url: str = SITE
+    unpublished_url: str = field(kw_only=True)
     """Where `site/unpublished/` is served, which a preview's absolute links start with:
-    `reports.toml`'s `[site] unpublished`, or `SITE` where it names none."""
+    `reports.toml`'s `[site] unpublished`."""
 
-    published_url: str = SITE
+    published_url: str = field(kw_only=True)
     """Where `site/published/` is served, which a live page's absolute links start with:
-    `reports.toml`'s `[site] published`, or `SITE` where it names none."""
+    `reports.toml`'s `[site] published`."""
 
     embed_assets: bool = False
     """Whether `report.html` carries its stylesheet and script rather than linking them.
 
-    Linked by default, at `SITE`,
+    Linked by default, at `published_url`,
     so a fragment is 28 KB smaller and every report shares one copy.
     A linked copy only exists once the site is pushed, though,
     so embedding is for a fragment to paste before then.
@@ -134,7 +133,7 @@ class BuildOptions:
     The fragment is pasted into Squarespace, which has no way to upload a
     folder of images and names each one it is given by a hash nobody can
     predict, so each would otherwise be uploaded by hand and its link copied
-    back one at a time. Linked at `SITE` instead, the files the build already
+    back one at a time. Linked on the site instead, the files the build already
     wrote are the ones the page shows. Off, it links them relative to itself,
     for a page served beside its `images/`.
     """
@@ -273,7 +272,8 @@ def fragment_emitter(
     linked: str,
     pdf_href: str = "",
     source_brackets: bool = False,
-    site_url: str = SITE,
+    *,
+    site_url: str,
 ) -> HtmlEmitter:
     """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
     and carrying them otherwise."""
@@ -295,7 +295,8 @@ def write_split(
     linked: str = "",
     source_brackets: bool = False,
     stem: str = "report",
-    site_url: str = SITE,
+    *,
+    site_url: str,
 ) -> list[Path]:
     """One file per piece, named so paste order is obvious."""
     emitter = fragment_emitter(
@@ -630,7 +631,7 @@ UNWARNED = "published"
 as `report.published.html`: linking the published host, and without the warnings."""
 
 
-def media_base(path: str, site_url: str = SITE) -> str:
+def media_base(path: str, site_url: str) -> str:
     """Where the site serves the images of the report at `path`, as a URL."""
     return f"{site_url}/{path}/{IMAGE_DIR}"
 
@@ -646,8 +647,9 @@ def emit(
     url: str = "",
     source_brackets: bool = False,
     stem: str = "report",
-    site_url: str = SITE,
     page_url: str = "",
+    *,
+    site_url: str,
 ) -> dict[str, Path]:
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
@@ -662,7 +664,7 @@ def emit(
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets, site_url),
+        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets, site_url=site_url),
         f"{stem}.md": MarkdownEmitter(),
         f"{stem}.typ": TypstEmitter(site_url=site_url, page_url=page_url),
     }
@@ -681,6 +683,7 @@ def emit(
             card_base=cards,
             page_url=url,
             source_brackets=source_brackets,
+            site_url=site_url,
         )
     )
     written[page.name] = page
@@ -929,7 +932,7 @@ def write_outputs(
 def build_one(
     ref: str,
     outdir: Path,
-    options: BuildOptions | None = None,
+    options: BuildOptions,
     verify: Callable[[Document], None] | None = None,
     cached: Path | None = None,
     previous: Path | None = None,
@@ -960,7 +963,6 @@ def build_one(
     was not this one: what it recorded is carried over before anything reads it.
     Without one, it is the report's own path under `read_from`, the last site.
     """
-    options = options or BuildOptions()
     console.step("reading the saved response" if options.offline else "fetching the document")
     document = load(ref, options.suggestions, options.comments, cached)
     console.step("parsing")

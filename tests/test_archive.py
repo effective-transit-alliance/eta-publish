@@ -13,6 +13,7 @@ from typing import cast, override
 
 import pytest
 import requests
+from paths import HOST
 from pypdf import PdfWriter
 
 from eta_publish import archive
@@ -1579,7 +1580,7 @@ def test_a_versioned_source_says_versioned_not_archived() -> None:
     from eta_publish.emit.html import HtmlEmitter, markup
 
     versioned = replace(REFUSED, version="https://x.org/w/index.php?oldid=1", versioned="20261015")
-    shown = markup(HtmlEmitter().source_archive(versioned))
+    shown = markup(HtmlEmitter(site_url=HOST).source_archive(versioned))
     assert shown == (
         '(versioned <a class="source-archive" href="https://x.org/w/index.php?oldid=1">'
         "Oct 15, 2026</a>)"

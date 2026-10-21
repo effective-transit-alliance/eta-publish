@@ -7,6 +7,7 @@ from typing import cast
 
 import pytest
 import requests
+from paths import HOST
 from test_conventions import build, field, image, para
 
 from eta_publish.build import write_frames
@@ -25,7 +26,7 @@ from eta_publish.embeds import (
 from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
-from eta_publish.naming import IMAGE_DIR, SITE, VIDEO_DIR
+from eta_publish.naming import IMAGE_DIR, VIDEO_DIR
 from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
 from eta_publish.parse import embedded
 
@@ -210,7 +211,7 @@ def card_page(platform: Platform, url: str, key: str, card: Card | None) -> tupl
     if card is not None:
         doc.cards[url] = card
     doc.media_files[url] = "embed-1.jpg"
-    return HtmlEmitter(image_base="images").emit(doc), MarkdownEmitter().emit(doc)
+    return HtmlEmitter(image_base="images", site_url=HOST).emit(doc), MarkdownEmitter().emit(doc)
 
 
 def test_a_card_loads_nothing_until_clicked() -> None:
@@ -252,7 +253,7 @@ def test_a_drive_video_plays_from_the_site() -> None:
     doc = build([para("Headline", "TITLE"), video(url)])
     doc.cards[url] = Card(mime="video/mp4")
     doc.media_files[url] = "embed-1.mp4"
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert '<video src="videos/embed-1.mp4" controls preload="metadata"' in html
 
 
@@ -273,7 +274,7 @@ def test_a_copied_video_plays_from_the_site() -> None:
     assert not [w for w in doc.warnings if "not a modifier" in str(w)]
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert '<video src="videos/embed-1.mp4" controls preload="metadata"' in html
 
 
@@ -283,8 +284,8 @@ def test_a_graphic_video_opens_on_the_warning_card() -> None:
     doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
-    html = HtmlEmitter(image_base="images").emit(doc)
-    assert f'poster="{SITE}/assets/warning-Graphic_Content.svg"' in html
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
+    assert f'poster="{HOST}/assets/warning-Graphic_Content.svg"' in html
 
 
 def test_a_video_is_named_after_its_link_text() -> None:
@@ -319,7 +320,7 @@ def test_a_copied_video_is_a_figure_like_an_image() -> None:
     doc = build([para("Headline", "TITLE"), line, warning("Graphic Content: a man is hit")])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "Hit_by_the_1_train.mp4"
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert '<p class="embed-warning" role="note">Warning: Graphic Content: a man is hit</p>' in html
     assert '<figure id="Hit_by_the_1_train"><a class="link-mark"' in html
     assert '<figcaption class="figure-caption">Hit by the 1 train</figcaption>' in html
@@ -346,7 +347,7 @@ def test_a_video_takes_a_credit_line_as_a_figure_does() -> None:
     )
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "Hit_by_the_1_train.mp4"
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert '<figcaption class="figure-credit">Credit: ETA (Khyber Sen)</figcaption>' in html
     assert "Credit: ETA (Khyber Sen)" in MarkdownEmitter().emit(doc)
 
@@ -356,7 +357,7 @@ def test_a_copy_that_failed_shows_its_card() -> None:
     doc = build([para("Headline", "TITLE"), copied(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.jpg"
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert "<video " not in html
     assert 'src="images/embed-1.jpg"' in html
 
@@ -365,7 +366,7 @@ def test_a_drive_file_that_is_not_a_video_is_a_link() -> None:
     url = "https://drive.google.com/file/d/1abc/view"
     doc = build([para("Headline", "TITLE"), video(url)])
     doc.cards[url] = Card(mime="image/png")
-    assert "<video " not in HtmlEmitter(image_base="images").emit(doc)
+    assert "<video " not in HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
 
 
 class Answering:
@@ -554,7 +555,7 @@ def test_a_copy_offers_its_captions() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     doc.media_captions[url] = Captions("embed-1.vtt", automatic=True)
-    html = HtmlEmitter(image_base="images").emit(doc)
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert (
         '<track kind="captions" src="videos/embed-1.vtt" srclang="en" label="English (automatic)">'
         in html
@@ -591,7 +592,7 @@ def test_a_preview_page_links_the_card_beside_it() -> None:
     doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
-    page = report_page(doc, asset_base="../../assets")
+    page = report_page(doc, asset_base="../../assets", site_url=HOST)
     assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
 
 
@@ -603,8 +604,8 @@ def test_the_published_pdf_opens_a_video_on_its_live_figure() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     page = "https://www.etany.org/reports/someone"
-    assert f'#link("{page}#embed-1")' in TypstEmitter(page_url=page).emit(doc)
-    assert f"{SITE}/reports/someone/videos/embed-1.mp4" in TypstEmitter().emit(doc)
+    assert f'#link("{page}#embed-1")' in TypstEmitter(page_url=page, site_url=HOST).emit(doc)
+    assert f"{HOST}/reports/someone/videos/embed-1.mp4" in TypstEmitter(site_url=HOST).emit(doc)
 
 
 def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
@@ -614,7 +615,7 @@ def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     page = "https://www.etany.org/reports/someone"
-    typst = TypstEmitter(page_url=page).emit(doc)
+    typst = TypstEmitter(page_url=page, site_url=HOST).emit(doc)
     poster = f'link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
     assert typst.index("#video_warning[Warning: Graphic Content]") < typst.index(poster)
 
@@ -625,7 +626,7 @@ def test_the_pdf_shows_a_video_with_no_warning_as_its_first_frame() -> None:
     doc = build([para("Headline", "TITLE"), copied(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
-    typst = TypstEmitter().emit(doc)
+    typst = TypstEmitter(site_url=HOST).emit(doc)
     assert 'capped_image("images/embed-1.frame.jpg", alt: "Video")' in typst
     assert "video_warning[" not in typst
 

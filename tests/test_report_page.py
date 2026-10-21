@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import override
 
 import pytest
-from paths import FIXTURE_DIR, named_images
+from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.build import emit
 from eta_publish.emit.html import report_page
@@ -56,7 +56,7 @@ def test_page_images_resolve_next_to_the_page(doc: Document, tmp_path: Path) -> 
     images.mkdir()
     (images / "sas-west-036.png").write_bytes(b"not really a png")
 
-    emit(doc, tmp_path)
+    emit(doc, tmp_path, site_url=HOST)
     page = (tmp_path / "index.html").read_text()
 
     found = sources(page)
@@ -72,7 +72,7 @@ def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Pa
     Serving them from somewhere else is the emitter's `image_base`,
     which is not something a build decides."""
     (tmp_path / "images").mkdir()
-    emit(doc, tmp_path)
+    emit(doc, tmp_path, site_url=HOST)
     fragment = (tmp_path / "report.html").read_text()
     assert sources(fragment)[0] == "images/sas-west-036.png"
 
@@ -80,14 +80,14 @@ def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Pa
 def test_warnings_are_shown_where_someone_will_see_them() -> None:
     doc = named_images(parse(FIXTURE))
     doc.warn("something looked wrong")
-    assert "something looked wrong" in report_page(doc)
+    assert "something looked wrong" in report_page(doc, site_url=HOST)
 
 
 def test_no_warnings_means_no_warning_box(doc: Document) -> None:
     # The fixture's header carries one unrecognized field on purpose;
     # what is under test is the box, not the warning.
     doc.warnings.clear()
-    assert 'class="warnings"' not in report_page(doc)
+    assert 'class="warnings"' not in report_page(doc, site_url=HOST)
 
 
 def test_markdown_images_resolve_next_to_the_archive(doc: Document, tmp_path: Path) -> None:
@@ -97,7 +97,7 @@ def test_markdown_images_resolve_next_to_the_archive(doc: Document, tmp_path: Pa
     images.mkdir()
     (images / "sas-west-036.png").write_bytes(b"not really a png")
 
-    emit(doc, tmp_path)
+    emit(doc, tmp_path, site_url=HOST)
     archive = (tmp_path / "report.md").read_text()
 
     links = re.findall(r"!\[[^\]]*\]\(<([^>]+)>\)", archive)

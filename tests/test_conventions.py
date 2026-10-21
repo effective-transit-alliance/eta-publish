@@ -10,7 +10,7 @@ from typing import Any, override
 
 import pytest
 import requests
-from paths import named_images
+from paths import HOST, named_images
 
 from eta_publish.checks import check_described
 from eta_publish.docs_json import JsonObject
@@ -161,7 +161,9 @@ def test_image_source_does_not_become_a_paragraph(appendix: Document) -> None:
     assert paragraphs == ["The Freedom Tunnel was formerly the 4-track West Side Line."]
 
 
-@pytest.mark.parametrize("emitter", [HtmlEmitter(), TypstEmitter()], ids=["html", "typst"])
+@pytest.mark.parametrize(
+    "emitter", [HtmlEmitter(site_url=HOST), TypstEmitter(site_url=HOST)], ids=["html", "typst"]
+)
 def test_image_source_never_reaches_a_published_output(
     emitter: HtmlEmitter | TypstEmitter, appendix: Document
 ) -> None:
@@ -186,7 +188,7 @@ def test_the_description_reaches_the_preview() -> None:
             para("Headline", "TITLE"),
         ]
     )
-    assert 'content="Cheaper and shallower."' in report_page(doc)
+    assert 'content="Cheaper and shallower."' in report_page(doc, site_url=HOST)
 
 
 def test_a_credit_line_that_is_not_underlined_is_not_a_credit() -> None:
@@ -219,7 +221,7 @@ def test_the_underline_marking_a_label_is_not_published() -> None:
             field("Credit: MTA"),
         ]
     )
-    out = HtmlEmitter().emit(doc)
+    out = HtmlEmitter(site_url=HOST).emit(doc)
     assert '<figcaption class="figure-credit">Credit: MTA</figcaption>' in out
     assert "<u>" not in out
 
@@ -263,7 +265,7 @@ def test_a_qualified_source_line_is_still_editorial() -> None:
         figure = next(b for b in doc.blocks if isinstance(b, Figure))
         assert label in text_of(figure.source), label
         assert not [b for b in doc.blocks if isinstance(b, Paragraph)], label
-        assert label not in HtmlEmitter().emit(doc), label
+        assert label not in HtmlEmitter(site_url=HOST).emit(doc), label
 
 
 def test_an_image_styled_as_a_heading_becomes_a_figure() -> None:
@@ -359,7 +361,7 @@ def test_chart_asset_placeholders_are_editorial() -> None:
             field("SVG: station-length.svg"),
         ]
     )
-    assert "SVG:" not in HtmlEmitter().emit(doc)
+    assert "SVG:" not in HtmlEmitter(site_url=HOST).emit(doc)
     assert not [b for b in doc.blocks if isinstance(b, Paragraph)]
 
 
@@ -433,9 +435,9 @@ def test_soft_line_breaks_do_not_reach_the_output_as_control_characters() -> Non
             para("One line.\vAnother line."),
         ]
     )
-    for emitted in (HtmlEmitter().emit(doc), TypstEmitter().emit(doc)):
+    for emitted in (HtmlEmitter(site_url=HOST).emit(doc), TypstEmitter(site_url=HOST).emit(doc)):
         assert "\v" not in emitted
-    assert "One line.<br>Another line." in HtmlEmitter().emit(doc)
+    assert "One line.<br>Another line." in HtmlEmitter(site_url=HOST).emit(doc)
 
 
 def _svg_doc(mime: str = "image/svg+xml", uri: str = "https://drive.google.com/open?id=ABC123"):
@@ -480,8 +482,8 @@ def test_a_linked_svg_becomes_the_figure_file() -> None:
 
 def test_the_svg_line_is_still_not_published() -> None:
     doc = _svg_doc()
-    assert "SVG:" not in HtmlEmitter().emit(doc)
-    assert "drive.google.com" not in HtmlEmitter().emit(doc)
+    assert "SVG:" not in HtmlEmitter(site_url=HOST).emit(doc)
+    assert "drive.google.com" not in HtmlEmitter(site_url=HOST).emit(doc)
 
 
 def test_a_source_line_that_links_no_vector_leaves_the_raster() -> None:
@@ -860,11 +862,11 @@ def test_a_linked_svg_that_is_not_one_warns_and_publishes_no_picture(tmp_path: P
     assert session.asked == [SVG_URL]
     assert "io.1" in doc.unpublished
     assert not list(tmp_path.glob("*.png"))
-    html = HtmlEmitter().emit(doc)
+    html = HtmlEmitter(site_url=HOST).emit(doc)
     assert "<img" not in html
     assert "<figure" in html
     assert "![" not in MarkdownEmitter().emit(doc)
-    assert "capped_image(" not in TypstEmitter().emit(doc)
+    assert "capped_image(" not in TypstEmitter(site_url=HOST).emit(doc)
 
 
 def test_an_svg_that_cannot_be_cropped_is_published_whole(tmp_path: Path) -> None:

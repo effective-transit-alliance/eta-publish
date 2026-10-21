@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 import pytest
-from paths import FIXTURE_DIR
+from paths import FIXTURE_DIR, HOST, HOSTS
 from test_conventions import build, field, image, para
 from typer import Exit
 
@@ -24,7 +24,7 @@ from eta_publish.build import (
     require_image_index,
     write_image_index,
 )
-from eta_publish.naming import SITE, UNPUBLISHED_DIR
+from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
@@ -126,7 +126,12 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     site = build_site(
         [Report(url=str(saved), name=fields["name"], tab=fields["tab"])],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert not site.built
     # An empty marked span, which is what a name that is not there looks like.
@@ -290,7 +295,16 @@ def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
         Report(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
     ]
     seed_image_index(tmp_path / "site")
-    site = build_site(reports, tmp_path / "site", BuildOptions(images=False, archive=False))
+    site = build_site(
+        reports,
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
+    )
     assert [f.report.name for f in site.failed] == ["gone"]
     assert [b.report.name for b in site.built] == ["Digging Out of a Very Deep Hole"]
     assert (tmp_path / "site" / site.built[0].path / "index.html").exists()
@@ -327,7 +341,17 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
     ]
 
     with pytest.raises(Exit):
-        publish(reports, root, Suggestions.REJECTED, False, False, False, archive=False, whole=True)
+        publish(
+            reports,
+            root,
+            Suggestions.REJECTED,
+            False,
+            False,
+            False,
+            archive=False,
+            whole=True,
+            hosts=HOSTS,
+        )
 
     assert (kept / "report.html").read_text() == "the last build of a report that failed"
     assert not (out / "reports" / "dropped").exists()
@@ -347,7 +371,16 @@ def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
     good = tmp_path / "good.json"
     good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
 
-    publish([Report(url=str(good))], root, Suggestions.REJECTED, False, False, False, archive=False)
+    publish(
+        [Report(url=str(good))],
+        root,
+        Suggestions.REJECTED,
+        False,
+        False,
+        False,
+        archive=False,
+        hosts=HOSTS,
+    )
 
     assert not (out / SLUG / "stale.html").exists()
     assert (out / SLUG / "report.html").is_file()
@@ -372,7 +405,13 @@ def test_the_fragment_links_its_images_where_the_site_serves_them(
     seed_image_index(out)
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
-    options = BuildOptions(images=False, archive=False, hosted_media=hosted)
+    options = BuildOptions(
+        images=False,
+        archive=False,
+        hosted_media=hosted,
+        unpublished_url=HOSTS.unpublished,
+        published_url=HOSTS.published,
+    )
     site = build_site([Report(url=str(saved))], out, options)
     fragment = (out / site.built[0].path / "report.html").read_text()
     assert src in fragment
@@ -389,7 +428,12 @@ def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
     site = build_site(
         [Report(url=str(saved), name="Some Other Document", tab="Draft 2")],
         out,
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert not site.built
     assert "the document is named" in site.failed[0].error
@@ -446,7 +490,16 @@ def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
     monkeypatch.setattr(build_module, "fetch", boom, raising=False)
     seed_image_index(out)
     site = build_site(
-        [report], out, BuildOptions(images=False, offline=True, comments=False, archive=False)
+        [report],
+        out,
+        BuildOptions(
+            images=False,
+            offline=True,
+            comments=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     monkeypatch.undo()
     assert [b.path for b in site.built] == ["reports/digging-out-deep-hole-sas-west"]
@@ -464,7 +517,13 @@ def test_offline_refuses_a_response_read_the_other_way(tmp_path: Path) -> None:
     site = build_site(
         [Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
         out,
-        BuildOptions(offline=True, suggestions="accepted", archive=False),
+        BuildOptions(
+            offline=True,
+            suggestions="accepted",
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert not site.built
     assert "needs a fetch" in site.failed[0].error
@@ -475,7 +534,12 @@ def test_offline_says_which_report_it_has_nothing_saved_for(tmp_path: Path) -> N
     site = build_site(
         [Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
         tmp_path / "site",
-        BuildOptions(offline=True, archive=False),
+        BuildOptions(
+            offline=True,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert not site.built
     assert "nothing saved" in site.failed[0].error
@@ -502,7 +566,11 @@ def test_reports_are_built_at_once_and_reported_in_order(
     reports = [Report(url=f"https://example.invalid/{name}") for name in order]
 
     started = time.perf_counter()
-    site = build_site(reports, tmp_path / "site")
+    site = build_site(
+        reports,
+        tmp_path / "site",
+        options=BuildOptions(unpublished_url=HOSTS.unpublished, published_url=HOSTS.published),
+    )
     elapsed = time.perf_counter() - started
 
     assert [b.path for b in site.built] == ["reports/slow", "reports/quick"]
@@ -533,7 +601,11 @@ def test_a_note_says_which_report_it_is_about(
         Report(url=f"https://example.invalid/{name}", name=name.title()) for name in ("one", "two")
     ]
 
-    build_site(reports, tmp_path / "site")
+    build_site(
+        reports,
+        tmp_path / "site",
+        options=BuildOptions(unpublished_url=HOSTS.unpublished, published_url=HOSTS.published),
+    )
 
     written = capsys.readouterr().err
     assert "`One`: looked up one" in written
@@ -693,7 +765,12 @@ def test_a_name_that_is_not_the_documents_is_warned_about(
     build_site(
         [Report(url=str(saved), name="SAS West")],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     warning = capsys.readouterr().err
     assert "reports.toml calls this `SAS West`" in warning
@@ -708,7 +785,12 @@ def test_the_documents_own_name_is_not_warned_about(
     build_site(
         [Report(url=str(saved), name=str(FIXTURE["title"]))],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert "reports.toml calls this" not in capsys.readouterr().err
 
@@ -722,7 +804,12 @@ def test_a_tab_that_is_not_the_documents_is_warned_about(
     build_site(
         [Report(url=str(saved), tab="Draft 1")],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     warning = capsys.readouterr().err
     assert "reports.toml expects the tab `Draft 1`" in warning
@@ -739,7 +826,12 @@ def test_a_response_that_names_no_tab_cannot_confirm_one(tmp_path: Path) -> None
     site = build_site(
         [Report(url=str(saved), name="Digging Out of a Very Deep Hole", tab="Draft 1")],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert not site.built
     assert "the tab is named ``" in site.failed[0].error
@@ -752,7 +844,14 @@ def test_an_entry_that_names_neither_is_not_warned_about(
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Report(url=str(saved))], tmp_path / "site", BuildOptions(images=False, archive=False)
+        [Report(url=str(saved))],
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     assert "reports.toml" not in capsys.readouterr().err
 
@@ -778,13 +877,29 @@ def test_a_response_whose_images_are_gone_is_not_reused(tmp_path: Path) -> None:
     so a fresh checkout has one describing pictures that are not beside it.
     Reused there, the build downloads nothing and publishes a page with no images."""
     previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
-    assert reusable(previous, BuildOptions(archive=False)) is None
+    assert (
+        reusable(
+            previous,
+            BuildOptions(
+                archive=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
+            ),
+        )
+        is None
+    )
 
 
 def test_a_response_whose_images_are_there_is_reused(tmp_path: Path) -> None:
     previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
     (previous / "images" / "img-a.jpg").write_bytes(b"")
-    assert reusable(previous, BuildOptions(archive=False)) == previous / "doc.json"
+    assert (
+        reusable(
+            previous,
+            BuildOptions(
+                archive=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
+            ),
+        )
+        == previous / "doc.json"
+    )
 
 
 def test_an_image_the_code_now_names_differently_is_not_on_disk(tmp_path: Path) -> None:
@@ -803,7 +918,18 @@ def test_a_build_that_wants_no_images_does_not_ask_where_they_are(tmp_path: Path
     """It is not going to download them either way,
     so the pictures on disk are not what it is asking about."""
     previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
-    assert reusable(previous, BuildOptions(images=False, archive=False)) == previous / "doc.json"
+    assert (
+        reusable(
+            previous,
+            BuildOptions(
+                images=False,
+                archive=False,
+                unpublished_url=HOSTS.unpublished,
+                published_url=HOSTS.published,
+            ),
+        )
+        == previous / "doc.json"
+    )
 
 
 def test_a_download_that_turned_up_nothing_does_not_erase_the_index(tmp_path: Path) -> None:
@@ -895,7 +1021,12 @@ def test_reports_are_separated_from_each_other(
     build_site(
         [Report(url=str(saved)), Report(url=str(saved))],
         tmp_path / "site",
-        BuildOptions(images=False, archive=False),
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
     )
     lines = capsys.readouterr().err.splitlines()
     headings = [i for i, line in enumerate(lines) if line.startswith(("✓", "✗"))]
@@ -966,7 +1097,13 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
     saved.write_text(json.dumps(FIXTURE))
     out = tmp_path / "site"
     seed_image_index(out)
-    site = build_site([Report(url=str(saved))], out, BuildOptions(images=False))
+    site = build_site(
+        [Report(url=str(saved))],
+        out,
+        BuildOptions(
+            images=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
+        ),
+    )
     assert site.built
     assert not site.failed
     record = json.loads((out / SLUG / "archives.json").read_text())
@@ -1029,7 +1166,13 @@ def test_one_ctrl_c_stops_a_build_without_waiting_for_its_reports(
     started = time.monotonic()
     try:
         with pytest.raises(Stopped) as stopped:
-            build_site([Report(url=str(tmp_path / "doc.json"), name="Slow")], tmp_path / "site")
+            build_site(
+                [Report(url=str(tmp_path / "doc.json"), name="Slow")],
+                tmp_path / "site",
+                options=BuildOptions(
+                    unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
+                ),
+            )
     finally:
         released.set()
     assert time.monotonic() - started < 2
@@ -1062,11 +1205,11 @@ def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
     """What to upload as Squarespace's social image, and nothing without a card."""
     doc.card = Image(object_id="io.card", filename="card")
     doc.image_files["io.card"] = "card.jpg"
-    assert social_image(doc, "reports/r") == (
+    assert social_image(doc, "reports/r", site_url=HOST) == (
         "https://kkysen.github.io/eta-publish/reports/r/images/card.jpg"
     )
     doc.card = None
-    assert social_image(doc, "reports/r") == ""
+    assert social_image(doc, "reports/r", site_url=HOST) == ""
 
 
 def test_a_card_shows_the_reports_share_card_where_it_has_one(doc: Document) -> None:
@@ -1087,9 +1230,19 @@ def test_the_hosts_are_the_lists_own(tmp_path: Path) -> None:
     assert load_hosts(path) == Hosts(
         published="https://reports.example.org", unpublished="https://preview.example.org"
     )
+
+
+def test_a_list_must_say_where_its_site_is(tmp_path: Path) -> None:
+    """No host to fall back on: a default is a host someone forgot to change."""
+    path = tmp_path / "reports.toml"
     path.write_text("")
-    assert load_hosts(path) == Hosts(published=SITE, unpublished=SITE)
-    assert load_hosts(tmp_path / "missing.toml") == Hosts()
+    with pytest.raises(ValueError, match="no `\\[site\\]` table"):
+        load_hosts(path)
+    path.write_text('[site]\npublished = "https://reports.example.org"\n')
+    with pytest.raises(ValueError, match="no `unpublished` URL"):
+        load_hosts(path)
+    with pytest.raises(OSError):
+        load_hosts(tmp_path / "missing.toml")
 
 
 def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
@@ -1101,4 +1254,4 @@ def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
 
 def test_the_committed_list_publishes_under_its_preview_for_now() -> None:
     """Until `reports.etany.org`: one Pages site, `site/published/` under `/published/`."""
-    assert load_hosts() == Hosts(published=f"{SITE}/published", unpublished=SITE)
+    assert HOSTS.published == f"{HOSTS.unpublished}/published"

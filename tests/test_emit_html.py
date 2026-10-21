@@ -7,7 +7,7 @@ from typing import override
 
 import pytest
 from htpy import a
-from paths import FIXTURE_DIR, named_images
+from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.emit.base import shown_url
 from eta_publish.emit.html import HtmlEmitter, link_mark, markup, report_page
@@ -26,7 +26,9 @@ def doc() -> Document:
 
 @pytest.fixture
 def out(doc: Document) -> str:
-    return HtmlEmitter(image_base="https://assets.etany.org/sas-west", inline_css=False).emit(doc)
+    return HtmlEmitter(
+        image_base="https://assets.etany.org/sas-west", inline_css=False, site_url=HOST
+    ).emit(doc)
 
 
 def test_every_footnote_has_a_matching_backlink(out: str) -> None:
@@ -41,7 +43,7 @@ def test_every_footnote_has_a_matching_backlink(out: str) -> None:
 
 def test_ids_are_unique() -> None:
     """`fn18-return` appears twice on the published page."""
-    emitted = HtmlEmitter().emit(named_images(parse(FIXTURE)))
+    emitted = HtmlEmitter(site_url=HOST).emit(named_images(parse(FIXTURE)))
     ids = re.findall(r'id="([^"]+)"', emitted)
     assert len(ids) == len(set(ids))
 
@@ -188,7 +190,7 @@ def test_text_and_urls_are_escaped() -> None:
             }
         }
     )
-    emitted = HtmlEmitter().emit(named_images(parse(hostile)))
+    emitted = HtmlEmitter(site_url=HOST).emit(named_images(parse(hostile)))
     parsed = read(emitted)
     # The page carries one script of its own, the one that places the footnote
     # tooltips, so the check is that nothing from the document became a second
@@ -201,8 +203,8 @@ def test_text_and_urls_are_escaped() -> None:
 
 
 def test_inline_css_is_optional(doc: Document) -> None:
-    assert HtmlEmitter(inline_css=True).emit(doc).startswith("<style>")
-    assert not HtmlEmitter(inline_css=False).emit(doc).startswith("<style>")
+    assert HtmlEmitter(inline_css=True, site_url=HOST).emit(doc).startswith("<style>")
+    assert not HtmlEmitter(inline_css=False, site_url=HOST).emit(doc).startswith("<style>")
 
 
 # Determinism across runs is `test_snapshots.py`'s.
@@ -225,7 +227,7 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
     """Alphabetically by surname, which is how `etany.org` credits them."""
     doc.meta["Public Contributors"] = "Khyber Sen, Alon Levy"
     doc.meta["Private Contributors"] = "Someone Unnamed"
-    out = HtmlEmitter(inline_css=False).emit(doc)
+    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert "<li>Alon Levy</li>\n<li>Khyber Sen</li>" in out
     assert "Someone Unnamed" not in out
 
@@ -233,25 +235,25 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
 def test_the_contributors_section_comes_last(doc: Document) -> None:
     """After the footnotes, which is where the published report credits them."""
     doc.meta["Public Contributors"] = "Khyber Sen"
-    out = HtmlEmitter(inline_css=False).emit(doc)
+    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert out.index('<section class="footnotes"') < out.index('<section class="contributors"')
 
 
 def test_a_report_with_no_public_contributors_has_no_contributors(doc: Document) -> None:
     doc.meta.pop("Public Contributors", None)
-    assert 'class="contributors"' not in HtmlEmitter(inline_css=False).emit(doc)
+    assert 'class="contributors"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_the_dateline_is_the_final_due_date(doc: Document) -> None:
     """Written out, which is how `etany.org` dates a report."""
     doc.meta["Publish Due Date"] = "Aug 19, 2026"
-    out = HtmlEmitter(inline_css=False).emit(doc)
+    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert '<p class="dateline" id="date">August 19, 2026</p>' in without_marks(out)
 
 
 def test_a_report_with_no_final_due_date_has_no_dateline(doc: Document) -> None:
     doc.meta.pop("Publish Due Date", None)
-    assert 'class="dateline"' not in HtmlEmitter(inline_css=False).emit(doc)
+    assert 'class="dateline"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_every_block_can_be_linked_to(out: str) -> None:
@@ -275,10 +277,12 @@ def test_a_paragraph_is_named_by_its_section_and_its_place_in_it(out: str) -> No
 def test_editing_a_paragraph_does_not_move_its_id(doc: Document) -> None:
     """A copy edit is most of what happens to a report after it publishes,
     and a link into the paragraph that was fixed should still land on it."""
-    first = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False).emit(doc))[0]
+    first = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False, site_url=HOST).emit(doc))[
+        0
+    ]
     para = next(b for b in doc.blocks if isinstance(b, Paragraph) and b.content)
     para.content = [Text(text="Rewritten.")]
-    assert f'<p id="{first}">' in HtmlEmitter(inline_css=False).emit(doc)
+    assert f'<p id="{first}">' in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_inserting_a_paragraph_moves_only_what_follows_it_in_that_section(
@@ -289,9 +293,9 @@ def test_inserting_a_paragraph_moves_only_what_follows_it_in_that_section(
     where hashing moved nothing and a page-wide count would have moved everything below."""
     headings = [b for b in doc.blocks if isinstance(b, Heading)]
     at = doc.blocks.index(headings[-1]) + 1
-    before = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False).emit(doc))
+    before = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False, site_url=HOST).emit(doc))
     doc.blocks.insert(at, Paragraph(content=[Text(text="A paragraph added while editing.")]))
-    after = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False).emit(doc))
+    after = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False, site_url=HOST).emit(doc))
     section = headings[-1].anchor
     assert [i for i in before if not i.startswith(section)] == [
         i for i in after if not i.startswith(section)
@@ -301,14 +305,14 @@ def test_inserting_a_paragraph_moves_only_what_follows_it_in_that_section(
 def test_repeated_text_still_gets_unique_ids(doc: Document) -> None:
     same = "The same words twice."
     doc.blocks.extend([Paragraph(content=[Text(text=same)]), Paragraph(content=[Text(text=same)])])
-    out = HtmlEmitter(inline_css=False).emit(doc)
+    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     ids = re.findall(r'<p id="([^"]+)"', out)
     assert len(ids) == len(set(ids))
 
 
 def test_emitting_twice_gives_the_same_ids(doc: Document) -> None:
     """The suffixing counter must not carry over between runs."""
-    emitter = HtmlEmitter(inline_css=False)
+    emitter = HtmlEmitter(inline_css=False, site_url=HOST)
     assert emitter.emit(doc) == emitter.emit(doc)
 
 
@@ -330,14 +334,14 @@ def test_a_figure_carries_the_shape_of_its_image(doc: Document) -> None:
     and the crop has already changed the shape by the time anything is emitted.
     """
     doc.image_shapes["io.1"] = (400, 250)
-    assert 'style="--aspect: 1.600"' in HtmlEmitter(inline_css=False).emit(doc)
+    assert 'style="--aspect: 1.600"' in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_a_figure_of_unrecorded_size_says_nothing_about_its_shape(doc: Document) -> None:
     """A build that skipped the images,
     and the SVG originals that have no pixel size at all.
     The stylesheet's own default stands in, so a row of them is still a row."""
-    assert "--aspect" not in HtmlEmitter(inline_css=False).emit(doc)
+    assert "--aspect" not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_every_linkable_block_carries_a_link_to_itself(out: str) -> None:
@@ -391,7 +395,7 @@ def test_an_empty_shown_value_is_still_marked(doc: Document) -> None:
     from eta_publish.nodes import Shown
 
     doc.warn("the tab is named {}", Shown(""))
-    out = HtmlEmitter().emit(doc)
+    out = HtmlEmitter(site_url=HOST).emit(doc)
     assert "the tab is named <code></code>" in out
 
 
@@ -470,7 +474,7 @@ def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
     # An image is frozen, and this is the one place anything writes to one.
     for image in doc.images:
         object.__setattr__(image, "alt", EVIL)
-    for output in (HtmlEmitter().emit(doc), report_page(doc)):
+    for output in (HtmlEmitter(site_url=HOST).emit(doc), report_page(doc, site_url=HOST)):
         parsed = read(output)
         assert parsed.tags.count("script") == 1, "only the page's own script"
         assert parsed.tags.count("x") == 0, "the document opened no tag"
@@ -500,7 +504,7 @@ def test_nothing_a_document_says_becomes_markup(doc: Document) -> None:
     doc.meta["SEO Description"] = EVIL
     doc.meta["Public Contributors"] = EVIL
     doc.warn("a warning about {}", Shown(EVIL))
-    for output in (HtmlEmitter().emit(doc), report_page(doc)):
+    for output in (HtmlEmitter(site_url=HOST).emit(doc), report_page(doc, site_url=HOST)):
         assert "<script>alert(1)</script>" not in output
         assert "alert(1)" in output, "the text itself should survive, escaped"
 
@@ -515,11 +519,11 @@ def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
     """Linked, not carried, unless built to embed them."""
     from eta_publish.build import fragment_emitter
 
-    linked = fragment_emitter("images", "https://example.org/assets").emit(doc)
+    linked = fragment_emitter("images", "https://example.org/assets", site_url=HOST).emit(doc)
     assert "<style>" not in linked
     assert 'href="https://example.org/assets/report.css"' in linked
     assert 'src="https://example.org/assets/report.js" defer' in linked
-    embedded = fragment_emitter("images", "").emit(doc)
+    embedded = fragment_emitter("images", "", site_url=HOST).emit(doc)
     assert "<style>" in embedded
     assert "<link" not in embedded
 
@@ -528,7 +532,7 @@ def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> N
     """With the SEO description alone: a Squarespace page has no excerpt to fall back to."""
     doc.meta["Short"] = "The short."
     doc.meta["SEO Description"] = "The SEO description."
-    page = report_page(doc)
+    page = report_page(doc, site_url=HOST)
     assert 'name="description" content="The SEO description."' in page
     assert 'property="og:description" content="The SEO description."' in page
     assert "The short." not in page
@@ -536,14 +540,14 @@ def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> N
 
 def test_the_masthead_links_the_pdf_where_it_is_given(doc: Document) -> None:
     pdf = "https://kkysen.github.io/eta-publish/reports/sas-west/report.pdf"
-    out = HtmlEmitter(pdf_href=pdf).emit(doc)
+    out = HtmlEmitter(pdf_href=pdf, site_url=HOST).emit(doc)
     assert f'<a class="pdf-button" href="{pdf}">' in out
     assert "Download PDF</a>" in out
-    assert 'href="report.pdf"' in report_page(doc, pdf_href="report.pdf")
+    assert 'href="report.pdf"' in report_page(doc, pdf_href="report.pdf", site_url=HOST)
 
 
 def test_the_masthead_links_no_pdf_unless_given(doc: Document) -> None:
-    assert 'class="pdf"' not in HtmlEmitter().emit(doc)
+    assert 'class="pdf"' not in HtmlEmitter(site_url=HOST).emit(doc)
 
 
 def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) -> None:
@@ -553,7 +557,10 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
     doc.image_files["io.card"] = "card.jpg"
     doc.image_shapes["io.card"] = (1200, 628)
     page = report_page(
-        doc, card_base="https://example.invalid/r/images", page_url="https://example.invalid/r/"
+        doc,
+        card_base="https://example.invalid/r/images",
+        page_url="https://example.invalid/r/",
+        site_url=HOST,
     )
     assert 'property="og:url" content="https://example.invalid/r/"' in page
     assert 'property="og:image" content="https://example.invalid/r/images/card.jpg"' in page
@@ -570,5 +577,5 @@ def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str)
     assert '<div class="eta-report no-source-brackets">' in out
     assert 'id="srcref1-1"' in out
     assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in REPORT_CSS
-    shown = HtmlEmitter(inline_css=False, source_brackets=True).emit(doc)
+    shown = HtmlEmitter(inline_css=False, source_brackets=True, site_url=HOST).emit(doc)
     assert '<div class="eta-report">' in shown

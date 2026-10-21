@@ -21,7 +21,7 @@ import re
 from typing import override
 
 import pytest
-from paths import FIXTURE_DIR
+from paths import FIXTURE_DIR, HOST
 from test_front_matter import REAL_SHAPE
 
 from eta_publish.docs_json import JsonObject
@@ -105,7 +105,9 @@ def doc() -> Document:
 
 
 @pytest.mark.parametrize(
-    "emitter", [HtmlEmitter(), MarkdownEmitter(), TypstEmitter()], ids=lambda e: type(e).__name__
+    "emitter",
+    [HtmlEmitter(site_url=HOST), MarkdownEmitter(), TypstEmitter(site_url=HOST)],
+    ids=lambda e: type(e).__name__,
 )
 def test_no_text_is_lost(emitter: Emitter, doc: Document) -> None:
     haystack = normalize(emitter.emit(doc))
@@ -114,7 +116,9 @@ def test_no_text_is_lost(emitter: Emitter, doc: Document) -> None:
 
 
 @pytest.mark.parametrize(
-    "emitter", [HtmlEmitter(), MarkdownEmitter(), TypstEmitter()], ids=lambda e: type(e).__name__
+    "emitter",
+    [HtmlEmitter(site_url=HOST), MarkdownEmitter(), TypstEmitter(site_url=HOST)],
+    ids=lambda e: type(e).__name__,
 )
 def test_every_image_reaches_the_output(emitter: Emitter, doc: Document) -> None:
     out = emitter.emit(doc)
@@ -132,7 +136,7 @@ def test_the_check_can_actually_fail(doc: Document) -> None:
         def paragraph(self, node: Paragraph) -> str:
             return ""
 
-    haystack = normalize(Lossy().emit(doc))
+    haystack = normalize(Lossy(site_url=HOST).emit(doc))
     assert [t for t in document_text(doc) if normalize(t) not in haystack]
 
 

@@ -40,6 +40,7 @@ import json
 import re
 
 import pytest
+from paths import HOST
 from paths import REAL_DIR as REAL
 
 from eta_publish.archive import read_archive_index
@@ -222,11 +223,14 @@ def test_no_editorial_note_reaches_a_published_output(doc: Document) -> None:
     so `unfinished text in the document: SVG: TODO` says `SVG:` on purpose.
     Both outputs are read with their warnings taken out.
     """
-    typst = TypstEmitter().emit(doc)
+    typst = TypstEmitter(site_url=HOST).emit(doc)
     # Everything after the `#show: report.with(...)` call, which is the report itself.
     typst_body = re.split(r"^\)$", typst, maxsplit=1, flags=re.MULTILINE)[-1]
     html_body = re.sub(
-        r'<div class="warnings">.*?</div>', "", HtmlEmitter().emit(doc), flags=re.DOTALL
+        r'<div class="warnings">.*?</div>',
+        "",
+        HtmlEmitter(site_url=HOST).emit(doc),
+        flags=re.DOTALL,
     )
     for emitted in (html_body, typst_body):
         for note in ("Source:", "Image Source", "SVG:", "drive.google.com"):
@@ -246,7 +250,11 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     so it is asserted rather than estimated."""
     from eta_publish.emit.html import CODE_BLOCK_LIMIT
 
-    size = len(HtmlEmitter(image_base="https://assets.etany.org/sas-west").emit(doc).encode())
+    size = len(
+        HtmlEmitter(image_base="https://assets.etany.org/sas-west", site_url=HOST)
+        .emit(doc)
+        .encode()
+    )
     assert size < CODE_BLOCK_LIMIT
     # Moved from 130,000 when the Sources section landed: 113 entries and a
     # `[n]` on every link is what it costs to make an archived copy reachable
@@ -316,7 +324,7 @@ def test_the_share_card_is_not_in_the_report(doc: Document) -> None:
 
 def test_the_report_opens_with_its_hero(doc: Document) -> None:
     """Above the table of contents, which it introduces rather than follows."""
-    page = report_page(doc)
+    page = report_page(doc, site_url=HOST)
     assert page.index("img-6fb0f9c4") < page.index('<nav class="toc"')
     assert page.index('property="og:image"') < page.index('<h1 id="title">')
 
@@ -329,21 +337,25 @@ def test_the_chart_publishes_as_a_vector(doc: Document) -> None:
     vectors = [i for i in doc.images if i.vector is not None]
     assert [v.vector.title for v in vectors if v.vector] == ["project_cost_comparison.svg"]
 
-    for emitted in (HtmlEmitter().emit(doc), MarkdownEmitter().emit(doc), TypstEmitter().emit(doc)):
+    for emitted in (
+        HtmlEmitter(site_url=HOST).emit(doc),
+        MarkdownEmitter().emit(doc),
+        TypstEmitter(site_url=HOST).emit(doc),
+    ):
         assert vectors[0].vector is not None
         assert vectors[0].vector.filename in emitted
 
 
 def test_only_the_hero_is_asked_for_before_it_is_in_view(doc: Document) -> None:
     """Lazy loading delays the one picture certain to be on the screen."""
-    images = re.findall(r"<img\b[^>]*>", HtmlEmitter().emit(doc))
+    images = re.findall(r"<img\b[^>]*>", HtmlEmitter(site_url=HOST).emit(doc))
     assert 'fetchpriority="high"' in images[0] and "loading=" not in images[0]
     assert all('loading="lazy"' in image for image in images[1:])
 
 
 def test_a_photo_is_shown_from_small_copies_and_links_to_the_original(doc: Document) -> None:
     """A tenth of the bytes on the page, and the file as the document holds it a tap away."""
-    html = HtmlEmitter().emit(doc)
+    html = HtmlEmitter(site_url=HOST).emit(doc)
     pictures = re.findall(r'<a class="full-size" href="([^"]+)"><picture>(.*?)</picture></a>', html)
     rasters = [f for f in doc.images if f.object_id in doc.image_shapes and f is not doc.card]
     assert len(pictures) == len(rasters)

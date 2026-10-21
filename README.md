@@ -227,8 +227,9 @@ which builds **every report in `reports.toml`**
 from its live document and deploys them as one site.
 Each lands at the path its own front matter names,
 so `/reports/digging-out-deep-hole-sas-west` in the header
-becomes `kkysen.github.io/eta-publish/reports/digging-out-deep-hole-sas-west/`
-(under `reports.toml`'s `site`),
+becomes `<unpublished>/reports/digging-out-deep-hole-sas-west/`,
+where `<unpublished>` is `reports.toml`'s `[site] unpublished`,
+which every list has to name: there is no default host,
 serving `index.html` there
 alongside `report.html`, `report.pdf`, and its images.
 The site's front page lists them,
