@@ -131,7 +131,7 @@ jobs:
       - name: Drop the API response
         run: find site -name doc.json -delete
 
-      # Until `site/published/` has a host of its own, `reports.etany.org`,
+      # Until `site/published/` has a host of its own,
       # it is served from this one under `/published/`, which is where `reports.toml` says it is.
       # Copied rather than moved, since the build compares `site/` with what is committed.
       - name: Serve the published reports under /published/

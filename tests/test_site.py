@@ -1253,5 +1253,5 @@ def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
 
 
 def test_the_committed_list_publishes_under_its_preview_for_now() -> None:
-    """Until `reports.etany.org`: one Pages site, `site/published/` under `/published/`."""
+    """Until it has a host of its own: one Pages site, `site/published/` under `/published/`."""
     assert HOSTS.published == f"{HOSTS.unpublished}/published"
