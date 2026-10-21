@@ -449,6 +449,42 @@
     swooshAll();
     render();
   };
+  // The browser scrolls to a `#` once, as soon as the element exists, but on a
+  // host like Squarespace the report's stylesheet, fonts, and images arrive
+  // after that and grow what is above it, leaving the target far down the
+  // window. So the target is put back at the top each time the report or the
+  // page around it changes size, until the reader scrolls on their own.
+  // Squarespace also scrolls smoothly on its own a moment after, a little past
+  // the target, so any scroll before the reader's own is put back too.
+  const keepTarget = () => {
+    const report = document.querySelector(".eta-report");
+    const id = decodeURIComponent(location.hash.slice(1));
+    const target = id && document.getElementById(id);
+    if (!report || !target || !report.contains(target)) return;
+    const put = () => {
+      if (Math.abs(target.getBoundingClientRect().top) > 1) {
+        target.scrollIntoView({ behavior: "instant" });
+      }
+    };
+    const resize = new ResizeObserver(put);
+    const stop = () => {
+      resize.disconnect();
+      removeEventListener("scroll", put);
+      for (const name of ["wheel", "touchstart", "keydown", "pointerdown"]) {
+        removeEventListener(name, stop, true);
+      }
+    };
+    for (const name of ["wheel", "touchstart", "keydown", "pointerdown"]) {
+      addEventListener(name, stop, true);
+    }
+    addEventListener("scroll", put);
+    resize.observe(report);
+    resize.observe(document.body);
+    // Long after everything above it has loaded; a reader who has not touched
+    // the page by then is not owed a jump.
+    setTimeout(stop, 10000);
+  };
+  keepTarget();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);
   else ready();
   for (const name of ["pointerover", "focusin"]) document.addEventListener(name, place);
