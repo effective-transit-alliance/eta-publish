@@ -1,4 +1,4 @@
-"""What a report has to have before it is published."""
+"""What a publication has to have before it is published."""
 
 import json
 from dataclasses import replace
@@ -64,14 +64,14 @@ def test_an_empty_field_is_not_a_filled_one(doc: Document) -> None:
 
 
 def test_an_empty_private_list_is_an_answer(doc: Document) -> None:
-    """A report with nobody uncredited has an empty line, and that is the answer."""
+    """A publication with nobody uncredited has an empty line, and that is the answer."""
     doc.meta["Private Contributors"] = ""
     check(doc)
     assert doc.warnings == []
 
 
 def test_an_empty_sme_liaison_is_an_answer(doc: Document) -> None:
-    """Not every report has a subject-matter expert to check it."""
+    """Not every publication has a subject-matter expert to check it."""
     doc.meta["SME/Liaison"] = ""
     check(doc)
     assert doc.warnings == []
@@ -152,7 +152,7 @@ def test_an_uncaptioned_figure_is_named_by_its_file(doc: Document) -> None:
 
 
 def test_an_unattributed_figure_is_flagged(doc: Document) -> None:
-    """These reports run other people's diagrams on nearly every page."""
+    """These publications run other people's diagrams on nearly every page."""
     doc.blocks = [figure(credit=False)]
     check(doc)
     assert [str(w) for w in doc.warnings] == ["the image `a-diagram` has no `Credit:` line"]
@@ -371,7 +371,7 @@ def test_a_figure_note_loose_in_the_body_is_warned_about(doc: Document) -> None:
 
 
 def test_a_heading_holding_a_colon_is_not_a_stray_field(doc: Document) -> None:
-    """`Appendix A: Freedom Tunnel` is a section name, and the report is full of them."""
+    """`Appendix A: Freedom Tunnel` is a section name, and the publication is full of them."""
     doc.blocks = [
         Heading(level=2, anchor="appendix-a", content=[Text(text="Appendix A: Freedom Tunnel")])
     ]

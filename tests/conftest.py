@@ -58,8 +58,11 @@ class _Build:
         self.out = self.dir / "site"
         self.log = (self.dir / "build.log").open("w")
         unpublished = root / "site" / UNPUBLISHED_DIR
-        reports = [saved.parent for saved in unpublished.glob("*/*/doc.json")]
-        images = all((report / "images").is_dir() and has_its_images(report) for report in reports)
+        publications = [saved.parent for saved in unpublished.glob("*/*/doc.json")]
+        images = all(
+            (publication / "images").is_dir() and has_its_images(publication)
+            for publication in publications
+        )
         self.images = images
         self.process = subprocess.Popen(
             [sys.executable, "-m", "eta_publish", "all", "--offline"]

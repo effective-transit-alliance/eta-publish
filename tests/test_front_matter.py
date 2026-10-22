@@ -1,4 +1,4 @@
-"""The top of the document, shaped the way the real report is.
+"""The top of the document, shaped the way the real publication is.
 
 In the real doc `Header` is an `h2` while the body sections are `h1`,
 and between them sit the headline,
@@ -191,7 +191,7 @@ def test_scaffolding_before_the_header_does_not_hide_it() -> None:
 
 
 def test_dropped_scaffolding_is_reported() -> None:
-    """It is production notes rather than the report, so dropping it is right,
+    """It is production notes rather than the publication, so dropping it is right,
     but it must not leave silently."""
     doc = parse(
         {
@@ -226,7 +226,7 @@ def test_a_document_with_no_header_section_is_left_intact() -> None:
 
 
 def test_a_headline_before_the_header_stops_the_search() -> None:
-    """Past the headline the report has started,
+    """Past the headline the publication has started,
     so there is no header to look for and nothing may be consumed."""
     doc = parse(
         {
@@ -521,7 +521,7 @@ def test_a_picture_does_not_end_the_header_section() -> None:
     assert any("unrecognized `Description:`" in str(w) for w in doc.warnings)
 
 
-def test_the_picture_in_the_header_section_is_still_the_reports() -> None:
+def test_the_picture_in_the_header_section_is_still_the_publications() -> None:
     doc = _picture_in_the_header(field("Description: Reasonably-priced monthly passes."))
     assert [b.image.object_id for b in doc.blocks if isinstance(b, Figure)] == ["io.hero"]
 
@@ -557,7 +557,7 @@ def test_the_subtitle_is_the_subtitle_styled_paragraph_under_the_headline() -> N
     ]
 
 
-def test_a_subtitle_below_the_report_s_first_words_is_not_the_subtitle() -> None:
+def test_a_subtitle_below_the_publication_s_first_words_is_not_the_subtitle() -> None:
     document: JsonObject = {
         "title": "x",
         "body": {

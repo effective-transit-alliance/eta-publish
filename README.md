@@ -1,18 +1,18 @@
 # `eta-publish`
 
-Convert an [ETA](https://www.etany.org/) report Google Doc
+Convert an [ETA](https://www.etany.org/) publication Google Doc
 into publish-ready HTML, Markdown, and PDF.
 
-Reports are drafted in Google Docs and published on Squarespace.
+Publications are drafted in Google Docs and published on Squarespace.
 That hand-off is entirely manual today,
 and it is the source of both the tedium and the mistakes.
 
 - [Why this exists](#why-this-exists)
 - [What it does](#what-it-does)
 - [Using it](#using-it):
-  [setup](#setup), [building](#building), [adding a report](#adding-a-report),
+  [setup](#setup), [building](#building), [adding a publication](#adding-a-publication),
   [publishing to GitHub Pages](#publishing-to-github-pages),
-  [writing a report](#writing-a-report)
+  [writing a publication](#writing-a-publication)
 - [How it works](#how-it-works):
   [design decisions](#design-decisions), [source archiving](#source-archiving),
   [builds](#builds), [the Pages pipeline](#the-pages-pipeline),
@@ -22,7 +22,7 @@ and it is the source of both the tedium and the mistakes.
 
 ## Why this exists
 
-The most recent report,
+The most recent publication,
 [*Digging Out of a Very Deep Hole*](https://www.etany.org/reports/digging-out-deep-hole-sas-west),
 is built from **162 hand-placed Squarespace blocks**:
 86 text blocks, 54 image blocks, and 22 code blocks.
@@ -60,7 +60,7 @@ Reads the Google Doc, builds a document tree, and emits from that tree:
 | `index.html` | Standalone page for review, including any warnings |
 | `index.min.html` | `index.html` minified, linking the `.min` stylesheets and script; not committed |
 | `images/` | The doc's inline images, for hosting outside Squarespace |
-| `archives.json` | Where each source the report cites is archived |
+| `archives.json` | Where each source the publication cites is archived |
 
 Headings, anchors, the table of contents, footnote numbering,
 the `Sources` section, and the `↑` backlinks are all generated.
@@ -115,7 +115,7 @@ the repository ignores them by name, but they belong outside it anyway.
 
 ### Archiving new sources (optional)
 
-Every build looks up existing Wayback Machine captures of the sources a report cites,
+Every build looks up existing Wayback Machine captures of the sources a publication cites,
 which needs no account.
 Asking for a *new* capture goes through
 [Save Page Now](https://archive.org/account/s3.php),
@@ -132,7 +132,7 @@ and sources with no capture publish saying they have no archive, which is true.
 ## Building
 
 ```sh
-# Every report in `reports.toml`, into `site/unpublished/`.
+# Every publication in `publications.toml`, into `site/unpublished/`.
 uv run eta-publish all
 
 # Or one document, before it is on the list, somewhere scratch.
@@ -159,27 +159,27 @@ uv run eta-publish all --offline
 A document can also be a directory a previous build wrote,
 which holds the API response as `doc.json` beside its outputs,
 so anything built once rebuilds with no network and no credentials.
-A report already in `reports.toml` can be named instead, in any case,
+A publication already in `publications.toml` can be named instead, in any case,
 as in `eta-publish one 'IBX Automation' -o out`,
 and is then checked against its entry as `all` checks it.
 
 Pass the full URL including its `?tab=` id.
-ETA reports live in multi-tab documents,
+ETA publications live in multi-tab documents,
 and the Docs API defaults to the first tab, usually an earlier draft.
 A multi-tab document with no tab specified refuses to guess and lists its tabs.
-The URL is the only way to name a tab, on the command line and in `reports.toml` alike.
+The URL is the only way to name a tab, on the command line and in `publications.toml` alike.
 
-A publish is always a site, whether it holds one report or four:
+A publish is always a site, whether it holds one publication or four:
 each lands under the path its own front matter names,
 alongside an `index.html` listing them.
-Outputs land in `out/<the report's path>/`,
-each report's images in an `images/` directory beside its pages.
-One report failing to build does not stop the rest;
+Outputs land in `out/<the publication's path>/`,
+each publication's images in an `images/` directory beside its pages.
+One publication failing to build does not stop the rest;
 the run exits non-zero and the index names what failed.
 
 Flags worth knowing:
 
-- `--split` cuts at `h2` boundaries, for a report over the
+- `--split` cuts at `h2` boundaries, for a publication over the
   [code block limit](#squarespace-constraints).
 - `--no-images` skips the image download while iterating on the text.
 - `--no-comments` skips counting comments, leaving the last count standing.
@@ -189,14 +189,14 @@ Flags worth knowing:
 - `--suggestions accepted` previews the document with its open suggestions accepted
   instead of rejected.
 
-## Adding a report
+## Adding a publication
 
-Adding the next report is an entry in `reports.toml` and nothing else,
+Adding the next publication is an entry in `publications.toml` and nothing else,
 which `eta-publish add <url>` writes:
 
 ```toml
 [[report]]
-name = "Next Report"
+name = "Next Publication"
 tab = "Draft 2"
 url = "https://docs.google.com/document/d/<id>/edit?tab=<tab>"
 published = "draft"
@@ -207,34 +207,34 @@ which is why the command writes them rather than asking anyone to type them:
 a `?tab=` id is opaque, so nothing but the document itself
 says which of its drafts an entry points at.
 A build holds both up against the document it fetched
-and refuses the report when they disagree,
+and refuses the publication when they disagree,
 a blank one included: no document is called nothing.
 
-`published` is whether the report is out on Squarespace, and how:
+`published` is whether the publication is out on Squarespace, and how:
 `automated` when the live page is the pasted `report.html`,
 `manual` when it is a page built by hand,
 and `draft` until it is out.
 It is required, and `add` writes `draft`.
 
-Putting a report on the list is the act that says it is ready:
+Putting a publication on the list is the act that says it is ready:
 nothing published is built from anything else.
 Build a document on its own first with `uv run eta-publish one <url> -o out`.
 
 ## Publishing to GitHub Pages
 
 `.github/workflows/pages.yml` runs `eta-publish all`,
-which builds **every report in `reports.toml`**
+which builds **every publication in `publications.toml`**
 from its live document and deploys them as one site.
 Each lands at the path its own front matter names,
 so `/reports/digging-out-deep-hole-sas-west` in the header
 becomes `<unpublished>/reports/digging-out-deep-hole-sas-west/`,
-where `<unpublished>` is `reports.toml`'s `[site] unpublished`,
+where `<unpublished>` is `publications.toml`'s `[site] unpublished`,
 which every list has to name: there is no default host,
 serving `index.html` there
 alongside `report.html`, `report.pdf`, and its images.
 The site's front page lists them,
-with each report's date, byline, and warning count,
-and names any report that failed to build.
+with each publication's date, byline, and warning count,
+and names any publication that failed to build.
 
 It runs on a push to `main`,
 and on `workflow_dispatch` to redeploy the same list on demand.
@@ -257,12 +257,12 @@ gcloud iam service-accounts keys create key.json \
 No IAM roles are needed: access to the document comes from sharing it,
 not from a project role.
 
-Then share each report with
+Then share each publication with
 `eta-publish-ci@eta-publish.iam.gserviceaccount.com` as a **Viewer**.
-Sharing the folder a report lives in is the better move:
+Sharing the folder a publication lives in is the better move:
 it covers the document, the images, and the Drive files
 the document links as `SVG:` charts in one action,
-and it covers the next report in that folder without another visit.
+and it covers the next publication in that folder without another visit.
 Without the chart files, the vectors fall back to the rasters with a warning.
 
 Finally, hand the key and the document URL to GitHub, and delete the key:
@@ -293,19 +293,19 @@ Two things to know about the key:
   it is the better answer if this outlives being a convenience.
 
 The deployed site is public.
-It publishes an unreleased report at a stable URL,
+It publishes an unreleased publication at a stable URL,
 which is a decision rather than a detail:
 build it as a plain artifact instead
 (swap the last two steps for `actions/upload-artifact`)
-if a report should stay inside the repository until it ships.
+if a publication should stay inside the repository until it ships.
 
-## Writing a report
+## Writing a publication
 
 The converter reads structure, so the doc has to carry it.
 Anything it cannot classify is reported as a warning rather than silently dropped.
 
 None of this is fixed. If a convention is awkward to write,
-it is easier to change the converter than to fight it in every report, so say so.
+it is easier to change the converter than to fight it in every publication, so say so.
 
 ### Front matter
 
@@ -315,7 +315,7 @@ where it publishes, what its summary is, who wrote it.
 The name comes from printing, where the front matter is the title page
 and copyright notice, as distinct from the body.
 
-ETA reports already have one, under the `Header` heading:
+ETA publications already have one, under the `Header` heading:
 
 ```text
 Header
@@ -330,12 +330,12 @@ The converter reads that block into metadata and keeps it out of the body.
 rather than published under a guess at it.
 `SEO Description:` becomes the page description,
 `Short:` is a blog post's Squarespace excerpt, or a page's line in `What's New`,
-and the summary on the report's card in the site index,
+and the summary on the publication's card in the site index,
 `Excerpt:` is no longer used and warns, suggesting `Short:`,
 `Public Contributors:` becomes the byline,
 named the way the header lists them,
 and `Final Due Date:` becomes the dateline.
-`Social Title Card:` names the share card, the picture a link to the report unfurls as,
+`Social Title Card:` names the share card, the picture a link to the publication unfurls as,
 which is what Squarespace calls the page's social image:
 the value is the file's name, linked to the file,
 and the picture itself goes on the line under it.
@@ -372,7 +372,7 @@ a working name (`SAS West Feasibility Response`) and not what should publish.
 Alternatively, put `Title:` in the header block.
 
 Unrecognized keys are kept rather than treated as body text,
-so adding a field to a future report is safe.
+so adding a field to a future publication is safe.
 
 ### The rest
 
@@ -435,9 +435,9 @@ so adding a field to a future report is safe.
 ### House style
 
 The build also reads prose that parsed cleanly, and says where it is spelled
-against the way every other report spells the same thing.
+against the way every other publication spells the same thing.
 None of these is rewritten on the way out:
-making the reports agree is the writer's, and the build only says where to look.
+making the publications agree is the writer's, and the build only says where to look.
 
 - **One space after a sentence**, not two.
   The pair is invisible everywhere anybody would catch it:
@@ -448,7 +448,7 @@ making the reports agree is the writer's, and the build only says where to look.
   between sentences the pair is a typewriter habit, and mid-clause it is
   a slipped finger.
 - **No space beside an em or en dash.**
-  Every dash in the reports today is closed up;
+  Every dash in the publications today is closed up;
   a spaced one arrives by pasting from somewhere that sets them open.
 - **`ETA`, not `the ETA`**, the way one writes `NASA said`.
   Spelled out it does take the article: `the Effective Transit Alliance`.
@@ -470,7 +470,7 @@ making the reports agree is the writer's, and the build only says where to look.
   Times may be either: `5 min` and `5 minutes`, `30 sec` and `30 seconds`.
   `mile` is the one length written out, and a number written as a word is
   left alone: `ten minutes` is a duration being described rather than measured.
-  The units `eta_publish/style.py` knows are the ones these reports use:
+  The units `eta_publish/style.py` knows are the ones these publications use:
   `ft`, `in`, `m`, `km`, `mm`, `cm`, `t`, `lb`, `kg`, `min`, `sec`, `mph`,
   `km/h`, `tph`, `dB`, `Hz`, `V`, `kV`, `kW` and `MW`.
   A unit introduced with its symbol after it, `30 trains per hour (tph)`,
@@ -505,7 +505,7 @@ the footnotes, and the header's own prose in `SEO Description:`.
 We read the doc with the Docs API (`documents.get`),
 not Drive's HTML export.
 The export is `<span class="c12">` soup with no semantics.
-The API JSON gives us the three things a report actually needs:
+The API JSON gives us the three things a publication actually needs:
 
 - `footnotes` as first-class objects, with `footnoteReference` inline,
   so numbering and backlinks are derived rather than typed
@@ -533,7 +533,7 @@ the file its `Source:` line names,
 or the file at the end of the URL a `Source:` or `Image Source` links,
 and the stable Docs object id where there is no such line.
 A `Video:` line's file is named for its link's text, or hashed from its URL where the text is the URL.
-Inserting one image into a 54-image report
+Inserting one image into a 54-image publication
 must not rename the other 53 or move their published URLs.
 The same applies to heading anchors.
 
@@ -541,7 +541,7 @@ A paragraph has no name of its own,
 so it is named by the section it is in and its place in that section:
 `#ground-conditions-p2`.
 That is a link worth reading before following it,
-and it survives the copy edits that are most of what happens to a published report.
+and it survives the copy edits that are most of what happens to a live publication.
 It does not survive an insertion above it in the same section,
 a smaller blast radius than numbering the page as a whole
 and a larger one than hashing the text,
@@ -568,7 +568,7 @@ A link is a claim about a page nobody promised to keep.
 33 on `www.mta.info`, 12 on `transitcosts.com`, 9 on `mp.weixin.qq.com`,
 the rest agency press releases and news sites,
 which are exactly the pages that get reorganized.
-The report is supposed to outlive them.
+The publication is supposed to outlive them.
 
 So every external link carries a `[n]` into a `Sources` section at the end,
 where the entry names the page and the capture of it,
@@ -596,7 +596,7 @@ An HTML capture is the archived document,
 so an anchor in one already resolves and it keeps the ordinary URL.
 A build submits only what is missing from it,
 so a source keeps the capture it has:
-the point of a snapshot is that it is of the page as the report read it,
+the point of a snapshot is that it is of the page as the publication read it,
 and recapturing would quietly move it forward to whatever the page says now.
 A source the archive gave no answer about,
 because it was busy, refused for the day, or is still capturing it,
@@ -630,7 +630,7 @@ Sixteen sources took 11.7s that way and 47.3s through the index.
 `200` from the replay is the answer the index is asked for,
 arrived at the other way round, and on one point it is better evidence:
 the index says a crawler once logged `200`,
-while this says the URL the report is about to publish serves the page.
+while this says the URL the publication is about to publish serves the page.
 It is looser on `warc/revisit`, a capture recording that the bytes
 had not changed, which carries no status in the index and is filtered out
 but which the replay resolves and serves.
@@ -654,7 +654,7 @@ An index lookup that finds nothing is remembered for a week,
 in `archive.json` in the user cache directory `platformdirs` finds
 (`~/.cache/eta-publish` on Linux) and never committed.
 The index takes seconds per source and sometimes half a minute,
-so a report with twenty unarchived sources spent minutes on every build
+so a publication with twenty unarchived sources spent minutes on every build
 to write down the same nothing;
 and nothing is what it writes, because a source with no capture
 has no entry in `archives.json` either way.
@@ -699,29 +699,29 @@ Beyond that, a rebuild that has to be quicker still has two ways to be:
 `--no-comments` skips the text export, which costs more than fetching the
 document does and answers a question that changes slowly, leaving the last
 count standing; `--offline` skips the network altogether and rebuilds each
-report from the `doc.json` saved beside its outputs, which is the whole of a
+publication from the `doc.json` saved beside its outputs, which is the whole of a
 build apart from asking Google for the text. Offline cannot notice a document
 that changed, so it is for a change to this code rather than to a document,
 and it is not what the workflow runs.
 
-Reports are built several at a time, since a build is nearly all waiting,
+Publications are built several at a time, since a build is nearly all waiting,
 so a list takes about as long as its slowest document rather than as long as
 all of them. They are still reported in the order the list gives them.
 
 ## The Pages pipeline
 
 Nothing else in the repository or the workflow names a document
-but `reports.toml`,
-and one report failing to build does not take the others with it;
+but `publications.toml`,
+and one publication failing to build does not take the others with it;
 the run still exits non-zero, and the failure is on the front page.
 
 Nothing published is built from anything but that list.
-A report the list does not name has nothing committed
+A publication the list does not name has nothing committed
 for the build check to compare against,
 so publishing it from CI would publish what nobody had reviewed.
 
 It runs on a push rather than a schedule:
-a report publishes when someone decides it is ready,
+a publication goes out when someone decides it is ready,
 where a schedule would put whatever the doc said at 3 a.m.
 onto a public URL with nobody looking.
 
@@ -761,10 +761,10 @@ the one estimate below is marked as such.
   including Squarespace's own markup, which this emitter does not produce.
   The fragment should land between them, comfortably inside the limit,
   but it has not been generated from the real document yet.
-  `--split` cuts at `h2` boundaries for a report that does not fit.
+  `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**
   Custom Files is a manual GUI that accepts images and fonts only.
-  Host report images elsewhere and reference absolute URLs;
+  Host publication images elsewhere and reference absolute URLs;
   the PDF needs those same local files anyway,
   so one upload serves both outputs.
 
@@ -789,7 +789,7 @@ uv run pytest
 `mise` pins the `biome` version in `mise.toml` and nowhere else,
 because the emitted HTML is committed
 and a formatter that changed its mind between versions
-would rewrite every report without a report having changed.
+would rewrite every publication without a publication having changed.
 
 `ruff format`, `ruff check`, `ty`, `pyrefly`, and `pytest`
 run as pre-commit hooks and again in CI.
@@ -817,32 +817,32 @@ and `git push --no-verify` skips it when those are what is missing.
 When it fails, the rebuilt files are left in the working tree,
 which is what to read and commit.
 
-`site/unpublished/` is every report, drafts included, committed:
-a report at its published path with its `doc.json` and everything emitted from it,
+`site/unpublished/` is every publication, drafts included, committed:
+a publication at its published path with its `doc.json` and everything emitted from it,
 and `site/unpublished/assets/` holding the one copy of the stylesheets and script
-that every report page links.
+that every publication page links.
 It is what GitHub Pages serves.
 
 `site/published/` is the part of it a live page needs:
-for each `published = "automated"` report,
+for each `published = "automated"` publication,
 its `report.html` and any `--split` pieces, its `report.md`,
 its `report.min.html` with the `.min` assets and their source maps,
 and every file that `report.html` links on the site,
 at the same paths, so either directory serves the same URLs.
 It is written from `site/unpublished/` after every build,
-so a report that failed to build keeps hosting its last copy,
+so a publication that failed to build keeps hosting its last copy,
 and a build with the pictures on disk fails
 when a live page links one that is not there.
 Only its text is committed, as with the rest.
 It doubles as the project's main test corpus,
-because an actual `documents.get` response for a real report
+because an actual `documents.get` response for a real publication
 is where every bug that mattered came from.
 
 `tests/fixture/` is the same directory in miniature,
 from a hand-written document,
 for the tests that want to be fast rather than real.
 
-Every build saves the response as `doc.json` in the report's own directory,
+Every build saves the response as `doc.json` in the publication's own directory,
 so the pipeline re-runs against the last fetch with no network: pass the directory.
 That is what the tests do.
 Either `site/unpublished/` or `tests/fixture/` can be rebuilt that way,
@@ -861,7 +861,7 @@ and each image's shape is read from the committed `images.json`,
 so the page is otherwise the page that publishes.
 
 When a snapshot changes, read the diff before accepting it:
-it is exactly what the change does to a real published report.
+it is exactly what the change does to a real live publication.
 Regenerate with `uv run pytest --regenerate-snapshots`.
 
 # Status
@@ -877,13 +877,13 @@ the one unmeasured number here.
 
 # TODO
 
-## Preserve the anchors of already-published reports
+## Preserve the anchors of live publications
 
-Existing reports have short, hand-chosen anchors.
+Existing publications have short, hand-chosen anchors.
 The live SAS West table of contents links to `#elephants` and
 `#unlearned-lessons`, where generated anchors would be
 `#the-elephants-in-the-room` and `#the-unlearned-lessons-of-recent-projects`.
-Regenerating one of those reports as-is would break every inbound link
+Regenerating one of those publications as-is would break every inbound link
 to a section, including links from outside `etany.org`
 that we cannot see or fix.
 
@@ -899,12 +899,12 @@ and a decision between two approaches:
   Safer for links already loose in the world,
   at the cost of two anchors per section.
 
-These are not exclusive: remapping suits reports we are actively
+These are not exclusive: remapping suits publications we are actively
 republishing, and duplicate legacy targets suit ones we are not.
 
 Wherever the overrides live, they have to be in the Google Doc,
 since that is the source of truth
-and the person republishing a report will be working there, not here.
+and the person republishing a publication will be working there, not here.
 
 # Possible directions
 
@@ -915,10 +915,10 @@ and probably not worth it: the Drive Revisions API merges revisions for Docs
 and may omit older ones, so a faithful replay is not available.
 
 **A PDF-first review loop.** The Typst template is deliberately plain.
-Once a report has actually been through it,
+Once a publication has actually been through it,
 the house style is the obvious next thing to invest in.
 
-**A static site.** `reports.etany.org` built from the same tree in CI
+**A static site.** `publications.etany.org` built from the same tree in CI
 would remove the paste step entirely, along with the block limits,
 and would give real per-draft previews.
 Once the tree and emitters exist this is nearly free:

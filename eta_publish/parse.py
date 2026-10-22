@@ -7,7 +7,7 @@ Several pieces of ETA house style are recognized here rather than in the emitter
 because they are facts about how the docs are written:
 
 - a leading `Header` section carrying `Key: value` front matter
-- the report headline living in the body as a `Title`-styled paragraph,
+- the publication headline living in the body as a `Title`-styled paragraph,
   since the Drive filename is a working name (`SAS West Feasibility Response`)
   and not what gets published
 - a figure's `Source:` line between the image and its caption,
@@ -110,7 +110,7 @@ and a warning naming twelve is a paragraph nobody reads twice.
 
 # Fields the header may carry and nothing requires.
 # The three due dates are the schedule the editors keep;
-# nothing publishes them, and a report that has shipped no longer needs them.
+# nothing publishes them, and a publication that has shipped no longer needs them.
 # `Title` is a second answer to a question the headline already answers,
 # which `title` warns about separately.
 OPTIONAL_FIELDS = (
@@ -123,11 +123,11 @@ OPTIONAL_FIELDS = (
 SOCIAL_CARD = "Social Title Card"
 """The header field naming the share card, with the picture itself on the line under it.
 
-What Squarespace calls the page's social image: what a link to the report unfurls as.
+What Squarespace calls the page's social image: what a link to the publication unfurls as.
 The value is the file's name, linked to the file; the picture is what publishes."""
 
 RETIRED_FIELDS = frozenset({"Excerpt"})
-"""Fields older reports carry that nothing reads any more.
+"""Fields older publications carry that nothing reads any more.
 
 `Excerpt:` was a blog post's summary for a while, which is what `Short:` is again.
 Said apart from an unknown field, which is likelier a typo to fix than a line to delete.
@@ -138,12 +138,12 @@ KNOWN_FIELDS = frozenset(REQUIRED_FIELDS) | frozenset(OPTIONAL_FIELDS)
 
 A key outside this is kept and warned about rather than dropped:
 the likeliest reason for one is a misspelling,
-and a misspelled `SEO Description:` is a report that publishes with no description at all
+and a misspelled `SEO Description:` is a publication that publishes with no description at all
 and says nothing about why.
 """
 
 # Anything still marked unfinished, e.g. the real doc's `Source: TODO`.
-# Not `TK`: these reports are not written with it,
+# Not `TK`: these publications are not written with it,
 # so here it would only ever match a word that happened to be spelled that way.
 UNFINISHED = frozenset({"TODO", "FIXME", "XXX"})
 
@@ -384,7 +384,7 @@ def _is_word(text: str) -> bool:
 
 
 # Editorial notes naming where an image came from, none of which is published.
-# The real report uses four spellings:
+# The real publication uses four spellings:
 # `Source:` under an image, `Uncropped Source:` for one that was trimmed,
 # and, after a caption,
 # either `[Image Source](<url>)` or a bare `Image Source` whose whole text is the link.
@@ -392,7 +392,7 @@ def _is_word(text: str) -> bool:
 SOURCE_LABEL = "source"
 
 # The same idea for chart assets: `SVG:` and `PNG:` name the file to link beside a figure.
-# Notes to whoever assembles the page; the published report carries real links.
+# Notes to whoever assembles the page; the live publication carries real links.
 ASSET_LABELS = frozenset({"svg", "png", "pdf"})
 
 CREDIT_LABEL = "credit"
@@ -512,7 +512,7 @@ def labelled(content: list[Inline]) -> Labelled:
     is the label `Image Source` with the mark `]`.
 
     The opening bracket is optional for every label, not only the linked ones.
-    Wider than the lines the reports actually write,
+    Wider than the lines the publications actually write,
     deliberately: a bracketed `[SVG: ...]` is the note it looks like,
     and publishing it as prose because of the bracket helps nobody.
     """
@@ -759,7 +759,7 @@ def element_text(el: JsonObject) -> str:
     """The text an inline element contributes, smart chips included.
 
     Reading only `textRun` loses every chip.
-    In the real report that emptied `Project Manager:` and all three date fields,
+    In the real publication that emptied `Project Manager:` and all three date fields,
     and dropped the first name from `Public Contributors:`,
     leaving it starting with a comma.
     """
@@ -943,7 +943,7 @@ class Parser:
 
         The chip also carries their email address:
         contact information the document happens to hold rather than something
-        the report says, so it is not emitted.
+        the publication says, so it is not emitted.
         """
         props = chip.get("personProperties", {})
         return Text(text=props.get("name") or props.get("email", ""))
@@ -1300,7 +1300,7 @@ class Parser:
             # and before its `Credit:` line, which closes the caption's slot;
             # `Credit:` and `Source:` lines keep attaching after that.
             # Matching on length would swallow short body paragraphs,
-            # and a report with 50-odd figures has a great many.
+            # and a publication with 50-odd figures has a great many.
             last = out[-1] if out else None
             if isinstance(last, Embed) and not last.warning and is_warning_note(inlines):
                 self._check_label(inlines)
@@ -1464,9 +1464,9 @@ class Parser:
     def _split_at_title(
         self, content: list[JsonObject]
     ) -> tuple[list[JsonObject], list[JsonObject]]:
-        """What sits above the headline, and the report itself below it.
+        """What sits above the headline, and the publication itself below it.
 
-        A document with no headline has nothing above it: everything is the report.
+        A document with no headline has nothing above it: everything is the publication.
         """
         for i, item in enumerate(content):
             if "paragraph" in item and style_of(item["paragraph"]) == "TITLE":
@@ -1475,7 +1475,7 @@ class Parser:
 
     def subtitle(self, below: list[JsonObject]) -> list[JsonObject]:
         """Take the `Subtitle`-styled paragraph directly under the headline,
-        and return the report without it.
+        and return the publication without it.
 
         Only there: it is the style that shows,
         and a subtitle anywhere else is not one a reader sees under the headline.
@@ -1495,11 +1495,11 @@ class Parser:
     def card(self, above: list[JsonObject]) -> Image | None:
         """The share card, which is an image the document puts above the headline.
 
-        ETA reports open with a wide image with the title set into it,
-        for whatever is linking to the report to show as a thumbnail.
+        ETA publications open with a wide image with the title set into it,
+        for whatever is linking to the publication to show as a thumbnail.
         It is metadata, publishing as `og:image` rather than as a figure,
         and recognized by position, since an image above the headline
-        is not in the report.
+        is not in the publication.
         """
         for item in above:
             para = item.get("paragraph")
@@ -1528,9 +1528,9 @@ class Parser:
         body section, and the image would vanish without a warning.
 
         Unrecognized keys are kept rather than ending the scan,
-        so adding a header field to a future report cannot leak that line into the body.
+        so adding a header field to a future publication cannot leak that line into the body.
 
-        Anything before `Header` is production scaffolding rather than the report,
+        Anything before `Header` is production scaffolding rather than the publication,
         and is dropped, one reported line at a time.
         A document with no `Header` at all is left untouched
         instead of being eaten a paragraph at a time.
@@ -1559,11 +1559,11 @@ class Parser:
                 )
 
         end = start + 1
-        # Pictures the header section holds, which are the report's and not
+        # Pictures the header section holds, which are the publication's and not
         # the header's: stepped over rather than ending it, and handed back.
         pictures: list[int] = []
         # The field the last header line set, so the picture under a
-        # `Social Title Card:` line is known to be the card rather than the report's.
+        # `Social Title Card:` line is known to be the card rather than the publication's.
         last_key = ""
         for i in range(start + 1, len(content)):
             para = content[i].get("paragraph")
@@ -1750,11 +1750,11 @@ class Parser:
         return key
 
     def _header_index(self, content: list[JsonObject]) -> int | None:
-        """Where the `Header` heading is, if the report has one.
+        """Where the `Header` heading is, if the publication has one.
 
         Found before anything is consumed, so a document without one is left untouched.
         The search stops at the headline or the first figure,
-        since past either the report has already started.
+        since past either the publication has already started.
         """
         for i, item in enumerate(content):
             para = item.get("paragraph")
@@ -1844,7 +1844,7 @@ class Parser:
         self.anchors = AnchorAllocator(heading_texts, reserved=RESERVED_ANCHORS)
         # Built before the body is walked,
         # because a section can be referred to from above itself:
-        # the report links to `Station Depth` long before reaching it.
+        # the publication links to `Station Depth` long before reaching it.
         self._heading_anchors = {}
         for text in heading_texts:
             if not text:
@@ -1888,7 +1888,7 @@ class Parser:
 
         Settled here rather than where the images are read,
         because an image's name depends on what the other images are called,
-        and the report goes on naming them for several pages after the first is built.
+        and the publication goes on naming them for several pages after the first is built.
 
         Only figures and the share card: a source line is written above a figure,
         and `Social Title Card:` names the card,

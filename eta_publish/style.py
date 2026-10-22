@@ -1,15 +1,15 @@
-"""How a report is written, as distinct from what it says.
+"""How a publication is written, as distinct from what it says.
 
 `parse.py` warns about what it could not read and `checks.py` about what a
-report has not got. These read prose that parsed cleanly and is complete,
+publication has not got. These read prose that parsed cleanly and is complete,
 and say it is spelled against the house style: the same sentence,
-set the way every other report sets it.
+set the way every other publication sets it.
 
 Each is a fix in the document rather than in the build,
 so each is a warning on the document like the others,
 and none of them rewrites anything on the way out.
-Spelling the reports alike is the writer's, so the build says where to look
-rather than quietly making the reports agree.
+Spelling the publications alike is the writer's, so the build says where to look
+rather than quietly making the publications agree.
 """
 
 import re
@@ -62,9 +62,9 @@ def _warn(doc: Document, template: str, *values: Shown | Highlighted) -> None:
 def _prose(doc: Document) -> Iterator[str]:
     """Every run of the document's own words, as one string each.
 
-    Footnotes included. They carry the report's own prose as often as they
+    Footnotes included. They carry the publication's own prose as often as they
     carry a citation, and a citation copied from where it was published is
-    published here too, under this report's name and in its house style.
+    published here too, under this publication's name and in its house style.
 
     The header is read alongside the body rather than left out of this.
     `text_runs` walks the blocks, and the header was consumed before those
@@ -120,7 +120,7 @@ def _check_spacing(doc: Document, text: str) -> None:
 
     Neither is visible anywhere somebody would catch it.
     The doc shows one space either way, HTML collapses the run, and
-    Squarespace never sees it, so nothing downstream reports either one
+    Squarespace never sees it, so nothing downstream publications either one
     and the Markdown archive keeps both forever.
     """
     for match in GAP.finditer(text):
@@ -149,7 +149,7 @@ DASH_NAMES = {"\u2014": "an em dash", "\u2013": "an en dash"}
 def _check_dash_spacing(doc: Document, text: str) -> None:
     """A dash with a space on either side of it, where the house style has none.
 
-    The reports already write it closed up, in every one of the fourteen
+    The publications already write it closed up, in every one of the fourteen
     dashes SAS West and IBX have between them. A spaced one arrives by pasting
     from somewhere that sets them open, and the one paragraph set the other way
     is visible on the page next to the rest.
@@ -242,7 +242,7 @@ ARTICLED = re.compile(r"\bthe[ \u00a0]+(?=ETA\b)", re.IGNORECASE)
 """An article before the initials, which is what is being warned about.
 
 The initials themselves are left to the sentence: `ETA recommended` and
-`ETA members` are how both reports write it, and the only thing wrong with
+`ETA members` are how both publications write it, and the only thing wrong with
 `the ETA` is the word in front. Case-insensitively, because a sentence
 opening `The ETA` is the same mistake as one saying it mid-line.
 """
@@ -252,7 +252,7 @@ def _check_organization_name(doc: Document, text: str) -> None:
     """`the ETA`, where the initials are written on their own.
 
     It is the name rather than a description of one, the way somebody writes
-    `NASA said` and not `the NASA said`, and both reports already say
+    `NASA said` and not `the NASA said`, and both publications already say
     `ETA recommended` and `ETA members` in the places they say it at all.
     Spelled out it does take the article, which is why this looks only at
     the initials.
@@ -352,7 +352,7 @@ TYPES = {
 
 Its own signs, maps and announcements are where these come from:
 `125 St`, `2 Av`, `Queens Blvd`, `Henry Hudson Pkwy`.
-A report is about the system, so it should name a station the way the system
+A publication is about the system, so it should name a station the way the system
 names it, and the reader who goes looking for the sign finds the sign.
 
 Singular only. There is no MTA spelling of `116th and 125th Streets`,
@@ -361,7 +361,7 @@ and a rule that invents one would be worse than the one it corrects.
 No `Plaza`, which the MTA writes out: `Grand Army Plaza` is the station.
 No `Court` either: the station is `Court Sq`, where the court is the name
 and the square is the kind, so a rule abbreviating it would rename it.
-No `Terrace` either, which is not a kind of street these reports name and
+No `Terrace` either, which is not a kind of street these publications name and
 not one the system has a station on.
 """
 
@@ -393,7 +393,7 @@ PROJECTS = ("Second Avenue Subway", "Second Avenue Stubway")
 """Names of the line, which are not names of the street under it.
 
 The Second Avenue Subway is the MTA's own name for the project, and these
-reports say it constantly. The Second Avenue Stubway is what SAS West calls
+publications say it constantly. The Second Avenue Stubway is what SAS West calls
 it for having `only made it three stops`, a joke that is on the project's
 name and works only while it keeps it.
 
@@ -438,7 +438,7 @@ apart by reading it.
 """
 
 ELSEWHERE = frozenset({"Nanba Road", "Heping South Street", "Ball Square", "Jersey Avenue"})
-"""Streets these reports name that are not in New York.
+"""Streets these publications name that are not in New York.
 
 `Nanba Road` is in Shanghai, `Heping South Street` in Beijing,
 `Ball Square` is a Green Line station outside Boston,
@@ -446,7 +446,7 @@ and `Jersey Avenue` a Hudson-Bergen Light Rail station in Jersey City, and none
 is a street the MTA has a spelling for: restyling them to `Nanba Rd` would be
 inventing a name nothing anywhere calls it.
 Nothing in the text says which city a street is in,
-so a report naming another one adds it here.
+so a publication naming another one adds it here.
 """
 
 
@@ -491,7 +491,7 @@ def _named(words: list[tuple[str, int]], kind: int) -> int:
 def _check_street_names(doc: Document, text: str) -> None:
     """A station or a street named some way other than the MTA's.
 
-    The reports are about what the MTA builds, and a reader who goes looking
+    The publications are about what the MTA builds, and a reader who goes looking
     for `125th Street` on a map finds `125 St`, which is the sign on the
     platform, the name in the app, and what the announcement says.
     """
@@ -612,11 +612,11 @@ A symbol has no plural, which is why `lbs` is in here beside `pounds`:
 spellings somebody reaches for, and neither is the symbol.
 The symbol is `km/h`, which is the two units it is made of.
 
-The ones the reports already write as symbols are in here too, from the
+The ones the publications already write as symbols are in here too, from the
 other side: `750 V`, `232 t`, `83 dB`, `2.9 mm`, `33 tph`. Each is written
 right today, and the spelled-out form is what the check is for.
 
-`mile` is not, and is the one length these reports spell out:
+`mile` is not, and is the one length these publications spell out:
 `two miles` is a distance a reader pictures,
 where `137 ft` and `1.2 km` are measurements a reader compares.
 """
@@ -625,7 +625,7 @@ where `137 ft` and `1.2 km` are measurements a reader compares.
 TIME_UNITS = frozenset({"minutes", "minute", "seconds", "second"})
 """Units that may be written out as well as abbreviated: the times.
 
-`3 min` and `3 minutes` are both how these reports write a headway,
+`3 min` and `3 minutes` are both how these publications write a headway,
 and a time is read in a sentence rather than compared down a column,
 so neither spelling is wrong. The symbols are still read as units.
 """
@@ -680,7 +680,7 @@ def _trailing_number(word: str) -> str | None:
     """The number `word` ends with, which is the one a unit after it counts.
 
     `6-8 minutes` is a range, and the eight is what the minutes are:
-    the reports write four of these.
+    the publications write four of these.
     """
     return _number(word.rpartition("-")[2])
 
@@ -709,12 +709,12 @@ def _defines(text: str, end: int, symbol: str) -> bool:
 def _check_units(doc: Document, text: str) -> None:
     """A measurement whose unit is spelled out where the symbol is the style.
 
-    These reports are full of them, and they are read against each other:
+    These publications are full of them, and they are read against each other:
     `137 ft`, `140 ft`, `969 ft` down a column is a comparison,
     where the same numbers spelled out is a paragraph to read twice.
 
     The house's own, unlike the station names: the MTA writes `125 St` on its
-    signs, and how a report abbreviates a kilogram is nothing to do with it.
+    signs, and how a publication abbreviates a kilogram is nothing to do with it.
     """
     for start, end, amount, gap, unit in _measurements(text):
         symbol = UNITS.get(unit)
@@ -804,7 +804,7 @@ def _spelled_out_symbol(words: list[tuple[str, int]], first: int) -> tuple[str, 
 def _check_spelled_out_symbols(doc: Document, text: str) -> None:
     """A percentage or a sum of money written as a word.
 
-    These reports are an argument about costs, and the costs are read against
+    These publications are an argument about costs, and the costs are read against
     each other: `$7.7 billion`, `$4.5 billion per mile`, `92%` are what a
     reader compares at a glance, where the same numbers in words are prose to
     work through. The symbol is also what every figure in them already uses.

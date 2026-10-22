@@ -25,7 +25,7 @@ FRAGMENT_ASSETS = ("report.css", "report.js")
 """What `report.html` links, and so what `report.min.html` links the `.min` copies of."""
 
 PAGE_ASSETS = ("page.css", *FRAGMENT_ASSETS)
-"""What a report's `index.html` links."""
+"""What a publication's `index.html` links."""
 
 MIN_ASSETS = ("report.min.css", "report.min.js")
 """What `report.min.html` links, each with its source map beside it as `<name>.map`."""

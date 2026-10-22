@@ -1,6 +1,6 @@
-#import "template.typ": capped_image, report, video_warning
+#import "template.typ": capped_image, publication, video_warning
 
-#show: report.with(
+#show: publication.with(
   title: "No Need to Wait: Automated Light Metro is Right for the IBX",
   headline: [No Need to Wait: #underline[Automated Light Metro] is Right for the IBX],
   subtitle: none,

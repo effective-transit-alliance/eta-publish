@@ -6,10 +6,10 @@ where the API JSON carries real named paragraph styles,
 first-class `footnotes`, and `inlineObjects`.
 
 Tabs are the subtle part.
-ETA reports live in multi-tab documents,
+ETA publications live in multi-tab documents,
 and by default `documents.get` fills `document.body` from the *first tab only*
 and leaves `document.tabs` empty,
-so a report drafted in the third tab parses silently into a plausible, wrong document.
+so a publication drafted in the third tab parses silently into a plausible, wrong document.
 So we always request `includeTabsContent` and select a tab explicitly,
 honoring the `?tab=` id in the URL handed to us.
 
@@ -17,7 +17,7 @@ Suggestions matter for the same reason.
 The default, `DEFAULT_FOR_CURRENT_ACCESS`,
 resolves to `SUGGESTIONS_INLINE` for anyone with edit access,
 mixing suggested text into the content as though it were part of the document.
-ETA reports are drafted with suggestions open,
+ETA publications are drafted with suggestions open,
 so we ask for `PREVIEW_WITHOUT_SUGGESTIONS`: what the doc reads as today.
 """
 
@@ -202,7 +202,7 @@ RESPONSE_FORMAT = hashlib.sha256(",".join(RESPONSE_KEYS).encode()).hexdigest()[:
 """What the shape above comes to, recorded in every response written in it.
 
 A saved response in an older shape is missing whatever was added since,
-and reusing it publishes a report built from half a document.
+and reusing it publishes a publication built from half a document.
 That is not something Drive can be asked about: the document did not change,
 the code did. So the response says which shape it is,
 and a build reuses only what it would have written itself.
@@ -264,7 +264,7 @@ def select_tab(document: JsonObject, wanted: str | None) -> JsonObject:
         "format": RESPONSE_FORMAT,
         # Which document and which tab this was, so a saved response says what
         # it is. Nothing else does: the outputs beside it are named after the
-        # report's own `URL:` line, which is a path and not an id.
+        # publication's own `URL:` line, which is a path and not an id.
         "documentId": doc_id,
         "tabId": tab_id(chosen),
         # The same two, as the link that opens them.
@@ -281,7 +281,7 @@ def select_tab(document: JsonObject, wanted: str | None) -> JsonObject:
 _SIGNING_IN = Lock()
 """Held while the answer is being worked out, and not while it is being used.
 
-Reports are built in parallel, and the cache alone does not stop two threads
+Publications are built in parallel, and the cache alone does not stop two threads
 that both miss it from both running the flow: on a machine with no saved token
 that is two browser windows asking for the same consent, and the second
 overwrites what the first wrote.
@@ -299,7 +299,7 @@ def _sign_in() -> Credentials:
     """Whatever this machine has to offer, interactive or not.
 
     Cached because nothing about it can change while a build runs,
-    where a build of two reports otherwise re-reads and re-checks the token
+    where a build of two publications otherwise re-reads and re-checks the token
     six times. `cache_clear` is what a test uses to be given a different answer.
 
     On a person's machine, the installed-app flow: a browser opens once, the token caches.

@@ -111,7 +111,7 @@ def _spans(
     return "".join(out)
 
 
-# The line a report introduces its contributors with.
+# The line a publication introduces its contributors with.
 # The header block names who they are; this says what naming them means.
 CONTRIBUTORS_NOTE = (
     "We wish to acknowledge the following ETA members who contributed to "
@@ -153,7 +153,7 @@ class Emitter(ABC):
         """Fix the number each source is cited by, once per document.
 
         Once, because every link asks: `Document.sources` walks the whole tree
-        to answer, and asking it per link would walk the report once per
+        to answer, and asking it per link would walk the publication once per
         citation of it.
         """
         self.source_numbers = {source: n for n, source in enumerate(doc.sources, start=1)}

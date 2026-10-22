@@ -1,6 +1,6 @@
-#import "template.typ": capped_image, report, video_warning
+#import "template.typ": capped_image, publication, video_warning
 
-#show: report.with(
+#show: publication.with(
   title: "Digging Out of a Very Deep Hole: Saving Billions on 125th Street",
   headline: [Digging Out of a Very Deep Hole:],
   subtitle: [Saving Billions on 125th Street],

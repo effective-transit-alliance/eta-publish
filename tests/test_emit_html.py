@@ -10,7 +10,7 @@ from htpy import a
 from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.emit.base import shown_url
-from eta_publish.emit.html import HtmlEmitter, link_mark, markup, report_page
+from eta_publish.emit.html import HtmlEmitter, link_mark, markup, publication_page
 from eta_publish.nodes import Document, Heading, Image, Paragraph, Shown, Text
 from eta_publish.parse import parse
 
@@ -49,7 +49,7 @@ def test_ids_are_unique() -> None:
 
 
 def test_the_source_line_is_not_published(out: str) -> None:
-    """`Source:` names the original file in Drive, for whoever assembles the report.
+    """`Source:` names the original file in Drive, for whoever assembles the publication.
     It appears nowhere on the live page and must not leak.
 
     The published image is named after it, which is a filename rather than the line:
@@ -85,7 +85,7 @@ def sections_and_headings(out: str) -> list[str]:
     """The ids the table of contents is allowed to point at, in page order.
 
     The back matter's id is on its `section`, not on its heading:
-    the whole section is the thing being linked to. The report title identifies
+    the whole section is the thing being linked to. The publication title identifies
     the document rather than introducing a section, so the contents omit it."""
     return [
         m.group(1) or m.group(2)
@@ -214,7 +214,7 @@ def test_inline_css_is_optional(doc: Document) -> None:
 
 
 def test_tables_scroll_rather_than_overflow(out: str) -> None:
-    """Wide comparison tables are common in these reports,
+    """Wide comparison tables are common in these publications,
     and a page that scrolls sideways on a phone is worse than a table that does."""
     marked = without_marks(out)
     assert re.search(r'<div class="table-scroll" id="table-[0-9a-f]{8}"><table>', marked)
@@ -233,31 +233,31 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
 
 
 def test_the_contributors_section_comes_last(doc: Document) -> None:
-    """After the footnotes, which is where the published report credits them."""
+    """After the footnotes, which is where the live publication credits them."""
     doc.meta["Public Contributors"] = "Khyber Sen"
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert out.index('<section class="footnotes"') < out.index('<section class="contributors"')
 
 
-def test_a_report_with_no_public_contributors_has_no_contributors(doc: Document) -> None:
+def test_a_publication_with_no_public_contributors_has_no_contributors(doc: Document) -> None:
     doc.meta.pop("Public Contributors", None)
     assert 'class="contributors"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_the_dateline_is_the_final_due_date(doc: Document) -> None:
-    """Written out, which is how `etany.org` dates a report."""
+    """Written out, which is how `etany.org` dates a publication."""
     doc.meta["Publish Due Date"] = "Aug 19, 2026"
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert '<p class="dateline" id="date">August 19, 2026</p>' in without_marks(out)
 
 
-def test_a_report_with_no_final_due_date_has_no_dateline(doc: Document) -> None:
+def test_a_publication_with_no_final_due_date_has_no_dateline(doc: Document) -> None:
     doc.meta.pop("Publish Due Date", None)
     assert 'class="dateline"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_every_block_can_be_linked_to(out: str) -> None:
-    """A report is quoted a paragraph at a time, so every block is a target.
+    """A publication is quoted a paragraph at a time, so every block is a target.
 
     Paragraphs, figures, and tables wherever they sit,
     footnote bodies and table cells included.
@@ -275,7 +275,7 @@ def test_a_paragraph_is_named_by_its_section_and_its_place_in_it(out: str) -> No
 
 
 def test_editing_a_paragraph_does_not_move_its_id(doc: Document) -> None:
-    """A copy edit is most of what happens to a report after it publishes,
+    """A copy edit is most of what happens to a publication after it publishes,
     and a link into the paragraph that was fixed should still land on it."""
     first = re.findall(r'<p id="([^"]+)"', HtmlEmitter(inline_css=False, site_url=HOST).emit(doc))[
         0
@@ -349,13 +349,13 @@ def test_every_linkable_block_carries_a_link_to_itself(out: str) -> None:
     so the link to it is on the page rather than in its source.
 
     Except in the back matter and in a table,
-    where the paragraphs are not passages of the report:
+    where the paragraphs are not passages of the publication:
     a footnote is reached from its reference and left by the arrow back,
     and a cell is part of its table.
     """
-    report = re.sub(r'<section class="footnotes".*?</section>', "", out, flags=re.S)
-    report = re.sub(r"<td>.*?</td>", "", report, flags=re.S)
-    anchors = re.findall(r'<(?:h[1-6]|p|figure|div|nav|section)[^>]* id="([^"]+)"', report)
+    publication = re.sub(r'<section class="footnotes".*?</section>', "", out, flags=re.S)
+    publication = re.sub(r"<td>.*?</td>", "", publication, flags=re.S)
+    anchors = re.findall(r'<(?:h[1-6]|p|figure|div|nav|section)[^>]* id="([^"]+)"', publication)
     assert anchors
     marked = set(re.findall(r'<a class="link-mark"[^>]* href="#([^"]+)"', out))
     for anchor in anchors:
@@ -423,7 +423,7 @@ def test_paragraphs_are_numbered_from_one_in_each_section(out: str) -> None:
 
 
 def test_a_footnote_numbers_its_own_paragraphs(out: str) -> None:
-    """Numbering a footnote's paragraphs along with the report
+    """Numbering a footnote's paragraphs along with the publication
     would put 43 between 12 and 13,
     and nobody could do anything with that number."""
     assert '<p id="fn1-p1">' in out
@@ -457,7 +457,7 @@ def test_a_link_to_a_block_says_where_it_points() -> None:
 
 
 def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
-    """The round trip over a whole report, not over one primitive.
+    """The round trip over a whole publication, not over one primitive.
 
     A bug in `attributes` is the small half of this worry
     and the reviewed half; the larger half is a call site
@@ -474,7 +474,7 @@ def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
     # An image is frozen, and this is the one place anything writes to one.
     for image in doc.images:
         object.__setattr__(image, "alt", EVIL)
-    for output in (HtmlEmitter(site_url=HOST).emit(doc), report_page(doc, site_url=HOST)):
+    for output in (HtmlEmitter(site_url=HOST).emit(doc), publication_page(doc, site_url=HOST)):
         parsed = read(output)
         assert parsed.tags.count("script") == 1, "only the page's own script"
         assert parsed.tags.count("x") == 0, "the document opened no tag"
@@ -504,7 +504,7 @@ def test_nothing_a_document_says_becomes_markup(doc: Document) -> None:
     doc.meta["SEO Description"] = EVIL
     doc.meta["Public Contributors"] = EVIL
     doc.warn("a warning about {}", Shown(EVIL))
-    for output in (HtmlEmitter(site_url=HOST).emit(doc), report_page(doc, site_url=HOST)):
+    for output in (HtmlEmitter(site_url=HOST).emit(doc), publication_page(doc, site_url=HOST)):
         assert "<script>alert(1)</script>" not in output
         assert "alert(1)" in output, "the text itself should survive, escaped"
 
@@ -532,7 +532,7 @@ def test_the_page_describes_itself_the_way_squarespace_would(doc: Document) -> N
     """With the SEO description alone: a Squarespace page has no excerpt to fall back to."""
     doc.meta["Short"] = "The short."
     doc.meta["SEO Description"] = "The SEO description."
-    page = report_page(doc, site_url=HOST)
+    page = publication_page(doc, site_url=HOST)
     assert 'name="description" content="The SEO description."' in page
     assert 'property="og:description" content="The SEO description."' in page
     assert "The short." not in page
@@ -543,7 +543,7 @@ def test_the_masthead_links_the_pdf_where_it_is_given(doc: Document) -> None:
     out = HtmlEmitter(pdf_href=pdf, site_url=HOST).emit(doc)
     assert f'<a class="pdf-button" href="{pdf}">' in out
     assert "Download PDF</a>" in out
-    assert 'href="report.pdf"' in report_page(doc, pdf_href="report.pdf", site_url=HOST)
+    assert 'href="report.pdf"' in publication_page(doc, pdf_href="report.pdf", site_url=HOST)
 
 
 def test_the_masthead_links_no_pdf_unless_given(doc: Document) -> None:
@@ -556,7 +556,7 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
     doc.card = Image(object_id="io.card", filename="card")
     doc.image_files["io.card"] = "card.jpg"
     doc.image_shapes["io.card"] = (1200, 628)
-    page = report_page(
+    page = publication_page(
         doc,
         card_base="https://example.invalid/r/images",
         page_url="https://example.invalid/r/",

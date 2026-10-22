@@ -9,7 +9,7 @@ and doubles as the diff that shows what a parser change actually did to the outp
 The snapshots sit in `tests/fixture/reports/<slug>/`,
 beside the `doc.json` they are emitted from,
 which is the same shape as `site/unpublished/`:
-a report directory holding a document and what it produces.
+a publication directory holding a document and what it produces.
 
 Regenerate with `pytest --regenerate-snapshots` after checking the diff.
 """
@@ -19,7 +19,7 @@ import json
 import pytest
 from paths import FIXTURE_DIR, HOST
 
-from eta_publish.emit.html import HtmlEmitter, report_page
+from eta_publish.emit.html import HtmlEmitter, publication_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.naming import IMAGE_DIR
@@ -27,7 +27,7 @@ from eta_publish.nodes import Document
 from eta_publish.parse import parse
 
 ASSET_BASE = "../../assets"
-"""What a build links from a report at `reports/<slug>/`."""
+"""What a build links from a publication at `reports/<slug>/`."""
 
 FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
 
@@ -76,5 +76,7 @@ def test_page_matches_snapshot(doc: Document, regenerate_snapshots: bool) -> Non
     it is one of the files a build writes,
     and leaving it out would make this directory something a build cannot reproduce."""
     check(
-        "index.html", report_page(doc, asset_base=ASSET_BASE, site_url=HOST), regenerate_snapshots
+        "index.html",
+        publication_page(doc, asset_base=ASSET_BASE, site_url=HOST),
+        regenerate_snapshots,
     )

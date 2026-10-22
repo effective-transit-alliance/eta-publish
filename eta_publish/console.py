@@ -1,7 +1,7 @@
 """How a build says what it did, in a terminal.
 
 A build's log is read while it is running, by whoever is going to go and fix
-what it names, so it is laid out for that: one heading per report, its
+what it names, so it is laid out for that: one heading per publication, its
 warnings under it, and the values a warning is about picked out from the
 words around them.
 
@@ -114,8 +114,8 @@ def for_stream(stream: IO[str] | None = None) -> Console:
     thing that decides what to set.
 
     Everything `rich` would read out of a string is off: every style here is
-    given to `Text` rather than spelled in square brackets, so a report
-    called `Report [Draft] on 125 St` is a title and not a style tag that
+    given to `Text` rather than spelled in square brackets, so a publication
+    called `Publication [Draft] on 125 St` is a title and not a style tag that
     does not exist, and a document that writes `:construction:` in a line
     warned about keeps its colon and its word.
     """
@@ -134,22 +134,22 @@ _ABOUT: ContextVar[str | None] = ContextVar("about", default=None)
 
 _WATCHING_LOCK = Lock()
 """Held to read or change `_BUSY` or `_WATCHING` from any thread."""
-"""Which report the build is in the middle of, for the notes it writes.
+"""Which publication the build is in the middle of, for the notes it writes.
 
 A context variable rather than an argument threaded through the build, because
 every one of these notes is written from somewhere that has no idea which
-report it is building: a sign-in asked for again in `fetch`, a `typst` that is
+publication it is building: a sign-in asked for again in `fetch`, a `typst` that is
 not installed, a count of sources looked up in the archive. Passing a name
 down to each of them means passing it through everything in between, which is
 most of the build, to be used by a handful of lines.
 
 Attribution belongs in `note` and `warning` for the same reason.
-A caller that has to remember to say which report it is writing about is a
+A caller that has to remember to say which publication it is writing about is a
 caller that will not, and the one which forgets is the one whose line gets
-read on a build of fourteen reports at once.
+read on a build of fourteen publications at once.
 
-Set for the duration of one report, in the worker that builds it, so a note
-written by a pooled thread is attributed to the report that thread is on and
+Set for the duration of one publication, in the worker that builds it, so a note
+written by a pooled thread is attributed to the publication that thread is on and
 not to the one it was on last.
 """
 
@@ -158,8 +158,8 @@ not to the one it was on last.
 def about(name: str) -> Generator[None]:
     """Attribute everything written inside this to `name`.
 
-    Reset on the way out rather than left set: the threads that build reports
-    are reused, and a label left behind is a note about the next report under
+    Reset on the way out rather than left set: the threads that build publications
+    are reused, and a label left behind is a note about the next publication under
     the name of the last one.
     """
     token = _ABOUT.set(name)
@@ -177,7 +177,9 @@ _STEP: ContextVar[Callable[[str], None] | None] = ContextVar("step", default=Non
 
 
 def step(state: str) -> None:
-    """Say what the report being built on this thread is doing now, if anything is listening."""
+    """Say what the publication being built on this thread is doing now,
+    if anything is listening.
+    """
     say = _STEP.get()
     if say is not None:
         say(state)
@@ -212,12 +214,12 @@ def _sentence(
     """One note or warning: who it is about, then what it says.
 
     The name is a value, marked the way `added` marks the same name it read
-    off the same list: a note is a sentence with a report's name inside it,
+    off the same list: a note is a sentence with a publication's name inside it,
     and a name inside a sentence is picked out or it runs into the words
-    around it. A heading names a report bold and behind a ` · ` instead,
+    around it. A heading names a publication bold and behind a ` · ` instead,
     because there the name is a field and not part of a sentence.
     It is put in front as a span of its own, like every other value here, so
-    a report called `` `Draft` on 125 St `` keeps its marks and its words.
+    a publication called `` `Draft` on 125 St `` keeps its marks and its words.
     A colon after it, not the ` · ` a heading uses: that separates the fields
     of a heading, and a note is a sentence rather than a field.
     No name at all outside a build, which is what `fetch` on its own is: there
@@ -334,12 +336,12 @@ def built(
     console: Console,
     paste: list[tuple[str, str]] | None = None,
 ) -> RenderableType:
-    """One report that was built, where it went, and everything in it to fix.
+    """One publication that was built, where it went, and everything in it to fix.
 
     Where it went belongs on this line rather than in a list of its own at the
     end: the list was written before there was a heading to put the path on,
-    and it named each report by its headline where this names it by its entry
-    in `reports.toml`, so the two read as being about different reports.
+    and it named each publication by its headline where this names it by its entry
+    in `publications.toml`, so the two read as being about different publications.
 
     Separated by a mark and not by spaces alone.
     On a terminal the colour is what says one field has ended and the next
@@ -366,7 +368,7 @@ def built(
 
 
 def failed(name: str, error: str) -> RenderableType:
-    """One report that was not built, and the reason, which is the message.
+    """One publication that was not built, and the reason, which is the message.
 
     Said here rather than counted here and explained elsewhere: a failure
     named twice, once with its reason and once without, is one failure read
@@ -387,11 +389,11 @@ def note(template: str, *values: Span | Linked, console: Console | None = None) 
     """Something the build did differently, which is not a document's fault.
 
     A missing `typst`, a sign-in being asked for again, a PDF not attempted:
-    nothing to go and fix in a report, and not nothing either.
+    nothing to go and fix in a publication, and not nothing either.
 
-    Prefixed with the report being built, because a build of a list of them
+    Prefixed with the publication being built, because a build of a list of them
     runs several at once and writes these as they happen: a line saying three
-    sources were looked up is not worth much without the report that cites
+    sources were looked up is not worth much without the publication that cites
     them.
 
     Written as `Document.warn` writes a warning, with `{}` where a value goes
@@ -415,12 +417,12 @@ scroll past, and a hundred and nine is the log.
 
 _BAR: Progress | None = None
 _BAR_LOCK = RLock()
-"""The one bar a build draws, however many reports are being built at once.
+"""The one bar a build draws, however many publications are being built at once.
 
 `rich` draws by taking over the bottom of the screen, and two displays cannot
-both have it: a second report opening its own bar is what overwrites the
+both have it: a second publication opening its own bar is what overwrites the
 first one's line and pushes everything else around. One bar with a row per
-report says the same thing and is the only one drawing.
+publication says the same thing and is the only one drawing.
 """
 
 
@@ -530,7 +532,7 @@ def progress(
 ) -> Generator[Callable[[], None]]:
     """Say how far along something long is, and yield what to call as it goes.
 
-    Checking a report against the archive is a hundred and nine questions
+    Checking a publication against the archive is a hundred and nine questions
     to a service that
     answers in its own time, and a build that says nothing for two minutes is
     one somebody kills. What it says is the same either way; how it says it
@@ -607,8 +609,8 @@ def alarm(
     this is about how the build itself is running, not about a document, and
     a reader scanning those for what to fix in the doc would skip it.
 
-    Not named for a report, though it may be said while building one: it is
-    about every report the run builds.
+    Not named for a publication, though it may be said while building one: it is
+    about every publication the run builds.
     """
     console = console or for_stream()
     body = _spans(filled(template, values), console)
@@ -622,7 +624,7 @@ def alarm(
     )
 
 
-def added(reports: Path, name: str, tab: str, console: Console) -> Text:
+def added(publications: Path, name: str, tab: str, console: Console) -> Text:
     """What `eta-publish add` wrote into the list.
 
     Both values back, because both were read off the document rather than
@@ -630,7 +632,9 @@ def added(reports: Path, name: str, tab: str, console: Console) -> Text:
     """
     text = Text()
     text.append("✓ ", style="bold green")
-    text.append_text(_spans((f"{reports}: added ", Shown(name), ", tab ", Shown(tab)), console))
+    text.append_text(
+        _spans((f"{publications}: added ", Shown(name), ", tab ", Shown(tab)), console)
+    )
     return text
 
 

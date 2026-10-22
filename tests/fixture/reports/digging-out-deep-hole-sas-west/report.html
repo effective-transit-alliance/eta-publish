@@ -16,11 +16,11 @@
    Both the basis and the growth are the image's own aspect ratio, so the
    pictures come out the same height rather than the same width, which is
    what makes a cross-section beside the one it is compared with readable
-   across. 1.4 is the landscape photo the report is mostly made of, for an
+   across. 1.4 is the landscape photo the publication is mostly made of, for an
    image whose size a build did not learn.
 
    The 10rem is the wrap point rather than a width: one page's worth of
-   column divided by the widest pair the report puts in a row. */
+   column divided by the widest pair the publication puts in a row. */
 .eta-report .figure-row { display: flex; flex-wrap: wrap; gap: 1.5em;
                           align-items: flex-start; margin: 2.5em 0; }
 .eta-report .figure-row > figure {
@@ -40,7 +40,7 @@
                              color: #fff; background: rgb(0 0 0 / .6); border: 0;
                              border-radius: .25em; cursor: zoom-in; }
 /* Links underlined the way the site underlines them in a text block. The
-   report is pasted into an embed block, which that rule does not reach, and
+   publication is pasted into an embed block, which that rule does not reach, and
    the site's own `a` rule takes the underline off everywhere else. The
    links that are marks rather than words take it off again below. */
 .eta-report a { text-decoration: underline 1px solid currentColor;
@@ -78,7 +78,7 @@
 .eta-report .footnotes ol { padding-left: 2.6em; }
 .eta-report .footnotes li > .link-mark { left: -3.95em; }
 @media print { .eta-report .link-mark { display: none; } }
-/* Caption and credit are styled alike, which is what the published report
+/* Caption and credit are styled alike, which is what the live publication
    does: both are small text, and neither is italic. The classes stay
    distinct so they can be told apart without reading them. */
 .eta-report figcaption { font-size: .85rem; opacity: .75; margin-top: .6em; }
@@ -158,8 +158,8 @@
   border-color: currentColor;
   background: color-mix(in srgb, currentColor 8%, transparent); }
 .eta-report .standfirst { font-size: 1.15rem; opacity: .75; }
-/* The build's own notes about this report. A colour and a face of their own,
-   because they are the one thing on the page that is not the report and
+/* The build's own notes about this publication. A colour and a face of their own,
+   because they are the one thing on the page that is not the publication and
    should not be read as though they were. */
 .eta-report .warnings { border-left: 3px solid #c60; padding: .4em 1em;
                         margin: 2em 0; font-size: .9rem;
@@ -182,8 +182,8 @@
                                    border-left: 2px solid currentColor;
                                    opacity: .8; }
 /* The headline beside the hero, half and half, the way the site's own
-   reports open, from the 768px where the site stops stacking its columns.
-   A column's worth each is the wrap point, for a site that puts the report
+   publications open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the publication
    in a column too narrow for two.
 
    The warnings come between the two in the markup, which is where they read
@@ -232,7 +232,7 @@
    title sections, whose `bright` theme sets it so. */
 .eta-report .masthead { --text-highlight-color: #fff; }
 /* Coloured, unlike everything else here, and the loudest thing on the page:
-   this says the report is a draft, and a reader who misses it reads a draft as
+   this says the publication is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
    Unscoped, because the page writes it above the headline,
    which is outside `.eta-report`. */
@@ -259,7 +259,7 @@
    block heading. */
 .eta-report .toc summary { list-style: none; cursor: pointer; }
 /* An `h2` for the outline, since it sits under the title beside the sections,
-   but drawn as an `h3`: it leads to the report rather than being part of it. */
+   but drawn as an `h3`: it leads to the publication rather than being part of it. */
 .eta-report .toc summary h2 { font-size: 1.17em; margin: 1em 0;
                               border-top: 0; padding-top: 0; }
 .eta-report .toc summary::-webkit-details-marker { display: none; }
@@ -383,7 +383,7 @@
 /* A picture opened over the page, at `#/media/` and its id: the picture as large as
    the window allows, a bar above it and its caption below. A `dialog`, which
    the browser puts above everything on the page, whatever the site around
-   the report stacks or transforms. Light on dark, whatever the page is. */
+   the publication stacks or transforms. Light on dark, whatever the page is. */
 html:has(.eta-report .lightbox[open]) { overflow: hidden; }
 .eta-report .lightbox { box-sizing: border-box; width: 100vw; height: 100dvh;
                         max-width: none; max-height: none; margin: 0; padding: 0;
@@ -422,7 +422,7 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
 }
 .eta-report .contributors { font-size: .95rem; }
 /* The names in two columns, read down the first and then the second, the way
-   the site's own reports lay them out. At 768px, where the site stacks its
+   the site's own publications lay them out. At 768px, where the site stacks its
    own columns: a phone gets one. */
 @media (min-width: 768px) {
   .eta-report .contributors ul { columns: 2; }
@@ -436,12 +436,12 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
 .eta-report .table-scroll { overflow-x: auto; }
 .eta-report table { border-collapse: collapse; width: 100%; font-size: .9rem; }
 .eta-report td { border: 1px solid currentColor; padding: .4em .6em; vertical-align: top; }
-/* Squarespace, outside the report: the Embed block it is pasted into.
-   The block pads its bottom by 56.25% for a 16:9 video, which the report is
+/* Squarespace, outside the publication: the Embed block it is pasted into.
+   The block pads its bottom by 56.25% for a 16:9 video, which the publication is
    not, and the editor sets the block's height in grid rows, which is never
-   the report's own height for long: it changes with every paste and every
-   screen width. Where the report is the section's only block, the section
-   is one row as tall as the report; where it shares the section with other
+   the publication's own height for long: it changes with every paste and every
+   screen width. Where the publication is the section's only block, the section
+   is one row as tall as the publication; where it shares the section with other
    blocks, their layout is left as the editor set it. */
 .embed-block-wrapper:has(> .eta-report) {
   /* biome-ignore lint/complexity/noImportantStyles: the padding is an inline style. */
@@ -474,7 +474,7 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
   const home = new WeakMap();
   const built = new WeakMap();
   // A citation's box is built the first time it is wanted, out of the entry it
-  // already points at, rather than emitted beside every link. The report cites
+  // already points at, rather than emitted beside every link. The publication cites
   // 113 sources and a copy of each one's address next to each of its citations
   // is 17 KB of a fragment that has 400 KB to fit in. The section is the form
   // that always works; this is the shortcut for a reader who has a pointer.
@@ -541,13 +541,13 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
   const show = (tip) => {
     const from = tip.parentElement;
     const ref = from.getBoundingClientRect();
-    // Moved out to the report for as long as it is open, because a box is only
+    // Moved out to the publication for as long as it is open, because a box is only
     // as opaque as what it is inside: a figure caption is set at `opacity: .75`
     // and a box within one is composited at .75 too, so the caption shows
     // through the words. An ancestor with `overflow` would clip it, and one
     // with a transform would be what `position: fixed` resolved against.
     //
-    // To the report rather than to `body`, because every rule that styles a box
+    // To the publication rather than to `body`, because every rule that styles a box
     // is written `.eta-report .source-tip`: outside that div the box keeps its
     // place on the screen and loses its background, which is worse than the
     // caption showing through it.
@@ -650,7 +650,7 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
     const figure = card.closest(".embed");
     // YouTube's player refuses a page that sends no `Referer`, with "Error
     // 153", and a page opened as a file sends none: there the card stays the
-    // link to the video it already is, opened in a new tab so the report stays.
+    // link to the video it already is, opened in a new tab so the publication stays.
     event.preventDefault();
     if (location.protocol === "file:" && figure.classList.contains("embed-youtube")) {
       open(card.href, "_blank", "noopener");
@@ -719,7 +719,7 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
     title.classList.add("swooshed");
   };
   // After the page has been read rather than now: in the fragment this script
-  // comes before the report it is for.
+  // comes before the publication it is for.
   const swooshAll = () => {
     for (const title of document.querySelectorAll(".eta-report #title")) {
       if (!title.querySelector("u")) continue;
@@ -913,17 +913,17 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
     render();
   };
   // The browser scrolls to a `#` once, as soon as the element exists, but on a
-  // host like Squarespace the report's stylesheet, fonts, and images arrive
+  // host like Squarespace the publication's stylesheet, fonts, and images arrive
   // after that and grow what is above it, leaving the target far down the
-  // window. So the target is put back at the top each time the report or the
+  // window. So the target is put back at the top each time the publication or the
   // page around it changes size, until the reader scrolls on their own.
   // Squarespace also scrolls smoothly on its own a moment after, a little past
   // the target, so any scroll before the reader's own is put back too.
   const keepTarget = () => {
-    const report = document.querySelector(".eta-report");
+    const publication = document.querySelector(".eta-report");
     const id = decodeURIComponent(location.hash.slice(1));
     const target = id && document.getElementById(id);
-    if (!report || !target || !report.contains(target)) return;
+    if (!publication || !target || !publication.contains(target)) return;
     const put = () => {
       if (Math.abs(target.getBoundingClientRect().top) > 1) {
         target.scrollIntoView({ behavior: "instant" });
@@ -941,7 +941,7 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
       addEventListener(name, stop, true);
     }
     addEventListener("scroll", put);
-    resize.observe(report);
+    resize.observe(publication);
     resize.observe(document.body);
     // Long after everything above it has loaded; a reader who has not touched
     // the page by then is not owed a jump.

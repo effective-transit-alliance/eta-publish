@@ -1,9 +1,9 @@
-"""Typst source, compiled to the report PDF.
+"""Typst source, compiled to the publication PDF.
 
 Typst rather than HTML-to-PDF because footnotes belong at the bottom of the page.
 HTML can only place them at the end of the document,
 and with 21 of them carrying real argument,
-that is the difference between a report and a printout of a web page.
+that is the difference between a publication and a printout of a web page.
 
 A footnote's body is inlined at the reference site, which is how Typst wants it:
 `#footnote[...]` marks the spot and carries the text,
@@ -119,8 +119,8 @@ class TypstEmitter(Emitter):
         internal dates and channels, and this file is committed.
         """
         header = (
-            f"#import {string(self.template)}: capped_image, report, video_warning\n\n"
-            f"#show: report.with(\n"
+            f"#import {string(self.template)}: capped_image, publication, video_warning\n\n"
+            f"#show: publication.with(\n"
             f"  title: {string(doc.title)},\n"
             f"  headline: [{self.inlines(doc.headline) if doc.headline else escape(doc.title)}],\n"
             f"  subtitle: {f'[{self.inlines(doc.subtitle)}]' if doc.subtitle else 'none'},\n"
@@ -145,7 +145,7 @@ class TypstEmitter(Emitter):
         return f"  hero: [\n{self.blocks([doc.hero])}\n  ],\n"
 
     def warnings(self, doc: Document) -> str:
-        """The build's notes about this report, for the template to place.
+        """The build's notes about this publication, for the template to place.
 
         A warning marks a name with backticks, which Typst also spells with backticks,
         so the message is escaped around them and its names come out as raw.
@@ -173,7 +173,7 @@ class TypstEmitter(Emitter):
     # ---- blocks -----------------------------------------------------
 
     def sources(self, doc: Document) -> str:
-        """Every source the report cites, with the archived copy beside it.
+        """Every source the publication cites, with the archived copy beside it.
 
         A real section with real links: a PDF is the output most likely to
         outlive the pages it cites, and the one a reader cannot hover.
@@ -238,7 +238,7 @@ class TypstEmitter(Emitter):
     @override
     def figure(self, node: Figure) -> str:
         # As in the HTML, `Figure.source` is not emitted:
-        # it names a file in Drive for whoever assembles the report.
+        # it names a file in Drive for whoever assembles the publication.
         caption_parts = []
         if node.caption:
             caption_parts.append(self.inlines(node.caption))
@@ -379,7 +379,7 @@ class TypstEmitter(Emitter):
         """Where this image is published, for the PDF to link to.
 
         Empty for a document that names no `URL:`,
-        which is `eta-publish one` before the report is on the list:
+        which is `eta-publish one` before the publication is on the list:
         it has no published home yet, so there is nothing to point at,
         and a link to where it would go if it had one would be a broken one.
         """

@@ -3,24 +3,24 @@
 ## What is being compared
 
 Three things, not two.
-For a report whose header block names `URL: /reports/$report`,
+For a publication whose header block names `URL: /reports/$publication`,
 which is the one place its name is written:
 
-1. `https://www.etany.org/reports/$report`,
+1. `https://www.etany.org/reports/$publication`,
    the live page, as Squarespace serves it today.
    It is assembled by hand, one block at a time,
    162 of them for SAS West,
    so it is a record of what a person typed, not a reference.
-2. `site/reports/$report/doc.json`,
-   the `documents.get` response for the tab named in that report's
-   `url` in `reports.toml`, committed next to the outputs it produced.
+2. `site/reports/$publication/doc.json`,
+   the `documents.get` response for the tab named in that publication's
+   `url` in `publications.toml`, committed next to the outputs it produced.
    This is the source: everything published comes from here.
-3. `site/reports/$report/index.html`,
+3. `site/reports/$publication/index.html`,
    written from that `doc.json` by `uv run eta-publish`,
-   or offline by `uv run eta-publish site/reports/$report --no-images`.
+   or offline by `uv run eta-publish site/reports/$publication --no-images`.
 
 Below, `doc.json` and `index.html` are those two files
-for the report the section is about, and *live* is that URL.
+for the publication the section is about, and *live* is that URL.
 
 Naming all three is what makes an entry actionable,
 because where a difference sits says who fixes it:
@@ -35,10 +35,10 @@ because where a difference sits says who fixes it:
   Either the live page is defective,
   or the emitter deliberately publishes something else.
   Nothing to fix in this repository.
-- Stale live. All three agreed when the report published,
+- Stale live. All three agreed when the publication went out,
   and `doc.json` has been edited since.
 
-A report is compared by normalizing live and `index.html`
+A publication is compared by normalizing live and `index.html`
 to a tagged stream
 (headings, paragraphs, list items, captions, alt text, cells),
 diffing that in both directions,
@@ -47,10 +47,10 @@ Anything the three agree on is not listed:
 today that is every figure caption, every image credit,
 and the text of every footnote body.
 
-## All reports
+## All publications
 
 These follow from what the emitters do,
-so they apply to whatever report is published next.
+so they apply to whatever publication is published next.
 
 ### The table of contents lists every heading, indented (intended)
 
@@ -64,7 +64,7 @@ one per line, each indented under the section it belongs to.
 `Footnotes` and `Contributors` are listed too,
 though the emitter writes those two headings rather than the document.
 They are sections of the page like any other,
-and "at the end" is not an address in a report this long.
+and "at the end" is not an address in a publication this long.
 
 ### One `h1`, not a split title (intended)
 
@@ -88,7 +88,7 @@ each footnote, and the back matter sections themselves.
 A paragraph is named by the section it is in and its place in that section:
 `#ground-conditions-p2`.
 That is a name a reader can read before following it,
-and it survives the copy edits that are most of what happens to a report,
+and it survives the copy edits that are most of what happens to a publication,
 which a hash of the text does not.
 The cost is the other direction:
 inserting a paragraph renumbers the ones after it in its own section,
@@ -101,7 +101,7 @@ Figures and tables are still named by what they hold rather than where they sit.
 
 Hand assembly.
 Google Docs cannot write a link to a heading in the same document,
-so the report italicizes the section's name and means a link by it.
+so the publication italicizes the section's name and means a link by it.
 Live publishes the italics as italics:
 `See SAS Phase 2 Tail Tracks`, `as suggested in Station Depth`,
 and the addendum's `Station Depth`,
@@ -129,7 +129,7 @@ and is not the order that field happens to be typed in.
 
 What differs is the level.
 `Footnotes` and `Contributors` are `h2` here and `h3` live,
-making them sections of the report rather than subsections of whatever came last.
+making them sections of the publication rather than subsections of whatever came last.
 
 ### Footnote markers are bare superscripts after the punctuation (intended)
 
@@ -145,7 +145,7 @@ New here.
 Every external link carries a `[n]` into a `Sources` section
 after the footnotes, where the entry names the page,
 the capture of it in the Wayback Machine,
-and a `↑` back to each place the report cites it.
+and a `↑` back to each place the publication cites it.
 Live has no such section and no such markers:
 a link there is a link, and when the page behind it moves, it is gone.
 
@@ -212,7 +212,7 @@ and until they are there a hash is the only thing stable across edits.
 ### Four wordings the live page predates (intended)
 
 Stale live.
-`doc.json` has been edited since the report published,
+`doc.json` has been edited since the publication went out,
 and `index.html` carries the current text:
 `10-story` for `10 story`,
 `station box, while` for `station box while`,

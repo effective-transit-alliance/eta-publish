@@ -34,7 +34,7 @@ SITE = ROOT / "site"
 UNPUBLISHED = SITE / UNPUBLISHED_DIR
 REAL_DIR = UNPUBLISHED / SLUG
 
-HOSTS = load_hosts(ROOT / "reports.toml")
+HOSTS = load_hosts(ROOT / "publications.toml")
 """Where the committed list serves the site, which both corpora were built against.
 
 A test that emits rebuilds what one of them holds, so it links the same hosts.
