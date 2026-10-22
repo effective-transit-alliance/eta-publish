@@ -10,11 +10,15 @@ A publication whose header names no URL is not published at all,
 since a slug of its headline would be a plausible path and not the published one.
 Nor is one with no `Header` section for a URL to be named in.
 
+Which kind of publication it is comes from the same line:
+`/reports/` is a report and `/statements/` is a statement.
+
 That is one publication failing, not the site:
 the others are still built and the exit status still reports it.
 """
 
 import json
+import re
 import tomllib
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -34,8 +38,9 @@ from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import ASSET_DIR, IMAGE_DIR
-from .nodes import Document
+from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, Kind, path_kind
+from .nodes import Document, Shown
+from .parse import parse
 
 PUBLICATIONS = Path("publications.toml")
 """Which documents the site is built from, committed beside the code."""
@@ -89,6 +94,12 @@ class Publication:
 
     A document named on the command line is a draft:
     nothing says it is out, and assuming it is would host it."""
+
+    kind: Kind | None = None
+    """Which table of `publications.toml` the entry is in,
+    checked against the document's `URL:` path.
+
+    `None` on the same terms as `name`: only the path says, and nothing checks it."""
 
 
 @dataclass
@@ -164,13 +175,18 @@ def load_publications(path: Path = PUBLICATIONS) -> list[Publication]:
     Comments matter here: a list of documents is where someone needs to say
     "this one is the 2025 rewrite, not the original".
     """
-    data = tomllib.loads(path.read_text())
-    entries = data.get("report", [])
+    text = path.read_text()
+    data = tomllib.loads(text)
+    # In the order the file lists them, which `tomllib` loses between tables:
+    # it gathers each table's entries on their own, so their headers give the order back.
+    tables = {kind: iter(data.get(kind, [])) for kind in Kind}
+    headers = re.findall(r"^\[\[\s*(\w+)\s*\]\]", text, re.MULTILINE)
+    entries = [(Kind(h), next(tables[Kind(h)])) for h in headers if h in set(Kind)]
     publications = []
-    for entry in entries:
+    for kind, entry in entries:
         url = str(entry.get("url", "")).strip()
         if not url:
-            raise ValueError(f"{path}: a [[report]] entry has no `url`")
+            raise ValueError(f"{path}: a [[{kind}]] entry has no `url`")
         # Required rather than defaulted: a draft hosted by mistake is out,
         # and a live publication left as a draft by mistake loses its pictures.
         published = str(entry.get("published", ""))
@@ -186,10 +202,12 @@ def load_publications(path: Path = PUBLICATIONS) -> list[Publication]:
                 name=str(entry.get("name", "")).strip(),
                 tab=str(entry.get("tab", "")).strip(),
                 published=Published(published),
+                kind=kind,
             )
         )
     if not publications:
-        raise ValueError(f"{path}: no [[report]] entries")
+        tables = " or ".join(f"[[{kind}]]" for kind in Kind)
+        raise ValueError(f"{path}: no {tables} entries")
     return publications
 
 
@@ -213,8 +231,8 @@ def listed_publication(doc: str, path: Path = PUBLICATIONS) -> Publication:
     return matches[0] if matches else Publication(url=doc)
 
 
-def entry_text(url: str, name: str, tab: str, published: Published) -> str:
-    """One `[[report]]` block, as `publications.toml` writes them.
+def entry_text(kind: Kind, url: str, name: str, tab: str, published: Published) -> str:
+    """One `[[report]]` or `[[statement]]` block, as `publications.toml` writes them.
 
     Built as text rather than dumped from a table
     because the file is mostly comments:
@@ -226,7 +244,7 @@ def entry_text(url: str, name: str, tab: str, published: Published) -> str:
     A title with a quotation mark in it is a title, not a syntax error.
     """
     return (
-        "\n[[report]]\n"
+        f"\n[[{kind}]]\n"
         f"name = {json.dumps(name)}\n"
         f"tab = {json.dumps(tab)}\n"
         f"url = {json.dumps(url)}\n"
@@ -262,6 +280,8 @@ def add_publication(url: str, path: Path = PUBLICATIONS) -> Publication:
     which is the only reason this command exists:
     they are required to be right, and a person copying two titles out of
     Drive by hand is the step that gets them wrong.
+    Which table it goes in is read off its `URL:` line the same way,
+    so a document that does not say where it publishes cannot be added yet.
 
     An entry whose `url` is already listed is refused rather than duplicated:
     two entries for one document publish it twice to the same path,
@@ -280,10 +300,11 @@ def add_publication(url: str, path: Path = PUBLICATIONS) -> Publication:
         if not value:
             # Writing an empty one down is what `load_publications` refuses.
             raise ValueError(f"{url}: the document says no `{field_name}`")
+    kind = publication_kind(parse(document))
 
-    entry = entry_text(url, name, tab, Published.DRAFT)
+    entry = entry_text(kind, url, name, tab, Published.DRAFT)
     path.write_text(path.read_text().rstrip("\n") + "\n" + entry)
-    return Publication(url=url, name=name, tab=tab)
+    return Publication(url=url, name=name, tab=tab, kind=kind)
 
 
 def saved_responses(outdir: Path) -> dict[tuple[str, str], Path]:
@@ -378,6 +399,36 @@ def publication_path(doc: Document) -> str:
     if ".." in PurePosixPath(slug).parts or PurePosixPath(slug).is_absolute():
         raise ValueError(f"the `URL:` line is `{doc.slug}`, which climbs out of the site")
     return slug
+
+
+def publication_kind(doc: Document) -> Kind:
+    """Whether this publication is a report or a statement, from the first directory of its path.
+
+    The path rather than a field of its own, because the path already says it,
+    and on the live site: a second place to say it is a second thing to keep in step.
+
+    A path under anything else is refused, as a path that names no URL is:
+    building it as either kind is a guess about which one it is.
+    """
+    kind = path_kind(publication_path(doc))
+    if kind is None:
+        dirs = ", ".join(f"`/{name}/`" for name in KIND_DIRS)
+        raise ValueError(
+            f"the `URL:` line is `{doc.slug}`, which is under none of {dirs}, "
+            "so nothing says whether this is a report or a statement"
+        )
+    return kind
+
+
+def check_kind(doc: Document) -> None:
+    """Warn about a path that only says what kind of publication this is by exception."""
+    if PurePosixPath(publication_path(doc)).parts[0] == BRIEFS:
+        doc.warn(
+            "the {} line puts this under {}, which is not a kind of publication; "
+            "it is built as a report",
+            Shown("URL:"),
+            Shown(f"/{BRIEFS}/"),
+        )
 
 
 def label(publication: Publication) -> str:
@@ -598,6 +649,7 @@ def disagreements(publication: Publication, doc: Document) -> list[str]:
     checks = (
         ("calls this", publication.name, "the document is named", doc.file_title),
         ("expects the tab", publication.tab, "the tab is named", doc.tab_title),
+        ("lists this as a", publication.kind, "its `URL:` line makes it a", publication_kind(doc)),
     )
     return [
         f"publications.toml {said} `{expected}`, but {found_label} `{found}`"

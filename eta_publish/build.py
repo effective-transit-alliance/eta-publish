@@ -71,7 +71,7 @@ lazy from .images import (
     write_web_copies,
 )
 lazy from .pdf import TypstMissing, compile_pdf, install_template
-lazy from .site import publication_path
+lazy from .site import check_kind, publication_kind, publication_path
 
 
 @dataclass(frozen=True)
@@ -972,6 +972,9 @@ def build_one(
         # so a wrong answer leaves no publication's worth of files behind.
         verify(doc)
     path = publication_path(doc)
+    # Refused here as well as checked against an entry:
+    # a document named on the command line has no entry to check it.
+    publication_kind(doc)
     dest = outdir / path
     if previous is None and read_from is not None:
         previous = read_from / path
@@ -1000,6 +1003,7 @@ def build_one(
     carry_over_review(document, dest / DOC_JSON)
     read_review(doc, document)
     check(doc)
+    check_kind(doc)
     style(doc)
 
     # Sorted, as `images.json` is: this file is committed and compared against

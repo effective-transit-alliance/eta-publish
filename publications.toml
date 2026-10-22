@@ -1,4 +1,6 @@
-# The publications the site publishes, one `[[report]]` per document.
+# The publications the site publishes, one entry per document:
+# `[[report]]` for a report, the longer, researched kind,
+# and `[[statement]]` for a statement, the shorter kind that answers something and goes out quicker.
 #
 # Adding the next publication is an entry here and nothing else:
 # the site path comes from the document's own `URL:` line,
@@ -12,6 +14,10 @@
 # `tab` is what that tab is called, checked the same way and for the same reason:
 # a `?tab=` id is opaque, so nothing about the URL says which draft it points at,
 # and picking up last year's draft is a mistake the URL cannot show you.
+#
+# Which table an entry is in is checked the same way, against the document's `URL:` line:
+# `/reports/` is a report and `/statements/` is a statement.
+# `/briefs/` is a report too, with a warning: a brief is a short report, not a kind of its own.
 #
 # Both have to be right, and a blank one is wrong like any other wrong value:
 # no document is called nothing.
@@ -64,7 +70,7 @@ tab = "Draft 2 (live)"
 url = "https://docs.google.com/document/d/1--AKo1YU2iyFZzKh-DZxU5UlVOURySG2XlfKXC0c2aY/edit?tab=t.wnvaanbw75s"
 published = "manual"
 
-[[report]]
+[[statement]]
 name = "Deinterlining"
 tab = "Tab 1"
 url = "https://docs.google.com/document/d/1GB5qDuIjDB-Od7kmpmIgTtVDT7pCH5m02WVQ3aG_kRM/edit?tab=t.0"

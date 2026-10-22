@@ -31,16 +31,19 @@ from eta_publish.site import (
     Built,
     Failed,
     Hosts,
+    Kind,
     Publication,
     Published,
     Site,
     add_publication,
     build_site,
     canonical,
+    check_kind,
     index_page,
     listed_publication,
     load_hosts,
     load_publications,
+    publication_kind,
     publication_path,
     reusable,
     saved_responses,
@@ -72,6 +75,32 @@ def doc() -> Document:
 def test_a_publication_is_published_at_the_path_its_header_names(doc: Document) -> None:
     doc.meta["URL"] = "/reports/digging-out-deep-hole-sas-west"
     assert publication_path(doc) == "reports/digging-out-deep-hole-sas-west"
+
+
+@pytest.mark.parametrize(
+    ("url", "kind"),
+    [("/reports/x", Kind.REPORT), ("/statements/x", Kind.STATEMENT), ("/briefs/x", Kind.REPORT)],
+)
+def test_the_path_says_which_kind_a_publication_is(doc: Document, url: str, kind: Kind) -> None:
+    doc.meta["URL"] = url
+    assert publication_kind(doc) == kind
+
+
+def test_a_brief_is_built_as_a_report_with_a_warning(doc: Document) -> None:
+    doc.meta["URL"] = "/briefs/too-damn-loud"
+    check_kind(doc)
+    assert "built as a report" in str(doc.warnings[-1])
+    doc.warnings.clear()
+    doc.meta["URL"] = "/reports/x"
+    check_kind(doc)
+    assert not doc.warnings
+
+
+def test_a_path_under_no_kind_is_refused(doc: Document) -> None:
+    """Built as either kind, it is a guess about which one it is."""
+    doc.meta["URL"] = "/news/x"
+    with pytest.raises(ValueError, match="report or a statement"):
+        publication_kind(doc)
 
 
 def test_a_publication_with_no_url_is_refused(doc: Document) -> None:
@@ -106,13 +135,38 @@ def test_publications_are_read_from_the_list(tmp_path: Path) -> None:
     path.write_text(
         '[[report]]\nname = "SAS West"\ntab = "Draft 2"\nurl = "https://example.invalid/a"\n'
         'published = "draft"\n'
-        '\n[[report]]\nname = "IBX"\ntab = "Live version"\nurl = "https://example.invalid/b"\n'
+        '\n[[statement]]\nname = "Deinterlining"\ntab = "Tab 1"\nurl = "https://example.invalid/b"\n'
         'published = "draft"\n'
     )
     assert load_publications(path) == [
-        Publication(url="https://example.invalid/a", name="SAS West", tab="Draft 2"),
-        Publication(url="https://example.invalid/b", name="IBX", tab="Live version"),
+        Publication(
+            url="https://example.invalid/a", name="SAS West", tab="Draft 2", kind=Kind.REPORT
+        ),
+        Publication(
+            url="https://example.invalid/b", name="Deinterlining", tab="Tab 1", kind=Kind.STATEMENT
+        ),
     ]
+
+
+def test_publications_load_in_the_order_the_list_gives(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    entry = 'name = "{0}"\ntab = "T"\nurl = "https://example.invalid/{0}"\npublished = "draft"\n'
+    path.write_text(
+        "[[report]]\n"
+        + entry.format("a")
+        + "[[statement]]\n"
+        + entry.format("b")
+        + "[[report]]\n"
+        + entry.format("c")
+    )
+    assert [p.name for p in load_publications(path)] == ["a", "b", "c"]
+
+
+def test_a_list_of_neither_kind_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    path.write_text('[[brief]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
+    with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
+        load_publications(path)
 
 
 @pytest.mark.parametrize("blank", ["name", "tab"])
@@ -138,6 +192,33 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     assert "``" in site.failed[0].error
 
 
+def test_an_entry_in_the_wrong_table_disagrees(tmp_path: Path) -> None:
+    """The fixture is under `/reports/`, so listing it as a statement is wrong about it."""
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    site = build_site(
+        [
+            Publication(
+                url=str(saved),
+                name="Digging Out of a Very Deep Hole",
+                tab="Draft 2",
+                kind=Kind.STATEMENT,
+            )
+        ],
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
+    )
+    assert not site.built
+    assert "lists this as a `statement`, but its `URL:` line makes it a `report`" in (
+        site.failed[0].error
+    )
+
+
 def test_one_finds_a_publication_by_its_name_in_any_case(tmp_path: Path) -> None:
     path = tmp_path / "publications.toml"
     path.write_text(
@@ -145,7 +226,7 @@ def test_one_finds_a_publication_by_its_name_in_any_case(tmp_path: Path) -> None
         'published = "draft"\n'
     )
     assert listed_publication("ibx automation", path) == Publication(
-        url="https://example.invalid/b", name="IBX Automation", tab="Live"
+        url="https://example.invalid/b", name="IBX Automation", tab="Live", kind=Kind.REPORT
     )
 
 
@@ -210,7 +291,9 @@ def test_add_names_an_entry_from_the_document(tmp_path: Path) -> None:
     )
 
     added = add_publication(str(saved), path)
-    assert added == Publication(url=str(saved), name="IBX Automation", tab="Live version")
+    assert added == Publication(
+        url=str(saved), name="IBX Automation", tab="Live version", kind=Kind.REPORT
+    )
     assert "# a comment worth keeping" in path.read_text()
     assert load_publications(path)[-1] == added
     assert added.published is Published.DRAFT
