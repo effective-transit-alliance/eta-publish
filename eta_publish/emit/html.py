@@ -65,14 +65,14 @@ from .base import (
 
 # Only styles what the emitter produces, inheriting the rest from the theme,
 # so a publication does not fight the site around it.
-REPORT_CSS = read("report.css")
+PUBLICATION_CSS = read("publication.css")
 
 # Positions the footnote tooltip, which the stylesheet cannot:
 # whether there is room under the reference is a question about the window,
 # and the answer changes with the scroll position.
 # Without this the tooltip still appears on hover, under the reference,
 # and is only in the wrong place near an edge of the screen.
-REPORT_JS = read("report.js")
+PUBLICATION_JS = read("publication.js")
 
 
 # A Squarespace code block holds 400 KB.
@@ -239,7 +239,7 @@ class HtmlEmitter(Emitter):
         # Where a page finds the site's assets beside it, as it links its stylesheet;
         # empty for the fragment, whose `asset_base` says where they are.
         self.page_assets = page_assets
-        # Turn off once `REPORT_CSS` lives in the site's Custom CSS.
+        # Turn off once `PUBLICATION_CSS` lives in the site's Custom CSS.
         self.inline_css = inline_css
         # Off for a page, which links one copy; on for the fragment, which
         # is pasted somewhere with nothing to link to.
@@ -358,17 +358,17 @@ class HtmlEmitter(Emitter):
         """
         shell = []
         if self.inline_css:
-            shell.append(markup(tag.style[Markup(f"\n{REPORT_CSS}")]))
+            shell.append(markup(tag.style[Markup(f"\n{PUBLICATION_CSS}")]))
         elif self.asset_base:
-            href = f"{self.asset_base}/report.css"
+            href = f"{self.asset_base}/publication.css"
             shell.append(markup(htpy.link(rel="stylesheet", href=href)))
         # Unlike the stylesheet, which a site can carry once under Custom CSS,
         # this travels with the publication: it is small, and a fragment pasted
         # without it puts a tooltip off the edge of the screen.
         if self.inline_js:
-            shell.append(markup(tag.script[Markup(f"\n{REPORT_JS}")]))
+            shell.append(markup(tag.script[Markup(f"\n{PUBLICATION_JS}")]))
         elif self.asset_base:
-            src = f"{self.asset_base}/report.js"
+            src = f"{self.asset_base}/publication.js"
             shell.append(markup(htpy.script(src=src, defer=True)))
         # The one pair of tags written out rather than built:
         # a group is a list of lines the caller joins, and the wrapper opens
@@ -1378,9 +1378,9 @@ def publication_page(
         # build put the one copy, relative to this page.
         *(
             htpy.link(rel="stylesheet", href=f"{asset_base}/{name}")
-            for name in ("page.css", "report.css")
+            for name in ("page.css", "publication.css")
         ),
-        htpy.script(src=f"{asset_base}/report.js", defer=True),
+        htpy.script(src=f"{asset_base}/publication.js", defer=True),
         *([Markup(phase_markup(doc.phase))] if doc.phase else []),
     ]
     # `<!doctype html>` is not an element and no builder emits one.

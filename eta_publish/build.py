@@ -523,8 +523,8 @@ def _without_uri(embedded_object: JsonObject, properties_key: str) -> JsonObject
 # each is read by. Written once per build rather than into each page.
 SHARED_ASSETS = (
     "page.css",
-    "report.css",
-    "report.js",
+    "publication.css",
+    "publication.js",
     # The pages' tab icon, as well as what a chart credited to ETA carries.
     "logo.svg",
 )

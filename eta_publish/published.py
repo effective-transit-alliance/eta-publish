@@ -97,7 +97,7 @@ def published_copy(path: Path) -> Path:
     Anything else the page links, a picture or the stylesheet, is the same file for both.
     """
     stem, dot, rest = path.name.partition(".")
-    # Not `assets/report.css`, which is shared and written once.
+    # Not `assets/publication.css`, which is shared and written once.
     if stem not in set(Kind) or path.suffix not in _OUTPUTS:
         return path
     return path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
