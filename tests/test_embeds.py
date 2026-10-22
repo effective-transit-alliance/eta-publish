@@ -29,7 +29,17 @@ from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.naming import IMAGE_DIR, VIDEO_DIR
-from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
+from eta_publish.nodes import (
+    Captions,
+    Card,
+    Cue,
+    Document,
+    Embed,
+    Figure,
+    Paragraph,
+    Platform,
+    Text,
+)
 from eta_publish.parse import embedded
 
 
@@ -520,6 +530,57 @@ def test_a_downloaded_video_is_recorded_with_its_hash(
     again = build([para("Headline", "TITLE"), copied(url)])
     read_embed_index(tmp_path, again)
     assert again.media_hashes[url] == hashlib.sha256(b"video").hexdigest()
+
+
+def _unavailable(*args: object) -> str:
+    raise ValueError("Video #1 is unavailable")
+
+
+def _recorded_video(url: str) -> Document:
+    """A document whose one copied video `embeds.json` records as `embed-1.mp4`, holding `video`."""
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    doc.media_hashes[url] = hashlib.sha256(b"video").hexdigest()
+    return doc
+
+
+def test_a_video_that_will_not_download_keeps_the_last_builds_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A platform refusing the file today is not the video gone from the page."""
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    (tmp_path / VIDEO_DIR).mkdir()
+    (tmp_path / VIDEO_DIR / "embed-1.mp4").write_bytes(b"video")
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    assert doc.media_files[url] == "embed-1.mp4"
+    assert not [w for w in map(str, doc.warnings) if "could not download" in w]
+
+
+def test_a_kept_copy_that_is_not_the_recorded_one_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    (tmp_path / VIDEO_DIR).mkdir()
+    (tmp_path / VIDEO_DIR / "embed-1.mp4").write_bytes(b"another video")
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
+
+
+def test_a_video_that_will_not_download_with_no_copy_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
 
 
 def test_captions_under_a_platform_player_are_warned_about() -> None:

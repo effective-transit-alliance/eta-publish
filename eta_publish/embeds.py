@@ -21,6 +21,7 @@ from urllib.parse import quote
 import requests
 lazy from yt_dlp import YoutubeDL
 
+from . import console
 from .docs_json import JsonObject
 from .naming import CAPTIONS_LANGUAGE, IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
 from .nodes import VIDEO_TYPES, Captions, Card, Cue, Document, Embed, Platform, Shown
@@ -250,7 +251,10 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
 
     Fetched every build, as the images are, because nothing is committed to
     tell a changed file from an unchanged one. A failure warns and the card
-    goes without its picture.
+    goes without its picture, unless the last build's copy is still there,
+    the same file by the hash `embeds.json` records:
+    a platform that will not serve a file today has not taken it back,
+    so that copy is used, with a note, and the page is what it was.
     """
     http = http or requests.Session()
     stems = _stems(doc.embeds)
@@ -270,10 +274,29 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
             else:
                 continue
         except Exception as e:
+            kept = doc.media_files.get(embed.url)
+            if kept and _is_recorded(dest / folder / kept, doc.media_hashes.get(embed.url)):
+                console.write(
+                    console.note(
+                        "could not download what {} shows ({}); using the copy from the last build",
+                        Shown(embed.url),
+                        str(e),
+                    )
+                )
+                continue
             doc.warn("could not download what {} shows ({})", Shown(embed.url), str(e))
             continue
         doc.media_files[embed.url] = file
         doc.media_hashes[embed.url] = sha256_file(dest / folder / file)
+
+
+def _is_recorded(path: Path, sha256: str | None) -> bool:
+    """Whether `path` is the file `embeds.json` records, by its hash.
+
+    One with no hash recorded is not taken on trust:
+    nothing says it is the one the page was built with.
+    """
+    return sha256 is not None and path.exists() and sha256_file(path) == sha256
 
 
 def sha256_file(path: Path) -> str:
