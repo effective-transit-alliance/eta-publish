@@ -126,7 +126,7 @@ jobs:
       # publishing the response would publish the addresses at a stable URL.
       # It is also 441 KB of raw JSON and signed image URLs that nothing reads.
       #
-      # `template.typ` stays: `report.typ` imports it,
+      # `template.typ` stays: `report.typ` or `statement.typ` imports it,
       # and serving the Typst source without it would be serving source that cannot compile.
       - name: Drop the API response
         run: find site -name doc.json -delete

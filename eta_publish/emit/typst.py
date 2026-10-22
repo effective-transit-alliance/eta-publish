@@ -46,7 +46,7 @@ from ..nodes import (
     Text,
 )
 from ..sentences import split
-from .base import CONTRIBUTORS_NOTE, Emitter, embed_label, shown_url, warning_markup
+from .base import Emitter, contributors_note, embed_label, shown_url, warning_markup
 
 # Typst's markup characters.
 # `#` and `@` start code and references, and the rest delimit markup,
@@ -127,7 +127,7 @@ class TypstEmitter(Emitter):
             f"  phase: {string(doc.phase)},\n"
             f"  dateline: {string(doc.dateline)},\n"
             f"  contributors: ({self.contributors(doc)}),\n"
-            f"  contributors_note: {string(CONTRIBUTORS_NOTE)},\n"
+            f"  contributors_note: {string(contributors_note(doc))},\n"
             f"{self.warnings(doc)}"
             f"{self.hero(doc)}"
             f")\n"

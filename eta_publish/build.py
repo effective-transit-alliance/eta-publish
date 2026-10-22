@@ -623,12 +623,18 @@ def asset_base(path: str) -> str:
     return "/".join([".."] * len(PurePosixPath(path).parts) + [ASSET_DIR])
 
 
-PDF_NAME = "report.pdf"
-"""What `typst` compiles `report.typ` to, beside it."""
-
 UNWARNED = "published"
 """What names a live publication's outputs as `site/published/` takes them,
 as `report.published.html`: linking the published host, and without the warnings."""
+
+
+def pdf_name(stem: str) -> str:
+    """What `typst` compiles `<kind>.typ` to, beside it, for the outputs named `stem`.
+
+    The preview's name for the published copies too: `report.published.pdf`
+    is served in `site/published/` as the `report.pdf` its page links.
+    """
+    return f"{stem.partition('.')[0]}.pdf"
 
 
 def media_base(path: str, site_url: str) -> str:
@@ -659,8 +665,8 @@ def emit(
     `cards` is where the site serves the images, for the share card's absolute URL,
     and `url` is where it serves this publication, for `og:url`.
     `page_url` is the live page, for the PDF to link its videos' figures on.
-    A `stem` other than `publication` writes only the files `site/published/` takes,
-    so not `index.html`, which is the preview.
+    A `stem` that is more than the kind, `report.published`,
+    writes only the files `site/published/` takes, so not `index.html`, which is the preview.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
@@ -669,17 +675,18 @@ def emit(
         f"{stem}.typ": TypstEmitter(site_url=site_url, page_url=page_url),
     }
     written: dict[str, Path] = {}
-    if stem != "report":
+    if "." in stem:
         return _emit_each(doc, outdir, emitters, written)
     # `index.html`, so a publication directory is a page at its own URL:
     # `/reports/<slug>/` serves the publication rather than a listing of files.
-    # `report.html` beside it is the fragment, a piece of a page rather than one.
+    # `report.html` or `statement.html` beside it is the fragment,
+    # a piece of a page rather than one.
     page = outdir / "index.html"
     page.write_text(
         publication_page(
             doc,
             asset_base=assets,
-            pdf_href=PDF_NAME,
+            pdf_href=pdf_name(stem),
             card_base=cards,
             page_url=url,
             source_brackets=source_brackets,
@@ -899,12 +906,13 @@ def write_outputs(
     """Write the publication's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
 
     Twice for a publication that is published: as `report.*` for the preview, linking the preview's
-    host, and as `report.published.*` for `site/published/`, linking the published host
+    host, and as `report.published.*` for `site/published/`, linking the published host,
+    or `statement.*` and `statement.published.*` for a statement,
     and without the warnings, which are for whoever reviews a build and never for a reader.
     """
     images = media_base(path, site_url) if options.hosted_media else IMAGE_DIR
     linked = "" if options.embed_assets else f"{site_url}/{ASSET_DIR}"
-    pdf = f"{site_url}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
+    pdf = f"{site_url}/{path}/{pdf_name(stem)}" if options.hosted_media else pdf_name(stem)
     written = emit(
         doc,
         dest,
@@ -974,7 +982,7 @@ def build_one(
     path = publication_path(doc)
     # Refused here as well as checked against an entry:
     # a document named on the command line has no entry to check it.
-    publication_kind(doc)
+    kind = publication_kind(doc)
     dest = outdir / path
     if previous is None and read_from is not None:
         previous = read_from / path
@@ -1068,8 +1076,8 @@ def build_one(
     write_posters(doc, dest / PRINT_DIR)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
-    write_outputs(doc, dest, path, options, options.unpublished_url, "report", skipped_images)
-    for stale in dest.glob(f"report.{UNWARNED}.*"):
+    write_outputs(doc, dest, path, options, options.unpublished_url, kind, skipped_images)
+    for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
         # From a build that published it, which this one may not.
         stale.unlink()
     if publishes:
@@ -1080,7 +1088,7 @@ def build_one(
             path,
             options,
             options.published_url,
-            f"report.{UNWARNED}",
+            f"{kind}.{UNWARNED}",
             skipped_images,
             f"{LIVE_SITE}{doc.slug}" if doc.slug else "",
         )

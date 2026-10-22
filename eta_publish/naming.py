@@ -36,8 +36,8 @@ class Kind(StrEnum):
 
     A report is the longer piece, researched;
     a statement is the shorter one, usually answering something, and out much quicker.
-    The value is what its entries in `publications.toml` are called,
-    `[[report]]` or `[[statement]]`.
+    The value is what its outputs are named, `report.html` or `statement.html`,
+    and what its entries in `publications.toml` are called, `[[report]]` or `[[statement]]`.
     """
 
     REPORT = "report"

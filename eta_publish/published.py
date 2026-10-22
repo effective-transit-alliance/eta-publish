@@ -24,14 +24,16 @@ from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
 from .minify import MIN_ASSETS, is_min, min_name
-from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR
+from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR, Kind, path_kind
 from .site import Publication, Published, saved_for, saved_responses
 
-PUBLISHED_FILES = ("report.html", "report.md")
-"""What every live publication carries whatever it links."""
+PUBLISHED_SUFFIXES = (".html", ".md")
+"""What every live publication carries whatever it links, as `report.html` and `report.md`
+or `statement.html` and `statement.md`."""
 
-SPLIT_FILES = "report.part*.html"
-"""The pieces a `--split` build writes beside `report.html`, for a page pasted in several."""
+SPLIT_SUFFIX = ".part*.html"
+"""The pieces a `--split` build writes beside `report.html`, for a page pasted in several,
+as `report.part01.html` and on."""
 
 _ATTRIBUTE = re.compile(r'\s(src|href|poster|srcset)="([^"]*)"')
 
@@ -96,7 +98,7 @@ def published_copy(path: Path) -> Path:
     """
     stem, dot, rest = path.name.partition(".")
     # Not `assets/report.css`, which is shared and written once.
-    if stem != "report" or path.suffix not in _OUTPUTS:
+    if stem not in set(Kind) or path.suffix not in _OUTPUTS:
         return path
     return path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
 
@@ -129,9 +131,11 @@ def write_published(
             # a whole build has already said which of its publications failed.
             continue
         path = directory.relative_to(unpublished).as_posix()
-        pages = [directory / "report.html", *sorted(directory.glob(SPLIT_FILES))]
+        # A directory a build wrote is under a kind's path, or it would not have built.
+        kind = path_kind(path) or Kind.REPORT
+        pages = [directory / f"{kind}.html", *sorted(directory.glob(f"{kind}{SPLIT_SUFFIX}"))]
         pages = [page for page in pages if UNWARNED not in page.name and not is_min(page.name)]
-        files = {f"{path}/{name}" for name in PUBLISHED_FILES}
+        files = {f"{path}/{kind}{suffix}" for suffix in PUBLISHED_SUFFIXES}
         for page in pages:
             files.add(f"{path}/{page.name}")
             if published_copy(page).is_file():
@@ -156,7 +160,7 @@ def write_published(
         if complete and missing:
             listed = ", ".join(f"`{name}`" for name in missing)
             problems.append(
-                (publication, f"its `report.html` links files it does not have: {listed}")
+                (publication, f"its `{kind}.html` links files it does not have: {listed}")
             )
     published = root / PUBLISHED_DIR
     shutil.rmtree(published, ignore_errors=True)

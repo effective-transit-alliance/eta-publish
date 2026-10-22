@@ -794,6 +794,44 @@ def test_a_publication_directory_is_a_document(tmp_path: Path) -> None:
     assert (built / "doc.json").is_file()
 
 
+def test_a_statement_is_written_as_one(tmp_path: Path) -> None:
+    """Its outputs say what it is, as its path does."""
+    saved = tmp_path / "doc.json"
+    text = (FIXTURE_DIR / "doc.json").read_text()
+    assert "/reports/digging-out-deep-hole-sas-west" in text
+    saved.write_text(text.replace("/reports/digging-out-deep-hole-sas-west", "/statements/x"))
+    (tmp_path / "site" / "statements" / "x").mkdir(parents=True)
+    (tmp_path / "site" / "statements" / "x" / IMAGES_JSON).write_text(
+        (FIXTURE_DIR / IMAGES_JSON).read_text()
+    )
+    site = build_site(
+        [Publication(url=str(saved))],
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
+    )
+    assert not site.failed, site.failed
+    built = tmp_path / "site" / "statements" / "x"
+    assert {p.name for p in built.glob("*.md")} == {"statement.md"}
+    assert not list(built.glob("report.*"))
+
+
+@pytest.mark.parametrize(
+    ("url", "kind"), [("/statements/x", "statement"), ("/reports/x", "report")]
+)
+def test_the_contributors_line_calls_the_publication_what_it_is(
+    doc: Document, url: str, kind: str
+) -> None:
+    from eta_publish.emit.base import contributors_note
+
+    doc.meta["URL"] = url
+    assert f"contributed to this {kind}," in contributors_note(doc)
+
+
 def test_a_build_elsewhere_carries_over_only_what_the_publication_still_uses(
     tmp_path: Path,
 ) -> None:

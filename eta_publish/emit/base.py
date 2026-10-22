@@ -8,6 +8,7 @@ so an emitter can be tested against a fixture tree without credentials.
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 
+from ..naming import Kind, path_kind
 from ..nodes import (
     Block,
     Card,
@@ -111,12 +112,17 @@ def _spans(
     return "".join(out)
 
 
-# The line a publication introduces its contributors with.
-# The header block names who they are; this says what naming them means.
-CONTRIBUTORS_NOTE = (
-    "We wish to acknowledge the following ETA members who contributed to "
-    "this report, and without whose hard work it would not be possible:"
-)
+def contributors_note(doc: Document) -> str:
+    """The line a publication introduces its contributors with, calling it what it is.
+
+    The header block names who they are; this says what naming them means.
+    A report by default: the build refuses a path that is neither before anything is emitted.
+    """
+    kind = path_kind(doc.slug) or Kind.REPORT
+    return (
+        "We wish to acknowledge the following ETA members who contributed to "
+        f"this {kind}, and without whose hard work it would not be possible:"
+    )
 
 
 class Emitter(ABC):
