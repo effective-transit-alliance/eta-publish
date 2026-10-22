@@ -246,13 +246,17 @@ def is_video(card: Card | None) -> bool:
     return card is not None and card.mime in VIDEO_TYPES
 
 
-def download(doc: Document, dest: Path, http: requests.Session | None = None) -> None:
+def download(
+    doc: Document, dest: Path, http: requests.Session | None = None, hosted: str = ""
+) -> None:
     """Write each embed's thumbnail, and each Drive or copied video, beside the images.
 
     Fetched every build, as the images are, because nothing is committed to
     tell a changed file from an unchanged one. A failure warns and the card
-    goes without its picture, unless the last build's copy is still there,
-    the same file by the hash `embeds.json` records:
+    goes without its picture, unless a copy of the file `embeds.json` records
+    is still to be had, the same file by its recorded hash:
+    the last build's on disk, or else the one the site serves at `hosted`,
+    which is where `dest` is published.
     a platform that will not serve a file today has not taken it back,
     so that copy is used, with a note, and the page is what it was.
     """
@@ -275,10 +279,15 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
                 continue
         except Exception as e:
             kept = doc.media_files.get(embed.url)
-            if kept and _is_recorded(dest / folder / kept, doc.media_hashes.get(embed.url)):
+            sha256 = doc.media_hashes.get(embed.url)
+            served = f"{hosted}/{folder}/{kept}" if hosted else ""
+            if kept and (
+                _is_recorded(dest / folder / kept, sha256)
+                or _fetch_served(dest / folder / kept, served, sha256, http)
+            ):
                 console.write(
                     console.note(
-                        "could not download what {} shows ({}); using the copy from the last build",
+                        "could not download what {} shows ({}); using the copy already made",
                         Shown(embed.url),
                         str(e),
                     )
@@ -297,6 +306,31 @@ def _is_recorded(path: Path, sha256: str | None) -> bool:
     nothing says it is the one the page was built with.
     """
     return sha256 is not None and path.exists() and sha256_file(path) == sha256
+
+
+def _fetch_served(path: Path, url: str, sha256: str | None, http: requests.Session) -> bool:
+    """Whether the copy the site serves at `url` is the recorded one, written to `path` if so.
+
+    The site's is the last one pushed, so a fresh checkout, CI's included, has it too.
+    """
+    if not url or sha256 is None:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(path.name + ".part")
+    try:
+        with http.get(url, timeout=TIMEOUT, stream=True) as response:
+            response.raise_for_status()
+            with partial.open("wb") as f:
+                for chunk in response.iter_content(1 << 20):
+                    f.write(chunk)
+    except requests.RequestException:
+        partial.unlink(missing_ok=True)
+        return False
+    if sha256_file(partial) != sha256:
+        partial.unlink()
+        return False
+    partial.replace(path)
+    return True
 
 
 def sha256_file(path: Path) -> str:

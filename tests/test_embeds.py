@@ -1,10 +1,11 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
 import hashlib
+import io
 import shutil
 import subprocess
 from pathlib import Path
-from typing import cast
+from typing import cast, override
 
 import pytest
 import requests
@@ -579,6 +580,50 @@ def test_a_video_that_will_not_download_with_no_copy_is_warned_about(
     doc = _recorded_video(url)
     monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
     download(doc, tmp_path)
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
+
+
+class _Site(requests.Session):
+    """A site that serves `files`, by URL, and answers 404 for anything else."""
+
+    def __init__(self, files: dict[str, bytes]) -> None:
+        super().__init__()
+        self.files = files
+
+    @override
+    def get(self, url: str | bytes, **kwargs: object) -> requests.Response:  # type: ignore[override]
+        response = requests.Response()
+        response.url = str(url)
+        response.status_code = 200 if url in self.files else 404
+        response.raw = io.BytesIO(self.files.get(str(url), b""))
+        return response
+
+
+SERVED = "https://site.invalid/reports/a/videos/embed-1.mp4"
+
+
+def test_a_video_with_no_copy_on_disk_is_fetched_from_the_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A fresh checkout has none of the videos, but the site still serves the last one pushed."""
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path, _Site({SERVED: b"video"}), hosted="https://site.invalid/reports/a")
+    assert (tmp_path / VIDEO_DIR / "embed-1.mp4").read_bytes() == b"video"
+    assert not [w for w in map(str, doc.warnings) if "could not download" in w]
+
+
+@pytest.mark.parametrize("served", [{}, {SERVED: b"another video"}])
+def test_a_video_the_site_does_not_serve_as_recorded_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, served: dict[str, bytes]
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path, _Site(served), hosted="https://site.invalid/reports/a")
+    assert not list((tmp_path / VIDEO_DIR).iterdir())
     [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
     assert "Video #1 is unavailable" in warning
 
