@@ -1,9 +1,11 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
+import hashlib
+import io
 import shutil
 import subprocess
 from pathlib import Path
-from typing import cast
+from typing import cast, override
 
 import pytest
 import requests
@@ -15,6 +17,7 @@ from eta_publish.docs_json import JsonObject
 from eta_publish.embeds import (
     _stems,
     check_embeds,
+    download,
     look_up,
     read_embed_index,
     srt_to_vtt,
@@ -27,7 +30,17 @@ from eta_publish.emit.html import HtmlEmitter, report_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.naming import IMAGE_DIR, VIDEO_DIR
-from eta_publish.nodes import Captions, Card, Cue, Embed, Figure, Paragraph, Platform, Text
+from eta_publish.nodes import (
+    Captions,
+    Card,
+    Cue,
+    Document,
+    Embed,
+    Figure,
+    Paragraph,
+    Platform,
+    Text,
+)
 from eta_publish.parse import embedded
 
 
@@ -497,6 +510,122 @@ def test_written_captions_are_served_with_the_video(tmp_path: Path) -> None:
     assert (tmp_path / "videos" / captioned.file).read_text().startswith("WEBVTT")
     check_embeds(doc)
     assert not [w for w in map(str, doc.warnings) if "caption" in w]
+
+
+def test_a_downloaded_video_is_recorded_with_its_hash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The video is not committed, so its hash is what says it has changed."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+
+    def written(embed: Embed, stem: str, outdir: Path, doc: object) -> str:
+        outdir.mkdir(parents=True, exist_ok=True)
+        (outdir / "embed-1.mp4").write_bytes(b"video")
+        return "embed-1.mp4"
+
+    monkeypatch.setattr("eta_publish.embeds._copied", written)
+    download(doc, tmp_path)
+    write_embed_index(tmp_path, doc)
+    again = build([para("Headline", "TITLE"), copied(url)])
+    read_embed_index(tmp_path, again)
+    assert again.media_hashes[url] == hashlib.sha256(b"video").hexdigest()
+
+
+def _unavailable(*args: object) -> str:
+    raise ValueError("Video #1 is unavailable")
+
+
+def _recorded_video(url: str) -> Document:
+    """A document whose one copied video `embeds.json` records as `embed-1.mp4`, holding `video`."""
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    doc.media_hashes[url] = hashlib.sha256(b"video").hexdigest()
+    return doc
+
+
+def test_a_video_that_will_not_download_keeps_the_last_builds_copy(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A platform refusing the file today is not the video gone from the page."""
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    (tmp_path / VIDEO_DIR).mkdir()
+    (tmp_path / VIDEO_DIR / "embed-1.mp4").write_bytes(b"video")
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    assert doc.media_files[url] == "embed-1.mp4"
+    assert not [w for w in map(str, doc.warnings) if "could not download" in w]
+
+
+def test_a_kept_copy_that_is_not_the_recorded_one_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    (tmp_path / VIDEO_DIR).mkdir()
+    (tmp_path / VIDEO_DIR / "embed-1.mp4").write_bytes(b"another video")
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
+
+
+def test_a_video_that_will_not_download_with_no_copy_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path)
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
+
+
+class _Site(requests.Session):
+    """A site that serves `files`, by URL, and answers 404 for anything else."""
+
+    def __init__(self, files: dict[str, bytes]) -> None:
+        super().__init__()
+        self.files = files
+
+    @override
+    def get(self, url: str | bytes, **kwargs: object) -> requests.Response:  # type: ignore[override]
+        response = requests.Response()
+        response.url = str(url)
+        response.status_code = 200 if url in self.files else 404
+        response.raw = io.BytesIO(self.files.get(str(url), b""))
+        return response
+
+
+SERVED = "https://site.invalid/reports/a/videos/embed-1.mp4"
+
+
+def test_a_video_with_no_copy_on_disk_is_fetched_from_the_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A fresh checkout has none of the videos, but the site still serves the last one pushed."""
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path, _Site({SERVED: b"video"}), hosted="https://site.invalid/reports/a")
+    assert (tmp_path / VIDEO_DIR / "embed-1.mp4").read_bytes() == b"video"
+    assert not [w for w in map(str, doc.warnings) if "could not download" in w]
+
+
+@pytest.mark.parametrize("served", [{}, {SERVED: b"another video"}])
+def test_a_video_the_site_does_not_serve_as_recorded_is_warned_about(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, served: dict[str, bytes]
+) -> None:
+    url = "https://x.com/someone/status/123"
+    doc = _recorded_video(url)
+    monkeypatch.setattr("eta_publish.embeds._copied", _unavailable)
+    download(doc, tmp_path, _Site(served), hosted="https://site.invalid/reports/a")
+    assert not list((tmp_path / VIDEO_DIR).iterdir())
+    [warning] = [w for w in map(str, doc.warnings) if "could not download" in w]
+    assert "Video #1 is unavailable" in warning
 
 
 def test_captions_under_a_platform_player_are_warned_about() -> None:
