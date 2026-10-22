@@ -5,7 +5,7 @@ from pathlib import Path
 import pytest
 from paths import HOST
 
-from eta_publish.naming import PUBLISHED_DIR, UNPUBLISHED_DIR
+from eta_publish.naming import PUBLISHED_DIR, UNPUBLISHED_DIR, path_kind
 from eta_publish.published import referenced, write_published
 from eta_publish.site import Publication, Published
 
@@ -65,7 +65,8 @@ def built(root: Path, path: str, doc_id: str, html: str) -> None:
     directory = root / UNPUBLISHED_DIR / path
     directory.mkdir(parents=True)
     (directory / "doc.json").write_text(f'{{"documentId": "{doc_id}", "tabId": "t"}}')
-    for stem in ("report", "report.published"):
+    kind = path_kind(path)
+    for stem in (f"{kind}", f"{kind}.published"):
         (directory / f"{stem}.html").write_text(html)
         (directory / f"{stem}.md").write_text("# r\n")
     (directory / "index.html").write_text("the preview")
@@ -105,6 +106,12 @@ def test_only_an_automated_publication_is_hosted_and_only_what_it_links(tmp_path
         "reports/a/report.md",
         "reports/a/images/a.jpg",
     }
+
+
+def test_a_statement_publishes_as_a_statement(tmp_path: Path) -> None:
+    built(tmp_path, "statements/s", "s", "")
+    write_published(tmp_path, [entry("s", Published.AUTOMATED)], complete=True, site_url=HOST)
+    assert files(tmp_path) == {"statements/s/statement.html", "statements/s/statement.md"}
 
 
 def test_a_live_page_linking_a_missing_file_is_a_problem(tmp_path: Path) -> None:

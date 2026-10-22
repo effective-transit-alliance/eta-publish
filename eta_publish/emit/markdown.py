@@ -42,7 +42,7 @@ from ..nodes import (
     Text,
 )
 from ..sentences import split
-from .base import CONTRIBUTORS_NOTE, Emitter, embed_label, shown_url, warning_markup
+from .base import Emitter, contributors_note, embed_label, shown_url, warning_markup
 
 
 def fence(value: str) -> str:
@@ -189,7 +189,7 @@ class MarkdownEmitter(Emitter):
         if not names:
             return ""
         listed = "\n".join(f"- {name}" for name in names)
-        return f"## Contributors\n\n{CONTRIBUTORS_NOTE}\n\n{listed}"
+        return f"## Contributors\n\n{contributors_note(doc)}\n\n{listed}"
 
     def sources(self, doc: Document) -> str:
         """Every source the publication cites, with the archived copy beside it.

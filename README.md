@@ -49,7 +49,9 @@ So we should use a compiler.
 
 ## What it does
 
-Reads the Google Doc, builds a document tree, and emits from that tree:
+Reads the Google Doc, builds a document tree, and emits from that tree
+the outputs below, named for a report;
+a statement's are `statement.html`, `statement.md`, and so on:
 
 | Output | Purpose |
 | --- | --- |

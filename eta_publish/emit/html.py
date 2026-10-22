@@ -56,9 +56,9 @@ from ..nodes import (
     plain_text,
 )
 from .base import (
-    CONTRIBUTORS_NOTE,
     PLATFORM_NAMES,
     Emitter,
+    contributors_note,
     shown_url,
     warning_markup,
 )
@@ -473,7 +473,7 @@ class HtmlEmitter(Emitter):
                 "\n",
                 tag.h2[self.mark("contributors"), "Contributors"],
                 "\n",
-                tag.p[CONTRIBUTORS_NOTE],
+                tag.p[contributors_note(doc)],
                 "\n",
                 tag.ul["\n", lines(tag.li[name] for name in names), "\n"],
                 "\n",

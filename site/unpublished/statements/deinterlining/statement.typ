@@ -7,7 +7,7 @@
   phase: "",
   dateline: "",
   contributors: ("John Ericson", "Madison Feinberg", "Robert Hale", "Darius Jankauskas", "Blair Lorenzo", "William Meehan", "Samuel Santaella", "Khyber Sen", ),
-  contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
+  contributors_note: "We wish to acknowledge the following ETA members who contributed to this statement, and without whose hard work it would not be possible:",
   warnings: (
     [dropped a line before the #raw("Header") section: #raw("Deinterlining")],
     [the #raw("Header") section has an unrecognized #raw("Before:") line; check it for a typo],

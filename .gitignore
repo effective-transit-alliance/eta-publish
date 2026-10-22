@@ -23,6 +23,8 @@ token.json
 /site/**/videos/
 /site/**/report.pdf
 /site/**/report.published.pdf
+/site/**/statement.pdf
+/site/**/statement.published.pdf
 /site/**/template.typ
 /site/unpublished/index.html
 /site/unpublished/robots.txt

@@ -25,7 +25,12 @@ import pytest
 from paths import ROOT, SITE, UNPUBLISHED
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
-from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, print_href
+from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, path_kind, print_href
+
+
+def kind(publication: Path) -> str:
+    """What the outputs of the publication in `publication` are named, `report` or `statement`."""
+    return str(path_kind(publication.parent.name))
 
 
 def committed() -> set[str]:
@@ -110,7 +115,7 @@ def without_warnings(html: str) -> str:
 
 
 def test_ids_are_unique_and_every_link_resolves(publication: Path) -> None:
-    for name in ("report.html", "index.html"):
+    for name in (f"{kind(publication)}.html", "index.html"):
         html = (publication / name).read_text()
         ids = re.findall(r'id="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
@@ -128,10 +133,10 @@ def test_no_editorial_note_reaches_a_published_output(publication: Path) -> None
     Not `drive.google.com` in general, as `test_real_document.py` asks of its
     publication: a caption can cite a file in Drive on purpose.
     """
-    typst = (publication / "report.typ").read_text()
+    typst = (publication / f"{kind(publication)}.typ").read_text()
     # Everything after the `#show: publication.with(...)` call, which is the publication itself.
     typst_body = re.split(r"^\)$", typst, maxsplit=1, flags=re.MULTILINE)[-1]
-    html_body = without_warnings((publication / "report.html").read_text())
+    html_body = without_warnings((publication / f"{kind(publication)}.html").read_text())
     for emitted in (html_body, typst_body):
         for note in ("Source:", "Image Source", "SVG:"):
             assert note not in emitted, note
@@ -140,7 +145,7 @@ def test_no_editorial_note_reaches_a_published_output(publication: Path) -> None
 def test_no_chip_email_reaches_any_output(publication: Path) -> None:
     """A person chip carries an email beside the name, and the address is not the publication's."""
     emails = set(re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", (publication / "doc.json").read_text()))
-    for name in ("index.html", "report.html", "report.md", "report.typ"):
+    for name in ("index.html", *(f"{kind(publication)}{s}" for s in (".html", ".md", ".typ"))):
         emitted = (publication / name).read_text()
         for email in emails:
             assert email not in emitted, f"{name}: {email}"
@@ -148,12 +153,12 @@ def test_no_chip_email_reaches_any_output(publication: Path) -> None:
 
 def test_the_fragment_fits_in_one_code_block(publication: Path) -> None:
     """Squarespace allows 400 KB, and the fragment is meant to be pasted whole."""
-    assert (publication / "report.html").stat().st_size < CODE_BLOCK_LIMIT
+    assert (publication / f"{kind(publication)}.html").stat().st_size < CODE_BLOCK_LIMIT
 
 
 def test_every_figure_is_described(publication: Path) -> None:
     """Every picture on the page carries alt text or a caption."""
-    page = (publication / "report.html").read_text()
+    page = (publication / f"{kind(publication)}.html").read_text()
     for figure in re.findall(r"<figure\b.*?</figure>", page, flags=re.DOTALL):
         described = re.search(r'alt="[^"]+"', figure) or "<figcaption" in figure
         assert described, figure[:200]
@@ -184,6 +189,6 @@ def test_every_image_is_served_and_has_a_print_copy(publication_with_images: Pat
 
 
 def test_the_pdf_is_built(publication_with_images: Path) -> None:
-    pdf = publication_with_images / "report.pdf"
+    pdf = publication_with_images / f"{kind(publication_with_images)}.pdf"
     assert pdf.is_file()
     assert pdf.read_bytes().startswith(b"%PDF")

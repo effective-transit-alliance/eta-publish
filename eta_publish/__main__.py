@@ -56,6 +56,7 @@ from .site import (
     listed_publication,
     load_hosts,
     load_publications,
+    publication_kind,
     saved_for,
     saved_responses,
 )
@@ -368,10 +369,10 @@ def write_site(
         minify.page(
             outdir / built.path / "index.html", asset_base(built.path), linked=minify.PAGE_ASSETS
         )
-        # `report.html`, its `--split` pieces, and the published copy of each.
+        # `report.html` or `statement.html`, its `--split` pieces, and the published copy of each.
         # Not a fragment carrying its stylesheet and script, which links no `.min` ones.
         if not options.embed_assets:
-            for page in sorted((outdir / built.path).glob("report*.html")):
+            for page in sorted((outdir / built.path).glob(f"{publication_kind(built.doc)}*.html")):
                 if minify.is_min(page.name):
                     continue
                 published = page.name.split(".")[1] == UNWARNED
@@ -380,7 +381,7 @@ def write_site(
 
     # The one to paste, and so the one whose size matters.
     for built in site.built:
-        publication = outdir / built.path / "report.html"
+        publication = outdir / built.path / f"{publication_kind(built.doc)}.html"
         pasted = publication.with_name(minify.min_name(publication.name))
         if pasted.exists():
             check_code_block_size(built.doc, pasted)
