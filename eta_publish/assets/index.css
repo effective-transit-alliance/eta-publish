@@ -7,15 +7,15 @@ h1 { font-size: 1.6rem; }
 ul { list-style: none; padding: 0; }
 li { margin: 2em 0; }
 a { color: inherit; }
-/* The share card above its title, as a link to the report previews it. */
+/* The share card above its title, as a link to the publication previews it. */
 .card { display: block; width: 100%; max-width: 18rem; height: auto;
         border-radius: .4em; margin: 0 0 .6em; }
 .short { opacity: .75; font-size: .95rem; }
 .meta { opacity: .6; font-size: .85rem; }
 .failed { border-left: 3px solid #c60; padding: .4em 1em; font-size: .9rem; }
-/* As `report.css` has it, because it says the same thing here: the report
+/* As `report.css` has it, because it says the same thing here: the publication
    behind this link is a draft. Repeated rather than linked, since this page
-   carries one inlined stylesheet and nothing else of the report's. */
+   carries one inlined stylesheet and nothing else of the publication's. */
 .phase { font-size: 1.05rem; font-weight: bold;
          color: #fff; background: #c0202a;
          border-radius: .2em;

@@ -23,7 +23,7 @@ from eta_publish.embeds import (
     write_captions,
     write_embed_index,
 )
-from eta_publish.emit.html import HtmlEmitter, report_page
+from eta_publish.emit.html import HtmlEmitter, publication_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.naming import IMAGE_DIR, VIDEO_DIR
@@ -436,7 +436,7 @@ def test_written_captions_are_read_a_line_each() -> None:
                 "0:05.2-0:06 Look out!",
                 "1:02:03 --> 1:02:04.25 <loud> & clear",
             ),
-            para("Back to the report."),
+            para("Back to the publication."),
         ]
     )
     embed, after = doc.blocks
@@ -592,7 +592,7 @@ def test_a_preview_page_links_the_card_beside_it() -> None:
     doc = build([para("Headline", "TITLE"), *graphic(url)])
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
-    page = report_page(doc, asset_base="../../assets", site_url=HOST)
+    page = publication_page(doc, asset_base="../../assets", site_url=HOST)
     assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
 
 

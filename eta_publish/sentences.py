@@ -7,7 +7,7 @@ Broken at sentences,
 the August 21 addendum to the SAS West report is a three-line diff.
 
 The rule is narrow because it has to be *stable* more than clever.
-Report prose is full of `125 St.`, `Phase 2.`, `$7.7 billion.`, and `Nov. 2026`,
+Publication prose is full of `125 St.`, `Phase 2.`, `$7.7 billion.`, and `Nov. 2026`,
 and a splitter that changes its mind between runs churns every file it touches.
 
 Where a case is genuinely ambiguous, it does not break.
@@ -18,7 +18,7 @@ Not breaking merges two sentences onto one line, a slightly coarser diff;
 breaking wrongly splits a sentence in half and churns on every regeneration.
 The coarser diff is the better failure.
 
-Changing anything here reflows every archived report,
+Changing anything here reflows every archived publication,
 so it should be its own commit, reviewed as a reflow rather than as content.
 """
 
@@ -29,7 +29,7 @@ import re
 # that makes the output unstable.
 ABBREVIATIONS = frozenset(
     {
-        # Streets and places, which these reports are largely about.
+        # Streets and places, which these publications are largely about.
         "st",
         "ave",
         "av",

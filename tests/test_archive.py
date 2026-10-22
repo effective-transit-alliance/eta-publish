@@ -1,4 +1,4 @@
-"""What the report cites, and the record of where each of those is archived."""
+"""What the publication cites, and the record of where each of those is archived."""
 
 import json
 import threading
@@ -131,8 +131,8 @@ def test_the_record_is_sorted_so_two_builds_write_the_same_bytes(tmp_path: Path)
     assert list(written) == sorted(written)
 
 
-def test_only_what_the_report_still_cites_is_written(tmp_path: Path) -> None:
-    """A URL a draft dropped is not something the report stands on any more."""
+def test_only_what_the_publication_still_cites_is_written(tmp_path: Path) -> None:
+    """A URL a draft dropped is not something the publication stands on any more."""
     doc = cites("https://a.example/1")
     doc.archives["https://dropped.example/"] = Archived(snapshot="snap", timestamp="20240503")
     doc.archives["https://a.example/1"] = Archived(snapshot="snap", timestamp="20240503")
@@ -371,8 +371,8 @@ def test_a_refused_connection_is_asked_again(keyed: None, monkeypatch: pytest.Mo
 def test_a_source_the_archive_could_not_be_asked_about_does_not_stop_the_build(
     keyed: None,
 ) -> None:
-    """A capture can still be running a day later, and a report held back
-    that long over one source is a report nobody can publish."""
+    """A capture can still be running a day later, and a publication held back
+    that long over one source is a publication nobody can publish."""
     doc = cites("https://a.example/1", "https://b.example/2")
     archive.capture(doc, session=Refusing(1_000, 200))
     assert pending(doc) == {
@@ -595,7 +595,7 @@ def test_no_capture_at_all_is_confirmed_with_the_index(
     """A `404` from the replay is not taken as the answer.
 
     Nothing is written down without the index saying so, because `not archived`
-    is what a report publishes.
+    is what a publication shows.
     """
     refused = Archived(timestamp="20260913", error="no")
 
@@ -632,13 +632,15 @@ class Overlapping(Replaying):
                 self.in_flight -= 1
 
 
-def test_reports_built_at_once_share_the_replay_limit(
+def test_publications_built_at_once_share_the_replay_limit(
     keyed: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Each report has its own pool, so the limit has to be wider than any one of them."""
+    """Each publication has its own pool, so the limit has to be wider than any one of them."""
     monkeypatch.setattr(archive, "_REPLAYING", threading.Semaphore(2))
     session = Overlapping([("20240503123456", 200)])
-    docs = [cites(*(f"https://{report}.example/{n}" for n in range(6))) for report in "abc"]
+    docs = [
+        cites(*(f"https://{publication}.example/{n}" for n in range(6))) for publication in "abc"
+    ]
     with ThreadPoolExecutor(max_workers=len(docs)) as pool:
         for answer in [pool.submit(archive.capture, doc, session=session) for doc in docs]:
             assert answer.result() == (6, 0)

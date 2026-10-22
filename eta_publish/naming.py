@@ -21,11 +21,12 @@ from urllib.parse import unquote, urlsplit
 from pymdownx.slugs import slugify as _slugify
 
 UNPUBLISHED_DIR = "unpublished"
-"""The directory under the output directory that a build writes every report into.
+"""The directory under the output directory that a build writes every publication into.
 
-Every report, drafts included, with its index:
+Every publication, drafts included, with its index:
 the previews, which is not the same thing as what is out.
-`reports.toml`'s `[site] unpublished` serves this directory, so every path below is relative to it.
+`publications.toml`'s `[site] unpublished` serves this directory,
+so every path below is relative to it.
 """
 
 PUBLISHED_DIR = "published"
@@ -37,18 +38,18 @@ At the same paths as in `UNPUBLISHED_DIR`, so either one serves the URLs a `[sit
 ASSET_DIR = "assets"
 """The directory the shared stylesheets and script go in, at the site root.
 
-Every report page links one copy rather than carrying its own.
+Every publication page links one copy rather than carrying its own.
 """
 
 LIVE_SITE = "https://www.etany.org"
-"""Where ETA's own site serves the live reports, each at its document's `URL:`.
+"""Where ETA's own site serves the live publications, each at its document's `URL:`.
 
 What the published PDF links a video to: the figure on the live page,
 which shows its warning and captions, rather than the bare file, which shows neither.
 """
 
 IMAGE_DIR = "images"
-"""The directory a build writes images into, relative to the report.
+"""The directory a build writes images into, relative to the publication.
 
 Serving them from somewhere else is an emitter's `image_base`,
 which is a decision about hosting rather than about a build.
@@ -103,7 +104,7 @@ WEB_DIR = "web"
 who taps one opens. A photo pasted as a PNG is 5 MB there, and a column
 nothing shows wider than 46rem is 1,472 pixels at twice the density of a
 desktop screen, so what a page shows is a copy at no more than `WEB_WIDTHS`,
-as AVIF and WebP: on these reports a tenth of the bytes, or less.
+as AVIF and WebP: on these publications a tenth of the bytes, or less.
 """
 
 WEB_WIDTHS = (800, 1600)
@@ -154,7 +155,7 @@ _github_slug = _slugify(case="lower")
 def slugify(text: str) -> str:
     """`text` as a heading anchor, by the rule Markdown uses for one.
 
-    The same report publishes as HTML and as Markdown,
+    The same publication goes out as HTML and as Markdown,
     and a link to a section must mean the same in both,
     so the rule is not ours to choose:
     lowercase, punctuation dropped, `-` and `_` kept, one hyphen per space,
@@ -329,7 +330,7 @@ def image_filenames(claims: Iterable[tuple[str, str, str]]) -> dict[str, str]:
     Allocated knowing all of them for the reason `AnchorAllocator` is:
     two images whose source lines name the same file
     would otherwise be told apart by which came first,
-    and reordering the report would move a published URL.
+    and reordering the publication would move a published URL.
 
     So both keep the name and carry the hash too,
     the same way a crop is told from its original.
@@ -377,7 +378,7 @@ def replace_bytes(path: Path, data: bytes) -> None:
 
 
 CAPTIONS_LANGUAGE = "en"
-"""The language the reports are written in, and so the captions a copied video comes with."""
+"""The language the publications are written in, and so the captions a copied video comes with."""
 
 
 def video_frame_name(file: str) -> str:

@@ -1,7 +1,7 @@
 [project]
 name = "eta-publish"
 version = "0.1.0"
-description = "Convert ETA Google Doc reports into publish-ready HTML."
+description = "Convert ETA Google Doc publications into publish-ready HTML."
 requires-python = ">=3.15"
 dependencies = [
     "google-api-python-client>=2.130",

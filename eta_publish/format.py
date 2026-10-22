@@ -31,7 +31,7 @@ def biome() -> str:
 
     Through `mise` rather than off `PATH`, so that pin is the only answer to
     which version runs. The output is committed, and a different `biome`
-    would rewrite every report without a report having changed, which
+    would rewrite every publication without a publication having changed, which
     `check-committed-site.sh` would report as the documents changing.
     """
     return pinned("biome", "biome")
@@ -104,7 +104,7 @@ def tree(root: Path) -> None:
     Once, not until it settles. `biome` is not idempotent on HTML: run
     over its own output, 2.3.14 broke a handful of `<a href="...">` tags it had
     just fitted onto one line, and 2.5.15 breaks the line after a `<code>` or `<em>`
-    that it had just joined to the next word, a few dozen places in these reports.
+    that it had just joined to the next word, a few dozen places in these publications.
     That is a bug in the formatter, and chasing it costs a whole further invocation to find out
     nothing is left, on a build where a run of `biome` is mostly the fixed
     cost of starting one.

@@ -1,10 +1,10 @@
-"""The record of where each source the report cites has been archived.
+"""The record of where each source the publication cites has been archived.
 
 A link is a claim about a page that is not ours and that nobody promised to
-keep. The report outlives the page: `nypost.com` reorganizes, an agency retires
+keep. The publication outlives the page: `nypost.com` reorganizes, an agency retires
 a PDF, a press release moves. So every source is captured once and the capture
 is cited beside the original, and the record of which capture belongs to which
-source is committed, because a report published in 2026 has to keep saying the
+source is committed, because a publication that went out in 2026 has to keep saying the
 same thing in 2036.
 
 Keyed by the original URL, never by the snapshot. A document that already cites
@@ -149,7 +149,7 @@ rather than as anything about the page.
 REPLAY_AT_ONCE = 10
 """How many replay lookups to have in flight, and how wide the connection pool is.
 
-Measured, over all 150 documents the five reports cite:
+Measured, over all 150 documents the five publications cite:
 
 - 8 at once: every one answered, in 20.5 seconds.
 - 10 at once: every one answered, the same answers, in 15.1 seconds.
@@ -174,8 +174,8 @@ _REPLAYING = Semaphore(REPLAY_AT_ONCE)
 A gate rather than a smaller pool: what has to be limited is the asking, and
 the thread that is waiting to ask is not the thing the limit is about.
 
-Module-wide rather than one per `capture`, because reports are built in
-parallel and each one has its own pool. Eight reports with a pool of ten each
+Module-wide rather than one per `capture`, because publications are built in
+parallel and each one has its own pool. Eight publications with a pool of ten each
 is eighty replay lookups in flight, past the point where `web.archive.org`
 stops accepting connections, and a lookup that cannot connect publishes its
 source as `not archived`. IBX Automation published sources that way that
@@ -245,7 +245,7 @@ def archive_cache_path() -> Path:
     """Where the lookups that found nothing are remembered.
 
     Outside the repository and never committed, because it is not a fact about
-    the report: `archives.json` says where each source is archived, and a source
+    the publication: `archives.json` says where each source is archived, and a source
     with no capture has no entry there either way. So this can expire, be
     thrown away, or be absent on a fresh clone, and the build writes the same
     `site/` regardless. That is the whole reason it is a cache and not a record.
@@ -288,11 +288,11 @@ def _cached() -> dict[str, dict[str, str]]:
 
 
 _REMEMBERING = Lock()
-"""Held across the read and the write, because the file is one and the reports are not.
+"""Held across the read and the write, because the file is one and the publications are not.
 
-Reports are built in parallel, so three of these finish at once, and each one
+Publications are built in parallel, so three of these finish at once, and each one
 reads the file, adds its own sources and writes the whole thing back. Unheld,
-two that interleave leave one report's sources out of the cache, and the only
+two that interleave leave one publication's sources out of the cache, and the only
 sign of it is a build that is slow again for no visible reason.
 
 Like `_SIGNING_IN` in `fetch.py`, and for the same reason: a cache does not make
@@ -464,7 +464,7 @@ def read_archive_index(dest: Path, doc: Document) -> None:
     when. This is the only thing that remembers.
 
     An entry already on the document wins, because that one came from the
-    document's own href and is what the report itself says.
+    document's own href and is what the publication itself says.
     """
     index = dest / ARCHIVES_JSON
     if not index.exists():
@@ -491,7 +491,7 @@ def read_archive_index(dest: Path, doc: Document) -> None:
 
 
 def write_archive_index(dest: Path, doc: Document) -> None:
-    """Write back everything known about the report's sources.
+    """Write back everything known about the publication's sources.
 
     Sorted, as `images.json` is: the file is committed and compared against a
     fresh build, so any two runs that agree about the document have to write
@@ -499,7 +499,7 @@ def write_archive_index(dest: Path, doc: Document) -> None:
 
     Only the sources this document cites are written. A record that kept every
     URL any draft ever held would grow forever and would never say which of
-    them the report still stands on.
+    them the publication still stands on.
     """
     index = {}
     for url in _documents(doc):
@@ -532,7 +532,7 @@ def missing(doc: Document) -> list[str]:
     """The documents nothing has tried to capture yet, in the order they are cited.
 
     Documents rather than sources: a fragment never reaches a server, so the
-    fifteen pages of one MTA PDF the report cites are one file to capture.
+    fifteen pages of one MTA PDF the publication cites are one file to capture.
 
     One recorded with an `error` is not among them: that one has been tried,
     and a build that submitted it again on every run would spend the rate limit
@@ -595,7 +595,7 @@ def capture(
 
     Only the ones missing from the record: a source already captured keeps the
     capture it has, because the point of a snapshot is that it is of the page
-    as the report read it, and recapturing would quietly move it forward to
+    as the publication read it, and recapturing would quietly move it forward to
     whatever the page says now.
 
     A capture that fails is recorded as a failure rather than left missing.
@@ -616,12 +616,12 @@ def capture(
     so the next build asks again. Being told to slow down is not a fact about
     the page, and recording it as one would mean a rate limit hit on a Tuesday
     permanently left a source with no archive. Nor does it stop the build:
-    a capture can still be running a day later, and a report held back that
-    long over one source is a report nobody can publish.
+    a capture can still be running a day later, and a publication held back that
+    long over one source is a publication nobody can publish.
     """
     http = session or _session()
     # Looking up what the archive already holds needs no account, so a build
-    # without keys still does the half it can: most of what a report cites is
+    # without keys still does the half it can: most of what a publication cites is
     # already in the Wayback Machine, put there by somebody else.
     headers = _keys()
     wanted = missing(doc)
@@ -737,7 +737,7 @@ def version(
     Wikimedia's to keep. Only where that failed, the page's current version is
     recorded once, as its `oldid` link, and kept by every build after:
     a later one recording a newer version would move the link past
-    what the report read.
+    what the publication read.
     """
     for url in urls:
         archived = doc.archives.get(url)
@@ -972,7 +972,7 @@ class Stopped(KeyboardInterrupt):
     """Somebody stopped the build, and this says what it was waiting on.
 
     A `KeyboardInterrupt` still, so nothing treats it as a failure of the
-    report: what a run that was told to stop should print is where it had
+    publication: what a run that was told to stop should print is where it had
     got to, not a traceback through the machinery that was waiting.
     """
 
@@ -1105,7 +1105,7 @@ def _followed(http: requests.Session, served: requests.Response) -> requests.Res
 
     For a PDF only, whose content type then says whether the redirect landed
     on the document. Substack serves a post's file by redirecting to a signed
-    S3 URL, and the archive captured both: the capture of the URL the report
+    S3 URL, and the archive captured both: the capture of the URL the publication
     cites answers `302`, twice, before the PDF. A reader clicking it lands on
     the PDF, so it is one, and without this the index was asked about it on
     every build. A page's redirect proves nothing like that, since a dead page
@@ -1150,7 +1150,7 @@ def _added(http: requests.Session, url: str, identifier: str) -> Archived | None
 
     An item has no capture and so no capture date, but it has the day it
     arrived, which is the same kind of fact: the day this copy started existing
-    where the report points. `publicdate` where there is no `addeddate`, which
+    where the publication points. `publicdate` where there is no `addeddate`, which
     is the day it became readable and is the nearest thing left.
 
     The URL as cited, not the item's front page: `.../page/34/mode/2up` is the
@@ -1248,7 +1248,7 @@ def _index_answer(http: requests.Session, url: str, *, pdf: bool = False) -> Arc
                 "fl": "timestamp",
                 "filter": ["statuscode:200", *([f"mimetype:{PDF_TYPE}"] if pdf else [])],
                 # The last row is the newest, and the only one wanted: this is
-                # asked once per source, and a report has 113 of them.
+                # asked once per source, and a publication has 113 of them.
                 "limit": "-1",
             },
             timeout=60,
@@ -1418,7 +1418,7 @@ patience on them.
 
 _ANONYMOUSLY = Lock()
 _last_anonymous = [0.0]
-"""One anonymous capture at a time across every report, and when the last began."""
+"""One anonymous capture at a time across every publication, and when the last began."""
 
 CI = "CI"
 """Set by GitHub Actions, and by most other CI, on every run."""
@@ -1427,7 +1427,7 @@ CI = "CI"
 def anonymous_allowed() -> bool:
     """Whether a build without keys may capture without an account.
 
-    Not in CI: at one capture every `ANONYMOUS_EVERY`, a report with a dozen
+    Not in CI: at one capture every `ANONYMOUS_EVERY`, a publication with a dozen
     new sources is minutes of a runner sitting still, and a source that fails
     there fails the Pages run. A build somebody is watching can be stopped.
     """
@@ -1505,7 +1505,7 @@ COUNT_AT_ONCE = 4
 """How many PDFs are downloaded at once to count their pages.
 
 Fewer than the lookups, because these are whole files rather than `HEAD`s,
-and some of what the reports cite runs to hundreds of pages and tens of MB.
+and some of what the publications cite runs to hundreds of pages and tens of MB.
 """
 
 
@@ -1514,7 +1514,7 @@ def unchanging(url: str) -> bool:
 
     A Substack attachment, `<publication>.substack.com/api/v1/file/<uuid>`:
     the UUID is made when the file is uploaded, and a file uploaded again is
-    given a new one, so the URL a report cites keeps naming the same file.
+    given a new one, so the URL a publication cites keeps naming the same file.
     Its live copy downloads in a third of a second, where its captures have
     answered `503` after twenty, so it is counted live first. What that skips
     is the count of the capture, which is what finds a capture that is not the

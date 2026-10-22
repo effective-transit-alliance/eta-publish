@@ -82,7 +82,7 @@ def test_a_minified_copy_is_told_apart_from_its_original() -> None:
 
 
 def test_a_whole_page_links_the_minified_copy_of_each_stylesheet(tmp_path: Path) -> None:
-    """A report's `index.html`, which links the page's stylesheet too, and relatively."""
+    """A publication's `index.html`, which links the page's stylesheet too, and relatively."""
     source = tmp_path / "index.html"
     source.write_text(
         '<!doctype html>\n<html>\n<head>\n<link rel="stylesheet" href="../assets/page.css" />\n'

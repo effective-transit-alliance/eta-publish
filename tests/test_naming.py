@@ -65,7 +65,7 @@ def test_image_names_depend_only_on_the_docs_object_id():
 
 
 def test_an_anchor_is_slugged_the_way_markdown_slugs_one():
-    """The same report publishes as HTML and as Markdown,
+    """The same publication goes out as HTML and as Markdown,
     so a link to a section has to mean the same thing in both.
     GitHub's slugger keeps `-` and `_`, drops the rest of the punctuation,
     and writes one hyphen per space.
@@ -123,7 +123,7 @@ def test_a_cropped_image_is_not_named_the_same_as_its_original():
 
 def test_two_images_naming_one_file_are_both_told_apart_by_hash():
     """Not the first one wins:
-    which came first is position, and reordering the report would move a published URL."""
+    which came first is position, and reordering the publication would move a published URL."""
     names = image_filenames([("io.7", "", "plan.jpg"), ("io.8", "", "plan.jpg")])
     assert names["io.7"] != names["io.8"]
     assert all(n.startswith("plan-") for n in names.values())

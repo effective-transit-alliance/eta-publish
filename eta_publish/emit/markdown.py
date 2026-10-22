@@ -1,6 +1,6 @@
 """Markdown for the committed, diffable archive.
 
-Pandoc-flavored, because CommonMark has no footnotes and these reports run on them.
+Pandoc-flavored, because CommonMark has no footnotes and these publications run on them.
 Where Pandoc and GitHub disagree, GitHub wins:
 this file is read in the repository,
 and GitHub supports the footnotes that made Pandoc necessary in the first place.
@@ -10,7 +10,7 @@ It exists so that every regeneration lands in git as a readable diff:
 what changed between draft 6 and draft 7, what the August 21 addendum added.
 That is why the output breaks lines at sentences (see `sentences.py`).
 
-The same report as the page and the PDF, not a different view of it:
+The same publication as the page and the PDF, not a different view of it:
 the same headline, standfirst, date, and hero, in the same order,
 and the same contributors at the end.
 The header block is not here.
@@ -72,7 +72,7 @@ def escape(text: str) -> str:
 def url(href: str) -> str:
     """A link destination, angle-bracketed so parentheses cannot end it.
 
-    These reports cite heavily, and plenty of real URLs contain brackets:
+    These publications cite heavily, and plenty of real URLs contain brackets:
     Wikipedia disambiguation paths, agency PDF links.
     Bare, the first `)` closes the link and the rest of the URL lands in the prose.
     The angle-bracket form is always valid, so it is used unconditionally.
@@ -145,12 +145,12 @@ class MarkdownEmitter(Emitter):
         """Bold, because the archive has no styling to give it and it is a warning.
 
         Ahead of the headline, and labelled, because a bare state on its own line
-        reads as part of the report rather than as a note about it.
+        reads as part of the publication rather than as a note about it.
         """
         return f"**Phase: {escape(doc.phase)}**" if doc.phase else ""
 
     def warnings(self, doc: Document) -> str:
-        """The build's notes about this report, above it and below the dateline.
+        """The build's notes about this publication, above it and below the dateline.
 
         Rendered from the warning's pieces rather than from what `str` makes of
         them, as the other two emitters do: a value is marked because it is a
@@ -176,7 +176,7 @@ class MarkdownEmitter(Emitter):
         )
 
     def dateline(self, doc: Document) -> str:
-        """When the report published, as the page and the PDF date it."""
+        """When the publication went out, as the page and the PDF date it."""
         return escape(doc.dateline)
 
     def contributors(self, doc: Document) -> str:
@@ -192,11 +192,11 @@ class MarkdownEmitter(Emitter):
         return f"## Contributors\n\n{CONTRIBUTORS_NOTE}\n\n{listed}"
 
     def sources(self, doc: Document) -> str:
-        """Every source the report cites, with the archived copy beside it.
+        """Every source the publication cites, with the archived copy beside it.
 
         A heading of its own, unlike the footnotes: those are a thing the
         format provides and collects under a rule, and this is a section the
-        report has.
+        publication has.
 
         Numbered, and nothing more: a Markdown file has no anchors to hang a
         backlink on that GitHub will honour, so the number in the text and the
@@ -290,8 +290,8 @@ class MarkdownEmitter(Emitter):
         It records which file in Drive an image came from, and nothing here is published.
         """
         # Caption and credit are their own lines rather than emphasized:
-        # the published report italicizes neither,
-        # and marking them up would put styling in the archive that the report lacks.
+        # the live publication italicizes neither,
+        # and marking them up would put styling in the archive that the publication lacks.
         caption = self.inlines(node.caption)
         # Published without a picture, as in the HTML, where its SVG could not be had.
         lines = (

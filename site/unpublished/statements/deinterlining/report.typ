@@ -1,6 +1,6 @@
-#import "template.typ": capped_image, report, video_warning
+#import "template.typ": capped_image, publication, video_warning
 
-#show: report.with(
+#show: publication.with(
   title: "Deinterlining: Simpler Service, Fewer Delays",
   headline: [Deinterlining: Simpler Service, Fewer Delays],
   subtitle: none,

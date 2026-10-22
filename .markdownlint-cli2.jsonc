@@ -25,7 +25,7 @@
     // it takes `[^1]: ...` for an unused link definition.
     "MD053": false,
     // A bare URL is a build warning, and the fix is linking it in the document.
-    // Back on once no report has one.
+    // Back on once no publication has one.
     "MD034": false
   }
 }

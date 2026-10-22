@@ -109,7 +109,7 @@ def warning_poster(logo: str, kind: str) -> str:
 
     Laid out as ETA's own card for its videos, the logo on the dark blue it sits on,
     and made from the logo here, so an edit to the logo reaches it too.
-    The words are text in the report's own type, `system-ui`:
+    The words are text in the publication's own type, `system-ui`:
     an SVG shown as a picture cannot use the page's fonts, only the reader's.
     DejaVu Sans after it is for the PDF, since Typst has no `system-ui`
     and would otherwise set the words in the PDF's serif.

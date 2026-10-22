@@ -7,7 +7,7 @@ which would lose the figure source/caption/credit distinction,
 superscripts, and exact link targets,
 and would create a second source of truth the moment anyone edited the `.md`.
 
-It carries what ETA reports use, not what a Google Doc can express.
+It carries what ETA publications use, not what a Google Doc can express.
 Anything the parser cannot place here becomes a warning rather than a silent drop.
 """
 
@@ -33,7 +33,7 @@ class Archived:
     later build submits it; one recorded here with an `error` is one a later
     build already knows the answer for, and so does not submit again and again
     forever. Some URLs cannot be archived at all: a page behind a login, and
-    every `mp.weixin.qq.com` link the reports cite.
+    every `mp.weixin.qq.com` link the publications cite.
     """
 
     snapshot: str = ""
@@ -58,7 +58,7 @@ class Archived:
 
     version: str = ""
     """A permanent link to the version of a Wikipedia or Wikimedia Commons page
-    the report read, where no capture could be made: its `oldid` link.
+    the publication read, where no capture could be made: its `oldid` link.
 
     Published as `versioned` rather than `archived`. It stays as long as
     Wikimedia keeps that version, which is nearly always but not always:
@@ -91,7 +91,7 @@ class Archived:
         rather than as wide as whichever month is longest.
 
         A reader checking a source against the page it cites is asking when the
-        report read it, and 14 digits is not an answer anyone reads.
+        publication read it, and 14 digits is not an answer anyone reads.
         Whatever does not parse as a date is shown as it is, which is the same
         choice `dateline` makes and for the same reason.
         """
@@ -215,7 +215,7 @@ class Image:
 
     `object_id` is the Docs `inlineObjectId`, which is stable across edits.
     Filenames derive from it rather than from a counter,
-    so inserting one image into a 54-image report
+    so inserting one image into a 54-image publication
     does not rename the other 53 or move their published URLs.
     """
 
@@ -299,7 +299,7 @@ class List:
 class Figure:
     """An image together with the lines the doc attaches to it.
 
-    ETA reports write an optional `Source:` line before the image,
+    ETA publications write an optional `Source:` line before the image,
     and a caption and `Credit:` line after it.
     Keeping the three distinct lets HTML class them separately
     and lets Typst place the credit differently from the caption.
@@ -460,7 +460,7 @@ SLOT = "{}"
 """Where a warning's template takes a value.
 
 Templates are written here rather than read from a document,
-so nothing a report says can be mistaken for one.
+so nothing a publication says can be mistaken for one.
 """
 
 
@@ -628,13 +628,13 @@ class Document:
     subtitle_ends_title: bool = False
     """Whether the headline ends in a colon and the subtitle is the rest of it,
     as `Digging Out of a Very Deep Hole:` over `Saving Billions on 125th Street`.
-    `title` is then the two together, since that is the report's name."""
+    `title` is then the two together, since that is the publication's name."""
 
     file_title: str = ""
     """What the document is called in Drive, which is not what it is called here.
 
-    The headline is the report's title; this is the working name it is filed under,
-    and the only thing `reports.toml` can be checked against."""
+    The headline is the publication's title; this is the working name it is filed under,
+    and the only thing `publications.toml` can be checked against."""
 
     open_suggestions: int = 0
     """Suggestions still open on the tab this was read from.
@@ -676,9 +676,9 @@ class Document:
 
     card: Image | None = None
     """A wide image with the title set into it,
-    placed above the headline for whatever links to the report to show as a thumbnail.
+    placed above the headline for whatever links to the publication to show as a thumbnail.
 
-    Not part of the report, so not in `blocks`: it publishes as `og:image` and nowhere else."""
+    Not part of the publication, so not in `blocks`: it publishes as `og:image` and nowhere else."""
 
     image_files: dict[str, str] = field(default_factory=dict)
     """Docs object id to the filename actually written, extension included.
@@ -754,12 +754,12 @@ class Document:
 
     @property
     def hero(self) -> Figure | None:
-        """The figure a report opens with, if it opens with one.
+        """The figure a publication opens with, if it opens with one.
 
         The document puts it under the headline,
         so it belongs there rather than after a table of contents it should be introducing.
 
-        Recognized by position: nothing else in these reports leads with a figure,
+        Recognized by position: nothing else in these publications leads with a figure,
         and when one does and does not mean it,
         that is when a `Hero:` line earns its place beside `Source:` and `Credit:`.
         """
@@ -768,7 +768,7 @@ class Document:
 
     @property
     def body(self) -> list[Block]:
-        """Everything after the hero, which is the report proper."""
+        """Everything after the hero, which is the publication proper."""
         return self.blocks[1:] if self.hero is not None else self.blocks
 
     @property
@@ -811,9 +811,9 @@ class Document:
 
     @property
     def phase(self) -> str:
-        """Where the report is in its own process, when that is worth saying.
+        """Where the publication is in its own process, when that is worth saying.
 
-        `published` is the state every reader of a published report is looking at,
+        `published` is the state every reader of a live publication is looking at,
         so it is the one phase that goes unmentioned.
         Anything else is a draft of some kind reaching someone,
         and that is exactly what they need to be told.
@@ -830,7 +830,7 @@ class Document:
         """Every heading in order, or only those at one level.
 
         The title is not among them: it is `Document.title`, not a block,
-        so a table of contents over these never lists the report itself.
+        so a table of contents over these never lists the publication itself.
         """
         return [
             b for b in self.blocks if isinstance(b, Heading) and (level is None or b.level == level)
@@ -855,7 +855,7 @@ class Document:
 
     @property
     def sources(self) -> list[str]:
-        """Every external link the report cites, in the order it cites them.
+        """Every external link the publication cites, in the order it cites them.
 
         Deduplicated by URL, first use first, the way `images` deduplicates by
         object id: one page cited six times is one source, and renumbering it
@@ -864,7 +864,7 @@ class Document:
         Document order and nothing else decides the numbering. Reading it off
         the archive record instead would make the numbers a property of which
         captures happened to have succeeded, and an offline build against a
-        partial record would renumber the whole report.
+        partial record would renumber the whole publication.
         """
         seen: dict[str, None] = {}
         for block in self._every_block():
@@ -877,7 +877,7 @@ class Document:
         """Where `source` is archived, with its own fragment put back.
 
         The record is keyed by the document, so a capture is shared by every
-        page of it the report cites. The fragment goes back on the way out,
+        page of it the publication cites. The fragment goes back on the way out,
         which is what makes the archived copy of a claim about page 28 open on
         page 28 rather than on the cover.
 
@@ -887,7 +887,7 @@ class Document:
         wrapper, which has no page 50, and the reader gets the cover. Asked for
         with `id_`, the same capture comes back as the PDF itself and the
         viewer opens where the citation meant. Measured in a browser, on the
-        `R211 Tech Spec.pdf` capture the report already cites: `50 / 819`.
+        `R211 Tech Spec.pdf` capture the publication already cites: `50 / 819`.
 
         Only for those. An HTML capture is the archived document itself, so an
         anchor in it already resolves, and the ordinary URL is the one that
@@ -921,12 +921,12 @@ class Document:
         """Every figure in the document, in order, footnotes included.
 
         Unlike `images`, not the share card:
-        it is a picture of the title rather than a figure of the report.
+        it is a picture of the title rather than a figure of the publication.
         """
         return [b for b in self._every_block() if isinstance(b, Figure)]
 
     def text_runs(self) -> Iterator[tuple[list[Inline], Where]]:
-        """Every run of inline content in the report, captions and footnotes included.
+        """Every run of inline content in the publication, captions and footnotes included.
 
         What somebody typed, wherever they typed it,
         for the checks that ask whether a line belongs where it sits.
@@ -943,7 +943,7 @@ class Document:
                     yield run, Where.FOOTNOTE
 
     def _every_block(self) -> Iterator[Block]:
-        """Every block of the report, then every block of its footnotes.
+        """Every block of the publication, then every block of its footnotes.
 
         The body first, because that is the order the document is read in.
         Descends into lists and table cells,
@@ -1103,7 +1103,7 @@ def _named(entry: str) -> str:
 def _by_surname(name: str) -> tuple[str, str]:
     """Sort key for a person's name: last word first, then the whole name.
 
-    The last word is the surname for every name these reports have carried,
+    The last word is the surname for every name these publications have carried,
     and a display name is all the document gives us.
     It guesses wrong for a surname written in more than one word,
     `van der Berg` sorting under `Berg`, which is wrong quietly and in one place.
@@ -1176,7 +1176,7 @@ def wayback_url(timestamp: str, url: str, modifier: str = "") -> str:
 def unwrap_snapshot(href: str) -> tuple[str, Archived | None]:
     """A link split into the page it is of and the capture it is, if it is one.
 
-    A report that cites `web.archive.org/web/.../nypost.com/...` has already
+    A publication that cites `web.archive.org/web/.../nypost.com/...` has already
     done by hand what this does: the source is the Post article, and the
     snapshot is the capture already named. Left wrapped it would be a source of
     its own, keyed in the record under a URL that is itself the answer, and the
@@ -1235,7 +1235,7 @@ def document_url(url: str) -> str:
 
 
 def is_source(href: str | None) -> bool:
-    """Whether a link is a citation of something outside the report.
+    """Whether a link is a citation of something outside the publication.
 
     An anchor is a place in this page and `mailto:` is a person, not a source.
     """
@@ -1293,7 +1293,7 @@ def _links_in(block: Block) -> list[str]:
     match block:
         case Figure():
             # `Figure.source` is left out: it names the original file in Drive
-            # for whoever assembles the report, no emitter publishes it, and a
+            # for whoever assembles the publication, no emitter publishes it, and a
             # Sources entry for a link nothing on the page points at is an
             # entry whose way back into the text does not exist.
             return _hrefs(block.caption) + _hrefs(block.credit)
@@ -1302,7 +1302,7 @@ def _links_in(block: Block) -> list[str]:
         case List():
             return [href for item in _items(block.items) for href in _hrefs(item.content)]
         case Embed():
-            # A copied video is served from the report, so its download URL
+            # A copied video is served from the publication, so its download URL
             # is not a source the published page points readers to.
             return [] if block.copy else [block.url]
     return []

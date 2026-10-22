@@ -20,11 +20,11 @@
    Both the basis and the growth are the image's own aspect ratio, so the
    pictures come out the same height rather than the same width, which is
    what makes a cross-section beside the one it is compared with readable
-   across. 1.4 is the landscape photo the report is mostly made of, for an
+   across. 1.4 is the landscape photo the publication is mostly made of, for an
    image whose size a build did not learn.
 
    The 10rem is the wrap point rather than a width: one page's worth of
-   column divided by the widest pair the report puts in a row. */
+   column divided by the widest pair the publication puts in a row. */
 .eta-report .figure-row {
   display: flex;
   flex-wrap: wrap;
@@ -75,7 +75,7 @@
   cursor: zoom-in;
 }
 /* Links underlined the way the site underlines them in a text block. The
-   report is pasted into an embed block, which that rule does not reach, and
+   publication is pasted into an embed block, which that rule does not reach, and
    the site's own `a` rule takes the underline off everywhere else. The
    links that are marks rather than words take it off again below. */
 .eta-report a {
@@ -142,7 +142,7 @@
     display: none;
   }
 }
-/* Caption and credit are styled alike, which is what the published report
+/* Caption and credit are styled alike, which is what the live publication
    does: both are small text, and neither is italic. The classes stay
    distinct so they can be told apart without reading them. */
 .eta-report figcaption {
@@ -307,8 +307,8 @@
   font-size: 1.15rem;
   opacity: 0.75;
 }
-/* The build's own notes about this report. A colour and a face of their own,
-   because they are the one thing on the page that is not the report and
+/* The build's own notes about this publication. A colour and a face of their own,
+   because they are the one thing on the page that is not the publication and
    should not be read as though they were. */
 .eta-report .warnings {
   border-left: 3px solid #c60;
@@ -348,8 +348,8 @@
   opacity: 0.8;
 }
 /* The headline beside the hero, half and half, the way the site's own
-   reports open, from the 768px where the site stops stacking its columns.
-   A column's worth each is the wrap point, for a site that puts the report
+   publications open, from the 768px where the site stops stacking its columns.
+   A column's worth each is the wrap point, for a site that puts the publication
    in a column too narrow for two.
 
    The warnings come between the two in the markup, which is where they read
@@ -426,7 +426,7 @@
   --text-highlight-color: #fff;
 }
 /* Coloured, unlike everything else here, and the loudest thing on the page:
-   this says the report is a draft, and a reader who misses it reads a draft as
+   this says the publication is a draft, and a reader who misses it reads a draft as
    published. Not uppercased, so it reads as the sentence it is.
    Unscoped, because the page writes it above the headline,
    which is outside `.eta-report`. */
@@ -481,7 +481,7 @@
   cursor: pointer;
 }
 /* An `h2` for the outline, since it sits under the title beside the sections,
-   but drawn as an `h3`: it leads to the report rather than being part of it. */
+   but drawn as an `h3`: it leads to the publication rather than being part of it. */
 .eta-report .toc summary h2 {
   font-size: 1.17em;
   margin: 1em 0;
@@ -691,7 +691,7 @@
 /* A picture opened over the page, at `#/media/` and its id: the picture as large as
    the window allows, a bar above it and its caption below. A `dialog`, which
    the browser puts above everything on the page, whatever the site around
-   the report stacks or transforms. Light on dark, whatever the page is. */
+   the publication stacks or transforms. Light on dark, whatever the page is. */
 html:has(.eta-report .lightbox[open]) {
   overflow: hidden;
 }
@@ -815,7 +815,7 @@ html:has(.eta-report .lightbox[open]) {
   font-size: 0.95rem;
 }
 /* The names in two columns, read down the first and then the second, the way
-   the site's own reports lay them out. At 768px, where the site stacks its
+   the site's own publications lay them out. At 768px, where the site stacks its
    own columns: a phone gets one. */
 @media (min-width: 768px) {
   .eta-report .contributors ul {
@@ -845,12 +845,12 @@ html:has(.eta-report .lightbox[open]) {
   padding: 0.4em 0.6em;
   vertical-align: top;
 }
-/* Squarespace, outside the report: the Embed block it is pasted into.
-   The block pads its bottom by 56.25% for a 16:9 video, which the report is
+/* Squarespace, outside the publication: the Embed block it is pasted into.
+   The block pads its bottom by 56.25% for a 16:9 video, which the publication is
    not, and the editor sets the block's height in grid rows, which is never
-   the report's own height for long: it changes with every paste and every
-   screen width. Where the report is the section's only block, the section
-   is one row as tall as the report; where it shares the section with other
+   the publication's own height for long: it changes with every paste and every
+   screen width. Where the publication is the section's only block, the section
+   is one row as tall as the publication; where it shares the section with other
    blocks, their layout is left as the editor set it. */
 .embed-block-wrapper:has(> .eta-report) {
   /* biome-ignore lint/complexity/noImportantStyles: the padding is an inline style. */

@@ -1,4 +1,4 @@
-"""Cutting an oversized report into pastable pieces."""
+"""Cutting an oversized publication into pastable pieces."""
 
 import json
 import re
@@ -21,7 +21,7 @@ def pieces() -> list[str]:
     return [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
 
 
-def test_each_piece_is_a_standalone_report_div() -> None:
+def test_each_piece_is_a_standalone_publication_div() -> None:
     for piece in pieces():
         assert piece.count('<div class="eta-report') == 1
         assert piece.rstrip().endswith("</div>")
@@ -58,7 +58,7 @@ def test_a_piece_keeps_the_notes_behind_its_references() -> None:
     assert all('class="footnote-tip"' in p for p in with_refs)
 
 
-def test_the_pieces_are_the_whole_report() -> None:
+def test_the_pieces_are_the_whole_publication() -> None:
     """Cut from the blocks rather than out of the markup, so this is the check
     that the two ways of walking one document agree."""
     emitter = HtmlEmitter(site_url=HOST)

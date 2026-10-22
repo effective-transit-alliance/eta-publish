@@ -114,12 +114,12 @@ def test_the_template_is_rewritten_every_build(tmp_path: Path) -> None:
     so a change to the house style has to reach one that has been built before,
     which is all of them."""
     stale = tmp_path / "template.typ"
-    stale.write_text("#let report(..) = none  // an old house style\n")
+    stale.write_text("#let publication(..) = none  // an old house style\n")
 
     install_template(tmp_path)
 
-    assert stale.read_text() != "#let report(..) = none  // an old house style\n"
-    assert "#show: doc" in stale.read_text() or "report(" in stale.read_text()
+    assert stale.read_text() != "#let publication(..) = none  // an old house style\n"
+    assert "#show: doc" in stale.read_text() or "publication(" in stale.read_text()
 
 
 def test_a_long_query_string_can_break_without_a_slash() -> None:
