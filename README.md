@@ -210,6 +210,16 @@ A build holds both up against the document it fetched
 and refuses the publication when they disagree,
 a blank one included: no document is called nothing.
 
+The table is which kind of publication it is:
+`[[report]]` for a report, longer and researched,
+and `[[statement]]` for a statement, shorter, usually answering something, and out much quicker.
+The document's `URL:` line says the same thing,
+`/reports/` for a report and `/statements/` for a statement,
+and a build refuses the publication when the two disagree, as it does a wrong `name`;
+`add` reads it off that line.
+A `/briefs/` path is built as a report, with a warning:
+a brief is a short report, not a kind of its own.
+
 `published` is whether the publication is out on Squarespace, and how:
 `automated` when the live page is the pasted `report.html`,
 `manual` when it is a page built by hand,

@@ -15,7 +15,8 @@ import tempfile
 import unicodedata
 from collections import defaultdict
 from collections.abc import Iterable
-from pathlib import Path
+from enum import StrEnum
+from pathlib import Path, PurePosixPath
 from urllib.parse import unquote, urlsplit
 
 from pymdownx.slugs import slugify as _slugify
@@ -28,6 +29,41 @@ the previews, which is not the same thing as what is out.
 `publications.toml`'s `[site] unpublished` serves this directory,
 so every path below is relative to it.
 """
+
+
+class Kind(StrEnum):
+    """Which of ETA's two kinds of publication a document is.
+
+    A report is the longer piece, researched;
+    a statement is the shorter one, usually answering something, and out much quicker.
+    The value is what its entries in `publications.toml` are called,
+    `[[report]]` or `[[statement]]`.
+    """
+
+    REPORT = "report"
+    STATEMENT = "statement"
+
+
+KIND_DIRS = {"reports": Kind.REPORT, "statements": Kind.STATEMENT}
+"""The first directory of a `URL:` path, and the kind of publication it says a document is."""
+
+BRIEFS = "briefs"
+"""A first directory that is not a kind of its own: what is there is a report.
+
+Noise Pollution went out at `/briefs/too-damn-loud`, and a brief is a short report,
+which is not a difference in what is built.
+Accepted, with a warning, so its published path still works;
+not in `KIND_DIRS`, so nothing new goes there without the warning saying so."""
+
+
+def path_kind(path: str) -> Kind | None:
+    """The kind of publication at the site path `path`, from its first directory,
+    if that says one."""
+    parts = PurePosixPath(path.strip("/")).parts
+    if not parts:
+        return None
+    return Kind.REPORT if parts[0] == BRIEFS else KIND_DIRS.get(parts[0])
+
 
 PUBLISHED_DIR = "published"
 """The directory beside `UNPUBLISHED_DIR` holding only what the live pages link.

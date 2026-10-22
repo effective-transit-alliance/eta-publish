@@ -25,6 +25,7 @@ September 9, 2026
 - the `Header` section has no `Social Title Card:` line
 - `SEO Description:` is 363 characters, over the 300 a search result shows:
   > The seemingly-endless onslaught of announcements on NY transit not only annoys riders, but impairs accessibility, making navigating transit far more difficult than it needs to be. ETA outlines the best practices for transit audio design: clear, concise messages reserved for actionable information. I~~t's time to stop the cacophony, and let riders travel in peace.~~
+- the `URL:` line puts this under `/briefs/`, which is not a kind of publication; it is built as a report
 - style: an apostrophe should be `’`, not `'`: `...for actionable information. It's time to stop the cacophony, ...`
 - style: a sentence should end with 1 space, not 2: `..., often one message at a time.··Slowly, by following the path ...`
 - style: an apostrophe should be `’`, not `'`: `...ual advertisements, riders can't simply choose to look away f...`
