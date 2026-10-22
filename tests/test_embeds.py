@@ -1,5 +1,6 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
+import hashlib
 import shutil
 import subprocess
 from pathlib import Path
@@ -15,6 +16,7 @@ from eta_publish.docs_json import JsonObject
 from eta_publish.embeds import (
     _stems,
     check_embeds,
+    download,
     look_up,
     read_embed_index,
     srt_to_vtt,
@@ -497,6 +499,27 @@ def test_written_captions_are_served_with_the_video(tmp_path: Path) -> None:
     assert (tmp_path / "videos" / captioned.file).read_text().startswith("WEBVTT")
     check_embeds(doc)
     assert not [w for w in map(str, doc.warnings) if "caption" in w]
+
+
+def test_a_downloaded_video_is_recorded_with_its_hash(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The video is not committed, so its hash is what says it has changed."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), copied(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+
+    def written(embed: Embed, stem: str, outdir: Path, doc: object) -> str:
+        outdir.mkdir(parents=True, exist_ok=True)
+        (outdir / "embed-1.mp4").write_bytes(b"video")
+        return "embed-1.mp4"
+
+    monkeypatch.setattr("eta_publish.embeds._copied", written)
+    download(doc, tmp_path)
+    write_embed_index(tmp_path, doc)
+    again = build([para("Headline", "TITLE"), copied(url)])
+    read_embed_index(tmp_path, again)
+    assert again.media_hashes[url] == hashlib.sha256(b"video").hexdigest()
 
 
 def test_captions_under_a_platform_player_are_warned_about() -> None:

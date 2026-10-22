@@ -39,7 +39,7 @@ deleted, never was, or made private."""
 PAGES_FILE_LIMIT = 100_000_000
 """The largest file GitHub Pages will publish."""
 
-_RECORDED = frozenset({"file", "captions", "captions_automatic"})
+_RECORDED = frozenset({"file", "sha256", "captions", "captions_automatic"})
 """What `embeds.json` records about an embed beside its card."""
 
 
@@ -53,6 +53,8 @@ def read_embed_index(dest: Path, doc: Document) -> None:
         doc.cards.setdefault(url, Card(**card))
         if entry.get("file"):
             doc.media_files.setdefault(url, entry["file"])
+        if entry.get("sha256"):
+            doc.media_hashes.setdefault(url, entry["sha256"])
         if entry.get("captions"):
             captions = Captions(entry["captions"], bool(entry.get("captions_automatic")))
             doc.media_captions.setdefault(url, captions)
@@ -73,6 +75,8 @@ def write_embed_index(dest: Path, doc: Document) -> None:
         entry = {k: v for k, v in card.__dict__.items() if v}
         if embed.url in doc.media_files:
             entry["file"] = doc.media_files[embed.url]
+        if sha256 := doc.media_hashes.get(embed.url):
+            entry["sha256"] = sha256
         if captions := doc.media_captions.get(embed.url):
             entry["captions"] = captions.file
             if captions.automatic:
@@ -255,16 +259,30 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
         if card is None or card.error:
             continue
         stem = stems[embed.url]
+        folder = VIDEO_DIR if embed.copy or embed.platform is Platform.DRIVE else IMAGE_DIR
         try:
             if embed.copy and embed.platform is not Platform.DRIVE:
-                doc.media_files[embed.url] = _copied(embed, stem, dest / VIDEO_DIR, doc)
-            elif embed.platform is Platform.DRIVE:
-                if is_video(card):
-                    doc.media_files[embed.url] = _video(embed, card, stem, dest / VIDEO_DIR, doc)
-            elif card.thumbnail:
-                doc.media_files[embed.url] = _thumbnail(card, stem, dest / IMAGE_DIR, http)
+                file = _copied(embed, stem, dest / folder, doc)
+            elif embed.platform is Platform.DRIVE and is_video(card):
+                file = _video(embed, card, stem, dest / folder, doc)
+            elif embed.platform is not Platform.DRIVE and card.thumbnail:
+                file = _thumbnail(card, stem, dest / folder, http)
+            else:
+                continue
         except Exception as e:
             doc.warn("could not download what {} shows ({})", Shown(embed.url), str(e))
+            continue
+        doc.media_files[embed.url] = file
+        doc.media_hashes[embed.url] = sha256_file(dest / folder / file)
+
+
+def sha256_file(path: Path) -> str:
+    """The SHA-256 of a file, read a piece at a time, since a video can be large."""
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def write_captions(doc: Document, dest: Path) -> None:
