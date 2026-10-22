@@ -254,7 +254,7 @@
 }
 /* An underline in the headline is a swoosh, as the site draws one when its
    own title sections underline a word: a hand-drawn curve under the words
-   rather than a rule. `report.js` lays one curve under each line the words
+   rather than a rule. `publication.js` lays one curve under each line the words
    fall on, which nothing in CSS can do for words that wrap, and marks the
    headline once it has; until then, or without the script, it is the
    underline the document has.

@@ -14,16 +14,16 @@ PATH = "reports/r"
 
 def test_what_the_fragment_links_at_the_site_is_what_it_needs() -> None:
     html = (
-        f'<link rel="stylesheet" href="{HOST}/assets/report.css">'
-        f'<script src="{HOST}/assets/report.js"></script>'
+        f'<link rel="stylesheet" href="{HOST}/assets/publication.css">'
+        f'<script src="{HOST}/assets/publication.js"></script>'
         f'<a href="{HOST}/{PATH}/images/a.jpg"><img src="{HOST}/{PATH}/images/web/a-800w.webp"'
         f' srcset="{HOST}/{PATH}/images/web/a-800w.avif 800w,'
         f' {HOST}/{PATH}/images/web/a-1600w.avif 1600w"></a>'
         f'<video src="{HOST}/{PATH}/videos/v.mp4" poster="{HOST}/{PATH}/images/p.jpg"></video>'
     )
     assert referenced(html, PATH, site_url=HOST) == {
-        "assets/report.css",
-        "assets/report.js",
+        "assets/publication.css",
+        "assets/publication.js",
         f"{PATH}/images/a.jpg",
         f"{PATH}/images/web/a-800w.webp",
         f"{PATH}/images/web/a-800w.avif",
@@ -45,8 +45,11 @@ def test_a_link_anywhere_else_is_not_ours_to_host() -> None:
 
 def test_a_relative_link_is_relative_to_the_publication() -> None:
     """What a `--no-hosted-media` fragment links: its pictures beside itself."""
-    html = '<img src="images/a.jpg"><link href="../../assets/report.css">'
-    assert referenced(html, PATH, site_url=HOST) == {f"{PATH}/images/a.jpg", "assets/report.css"}
+    html = '<img src="images/a.jpg"><link href="../../assets/publication.css">'
+    assert referenced(html, PATH, site_url=HOST) == {
+        f"{PATH}/images/a.jpg",
+        "assets/publication.css",
+    }
 
 
 def test_a_link_names_the_file_percent_encoded() -> None:
@@ -185,7 +188,7 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
     (directory / "report.published.min.html").write_text("the live page's")
     assets = tmp_path / UNPUBLISHED_DIR / "assets"
     assets.mkdir()
-    for name in ("report.min.css", "report.min.js"):
+    for name in ("publication.min.css", "publication.min.js"):
         (assets / name).write_text(name)
         (assets / f"{name}.map").write_text("{}")
 
@@ -197,10 +200,10 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
         "reports/a/report.html",
         "reports/a/report.md",
         "reports/a/report.min.html",
-        "assets/report.min.css",
-        "assets/report.min.css.map",
-        "assets/report.min.js",
-        "assets/report.min.js.map",
+        "assets/publication.min.css",
+        "assets/publication.min.css.map",
+        "assets/publication.min.js",
+        "assets/publication.min.js.map",
     }
     published = tmp_path / PUBLISHED_DIR / "reports/a/report.min.html"
     assert published.read_text() == "the live page's"
@@ -216,7 +219,7 @@ def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> N
     (directory / "report.published.part01.min.html").write_text("the live page's")
     assets = tmp_path / UNPUBLISHED_DIR / "assets"
     assets.mkdir()
-    for name in ("report.min.css", "report.min.js"):
+    for name in ("publication.min.css", "publication.min.js"):
         (assets / name).write_text(name)
         (assets / f"{name}.map").write_text("{}")
 
@@ -227,6 +230,6 @@ def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> N
     hosted = files(tmp_path)
     assert "reports/a/report.part01.min.html" in hosted
     assert "reports/a/report.part01.min.min.html" not in hosted
-    assert "assets/report.min.js.map" in hosted
+    assert "assets/publication.min.js.map" in hosted
     published = tmp_path / PUBLISHED_DIR / "reports/a/report.part01.min.html"
     assert published.read_text() == "the live page's"

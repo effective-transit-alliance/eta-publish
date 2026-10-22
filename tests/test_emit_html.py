@@ -366,20 +366,20 @@ def test_the_footnote_preview_is_hidden_where_nothing_hovers() -> None:
     """The span is in the markup on every device, so hiding it only inside
     `@media (hover: hover)` left a phone displaying every note inline,
     in the middle of the sentence it belongs to."""
-    from eta_publish.emit.html import REPORT_CSS
+    from eta_publish.emit.html import PUBLICATION_CSS
 
     # Everything the hovering devices are told, dropped.
     # What is left is what a phone reads, and it has to hide the box.
-    without_hover = re.sub(r"@media \(hover: hover\) \{.*?\n\}", "", REPORT_CSS, flags=re.S)
+    without_hover = re.sub(r"@media \(hover: hover\) \{.*?\n\}", "", PUBLICATION_CSS, flags=re.S)
     assert ".footnote-ref:hover" not in without_hover
     assert ".eta-report .footnote-tip,\n.eta-report .source-tip { display: none; }" in without_hover
 
 
 def test_the_footnote_preview_is_shown_where_something_does(out: str) -> None:
     """Hidden by default is only right if hovering still brings it back."""
-    from eta_publish.emit.html import REPORT_CSS
+    from eta_publish.emit.html import PUBLICATION_CSS
 
-    hovering = re.search(r"@media \(hover: hover\) \{.*?\n\}", REPORT_CSS, re.S)
+    hovering = re.search(r"@media \(hover: hover\) \{.*?\n\}", PUBLICATION_CSS, re.S)
     assert hovering is not None
     assert ".footnote-ref:hover .footnote-tip" in hovering.group()
     assert ".footnote-ref:focus-within .footnote-tip," in hovering.group()
@@ -521,8 +521,8 @@ def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
 
     linked = fragment_emitter("images", "https://example.org/assets", site_url=HOST).emit(doc)
     assert "<style>" not in linked
-    assert 'href="https://example.org/assets/report.css"' in linked
-    assert 'src="https://example.org/assets/report.js" defer' in linked
+    assert 'href="https://example.org/assets/publication.css"' in linked
+    assert 'src="https://example.org/assets/publication.js" defer' in linked
     embedded = fragment_emitter("images", "", site_url=HOST).emit(doc)
     assert "<style>" in embedded
     assert "<link" not in embedded
@@ -572,10 +572,10 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
 
 def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str) -> None:
     """Off, the `[n]` stays in the markup for the backlinks, and the root says to hide it."""
-    from eta_publish.emit.html import REPORT_CSS
+    from eta_publish.emit.html import PUBLICATION_CSS
 
     assert '<div class="eta-report no-source-brackets">' in out
     assert 'id="srcref1-1"' in out
-    assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in REPORT_CSS
+    assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in PUBLICATION_CSS
     shown = HtmlEmitter(inline_css=False, source_brackets=True, site_url=HOST).emit(doc)
     assert '<div class="eta-report">' in shown

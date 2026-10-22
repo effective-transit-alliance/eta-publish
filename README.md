@@ -56,7 +56,7 @@ a statement's are `statement.html`, `statement.md`, and so on:
 | Output | Purpose |
 | --- | --- |
 | `report.html` | One fragment to paste into a single Squarespace code block, linking its images and videos on GitHub Pages (`--no-hosted-media` links them relative to itself) |
-| `report.min.html` | `report.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/report.min.css` and `assets/report.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
+| `report.min.html` | `report.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/publication.min.css` and `assets/publication.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
 | `index.html` | Standalone page for review, including any warnings |
@@ -585,7 +585,7 @@ The publication is supposed to outlive them.
 So every external link carries a `[n]` into a `Sources` section at the end,
 where the entry names the page and the capture of it,
 with a `↑` back to each citation.
-Hovering a citation does show the pair, built from the entry by `report.js`,
+Hovering a citation does show the pair, built from the entry by `publication.js`,
 but it is not the way to it:
 a phone has no hover and a printed page has no links at all,
 so the number and the section are what always work.
