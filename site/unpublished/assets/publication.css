@@ -47,14 +47,11 @@
 .eta-report figure video[poster] {
   background: #000516;
 }
-/* A picture is a link to the file as the document holds it, for zooming in
-   past the copy the page shows. It reads as the picture, not as a link. */
+/* A figure's picture is a link to its lightbox, and a picture in the prose
+   to the file as the document holds it. It reads as the picture, not as a link. */
 .eta-report figure .full-size,
 .eta-report figure picture {
   display: block;
-  cursor: zoom-in;
-}
-.eta-report figure > img {
   cursor: zoom-in;
 }
 /* Over a video's corner, without a `top`, so at the top of the video, which
@@ -73,6 +70,7 @@
   border: 0;
   border-radius: 0.25em;
   cursor: zoom-in;
+  text-decoration: none;
 }
 /* Links underlined the way the site underlines them in a text block. The
    publication is pasted into an embed block, which that rule does not reach, and
@@ -688,10 +686,17 @@
     -webkit-touch-callout: none;
   }
 }
-/* A picture opened over the page, at `#/media/` and its id: the picture as large as
-   the window allows, a bar above it and its caption below. A `dialog`, which
-   the browser puts above everything on the page, whatever the site around
-   the publication stacks or transforms. Light on dark, whatever the page is. */
+/* A picture opened over the page, at `#/media/File:` and its file's name: the picture
+   as large as the window allows, a bar above it and its caption below.
+   Light on dark, whatever the page is.
+   Opened by `:target` alone, when the address names it, so it opens with no
+   script at all. Where the script runs, it opens it as a modal `dialog` instead,
+   which the browser puts above everything on the page, whatever the site
+   around the publication stacks or transforms; the script marks the
+   publication `scripted`, because `:target` goes stale once the script moves
+   between pictures without the browser navigating. Fixed and stacked high
+   for the `:target` one, which has only `z-index` to rise above a site's header. */
+html:has(.eta-report:not(.scripted) .lightbox:target),
 html:has(.eta-report .lightbox[open]) {
   overflow: hidden;
 }
@@ -707,6 +712,12 @@ html:has(.eta-report .lightbox[open]) {
   background: #111;
   color: #eee;
 }
+.eta-report:not(.scripted) .lightbox:target {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483647;
+}
+.eta-report:not(.scripted) .lightbox:target,
 .eta-report .lightbox[open] {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
@@ -717,13 +728,11 @@ html:has(.eta-report .lightbox[open]) {
 .eta-report .lightbox a {
   color: inherit;
 }
-.eta-report .lightbox button {
-  font-family: inherit;
-  color: inherit;
-  background: none;
-  border: 0;
+.eta-report :is(.lightbox-bar, .lightbox-stage) a {
+  text-decoration: none;
+}
+.eta-report .lightbox :is(.lightbox-close, .lightbox-prev, .lightbox-next) {
   padding: 0.2em 0.5em;
-  cursor: pointer;
   line-height: 1;
 }
 .eta-report .lightbox-bar {

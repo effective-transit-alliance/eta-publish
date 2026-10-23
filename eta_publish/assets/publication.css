@@ -28,16 +28,15 @@
 /* A graphic video's warning card is wider than most videos;
    its own background fills the rest of the frame. */
 .eta-report figure video[poster] { background: #000516; }
-/* A picture is a link to the file as the document holds it, for zooming in
-   past the copy the page shows. It reads as the picture, not as a link. */
+/* A figure's picture is a link to its lightbox, and a picture in the prose
+   to the file as the document holds it. It reads as the picture, not as a link. */
 .eta-report figure .full-size, .eta-report figure picture { display: block; cursor: zoom-in; }
-.eta-report figure > img { cursor: zoom-in; }
 /* Over a video's corner, without a `top`, so at the top of the video, which
    is where it would have been in the flow: below a warning, if there is one. */
 .eta-report .lightbox-open { position: absolute; right: .4em; margin-top: .4em; z-index: 1;
                              font: inherit; font-size: 1.3rem; line-height: 1; padding: .2em .35em;
                              color: #fff; background: rgb(0 0 0 / .6); border: 0;
-                             border-radius: .25em; cursor: zoom-in; }
+                             border-radius: .25em; cursor: zoom-in; text-decoration: none; }
 /* Links underlined the way the site underlines them in a text block. The
    publication is pasted into an embed block, which that rule does not reach, and
    the site's own `a` rule takes the underline off everywhere else. The
@@ -379,19 +378,29 @@
   .eta-report .footnote-ref a,
   .eta-report .cited a { -webkit-touch-callout: none; }
 }
-/* A picture opened over the page, at `#/media/` and its id: the picture as large as
-   the window allows, a bar above it and its caption below. A `dialog`, which
-   the browser puts above everything on the page, whatever the site around
-   the publication stacks or transforms. Light on dark, whatever the page is. */
+/* A picture opened over the page, at `#/media/File:` and its file's name: the picture
+   as large as the window allows, a bar above it and its caption below.
+   Light on dark, whatever the page is.
+   Opened by `:target` alone, when the address names it, so it opens with no
+   script at all. Where the script runs, it opens it as a modal `dialog` instead,
+   which the browser puts above everything on the page, whatever the site
+   around the publication stacks or transforms; the script marks the
+   publication `scripted`, because `:target` goes stale once the script moves
+   between pictures without the browser navigating. Fixed and stacked high
+   for the `:target` one, which has only `z-index` to rise above a site's header. */
+html:has(.eta-report:not(.scripted) .lightbox:target),
 html:has(.eta-report .lightbox[open]) { overflow: hidden; }
 .eta-report .lightbox { box-sizing: border-box; width: 100vw; height: 100dvh;
                         max-width: none; max-height: none; margin: 0; padding: 0;
                         border: 0; background: #111; color: #eee; }
+.eta-report:not(.scripted) .lightbox:target { position: fixed; inset: 0; z-index: 2147483647; }
+.eta-report:not(.scripted) .lightbox:target,
 .eta-report .lightbox[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
 .eta-report .lightbox::backdrop { background: transparent; }
 .eta-report .lightbox a { color: inherit; }
-.eta-report .lightbox button { font-family: inherit; color: inherit; background: none; border: 0;
-                               padding: .2em .5em; cursor: pointer; line-height: 1; }
+.eta-report :is(.lightbox-bar, .lightbox-stage) a { text-decoration: none; }
+.eta-report .lightbox :is(.lightbox-close, .lightbox-prev, .lightbox-next) {
+  padding: .2em .5em; line-height: 1; }
 .eta-report .lightbox-bar { display: flex; align-items: center; gap: 1em; padding: .5em 1em; }
 .eta-report .lightbox-count { margin-right: auto; opacity: .7; font-size: .9rem; }
 .eta-report .lightbox-close { font-size: 2rem; }
