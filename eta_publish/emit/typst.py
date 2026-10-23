@@ -108,7 +108,7 @@ class TypstEmitter(Emitter):
         # Where the site serves what the PDF links: the pictures and videos at full size.
         self.site_url = site_url
         # The live page, for a picture or a video to open in its lightbox there;
-        # empty where there is none.
+        # empty for a preview, whose lightboxes are on the site's preview page instead.
         self.page_url = page_url
         self.image_dir = image_dir.rstrip("/")
 
@@ -264,11 +264,11 @@ class TypstEmitter(Emitter):
         if served is not None:
             # Ours, so named as the document names it and linked to our copy.
             slug = self.doc.slug.strip("/")
-            href = f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
-            if self.page_url:
-                # Its lightbox on the live page, where the warning and the
-                # captions come before the video does, as they do on the figure.
-                href = self.page_url + media_fragment(media_address(served))
+            # Its lightbox, where the warning and the captions come
+            # before the video does, as they do on the figure.
+            href = self.lightbox_url(served) or (
+                f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
+            )
             return self.served_video(node, served, href)
         return self.linked_embed(node, embed_label(node, card))
 
@@ -359,9 +359,9 @@ class TypstEmitter(Emitter):
         alt text added here once reached inline images only,
         because the figure built its own call.
 
-        A figure's picture links its lightbox on the live page, where there is one:
-        the picture as large as the screen, with its caption and its credit,
-        and the file itself a click further. A picture in the prose has no lightbox.
+        A figure's picture links its lightbox: the picture as large as the screen,
+        with its caption and its credit, and the file itself a click further.
+        A picture in the prose has no lightbox, and links the file.
         """
         href = self.doc.image_href(node)
         # The PDF embeds its own copy and links the document's:
@@ -372,9 +372,7 @@ class TypstEmitter(Emitter):
         # `capped_image` rather than `image`: the width is the column's,
         # except for a picture tall enough to break the page it opens.
         call = f"capped_image({string(path)}{alt})"
-        url = self.image_url(href)
-        if lightbox and self.page_url:
-            url = self.page_url + media_fragment(media_address(href))
+        url = (lightbox and self.lightbox_url(href)) or self.image_url(href)
         if not url:
             return call
         # The picture in the PDF is the page's copy, and a reader who wants to
@@ -382,6 +380,16 @@ class TypstEmitter(Emitter):
         # A content block, so the call inside it is markup and takes its `#`;
         # the caller prepends the one this whole expression needs.
         return f"link({string(url)})[#{call}]"
+
+    def lightbox_url(self, file: str) -> str:
+        """Where `file`'s lightbox is: on the live page, or for a preview,
+        on the site's preview page, which has the same lightboxes.
+
+        Empty for a document that names no `URL:`, which has neither: see `image_url`.
+        """
+        slug = self.doc.slug.strip("/")
+        page = self.page_url or (f"{self.site_url}/{slug}/" if slug else "")
+        return page + media_fragment(media_address(file)) if page else ""
 
     def image_url(self, href: str) -> str:
         """Where this image is published, for the PDF to link to.
