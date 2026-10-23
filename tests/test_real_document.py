@@ -407,3 +407,21 @@ def test_the_pdf_opens_a_figure_in_its_lightbox(doc: Document) -> None:
     preview = TypstEmitter(site_url=HOST).emit(doc)
     slug = doc.slug.strip("/")
     assert f'link("{HOST}/{slug}/#/media/File:img-6fb0f9c4.jpg")[#capped_image(' in preview
+
+
+def test_an_svg_is_offered_as_a_png_in_its_lightbox_only(doc: Document) -> None:
+    """The SVG first, and the PNG only where someone has opened the picture to look closer."""
+    html = HtmlEmitter(site_url=HOST).emit(doc)
+    vector = next(f for f in doc.images if doc.image_href(f).endswith(".svg"))
+    stem = doc.image_href(vector).removesuffix(".svg")
+    box = re.search(rf'<dialog class="lightbox" id="/media/File:{stem}.svg".*?</dialog>', html)
+    assert box
+    assert re.search(
+        rf'Download: <a href="{stem}.svg" download>SVG</a> · '
+        rf'<a href="web/{stem}.png" download>PNG</a>',
+        box[0],
+    )
+    assert html.count(f"web/{stem}.png") == 1
+    assert html.count('class="lightbox-download"') == len(
+        [f for f in doc.images if doc.image_href(f).endswith(".svg") and f is not doc.card]
+    )
