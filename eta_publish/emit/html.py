@@ -26,9 +26,11 @@ from ..naming import (
     VIDEO_DIR,
     WEB_FORMATS,
     content_anchor,
+    has_png,
     has_web_copies,
     media_address,
     media_fragment,
+    png_href,
     video_frame_name,
     warning_poster_name,
     web_href,
@@ -106,6 +108,8 @@ class Lightbox:
     media: Piece
     label: str
     captions: Piece
+    downloads: Piece = None
+    """The file in other formats, for an SVG: see `HtmlEmitter.downloads`."""
 
 
 class Tag(Element):
@@ -1005,6 +1009,7 @@ class HtmlEmitter(Emitter):
                     )[self.picture(node.image, title, lightbox=True)],
                     label="Picture",
                     captions=self.copied(lambda: self.figure_captions(node.caption, node.credit)),
+                    downloads=self.downloads(file),
                 )
             )
         parts.append(self.figure_captions(node.caption, node.credit))
@@ -1014,6 +1019,23 @@ class HtmlEmitter(Emitter):
         aspect = self.doc.image_aspect(node.image)
         shape = f"--aspect: {aspect:.3f}" if aspect is not None else None
         return markup(tag.figure(id=anchor, style=shape)[self.mark(anchor, "figure"), parts])
+
+    def downloads(self, file: str) -> Piece:
+        """An SVG's download links, in its lightbox: the SVG first, then the PNG.
+
+        The SVG is the one to have and to pass on, sharp at any size,
+        and is also what clicking the picture opens; the PNG is for whoever
+        needs something an SVG will not go into. So only here, and second,
+        in the same quiet type as the count across the bar from it.
+        """
+        if not has_png(file):
+            return None
+        return tag.span(class_="lightbox-download")[
+            "Download: ",
+            tag.a(href=self.image_src(file), download=True)["SVG"],
+            " \u00b7 ",
+            tag.a(href=self.image_src(png_href(file)), download=True)["PNG"],
+        ]
 
     def figure_captions(self, caption: list[Inline], credit: list[Inline]) -> Piece:
         return [
@@ -1066,6 +1088,7 @@ class HtmlEmitter(Emitter):
                 tag.dialog(class_="lightbox", id=box.address, aria_label=box.label)[
                     tag.div(class_="lightbox-bar")[
                         tag.span(class_="lightbox-count")[count],
+                        box.downloads,
                         tag.a(class_="lightbox-close", href=f"#{box.anchor}", aria_label="Close")[
                             "\u00d7"
                         ],
