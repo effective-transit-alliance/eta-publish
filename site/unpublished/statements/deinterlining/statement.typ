@@ -73,7 +73,7 @@ The same is true of D and N trains, which have separate branches toward Coney Is
 In this way, trains don't conflict with one another, and they provide more service to denser areas.
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-a199edea.png")[#capped_image("print/img-a199edea.jpg", alt: "Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-a199edea.png")[#capped_image("print/img-a199edea.jpg", alt: "Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.")],
   caption: [Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.],
 )
 
@@ -108,7 +108,7 @@ For example, a delay on the R in Queens could cascade to the N in Midtown, then 
 The result is that a disruption at one location can cascade across the whole system.
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-da01ab69.png")[#capped_image("print/img-da01ab69.jpg", alt: "Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-da01ab69.png")[#capped_image("print/img-da01ab69.jpg", alt: "Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.")],
   caption: [Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.],
 )
 
@@ -158,7 +158,7 @@ The most effective way to do this is through increased service.
 === The #link("https://www.mta.info/article/f-m-swap")[F/M swap]#super[#link(<src8>)[\[8\]]]
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-5f0a3a08.jpg")[#capped_image("print/img-5f0a3a08.jpg", alt: "Credit: MTA")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-5f0a3a08.jpg")[#capped_image("print/img-5f0a3a08.jpg", alt: "Credit: MTA")],
   caption: [Credit: MTA],
 )
 
@@ -172,7 +172,7 @@ Instead, the E will now share tracks with 2 other services (the C and F) instead
 The F/M swap will isolate the local and express tracks of the Queens Blvd Line, so delays can no longer propagate between the E/F and M/R trains.
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-c1aacb22.jpg")[#capped_image("print/img-c1aacb22.jpg", alt: "Credit: MTA, via Roosevelt Islander")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-c1aacb22.jpg")[#capped_image("print/img-c1aacb22.jpg", alt: "Credit: MTA, via Roosevelt Islander")],
   caption: [Credit: MTA, via #link("https://rooseveltislander.com/2025/06/03/mta-plans-big-changes-coming-to-roosevelt-island-subway-service/")[Roosevelt Islander]#super[#link(<src11>)[\[11\]]]],
 )
 
@@ -317,11 +317,11 @@ NO CONTENT BELOW THIS LINE
 (insert the following images above, where marked)
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-96810135.jpg")[#capped_image("print/img-96810135.jpg")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-96810135.jpg")[#capped_image("print/img-96810135.jpg")],
 )
 
 #figure(
-  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/images/img-5a4ea5b9.jpg")[#capped_image("print/img-5a4ea5b9.jpg")],
+  link("https://effective-transit-alliance.github.io/eta-publish/statements/deinterlining/#/media/File:img-5a4ea5b9.jpg")[#capped_image("print/img-5a4ea5b9.jpg")],
 )
 
 Sources: 

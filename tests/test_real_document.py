@@ -296,7 +296,11 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     #
     # And from 265,000 when a picture's caption became its `title` as well,
     # which a resting pointer shows: each caption written twice, about 3 KB.
-    assert size < 275_000, f"grown to {size:,} bytes; still fits, worth a look"
+    #
+    # And from 275,000 when each figure's lightbox was written into the page,
+    # so one opens without the script: its picture, a copy of its caption and
+    # credit, and its links, about 37 KB for the 28 figures here.
+    assert size < 315_000, f"grown to {size:,} bytes; still fits, worth a look"
 
 
 def test_every_image_has_something_describing_it(doc: Document) -> None:
@@ -354,12 +358,52 @@ def test_only_the_hero_is_asked_for_before_it_is_in_view(doc: Document) -> None:
 
 
 def test_a_photo_is_shown_from_small_copies_and_links_to_the_original(doc: Document) -> None:
-    """A tenth of the bytes on the page, and the file as the document holds it a tap away."""
+    """A tenth of the bytes on the page, and the file as the document holds it two taps away:
+    the picture opens its lightbox, and the lightbox's picture is a link to the file."""
     html = HtmlEmitter(site_url=HOST).emit(doc)
     pictures = re.findall(r'<a class="full-size" href="([^"]+)"><picture>(.*?)</picture></a>', html)
     rasters = [f for f in doc.images if f.object_id in doc.image_shapes and f is not doc.card]
     assert len(pictures) == len(rasters)
-    original, inside = pictures[0]
-    assert original == "img-6fb0f9c4.jpg"
+    lightbox, inside = pictures[0]
+    assert lightbox == "#/media/File:img-6fb0f9c4.jpg"
+    assert re.search(
+        r'<dialog class="lightbox" id="/media/File:img-6fb0f9c4.jpg".*?'
+        r'<a class="lightbox-media" href="img-6fb0f9c4.jpg"',
+        html,
+    )
     assert inside.index('type="image/avif"') < inside.index('type="image/webp"')
     assert "web/img-6fb0f9c4-800w.avif 800w, web/img-6fb0f9c4-1500w.avif 1500w" in inside
+
+
+def test_the_lightboxes_step_through_the_figures_in_order(doc: Document) -> None:
+    """Each figure's lightbox is in the markup, so it opens without the script:
+    its picture links there, its arrows go to the figures either side of it,
+    round from the last to the first, and its close goes back to the figure."""
+    html = HtmlEmitter(site_url=HOST).emit(doc)
+    figures = re.findall(r'<figure id="([^"]+)"[^>]*>.*?<a class="full-size" href="#([^"]+)"', html)
+    boxes = re.findall(r'<dialog class="lightbox" id="([^"]+)".*?</dialog>', html)
+    assert [address for _, address in figures] == boxes
+    for at, box in enumerate(re.findall(r'<dialog class="lightbox".*?</dialog>', html)):
+        assert f'class="lightbox-close" href="#{figures[at][0]}"' in box
+        assert f'class="lightbox-next" href="#{boxes[(at + 1) % len(boxes)]}"' in box
+        assert f'class="lightbox-prev" href="#{boxes[at - 1]}"' in box
+
+
+def test_a_lightbox_copies_its_caption_without_its_ids(doc: Document) -> None:
+    """The caption's citations keep their ids and their backlinks; the copy takes neither."""
+    html = HtmlEmitter(site_url=HOST).emit(doc)
+    ids = re.findall(r'\sid="([^"]+)"', html)
+    assert len(ids) == len(set(ids))
+    captions = re.findall(r'<div class="lightbox-caption">.*?</dialog>', html)
+    assert any('<sup class="source-ref"><a href="#src' in caption for caption in captions)
+
+
+def test_the_pdf_opens_a_figure_in_its_lightbox(doc: Document) -> None:
+    """The picture as large as the screen with its caption, rather than the bare file:
+    on the live page, or for a preview, on the site's preview page."""
+    page = "https://www.etany.org/reports/sas-west"
+    live = TypstEmitter(page_url=page, site_url=HOST).emit(doc)
+    assert f'link("{page}#/media/File:img-6fb0f9c4.jpg")[#capped_image(' in live
+    preview = TypstEmitter(site_url=HOST).emit(doc)
+    slug = doc.slug.strip("/")
+    assert f'link("{HOST}/{slug}/#/media/File:img-6fb0f9c4.jpg")[#capped_image(' in preview

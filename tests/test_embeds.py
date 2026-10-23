@@ -1,5 +1,6 @@
 """Videos and posts, from a paragraph that is nothing but a link to one."""
 
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -286,6 +287,23 @@ def test_a_graphic_video_opens_on_the_warning_card() -> None:
     doc.media_files[url] = "embed-1.mp4"
     html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
     assert f'poster="{HOST}/assets/warning-Graphic_Content.svg"' in html
+
+
+def test_a_video_opens_its_lightbox_by_a_link_of_its_own() -> None:
+    """A click on the video is the player's, so the way to its lightbox is a link beside it,
+    which works without the script; in the lightbox the warning still comes first,
+    and the copy fetches nothing until it is played."""
+    url = "https://x.com/someone/status/123"
+    doc = build([para("Headline", "TITLE"), *graphic(url)])
+    doc.cards[url] = Card(author="someone", text="a post")
+    doc.media_files[url] = "embed-1.mp4"
+    html = HtmlEmitter(image_base="images", site_url=HOST).emit(doc)
+    assert '<a class="lightbox-open" href="#/media/File:embed-1.mp4"' in html
+    box = re.search(r'<dialog class="lightbox" id="/media/File:embed-1.mp4".*?</dialog>', html)
+    assert box
+    assert re.search(r'class="lightbox-close" href="#embed-1"', box[0])
+    assert box[0].index('class="embed-warning"') < box[0].index("<video")
+    assert 'preload="none"' in box[0]
 
 
 def test_a_video_is_named_after_its_link_text() -> None:
@@ -596,7 +614,7 @@ def test_a_preview_page_links_the_card_beside_it() -> None:
     assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
 
 
-def test_the_published_pdf_opens_a_video_on_its_live_figure() -> None:
+def test_the_pdf_opens_a_video_in_its_lightbox() -> None:
     """Where its warning and captions come first, not the bare file, which has neither."""
     url = "https://x.com/someone/status/123"
     doc = build([para("Headline", "TITLE"), *graphic(url)])
@@ -604,8 +622,11 @@ def test_the_published_pdf_opens_a_video_on_its_live_figure() -> None:
     doc.cards[url] = Card(author="someone", text="a post")
     doc.media_files[url] = "embed-1.mp4"
     page = "https://www.etany.org/reports/someone"
-    assert f'#link("{page}#embed-1")' in TypstEmitter(page_url=page, site_url=HOST).emit(doc)
-    assert f"{HOST}/reports/someone/videos/embed-1.mp4" in TypstEmitter(site_url=HOST).emit(doc)
+    assert f'#link("{page}#/media/File:embed-1.mp4")' in TypstEmitter(
+        page_url=page, site_url=HOST
+    ).emit(doc)
+    preview = TypstEmitter(site_url=HOST).emit(doc)
+    assert f'#link("{HOST}/reports/someone/#/media/File:embed-1.mp4")' in preview
 
 
 def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
@@ -616,7 +637,9 @@ def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
     doc.media_files[url] = "embed-1.mp4"
     page = "https://www.etany.org/reports/someone"
     typst = TypstEmitter(page_url=page, site_url=HOST).emit(doc)
-    poster = f'link("{page}#embed-1")[#capped_image("print/warning-Graphic_Content.svg"'
+    poster = (
+        f'link("{page}#/media/File:embed-1.mp4")[#capped_image("print/warning-Graphic_Content.svg"'
+    )
     assert typst.index("#video_warning[Warning: Graphic Content]") < typst.index(poster)
 
 

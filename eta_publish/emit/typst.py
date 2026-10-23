@@ -17,13 +17,14 @@ which carries the house style.
 
 import json
 import re
-from pathlib import Path
 from typing import override
 
 from ..naming import (
     IMAGE_DIR,
     PRINT_DIR,
     VIDEO_DIR,
+    media_address,
+    media_fragment,
     print_href,
     video_frame_name,
     warning_poster_name,
@@ -106,7 +107,8 @@ class TypstEmitter(Emitter):
         self.template = template
         # Where the site serves what the PDF links: the pictures and videos at full size.
         self.site_url = site_url
-        # The live page, for a video to open on its figure there; empty where there is none.
+        # The live page, for a picture or a video to open in its lightbox there;
+        # empty for a preview, whose lightboxes are on the site's preview page instead.
         self.page_url = page_url
         self.image_dir = image_dir.rstrip("/")
 
@@ -249,7 +251,7 @@ class TypstEmitter(Emitter):
         caption = " \\\n  ".join(caption_parts)
         # Published without a picture, as in the HTML, where its SVG could not be had.
         unpublished = node.image.object_id in self.doc.unpublished
-        body = "  []," if unpublished else f"  {self.image_call(node.image)},"
+        body = "  []," if unpublished else f"  {self.image_call(node.image, lightbox=True)},"
         if caption:
             return f"#figure(\n{body}\n  caption: [{caption}],\n)"
         return f"#figure(\n{body}\n)"
@@ -262,11 +264,11 @@ class TypstEmitter(Emitter):
         if served is not None:
             # Ours, so named as the document names it and linked to our copy.
             slug = self.doc.slug.strip("/")
-            href = f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
-            if self.page_url:
-                # Its figure on the live page, which the page names after the file,
-                # so the warning and the captions come before the video does.
-                href = f"{self.page_url}#{Path(served).stem}"
+            # Its lightbox, where the warning and the captions come
+            # before the video does, as they do on the figure.
+            href = self.lightbox_url(served) or (
+                f"{self.site_url}/{slug}/{VIDEO_DIR}/{served}" if slug else ""
+            )
             return self.served_video(node, served, href)
         return self.linked_embed(node, embed_label(node, card))
 
@@ -350,12 +352,16 @@ class TypstEmitter(Emitter):
     def image(self, node: Image) -> str:
         return f"#{self.image_call(node)}"
 
-    def image_call(self, node: Image) -> str:
+    def image_call(self, node: Image, *, lightbox: bool = False) -> str:
         """The `image` call, which a figure wraps and a bare image does not.
 
         Written once so the two cannot drift:
         alt text added here once reached inline images only,
         because the figure built its own call.
+
+        A figure's picture links its lightbox: the picture as large as the screen,
+        with its caption and its credit, and the file itself a click further.
+        A picture in the prose has no lightbox, and links the file.
         """
         href = self.doc.image_href(node)
         # The PDF embeds its own copy and links the document's:
@@ -366,7 +372,7 @@ class TypstEmitter(Emitter):
         # `capped_image` rather than `image`: the width is the column's,
         # except for a picture tall enough to break the page it opens.
         call = f"capped_image({string(path)}{alt})"
-        url = self.image_url(href)
+        url = (lightbox and self.lightbox_url(href)) or self.image_url(href)
         if not url:
             return call
         # The picture in the PDF is the page's copy, and a reader who wants to
@@ -374,6 +380,16 @@ class TypstEmitter(Emitter):
         # A content block, so the call inside it is markup and takes its `#`;
         # the caller prepends the one this whole expression needs.
         return f"link({string(url)})[#{call}]"
+
+    def lightbox_url(self, file: str) -> str:
+        """Where `file`'s lightbox is: on the live page, or for a preview,
+        on the site's preview page, which has the same lightboxes.
+
+        Empty for a document that names no `URL:`, which has neither: see `image_url`.
+        """
+        slug = self.doc.slug.strip("/")
+        page = self.page_url or (f"{self.site_url}/{slug}/" if slug else "")
+        return page + media_fragment(media_address(file)) if page else ""
 
     def image_url(self, href: str) -> str:
         """Where this image is published, for the PDF to link to.
