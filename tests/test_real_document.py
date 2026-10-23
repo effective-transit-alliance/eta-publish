@@ -398,11 +398,12 @@ def test_a_lightbox_copies_its_caption_without_its_ids(doc: Document) -> None:
     assert any('<sup class="source-ref"><a href="#src' in caption for caption in captions)
 
 
-def test_the_published_pdf_opens_a_figure_in_its_live_lightbox(doc: Document) -> None:
-    """The picture as large as the screen with its caption, rather than the bare file;
-    and the file itself where there is no live page to open it on."""
+def test_the_pdf_opens_a_figure_in_its_lightbox(doc: Document) -> None:
+    """The picture as large as the screen with its caption, rather than the bare file:
+    on the live page, or for a preview, on the site's preview page."""
     page = "https://www.etany.org/reports/sas-west"
     live = TypstEmitter(page_url=page, site_url=HOST).emit(doc)
     assert f'link("{page}#/media/File:img-6fb0f9c4.jpg")[#capped_image(' in live
     preview = TypstEmitter(site_url=HOST).emit(doc)
-    assert '/images/img-6fb0f9c4.jpg")[#capped_image(' in preview
+    slug = doc.slug.strip("/")
+    assert f'link("{HOST}/{slug}/#/media/File:img-6fb0f9c4.jpg")[#capped_image(' in preview

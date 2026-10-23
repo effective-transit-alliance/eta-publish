@@ -614,7 +614,7 @@ def test_a_preview_page_links_the_card_beside_it() -> None:
     assert 'poster="../../assets/warning-Graphic_Content.svg"' in page
 
 
-def test_the_published_pdf_opens_a_video_in_its_live_lightbox() -> None:
+def test_the_pdf_opens_a_video_in_its_lightbox() -> None:
     """Where its warning and captions come first, not the bare file, which has neither."""
     url = "https://x.com/someone/status/123"
     doc = build([para("Headline", "TITLE"), *graphic(url)])
@@ -625,7 +625,8 @@ def test_the_published_pdf_opens_a_video_in_its_live_lightbox() -> None:
     assert f'#link("{page}#/media/File:embed-1.mp4")' in TypstEmitter(
         page_url=page, site_url=HOST
     ).emit(doc)
-    assert f"{HOST}/reports/someone/videos/embed-1.mp4" in TypstEmitter(site_url=HOST).emit(doc)
+    preview = TypstEmitter(site_url=HOST).emit(doc)
+    assert f'#link("{HOST}/reports/someone/#/media/File:embed-1.mp4")' in preview
 
 
 def test_the_pdf_shows_a_graphic_video_as_its_warning_card() -> None:
