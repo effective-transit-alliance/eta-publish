@@ -267,44 +267,29 @@
       document.fonts?.ready.then(() => swoosh(title));
     }
   };
-  // A picture opens in a lightbox, at `#/media/` and the figure's id, so that it can
-  // be linked to and the browser's back and forward open and close it. The
-  // address is the state: everything here changes the address and then shows
-  // whatever it says. Stepping to the next picture replaces the entry rather
-  // than adding one, so back closes the box rather than walking the pictures.
-  // Built out of the figure the link is in, so the markup carries nothing
-  // more: without the script the link is to the original, as it was.
-  // Wikipedia's form, `File:` and all.
-  const MEDIA = "#/media/File:";
-  // A picture, a drawing (an SVG, which is its own original), or a video:
-  // not an embed, whose player is the platform's.
-  const mediaOf = (figure) =>
-    figure.querySelector(":scope > .full-size picture, :scope > img, :scope > video");
-  const figures = () => [...document.querySelectorAll(".eta-report figure[id]")].filter(mediaOf);
-  // The file the figure shows, as the original's name, extension and all, the
-  // way Wikipedia names one: what the address says, and what the reader would
-  // save it as.
-  const originalOf = (figure) => {
-    const media = mediaOf(figure);
-    return (
-      figure.querySelector(":scope > .full-size")?.href ||
-      media.currentSrc ||
-      media.src ||
-      media.querySelector("img").src
-    );
+  // A picture opens in a lightbox, at `#/media/File:` and its file's name, so that
+  // it can be linked to and the browser's back and forward open and close it.
+  // Each lightbox is in the markup, a `dialog` whose id is that address, and
+  // opens without this script, by `:target`. What the script adds: the same
+  // lightbox opened as a modal, above whatever the site around it stacks;
+  // Escape and the arrow keys; and a history that back closes in one step,
+  // since stepping to the next picture replaces the entry rather than adding one.
+  // The address is the state: everything here changes the address and then
+  // shows whatever it says.
+  const boxes = () => [...document.querySelectorAll(".eta-report .lightbox[id]")];
+  const boxAt = (hash) => {
+    const id = decodeURIComponent(hash.slice(1));
+    if (!id) return null;
+    const box = document.getElementById(id);
+    return box?.classList.contains("lightbox") ? box : null;
   };
-  const fileOf = (figure) => decodeURIComponent(new URL(originalOf(figure)).pathname.split("/").pop());
-  let lightbox = null;
+  const figureOf = (box) =>
+    document.getElementById(decodeURIComponent(box.querySelector(".lightbox-close").hash.slice(1)));
   let shown = null;
-  const go = (figure, replace) => {
-    const url = figure ? MEDIA + encodeURIComponent(fileOf(figure)) : location.pathname + location.search;
-    history[replace ? "replaceState" : "pushState"]({ lightbox: !!figure }, "", url);
+  const go = (box, replace) => {
+    const url = box ? `#${encodeURI(box.id)}` : location.pathname + location.search;
+    history[replace ? "replaceState" : "pushState"]({ lightbox: !!box }, "", url);
     render();
-  };
-  const step = (by) => {
-    const all = figures();
-    const at = all.indexOf(shown);
-    if (at >= 0) go(all[(at + by + all.length) % all.length], true);
   };
   const dismiss = () => {
     // Back, when the box was opened here, so the entry it added goes rather
@@ -312,7 +297,7 @@
     // arrived at the box's address, so that back opens it again.
     if (history.state?.lightbox) history.back();
     else {
-      const figure = shown;
+      const figure = shown && figureOf(shown);
       go(null);
       figure?.scrollIntoView({ block: "center" });
     }
@@ -331,122 +316,65 @@
       Math.abs(event.clientY - r.top - r.height / 2) > (height * scale) / 2
     );
   };
-  const build = (root) => {
-    const box = document.createElement("dialog");
-    box.className = "lightbox";
-    box.innerHTML =
-      '<div class="lightbox-bar"><span class="lightbox-count"></span>' +
-      '<button type="button" class="lightbox-close" aria-label="Close" autofocus>\u00d7</button></div>' +
-      '<div class="lightbox-stage"><button type="button" class="lightbox-prev" aria-label="Previous picture">\u2039</button>' +
-      '<button type="button" class="lightbox-next" aria-label="Next picture">\u203a</button></div>' +
-      '<div class="lightbox-caption"></div>';
-    box.querySelector(".lightbox-close").onclick = dismiss;
-    box.querySelector(".lightbox-prev").onclick = () => step(-1);
-    box.querySelector(".lightbox-next").onclick = () => step(1);
-    // The backdrop and the space around the picture close it, as a click
-    // outside a box does.
-    box.addEventListener("click", (event) => {
-      const { target } = event;
-      if (target === box || target.classList.contains("lightbox-stage") || beside(target, event)) {
-        // Not also the link to the original the picture is.
-        event.preventDefault();
-        dismiss();
-      }
-    });
-    // Escape closes a dialog by itself, which the address would not hear of.
-    box.addEventListener("cancel", (event) => {
-      event.preventDefault();
-      dismiss();
-    });
-    box.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowLeft") step(-1);
-      else if (event.key === "ArrowRight") step(1);
-    });
-    root.append(box);
-    return box;
+  const hide = (box) => {
+    // Paused, which hiding it does not do.
+    box.querySelector("video")?.pause();
+    if (box.open) box.close();
   };
   const render = () => {
-    const id = location.hash.startsWith(MEDIA) ? decodeURIComponent(location.hash.slice(MEDIA.length)) : "";
-    const all = figures();
-    const figure = id && all.find((f) => fileOf(f) === id);
-    if (!figure) {
-      shown = null;
-      // Out of the page, which is what stops a video playing in it.
-      lightbox?.querySelector(".lightbox-media")?.remove();
-      if (lightbox?.open) lightbox.close();
-      return;
-    }
-    if (figure === shown && lightbox.open) return;
-    shown = figure;
-    lightbox ||= build(figure.closest(".eta-report"));
-    const stage = lightbox.querySelector(".lightbox-stage");
-    stage.querySelector(".lightbox-media")?.remove();
-    const original = mediaOf(figure);
-    const copy = original.cloneNode(true);
-    let media = document.createElement("div");
-    if (copy.tagName === "VIDEO") {
-      // Its warning still before it, which is what the warning is for.
-      const warning = figure.querySelector(":scope > .embed-warning");
-      if (warning) media.append(warning.cloneNode(true));
-      media.append(copy);
+    const box = boxAt(location.hash);
+    if (shown && shown !== box) hide(shown);
+    shown = box;
+    if (!box || box.open) return;
+    const copy = box.querySelector("video");
+    const original = figureOf(box)?.querySelector(":scope > video");
+    if (copy && original) {
       // Carried on from where the page's copy was, which stops.
       copy.currentTime = original.currentTime;
       if (!original.paused) {
         original.pause();
-        copy.autoplay = true;
+        copy.play();
       }
-    } else {
-      // The largest copy the page has, chosen for the whole window now rather
-      // than the column; clicking it opens the original.
-      for (const source of copy.querySelectorAll("source, img")) source.sizes = "100vw";
-      const img = copy.tagName === "IMG" ? copy : copy.querySelector("img");
-      img.removeAttribute("fetchpriority");
-      img.removeAttribute("loading");
-      media = document.createElement("a");
-      media.href = originalOf(figure);
-      media.target = "_blank";
-      media.rel = "noopener";
-      media.append(copy);
     }
-    media.classList.add("lightbox-media");
-    stage.prepend(media);
-    lightbox.setAttribute("aria-label", original.alt || copy.querySelector?.("img")?.alt || "Picture");
-    for (const button of lightbox.querySelectorAll(".lightbox-prev, .lightbox-next")) {
-      button.hidden = all.length < 2;
+    box.showModal();
+  };
+  const ready = () => {
+    for (const root of document.querySelectorAll(".eta-report")) root.classList.add("scripted");
+    swooshAll();
+    for (const box of boxes()) {
+      // The backdrop and the space around the picture close it, as a click
+      // outside a box does.
+      box.addEventListener("click", (event) => {
+        const { target } = event;
+        if (target === box || target.classList.contains("lightbox-stage") || beside(target, event)) {
+          // Not also the link to the original the picture is.
+          event.preventDefault();
+          dismiss();
+        }
+      });
+      // Escape closes a dialog by itself, which the address would not hear of.
+      box.addEventListener("cancel", (event) => {
+        event.preventDefault();
+        dismiss();
+      });
+      box.addEventListener("keydown", (event) => {
+        const to = { ArrowLeft: ".lightbox-prev", ArrowRight: ".lightbox-next" }[event.key];
+        if (to) box.querySelector(to)?.click();
+      });
     }
-    lightbox.querySelector(".lightbox-count").textContent =
-      all.length > 1 ? `${all.indexOf(figure) + 1} / ${all.length}` : "";
-    const caption = lightbox.querySelector(".lightbox-caption");
-    caption.replaceChildren(...[...figure.querySelectorAll(":scope > figcaption")].map((c) => c.cloneNode(true)));
-    // A copy, so not where a backlink lands or a fragment points.
-    for (const el of caption.querySelectorAll("[id]")) el.removeAttribute("id");
-    for (const el of caption.querySelectorAll(".source-tip")) el.remove();
-    if (!lightbox.open) lightbox.showModal();
+    render();
   };
   document.addEventListener("click", (event) => {
     if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const link = event.target.closest?.(
-      ".eta-report figure[id] > :is(.full-size, img), .eta-report .lightbox-open",
-    );
-    if (!link || link.closest(".lightbox")) return;
+    const link = event.target.closest?.('.eta-report a:is([href^="#/media/"], .lightbox-close)');
+    if (!link) return;
     event.preventDefault();
-    go(link.parentElement);
+    if (link.classList.contains("lightbox-close")) dismiss();
+    // From one picture to the next in place, so back still closes the box.
+    else go(boxAt(link.hash), !!link.closest(".lightbox"));
   });
   addEventListener("popstate", render);
   addEventListener("hashchange", render);
-  const ready = () => {
-    // A click on a video is the player's, so a video opens by a button of its own.
-    for (const video of document.querySelectorAll(".eta-report figure[id] > video")) {
-      const open = document.createElement("button");
-      open.type = "button";
-      open.className = "lightbox-open";
-      open.ariaLabel = "Open larger";
-      open.textContent = "\u2922";
-      video.before(open);
-    }
-    swooshAll();
-    render();
-  };
   // The browser scrolls to a `#` once, as soon as the element exists, but on a
   // host like Squarespace the publication's stylesheet, fonts, and images arrive
   // after that and grow what is above it, leaving the target far down the
