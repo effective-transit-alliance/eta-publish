@@ -126,10 +126,10 @@ def test_a_chart_sized_in_inches_is_looked_at_at_the_size_it_is() -> None:
 def test_a_chart_that_cannot_be_drawn_grows_rather_than_risk_covering_it(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    def unreadable(svg: str) -> object:
+    def unreadable(svg: str, zoom: float = 1) -> object:
         raise ValueError("SVG has an invalid size")
 
-    monkeypatch.setattr(branding, "_draw", unreadable)
+    monkeypatch.setattr(branding, "draw_svg", unreadable)
     assert view(branded(chart(BAR)))[1] < 0
 
 

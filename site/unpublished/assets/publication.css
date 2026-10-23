@@ -746,6 +746,13 @@ html:has(.eta-report .lightbox[open]) {
   opacity: 0.7;
   font-size: 0.9rem;
 }
+.eta-report .lightbox-download {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+.eta-report .lightbox-download a {
+  text-decoration: underline;
+}
 .eta-report .lightbox-close {
   font-size: 2rem;
 }

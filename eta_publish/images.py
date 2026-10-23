@@ -31,16 +31,19 @@ lazy from PIL import Image as Pillow
 lazy from PIL import ImageChops, ImageStat
 
 from .naming import (
+    PNG_SIDE,
     WEB_DIR,
     WEB_FORMATS,
+    has_png,
     has_web_copies,
+    png_href,
     print_href,
     replace_bytes,
     web_href,
     web_widths,
 )
 from .nodes import Crop, Document, Image, Shown
-lazy from .branding import credited_to_eta, with_logo
+lazy from .branding import credited_to_eta, draw_svg, with_logo
 lazy from .build import IMAGES_JSON
 lazy from .dark import with_dark_mode
 lazy from .fetch import FetchFailed, download_drive_file
@@ -640,10 +643,12 @@ the images spends.
 
 
 def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
-    """Write the AVIF and WebP copies a page shows of each raster, returning them.
+    """Write the AVIF and WebP copies a page shows of each raster, and the PNG of each SVG,
+    returning them.
 
     One per width in `web_widths` and format in `WEB_FORMATS`, named by
-    `web_href`. A copy already made from the same bytes is kept rather than
+    `web_href`, and the PNG named by `png_href`.
+    A copy already made from the same bytes is kept rather than
     encoded again, and anything else in `WEB_DIR` is removed, so a picture
     taken out of the document takes its copies with it.
     """
@@ -655,6 +660,11 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
         made = {}
     wanted: dict[str, tuple[Path, int, str, str]] = {}
     for path in written.values():
+        if has_png(path.name):
+            digest = hashlib.sha256(path.read_bytes()).hexdigest()
+            name = png_href(path.name).removeprefix(f"{WEB_DIR}/")
+            wanted[name] = (path, PNG_SIDE, "png", digest)
+            continue
         if not has_web_copies(path.name):
             continue
         digest = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -699,7 +709,17 @@ than AVIF's default 6 halves the time for a file a few percent larger.
 
 
 def _for_web(path: Path, width: int, extension: str) -> bytes:
-    """`path` at `width` pixels wide in `extension`, keeping any transparency."""
+    """`path` at `width` pixels wide in `extension`, keeping any transparency.
+
+    An SVG is drawn as a PNG instead, `width` pixels along its longer side,
+    on the transparent background it has.
+    """
+    if extension == "png":
+        data = path.read_bytes()
+        _, w, h = svg_size(data, "draw it as a PNG")
+        out = io.BytesIO()
+        draw_svg(data.decode(), zoom=width / max(w, h)).save(out, "PNG", optimize=True)
+        return out.getvalue()
     with Pillow.open(path) as opened:
         opened.load()
         picture = opened

@@ -178,7 +178,7 @@ def _drawn(data: bytes, crop: Crop) -> Pillow.Image | None:
         sized, found = _SIZE[name].subn(rf'\g<1>{name}="{value:g}"', root, count=1)
         root = sized if found else f'{root} {name}="{value:g}"'
     try:
-        drawn = _draw(data[:start].decode() + root + data[end:].decode())
+        drawn = draw_svg(data[:start].decode() + root + data[end:].decode())
     except ValueError, UnicodeDecodeError:
         return None
     # Drawn at another size, or not at all, is not this chart.
@@ -199,8 +199,9 @@ def _drawn(data: bytes, crop: Crop) -> Pillow.Image | None:
 _SIZE = {name: re.compile(rf'(\s){name}\s*=\s*"[^"]*"') for name in ("width", "height")}
 
 
-def _draw(svg: str) -> Pillow.Image:
-    """`svg` drawn, with every family of font falling back to one that is here.
+def draw_svg(svg: str, zoom: float = 1) -> Pillow.Image:
+    """`svg` drawn at `zoom` times its own size,
+    with every family of font falling back to one that is here.
 
     Every family, not only `sans-serif`: text in a font that resolves to nothing is not drawn,
     and a corner whose title was not drawn looks empty.
@@ -209,6 +210,7 @@ def _draw(svg: str) -> Pillow.Image:
     """
     png = resvg_py.svg_to_bytes(
         svg_string=svg,
+        zoom=zoom,
         font_family="DejaVu Sans",
         sans_serif_family="DejaVu Sans",
         serif_family="DejaVu Serif",
@@ -225,7 +227,7 @@ def _fonts_draw() -> bool:
         '<text x="2" y="16" font-size="16" font-family="sans-serif">ETA</text></svg>'
     )
     try:
-        return _draw(probe).getchannel("A").getbbox() is not None
+        return draw_svg(probe).getchannel("A").getbbox() is not None
     except ValueError:
         return False
 
