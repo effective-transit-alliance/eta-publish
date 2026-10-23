@@ -9,7 +9,7 @@ CASES: list[tuple[str, list[str]]] = [
     ("One sentence.", ["One sentence."]),
     ("First. Second.", ["First.", "Second."]),
     ("A question? An answer!", ["A question?", "An answer!"]),
-    # The abbreviations these reports are actually full of.
+    # The abbreviations these publications are actually full of.
     ("The 125 St. station is deep.", ["The 125 St. station is deep."]),
     ("Second Ave. runs north.", ["Second Ave. runs north."]),
     ("It is 100 ft. down. That is deep.", ["It is 100 ft. down.", "That is deep."]),

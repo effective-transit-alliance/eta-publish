@@ -1,10 +1,10 @@
-// ETA report house style.
+// ETA publication house style.
 //
 // The emitted `.typ` is a document body that imports this,
-// so a change to how reports look is a change to one file rather than to every report.
+// so a change to how publications look is a change to one file rather than to every publication.
 
 // No image in the body is taller than this:
-// the reports are illustrated at whatever size someone dropped the picture in at,
+// the publications are illustrated at whatever size someone dropped the picture in at,
 // and a tall one filled the page on its own.
 // The title picture is not capped here: it is sized to the page it has, below.
 #let max_image_height = 5.7in
@@ -34,7 +34,7 @@
   strong[⚠ #body],
 )
 
-#let report(
+#let publication(
   // Plain text, for the PDF's metadata, which holds nothing else.
   title: "",
   // The same words with the document's formatting, for the title page.
@@ -46,11 +46,11 @@
   // The standfirst: the document's `Subtitle`-styled paragraph.
   subtitle: none,
   // What a reader of a draft has to be told before reading it.
-  // Empty for a published report, which is the state a reader assumes.
+  // Empty for a live publication, which is the state a reader assumes.
   phase: "",
-  // What the build has to say about this report, on a page of its own in
+  // What the build has to say about this publication, on a page of its own in
   // front of everything, because it is read by whoever is about to publish.
-  // A report with nothing wrong with it has no such page,
+  // A publication with nothing wrong with it has no such page,
   // so what publishes still opens on its cover.
   warnings: (),
   body,
@@ -60,7 +60,7 @@
     paper: "us-letter",
     margin: (x: 1.4in, y: 1.2in),
     // Footnotes land at the bottom of the page they are cited on,
-    // which is the whole reason these reports are typeset
+    // which is the whole reason these publications are typeset
     // rather than printed from the web page.
     footer: context {
       set align(center)
@@ -108,7 +108,7 @@
   show figure: set block(above: 1.6em, below: 1.6em)
 
   if warnings.len() > 0 {
-    // Not in the outline: the contents list what the report contains,
+    // Not in the outline: the contents list what the publication contains,
     // and this page is the build talking about it rather than part of it.
     heading(level: 1, outlined: false, [Warnings])
     [Each of these is something to fix in the document before it is published.]
@@ -121,14 +121,14 @@
   // because the document puts it under the headline.
   //
   // Its height is whatever the title leaves, rather than a number tuned to one
-  // report: a `block(height: 1fr)` is the rest of the page, `layout` inside one
+  // publication: a `block(height: 1fr)` is the rest of the page, `layout` inside one
   // is told how much that came to, and a headline that runs to three lines
   // takes its space out of the picture instead of pushing it onto the next page.
   block(height: 100%, width: 100%, stack(
     dir: ttb,
     block(width: 100%)[
       #set align(left)
-      // Filled rather than outlined, and labelled: this says the report is a
+      // Filled rather than outlined, and labelled: this says the publication is a
       // draft, and a reader who misses it reads a draft as published.
       #if phase != "" [
         #block(
@@ -161,7 +161,7 @@
           placed
         } else {
           // Caption and all: shrinking only the picture
-          // would leave the caption at a size the rest of the report does not use.
+          // would leave the caption at a size the rest of the publication does not use.
           let factor = size.height / height * 100%
           scale(placed, x: factor, y: factor, origin: top + center, reflow: true)
         }
@@ -170,11 +170,11 @@
   ))
 
   // A page each for the cover and the contents, whatever their length:
-  // a report that opened mid-outline read as though it had already started.
+  // a publication that opened mid-outline read as though it had already started.
   // Explicit rather than `weak`: the break is wanted even when the page is short.
   pagebreak()
 
-  // The report is too long to find a section by turning pages.
+  // The publication is too long to find a section by turning pages.
   // Typst builds this from the headings, so it cannot disagree with them.
   outline(title: [Table of Contents], depth: 3, indent: auto)
 
@@ -188,7 +188,7 @@
     heading(level: 1, [Contributors])
     if contributors_note != none [#contributors_note]
     // Two columns, read down the first and then the second,
-    // as the web page and the site's own reports lay the names out.
+    // as the web page and the site's own publications lay the names out.
     // Split by hand: Typst's `columns` fills the first to the foot of the page
     // before starting the second, rather than balancing the two.
     let half = calc.ceil(contributors.len() / 2)

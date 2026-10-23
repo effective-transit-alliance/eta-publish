@@ -1,16 +1,16 @@
 """The committed site is what an offline build of it writes, and holds up as published.
 
 `site/` is the site this project publishes, and every file in it a build wrote:
-the reports, the index, the shared assets. A change to the code changes what a
+the publications, the index, the shared assets. A change to the code changes what a
 build writes, so a commit that leaves `site/` as the old code wrote it publishes
 pages no commit of the code would produce. This rebuilds all of it, offline and
 without the images, and compares. It runs in the background from the moment
 collection ends, so it costs the suite about what the slowest test does.
 
 When it differs, read the diff: it is exactly what the change does to the
-published reports. Accept it with `pytest --regenerate-snapshots`.
+live publications. Accept it with `pytest --regenerate-snapshots`.
 
-The rest of this file asks of every report what a published report has to be,
+The rest of this file asks of every publication what a live publication has to be,
 whatever document it came from: what `test_real_document.py` asks of one.
 """
 
@@ -25,7 +25,12 @@ import pytest
 from paths import ROOT, SITE, UNPUBLISHED
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
-from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, print_href
+from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, path_kind, print_href
+
+
+def kind(publication: Path) -> str:
+    """What the outputs of the publication in `publication` are named, `report` or `statement`."""
+    return str(path_kind(publication.parent.name))
 
 
 def committed() -> set[str]:
@@ -86,32 +91,32 @@ def test_the_committed_site_is_what_an_offline_build_writes(
     )
 
 
-# ---- properties that must hold for any published report -------------
+# ---- properties that must hold for any live publication -------------
 
 
-def reports() -> list[str]:
-    """Every report directory in the committed site, by its path under `site/unpublished/`."""
+def publications() -> list[str]:
+    """Every publication directory in the committed site, by its path under `site/unpublished/`."""
     return sorted(
         p.parent.relative_to(UNPUBLISHED).as_posix() for p in UNPUBLISHED.glob("*/*/doc.json")
     )
 
 
-@pytest.fixture(params=reports())
-def report(request: pytest.FixtureRequest, built_site: Path) -> Path:
+@pytest.fixture(params=publications())
+def publication(request: pytest.FixtureRequest, built_site: Path) -> Path:
     return built_site / UNPUBLISHED_DIR / request.param
 
 
 def without_warnings(html: str) -> str:
-    """The report as a reader reads it: a warning quotes the line it is about.
+    """The publication as a reader reads it: a warning quotes the line it is about.
 
     Laid out by `biome`, which breaks a tag before its closing `>`.
     """
     return re.sub(r'<div class="warnings"\s*>.*?</div\s*>', "", html, flags=re.DOTALL)
 
 
-def test_ids_are_unique_and_every_link_resolves(report: Path) -> None:
-    for name in ("report.html", "index.html"):
-        html = (report / name).read_text()
+def test_ids_are_unique_and_every_link_resolves(publication: Path) -> None:
+    for name in (f"{kind(publication)}.html", "index.html"):
+        html = (publication / name).read_text()
         ids = re.findall(r'id="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
         refs = set(re.findall(r'id="fnref(\d+)"', html))
@@ -122,68 +127,68 @@ def test_ids_are_unique_and_every_link_resolves(report: Path) -> None:
             assert target in ids, f"{name}: #{target}"
 
 
-def test_no_editorial_note_reaches_a_published_output(report: Path) -> None:
+def test_no_editorial_note_reaches_a_published_output(publication: Path) -> None:
     """`Source:`, `Image Source`, and `SVG:` name assets for whoever assembles the page.
 
     Not `drive.google.com` in general, as `test_real_document.py` asks of its
-    report: a caption can cite a file in Drive on purpose.
+    publication: a caption can cite a file in Drive on purpose.
     """
-    typst = (report / "report.typ").read_text()
-    # Everything after the `#show: report.with(...)` call, which is the report itself.
+    typst = (publication / f"{kind(publication)}.typ").read_text()
+    # Everything after the `#show: publication.with(...)` call, which is the publication itself.
     typst_body = re.split(r"^\)$", typst, maxsplit=1, flags=re.MULTILINE)[-1]
-    html_body = without_warnings((report / "report.html").read_text())
+    html_body = without_warnings((publication / f"{kind(publication)}.html").read_text())
     for emitted in (html_body, typst_body):
         for note in ("Source:", "Image Source", "SVG:"):
             assert note not in emitted, note
 
 
-def test_no_chip_email_reaches_any_output(report: Path) -> None:
-    """A person chip carries an email beside the name, and the address is not the report's."""
-    emails = set(re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", (report / "doc.json").read_text()))
-    for name in ("index.html", "report.html", "report.md", "report.typ"):
-        emitted = (report / name).read_text()
+def test_no_chip_email_reaches_any_output(publication: Path) -> None:
+    """A person chip carries an email beside the name, and the address is not the publication's."""
+    emails = set(re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", (publication / "doc.json").read_text()))
+    for name in ("index.html", *(f"{kind(publication)}{s}" for s in (".html", ".md", ".typ"))):
+        emitted = (publication / name).read_text()
         for email in emails:
             assert email not in emitted, f"{name}: {email}"
 
 
-def test_the_fragment_fits_in_one_code_block(report: Path) -> None:
+def test_the_fragment_fits_in_one_code_block(publication: Path) -> None:
     """Squarespace allows 400 KB, and the fragment is meant to be pasted whole."""
-    assert (report / "report.html").stat().st_size < CODE_BLOCK_LIMIT
+    assert (publication / f"{kind(publication)}.html").stat().st_size < CODE_BLOCK_LIMIT
 
 
-def test_every_figure_is_described(report: Path) -> None:
+def test_every_figure_is_described(publication: Path) -> None:
     """Every picture on the page carries alt text or a caption."""
-    page = (report / "report.html").read_text()
+    page = (publication / f"{kind(publication)}.html").read_text()
     for figure in re.findall(r"<figure\b.*?</figure>", page, flags=re.DOTALL):
         described = re.search(r'alt="[^"]+"', figure) or "<figcaption" in figure
         assert described, figure[:200]
 
 
-def test_the_records_are_json(report: Path) -> None:
+def test_the_records_are_json(publication: Path) -> None:
     for name in ("doc.json", "images.json", "archives.json", "embeds.json"):
-        if (report / name).exists():
-            json.loads((report / name).read_text())
+        if (publication / name).exists():
+            json.loads((publication / name).read_text())
 
 
 # ---- what only a build with the images can be asked ----------------------
 
 
-@pytest.fixture(params=reports())
-def report_with_images(request: pytest.FixtureRequest, built_with_images: Path) -> Path:
+@pytest.fixture(params=publications())
+def publication_with_images(request: pytest.FixtureRequest, built_with_images: Path) -> Path:
     return built_with_images / UNPUBLISHED_DIR / request.param
 
 
-def test_every_image_is_served_and_has_a_print_copy(report_with_images: Path) -> None:
+def test_every_image_is_served_and_has_a_print_copy(publication_with_images: Path) -> None:
     """What `images.json` records is on disk, and so is the copy the PDF embeds."""
-    index = report_with_images / "images.json"
+    index = publication_with_images / "images.json"
     entries: dict[str, dict[str, object]] = json.loads(index.read_text()) if index.exists() else {}
     files = [str(entry["file"]) for entry in entries.values() if "file" in entry]
     for file in files:
-        assert (report_with_images / IMAGE_DIR / file).is_file(), file
-        assert (report_with_images / PRINT_DIR / print_href(file)).is_file(), file
+        assert (publication_with_images / IMAGE_DIR / file).is_file(), file
+        assert (publication_with_images / PRINT_DIR / print_href(file)).is_file(), file
 
 
-def test_the_pdf_is_built(report_with_images: Path) -> None:
-    pdf = report_with_images / "report.pdf"
+def test_the_pdf_is_built(publication_with_images: Path) -> None:
+    pdf = publication_with_images / f"{kind(publication_with_images)}.pdf"
     assert pdf.is_file()
     assert pdf.read_bytes().startswith(b"%PDF")

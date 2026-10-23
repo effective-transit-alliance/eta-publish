@@ -10,8 +10,8 @@ from eta_publish.minify import min_name
 
 BASE = "https://example.com/assets"
 
-PAGE = f"""<link rel="stylesheet" href="{BASE}/report.css" />
-<script src="{BASE}/report.js" defer></script>
+PAGE = f"""<link rel="stylesheet" href="{BASE}/publication.css" />
+<script src="{BASE}/publication.js" defer></script>
 <div class="eta-report">
   <p>
     A <a href="#a">link</a> and a word.
@@ -31,9 +31,9 @@ def test_the_page_links_the_minified_assets(tmp_path: Path) -> None:
     written = minify.page(source, BASE)
     assert written == tmp_path / "report.min.html"
     html = written.read_text()
-    assert f"{BASE}/report.min.css" in html
-    assert f"{BASE}/report.min.js" in html
-    assert "report.css" not in html.replace("report.min.css", "")
+    assert f"{BASE}/publication.min.css" in html
+    assert f"{BASE}/publication.min.js" in html
+    assert "publication.css" not in html.replace("publication.min.css", "")
     # The spaces around the link draw, so they stay.
     assert "A <a href=#a>link</a> and a word." in html
     assert len(html) < len(PAGE)
@@ -51,19 +51,19 @@ def test_a_page_not_linking_the_assets_there_is_refused(tmp_path: Path) -> None:
 def test_the_assets_are_minified_with_maps_of_what_they_came_from(tmp_path: Path) -> None:
     css = ".a {\n  /* why */\n  color: red;\n}\n"
     js = "(() => {\n  // why\n  const long = 1;\n  console.log(long);\n})();\n"
-    (tmp_path / "report.css").write_text(css)
-    (tmp_path / "report.js").write_text(js)
+    (tmp_path / "publication.css").write_text(css)
+    (tmp_path / "publication.js").write_text(js)
     (tmp_path / "page.css").write_text("p {\n  margin: 0;\n}\n")
     written = minify.assets(tmp_path)
     assert {p.name for p in written} == {
         "page.min.css",
         "page.min.css.map",
-        "report.min.css",
-        "report.min.css.map",
-        "report.min.js",
-        "report.min.js.map",
+        "publication.min.css",
+        "publication.min.css.map",
+        "publication.min.js",
+        "publication.min.js.map",
     }
-    for name, source in (("report.min.css", css), ("report.min.js", js)):
+    for name, source in (("publication.min.css", css), ("publication.min.js", js)):
         code = (tmp_path / name).read_text()
         assert "why" not in code
         assert f"sourceMappingURL={name}.map" in code
@@ -82,15 +82,15 @@ def test_a_minified_copy_is_told_apart_from_its_original() -> None:
 
 
 def test_a_whole_page_links_the_minified_copy_of_each_stylesheet(tmp_path: Path) -> None:
-    """A report's `index.html`, which links the page's stylesheet too, and relatively."""
+    """A publication's `index.html`, which links the page's stylesheet too, and relatively."""
     source = tmp_path / "index.html"
     source.write_text(
         '<!doctype html>\n<html>\n<head>\n<link rel="stylesheet" href="../assets/page.css" />\n'
-        '<link rel="stylesheet" href="../assets/report.css" />\n'
-        '<script src="../assets/report.js" defer></script>\n</head>\n<body>\n<p>A page.</p>\n'
+        '<link rel="stylesheet" href="../assets/publication.css" />\n'
+        '<script src="../assets/publication.js" defer></script>\n</head>\n<body>\n<p>A page.</p>\n'
         "</body>\n</html>\n"
     )
     html = minify.page(source, "../assets", linked=minify.PAGE_ASSETS).read_text()
-    for name in ("page.min.css", "report.min.css", "report.min.js"):
+    for name in ("page.min.css", "publication.min.css", "publication.min.js"):
         assert f"../assets/{name}" in html
     assert "<p>A page.</p>" in html

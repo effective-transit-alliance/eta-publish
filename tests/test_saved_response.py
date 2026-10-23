@@ -23,13 +23,13 @@ from eta_publish.images import download
 from eta_publish.parse import parse
 
 DOCUMENT: JsonObject = {
-    "title": "A report",
+    "title": "A publication",
     "body": {
         "content": [
             {
                 "paragraph": {
                     "paragraphStyle": {"namedStyleType": "TITLE"},
-                    "elements": [{"textRun": {"content": "A report\n"}}],
+                    "elements": [{"textRun": {"content": "A publication\n"}}],
                 }
             },
             {

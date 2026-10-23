@@ -1,4 +1,4 @@
-"""How a report is written, as distinct from what it says."""
+"""How a publication is written, as distinct from what it says."""
 
 import pytest
 
@@ -43,7 +43,7 @@ def test_the_warning_shows_which_spaces_it_means() -> None:
 
 
 def test_a_closing_bracket_does_not_hide_the_gap() -> None:
-    """`costs are given separately).  This` is how the real report writes one:
+    """`costs are given separately).  This` is how the real publication writes one:
     the spaces come after the sentence, whatever closes the quote around it."""
     assert len(warnings(written("(costs are given separately.)  This is a Buy America cost."))) == 1
 
@@ -71,8 +71,8 @@ def test_indentation_is_neither_mistake() -> None:
 
 
 def test_a_footnote_is_read_like_the_body() -> None:
-    """A footnote carries the report's own prose as often as a citation,
-    and a citation is published here under this report's name too."""
+    """A footnote carries the publication's own prose as often as a citation,
+    and a citation is published here under this publication's name too."""
     assert len(warnings(cited('Barbara Russo-Lennon, "Subway spots.  The ad blitz."'))) == 1
 
 
@@ -95,7 +95,7 @@ def test_a_closed_up_dash_is_not_warned_about() -> None:
 
 
 def test_a_range_is_not_warned_about() -> None:
-    """`10–20 ft` is how the reports write a range, and it is closed up already."""
+    """`10–20 ft` is how the publications write a range, and it is closed up already."""
     assert warnings(written("Groundwater is only 10–20 ft deep.")) == []
 
 
@@ -350,7 +350,7 @@ def test_a_unit_already_written_as_a_symbol_is_left_alone() -> None:
 
 
 def test_a_mile_stays_a_word() -> None:
-    """The one length these reports spell out:
+    """The one length these publications spell out:
     a distance a reader pictures rather than a measurement they compare."""
     assert warnings(written("It runs two miles north, or about 2 miles.")) == []
 
@@ -388,11 +388,11 @@ def test_the_hyphen_and_the_spelling_are_two_warnings() -> None:
 
 def test_an_ordinary_hyphenated_phrase_is_not_a_measurement() -> None:
     """`2-track`, `4-car` and `NFPA 130-compliant` are hyphenated for the
-    ordinary reason, and the reports are full of them."""
+    ordinary reason, and the publications are full of them."""
     assert warnings(written("It has 2-track lines, 4-car sets, and is NFPA 130-compliant.")) == []
 
 
-def test_the_units_the_reports_already_write_as_symbols() -> None:
+def test_the_units_the_publications_already_write_as_symbols() -> None:
     """`750 V`, `232 t`, `83 dB`, `2.9 mm` and `33 tph` are right today,
     and the spelled-out form is what the check is for."""
     assert warnings(written("At 750 V, 232 t, 83 dB, 2.9 mm, and 33 tph.")) == []

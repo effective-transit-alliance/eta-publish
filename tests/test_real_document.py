@@ -10,7 +10,7 @@ The report lands under the path its own front matter names,
 `reports/digging-out-deep-hole-sas-west/`, next to the index listing it.
 That every committed output still matches what the code produces
 is `test_committed_site.py`'s to say, for this report and every other,
-along with what any published report has to be.
+along with what any live publication has to be.
 This file asks what only this document can answer:
 what it should parse to, and what its own pages should hold.
 
@@ -46,7 +46,7 @@ from paths import REAL_DIR as REAL
 from eta_publish.archive import read_archive_index
 from eta_publish.checks import check as run_checks
 from eta_publish.docs_json import JsonObject
-from eta_publish.emit.html import HtmlEmitter, report_page
+from eta_publish.emit.html import HtmlEmitter, publication_page
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
 from eta_publish.nodes import Document, Figure, Heading
@@ -111,7 +111,7 @@ def doc(built: Document) -> Document:
 # ---- what the document should parse to ------------------------------
 
 
-def test_the_shape_of_the_report(doc: Document) -> None:
+def test_the_shape_of_the_publication(doc: Document) -> None:
     assert doc.title == "Digging Out of a Very Deep Hole: Saving Billions on 125th Street"
     assert doc.slug == "/reports/digging-out-deep-hole-sas-west"
     assert len(doc.footnotes) == 20
@@ -123,7 +123,7 @@ def test_the_shape_of_the_report(doc: Document) -> None:
 def test_smart_chips_resolve(doc: Document) -> None:
     """Person and date chips are not text runs.
     Reading only text runs left every one of these empty,
-    including the publication date."""
+    including the report date."""
     assert doc.meta["Project Manager"] == "Khyber Sen"
     assert doc.meta["Publish Due Date"] == "Aug 19, 2026"
     # The field has been renamed once, silently, and the date simply stopped
@@ -211,7 +211,7 @@ def test_the_seo_warning_quotes_the_description(doc: Document) -> None:
     assert quoted.endswith("~~")
 
 
-# ---- properties that must hold for any published report -------------
+# ---- properties that must hold for any live publication -------------
 
 
 def test_no_editorial_note_reaches_a_published_output(doc: Document) -> None:
@@ -224,7 +224,7 @@ def test_no_editorial_note_reaches_a_published_output(doc: Document) -> None:
     Both outputs are read with their warnings taken out.
     """
     typst = TypstEmitter(site_url=HOST).emit(doc)
-    # Everything after the `#show: report.with(...)` call, which is the report itself.
+    # Everything after the `#show: publication.with(...)` call, which is the report itself.
     typst_body = re.split(r"^\)$", typst, maxsplit=1, flags=re.MULTILINE)[-1]
     html_body = re.sub(
         r'<div class="warnings">.*?</div>',
@@ -312,7 +312,7 @@ def test_every_image_has_something_describing_it(doc: Document) -> None:
     assert undescribed == []
 
 
-def test_the_share_card_is_not_in_the_report(doc: Document) -> None:
+def test_the_share_card_is_not_in_the_publication(doc: Document) -> None:
     """It is a picture of the title, for whatever unfurls a link to it."""
     assert doc.card is not None
     assert doc.card.object_id == "kix.6v8dr3hm2747"
@@ -322,9 +322,9 @@ def test_the_share_card_is_not_in_the_report(doc: Document) -> None:
     assert doc.card in doc.images, "still has to be downloaded to be linked"
 
 
-def test_the_report_opens_with_its_hero(doc: Document) -> None:
+def test_the_publication_opens_with_its_hero(doc: Document) -> None:
     """Above the table of contents, which it introduces rather than follows."""
-    page = report_page(doc, site_url=HOST)
+    page = publication_page(doc, site_url=HOST)
     assert page.index("img-6fb0f9c4") < page.index('<nav class="toc"')
     assert page.index('property="og:image"') < page.index('<h1 id="title">')
 

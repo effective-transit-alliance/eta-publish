@@ -2,7 +2,7 @@
 
 Four commands, because there are four things to do:
 
-    eta-publish all             every report in `reports.toml`, into `site/unpublished/`
+    eta-publish all             every publication in `publications.toml`, into `site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
@@ -10,12 +10,12 @@ Four commands, because there are four things to do:
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
 `all` is what the workflow runs and what the committed site is built from.
-`one` is for a document before it is on the list, or one report off it,
+`one` is for a document before it is on the list, or one publication off it,
 and takes a Docs URL, a bare id, a saved Docs response, or a name from the list.
 
 Both build the same way and write the same index,
 so the common case and the real case stay on the same code.
-Each report lands under the path its own front matter gives it.
+Each publication lands under the path its own front matter gives it.
 """
 
 import glob
@@ -44,18 +44,19 @@ from .logo import LOGO, write_logo
 from .naming import ASSET_DIR, UNPUBLISHED_DIR
 from .published import write_published
 from .site import (
-    REPORTS,
+    PUBLICATIONS,
     Failed,
     Hosts,
-    Report,
+    Publication,
     Site,
-    add_report,
+    add_publication,
     build_site,
     index_page,
     label,
-    listed_report,
+    listed_publication,
     load_hosts,
-    load_reports,
+    load_publications,
+    publication_kind,
     saved_for,
     saved_responses,
 )
@@ -83,7 +84,7 @@ Suggested = Annotated[
 ]
 Split = Annotated[
     bool,
-    Option(help="write the HTML as numbered pieces cut at h2, for oversized reports"),
+    Option(help="write the HTML as numbered pieces cut at h2, for oversized publications"),
 ]
 Images = Annotated[
     bool,
@@ -125,10 +126,10 @@ so two commands that build the same way offer the same switches."""
 
 @app.command(name="all")
 def build_all(
-    reports: Annotated[
+    publications: Annotated[
         Path,
-        Argument(metavar="LIST", help="a `.toml` list of reports"),
-    ] = REPORTS,
+        Argument(metavar="LIST", help="a `.toml` list of publications"),
+    ] = PUBLICATIONS,
     outdir: Outdir = Path("site"),
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
@@ -146,14 +147,14 @@ def build_all(
         ),
     ] = None,
 ) -> None:
-    """Build every report in a list, into a site with an index.
+    """Build every publication in a list, into a site with an index.
 
     Both defaults name the committed thing,
     so `eta-publish all` with no arguments rebuilds the site as it ships.
     """
     try:
-        listed = load_reports(reports)
-        hosts = load_hosts(reports)
+        listed = load_publications(publications)
+        hosts = load_hosts(publications)
     except (OSError, ValueError) as e:
         # Typer's own wording for a bad argument, because that is what it is.
         raise BadParameter(str(e), param_hint="LIST") from e
@@ -177,19 +178,19 @@ def build_all(
 
 
 @app.command(name="one")
-def build_one_report(
+def build_one_publication(
     doc: Annotated[
         str,
         Argument(
             metavar="DOC",
             help="a Google Doc URL (including its `?tab=` id), an id, saved Docs API JSON,"
-            " or a report's `name` in the list",
+            " or a publication's `name` in the list",
         ),
     ],
-    reports: Annotated[
+    publications: Annotated[
         Path,
-        Option("-r", "--reports", help="the list a name is looked up in"),
-    ] = REPORTS,
+        Option("-p", "--publications", help="the list a name is looked up in"),
+    ] = PUBLICATIONS,
     outdir: Outdir = Path("site"),
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
@@ -203,19 +204,19 @@ def build_one_report(
     """Build one document, before it is on the list or instead of it.
 
     Named by its entry, it is checked against that entry as `all` checks it.
-    Otherwise the report has no entry, so there is nothing saying what it should be called
+    Otherwise the publication has no entry, so there is nothing saying what it should be called
     and nothing to hold it up against: what the document says, it publishes as.
     """
     try:
-        report = listed_report(doc, reports)
-        # The whole list, since what is hosted is every `automated` report there is,
-        # and one report built is not the others taken off the host.
-        listed = load_reports(reports) if reports.exists() else []
-        hosts = load_hosts(reports)
+        publication = listed_publication(doc, publications)
+        # The whole list, since what is hosted is every `automated` publication there is,
+        # and one publication built is not the others taken off the host.
+        listed = load_publications(publications) if publications.exists() else []
+        hosts = load_hosts(publications)
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
     publish(
-        [report],
+        [publication],
         outdir,
         suggestions,
         split,
@@ -231,7 +232,7 @@ def build_one_report(
 
 
 def publish(
-    reports: list[Report],
+    publications: list[Publication],
     outdir: Path,
     suggestions: Suggestions,
     split: bool,
@@ -239,7 +240,7 @@ def publish(
     comments: bool,
     offline: bool = False,
     archive: bool = True,
-    listed: list[Report] | None = None,
+    listed: list[Publication] | None = None,
     whole: bool = False,
     into: Path | None = None,
     hosted_media: bool = True,
@@ -248,21 +249,21 @@ def publish(
     *,
     hosts: Hosts,
 ) -> Site:
-    """Build these reports and write the index over them.
+    """Build these publications and write the index over them.
 
     One document and a whole list end here alike.
-    A publish of one report is a publish of a list with one entry,
+    A publish of one publication is a publish of a list with one entry,
     down to the index page, which is the page that says what failed.
 
     Built into a directory of its own beside `outdir`, reading what the last
     build left in `outdir`, and only then put in its place: nothing reads a file
     halfway through being rewritten, and nothing the build no longer writes,
     like an image taken out of a document, outlives it. `whole` is a build of
-    the entire list, which replaces the entire site; otherwise only the reports
+    the entire list, which replaces the entire site; otherwise only the publications
     built are replaced. `into` builds there and leaves `outdir` as it is.
 
     Then `published/` is written from what was installed, for the `automated`
-    reports in `listed`, the whole list whichever of it was built.
+    publications in `listed`, the whole list whichever of it was built.
     """
     write_logo()
     options = BuildOptions(
@@ -279,7 +280,7 @@ def publish(
         published_url=hosts.published,
     )
     if into is not None:
-        site = write_site(reports, into, options, read_from=outdir)
+        site = write_site(publications, into, options, read_from=outdir)
         host(site, into, listed or [], images, options.published_url)
     else:
         outdir.mkdir(parents=True, exist_ok=True)
@@ -288,24 +289,24 @@ def publish(
             tempfile.mkdtemp(dir=outdir.parent, prefix=f".{outdir.name}-building-{os.getpid()}-")
         )
         with console.cleaned_up(lambda: shutil.rmtree(staging, ignore_errors=True)):
-            site = write_site(reports, staging, options, read_from=outdir)
+            site = write_site(publications, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
         host(site, outdir, listed or [], images, options.published_url)
-    report_outcome(site)
+    publication_outcome(site)
     return site
 
 
-def host(site: Site, root: Path, listed: list[Report], images: bool, site_url: str) -> None:
+def host(site: Site, root: Path, listed: list[Publication], images: bool, site_url: str) -> None:
     """Write `root`'s `published/`, counting a live page left missing a file as a failure.
 
-    A failure rather than a warning: the report built,
+    A failure rather than a warning: the publication built,
     but a page already out is linking a picture nobody is serving.
     """
     log = console.for_stream()
-    for report, problem in write_published(root, listed, complete=images, site_url=site_url):
+    for publication, problem in write_published(root, listed, complete=images, site_url=site_url):
         log.line()
-        console.write(console.failed(label(report), problem), log)
-        site.failed.append(Failed(report=report, error=problem))
+        console.write(console.failed(label(publication), problem), log)
+        site.failed.append(Failed(publication=publication, error=problem))
 
 
 def abandoned(parent: Path, prefix: str) -> None:
@@ -335,13 +336,15 @@ def _running(pid: int) -> bool:
     return True
 
 
-def write_site(reports: list[Report], root: Path, options: BuildOptions, read_from: Path) -> Site:
-    """Build the reports under `root`, reading what the last build left under `read_from`.
+def write_site(
+    publications: list[Publication], root: Path, options: BuildOptions, read_from: Path
+) -> Site:
+    """Build the publications under `root`, reading what the last build left under `read_from`.
 
-    Both are output directories, holding `UNPUBLISHED_DIR` and not the reports themselves.
+    Both are output directories, holding `UNPUBLISHED_DIR` and not the publications themselves.
     """
     outdir = root / UNPUBLISHED_DIR
-    site = build_site(reports, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
+    site = build_site(publications, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
 
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "index.html").write_text(index_page(site))
@@ -351,7 +354,7 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
     # so under a project page like `<user>.github.io/eta-publish/` this file asks
     # nothing of anyone. It is here for whoever serves these pages from a root later,
     # and so that the intent is visible in the site rather than only in the
-    # emitter. Remove it, and the `noindex`, when the reports go out.
+    # emitter. Remove it, and the `noindex`, when the publications go out.
     (outdir / "robots.txt").write_text("User-agent: *\nDisallow: /\n")
 
     # Once, over everything just written, rather than per file as it was
@@ -366,10 +369,10 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
         minify.page(
             outdir / built.path / "index.html", asset_base(built.path), linked=minify.PAGE_ASSETS
         )
-        # `report.html`, its `--split` pieces, and the published copy of each.
+        # `report.html` or `statement.html`, its `--split` pieces, and the published copy of each.
         # Not a fragment carrying its stylesheet and script, which links no `.min` ones.
         if not options.embed_assets:
-            for page in sorted((outdir / built.path).glob("report*.html")):
+            for page in sorted((outdir / built.path).glob(f"{publication_kind(built.doc)}*.html")):
                 if minify.is_min(page.name):
                     continue
                 published = page.name.split(".")[1] == UNWARNED
@@ -378,12 +381,12 @@ def write_site(reports: list[Report], root: Path, options: BuildOptions, read_fr
 
     # The one to paste, and so the one whose size matters.
     for built in site.built:
-        report = outdir / built.path / "report.html"
-        pasted = report.with_name(minify.min_name(report.name))
+        publication = outdir / built.path / f"{publication_kind(built.doc)}.html"
+        pasted = publication.with_name(minify.min_name(publication.name))
         if pasted.exists():
             check_code_block_size(built.doc, pasted)
-        elif report.exists():
-            check_code_block_size(built.doc, report)
+        elif publication.exists():
+            check_code_block_size(built.doc, publication)
     return site
 
 
@@ -391,16 +394,16 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
     """Put what was built in `built` where it is published, `outdir`.
 
     A whole site replaces the whole site, keeping only what the last build
-    wrote for a report that failed this time: a site missing a report beats no
+    wrote for a publication that failed this time: a site missing a publication beats no
     site at all, and an older copy of it beats a missing one.
-    Otherwise each report built replaces its own directory and nothing else,
+    Otherwise each publication built replaces its own directory and nothing else,
     along with the index and the shared assets every page links.
 
     Both are output directories, holding `UNPUBLISHED_DIR`.
     """
     if whole:
         for failed in site.failed:
-            previous = saved_for(failed.report, saved_responses(outdir / UNPUBLISHED_DIR))
+            previous = saved_for(failed.publication, saved_responses(outdir / UNPUBLISHED_DIR))
             if previous is None:
                 continue
             kept = built / previous.relative_to(outdir)
@@ -425,10 +428,10 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
         (built / name).replace(outdir / name)
 
 
-def report_outcome(site: Site) -> None:
+def publication_outcome(site: Site) -> None:
     """One line saying how the build went.
 
-    Where each report went is on that report's own heading, said as it was
+    Where each publication went is on that publication's own heading, said as it was
     built rather than listed again once they all were.
     Each failure has already been said, with the reason, as it happened:
     repeating the names here without their reasons would only be the same
@@ -436,7 +439,7 @@ def report_outcome(site: Site) -> None:
     """
     log = console.for_stream()
     if site.built or site.failed:
-        # Off the last report's warnings, since it is about all of them.
+        # Off the last publication's warnings, since it is about all of them.
         log.line()
     console.write(
         console.summary(
@@ -462,31 +465,31 @@ def add(
         str,
         Argument(metavar="URL", help="a Google Doc URL, including the `?tab=` id to publish"),
     ],
-    reports: Annotated[
+    publications: Annotated[
         Path,
-        Option("-r", "--reports", help="the list to append to"),
-    ] = REPORTS,
+        Option("-p", "--publications", help="the list to append to"),
+    ] = PUBLICATIONS,
 ) -> None:
-    """Append a document to `reports.toml`, named as the document names itself.
+    """Append a document to `publications.toml`, named as the document names itself.
 
     `name` and `tab` have to be right, and copying two titles out of Drive by hand
     is the step that gets them wrong, so they are read off the document rather than typed.
     """
     try:
-        added = add_report(url, reports)
+        added = add_publication(url, publications)
     except (OSError, ValueError, LookupError, RuntimeError) as e:
         # `LookupError` and `RuntimeError` are `TabNotFound` and `FetchFailed`,
         # which only this command can raise: a fetch that fails inside
-        # `build_site` is one report's failure there.
+        # `build_site` is one publication's failure there.
         # `TabNotFound` carries the list of tabs to pick from, which is the
         # answer to a URL pasted without its `?tab=` id.
         raise BadParameter(str(e), param_hint="URL") from e
     # On stderr, like everything else these commands say.
-    # What `add` produces is the line it wrote into `reports.toml`;
+    # What `add` produces is the line it wrote into `publications.toml`;
     # saying that it wrote it is commentary on having done so,
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
-    console.write(console.added(reports, added.name or "", added.tab or "", log), log)
+    console.write(console.added(publications, added.name or "", added.tab or "", log), log)
 
 
 @app.command()

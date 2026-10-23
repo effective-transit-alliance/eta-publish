@@ -1,4 +1,4 @@
-"""Compile the emitted Typst source into the report PDF.
+"""Compile the emitted Typst source into the publication PDF.
 
 Typst is an external binary rather than a Python dependency, so this is best-effort:
 if it is missing the `.typ` is still written and the build says what to install,
@@ -25,7 +25,7 @@ def install_template(outdir: Path) -> Path:
     """Write the house style next to the emitted source, every build.
 
     A package asset rather than something the emitter writes,
-    so editing how reports look means editing Typst rather than a Python string.
+    so editing how publications look means editing Typst rather than a Python string.
 
     Overwritten rather than kept, because an output directory is build output.
     Keeping an existing copy meant a change to the house style

@@ -1,8 +1,8 @@
 # `biome` formats the emitted HTML, and the CSS and JavaScript inside it.
 # The only place its version is pinned: `format.py` runs it as `mise x -- biome`
 # rather than off `PATH`, because the output is committed and a formatter
-# that changes its mind between versions rewrites every report
-# without a report having changed.
+# that changes its mind between versions rewrites every publication
+# without a publication having changed.
 #
 # `ffmpeg` is what `yt-dlp` joins a `Video (Copy):` video's separate video and audio
 # streams with, and what takes a video's first frame for the PDF and the Markdown.
@@ -14,7 +14,7 @@
 #
 # `svgo` minifies the logo charts carry; see `eta_publish/logo.py`.
 #
-# `minhtml`, `lightningcss`, and `oxc-minify` make the `.min` copies of a report's page,
+# `minhtml`, `lightningcss`, and `oxc-minify` make the `.min` copies of a publication's page,
 # stylesheets, and script; see `eta_publish/minify.py`.
 # The last two are libraries that `eta_publish/minify.mjs` runs on `node`.
 # Run through `mise` like `biome`, so the pin here is which version runs.

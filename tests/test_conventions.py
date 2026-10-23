@@ -179,7 +179,7 @@ def test_image_source_never_reaches_a_published_output(
 
 
 def test_the_description_reaches_the_preview() -> None:
-    from eta_publish.emit.html import report_page
+    from eta_publish.emit.html import publication_page
 
     doc = build(
         [
@@ -188,7 +188,7 @@ def test_the_description_reaches_the_preview() -> None:
             para("Headline", "TITLE"),
         ]
     )
-    assert 'content="Cheaper and shallower."' in report_page(doc, site_url=HOST)
+    assert 'content="Cheaper and shallower."' in publication_page(doc, site_url=HOST)
 
 
 def test_a_credit_line_that_is_not_underlined_is_not_a_credit() -> None:
@@ -248,7 +248,7 @@ def test_a_real_description_wins_over_the_caption() -> None:
 
 
 def test_a_qualified_source_line_is_still_editorial() -> None:
-    """The real report writes `Source:`, `Uncropped Source:`, and `[Image Source](...)`.
+    """The real publication writes `Source:`, `Uncropped Source:`, and `[Image Source](...)`.
     All three appear zero times on the published page,
     against 26 occurrences of `Credit:`."""
     for label in ("Source:", "Uncropped Source:", "Cropped Source:"):
@@ -350,7 +350,7 @@ def test_brackets_that_are_not_all_bold_are_prose() -> None:
 
 def test_chart_asset_placeholders_are_editorial() -> None:
     """`SVG:` and `PNG:` name a chart file for whoever assembles the page.
-    The published report carries real download links instead."""
+    The live publication carries real download links instead."""
     doc = build(
         [
             para("Header", "HEADING_2"),
@@ -487,7 +487,7 @@ def test_the_svg_line_is_still_not_published() -> None:
 
 
 def test_a_source_line_that_links_no_vector_leaves_the_raster() -> None:
-    """`SVG: TODO`, which the real report also contains, is a note."""
+    """`SVG: TODO`, which the real publication also contains, is a note."""
     doc = build(
         [
             para("Header", "HEADING_2"),
@@ -604,10 +604,10 @@ def linked(doc: Document) -> list[tuple[str, str | None]]:
 
 def test_an_italicized_section_name_becomes_a_link() -> None:
     """Docs cannot link to a heading in the same document,
-    so the report italicizes the section's name and means a link by it."""
+    so the publication italicizes the section's name and means a link by it."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Station Depth", "HEADING_2"),
@@ -628,7 +628,7 @@ def test_an_italicized_section_name_becomes_a_link() -> None:
 def test_the_italics_come_off_once_it_is_a_link() -> None:
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Fire Code", "HEADING_2"),
@@ -644,10 +644,10 @@ def test_the_italics_come_off_once_it_is_a_link() -> None:
 
 
 def test_a_reference_can_precede_the_section_it_names() -> None:
-    """The report links to `Station Depth` long before reaching it."""
+    """The publication links to `Station Depth` long before reaching it."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     runs(("as suggested in ", False), ("Station Depth", True)),
@@ -665,7 +665,7 @@ def test_a_name_split_across_runs_still_matches() -> None:
     """Docs splits a run wherever styling changes, mid-name included."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Tail Tracks", "HEADING_2"),
@@ -682,7 +682,7 @@ def test_a_name_split_across_runs_still_matches() -> None:
 def test_case_and_spacing_are_forgiven() -> None:
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Ruling Grade", "HEADING_2"),
@@ -697,10 +697,10 @@ def test_case_and_spacing_are_forgiven() -> None:
 
 
 def test_italics_that_name_no_section_stay_italics() -> None:
-    """The real report italicizes `and` and `tens of billions` for emphasis."""
+    """The real publication italicizes `and` and `tens of billions` for emphasis."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Fire Code", "HEADING_2"),
@@ -720,7 +720,7 @@ def test_an_italicized_link_is_left_alone() -> None:
     """Already a link, and to somewhere the author chose."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Fire Code", "HEADING_2"),
@@ -754,7 +754,7 @@ def test_a_section_named_before_its_colon_still_matches() -> None:
     which is how the live page links it."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Appendix A: Freedom Tunnel", "HEADING_2"),
@@ -772,7 +772,7 @@ def test_the_full_name_wins_over_a_shortened_one() -> None:
     """A heading actually called `Appendix A` keeps its own anchor."""
     doc = parse(
         {
-            "title": "A report",
+            "title": "A publication",
             "body": {
                 "content": [
                     para("Appendix A", "HEADING_2"),

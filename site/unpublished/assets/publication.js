@@ -11,7 +11,7 @@
   const home = new WeakMap();
   const built = new WeakMap();
   // A citation's box is built the first time it is wanted, out of the entry it
-  // already points at, rather than emitted beside every link. The report cites
+  // already points at, rather than emitted beside every link. The publication cites
   // 113 sources and a copy of each one's address next to each of its citations
   // is 17 KB of a fragment that has 400 KB to fit in. The section is the form
   // that always works; this is the shortcut for a reader who has a pointer.
@@ -19,7 +19,8 @@
     const already = built.get(cited) || cited.querySelector(".source-tip");
     if (already) return already;
     const ref = cited.querySelector(".source-ref a");
-    const entry = ref && document.getElementById(ref.getAttribute("href").slice(1));
+    const entry =
+      ref && document.getElementById(ref.getAttribute("href").slice(1));
     if (!entry) return null;
     const tip = document.createElement("span");
     tip.className = "source-tip";
@@ -78,13 +79,13 @@
   const show = (tip) => {
     const from = tip.parentElement;
     const ref = from.getBoundingClientRect();
-    // Moved out to the report for as long as it is open, because a box is only
+    // Moved out to the publication for as long as it is open, because a box is only
     // as opaque as what it is inside: a figure caption is set at `opacity: .75`
     // and a box within one is composited at .75 too, so the caption shows
     // through the words. An ancestor with `overflow` would clip it, and one
     // with a transform would be what `position: fixed` resolved against.
     //
-    // To the report rather than to `body`, because every rule that styles a box
+    // To the publication rather than to `body`, because every rule that styles a box
     // is written `.eta-report .source-tip`: outside that div the box keeps its
     // place on the screen and loses its background, which is worse than the
     // caption showing through it.
@@ -103,7 +104,8 @@
     const above = ref.top - GAP - box.height;
     // Under it unless that runs off the bottom, and over it only where the
     // box fits: with neither edge free, under is the one that can be scrolled to.
-    const top = below + box.height <= innerHeight - GAP || above < GAP ? below : above;
+    const top =
+      below + box.height <= innerHeight - GAP || above < GAP ? below : above;
     const middle = ref.left + ref.width / 2 - box.width / 2;
     const left = Math.min(Math.max(middle, GAP), innerWidth - box.width - GAP);
     tip.style.cssText = `display:block;position:fixed;left:${left}px;top:${top}px;transform:none`;
@@ -151,17 +153,25 @@
         close(held);
         held = null;
       }
-      if (event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+      if (event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event))
+        return;
       clearTimeout(pressing);
       pressing = setTimeout(() => hold(event.target), PRESS);
     },
     { passive: true },
   );
   for (const name of ["touchend", "touchmove", "touchcancel"]) {
-    document.addEventListener(name, () => clearTimeout(pressing), { passive: true });
+    document.addEventListener(name, () => clearTimeout(pressing), {
+      passive: true,
+    });
   }
   document.addEventListener("contextmenu", (event) => {
-    if (hovers() || event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
+    if (
+      hovers() ||
+      event.target.closest?.(".footnote-tip, .source-tip") ||
+      !refOf(event)
+    )
+      return;
     event.preventDefault();
     hold(event.target);
   });
@@ -181,15 +191,27 @@
   // frame. Nothing of the platform's loads before then.
   let frames = 0;
   document.addEventListener("click", (event) => {
-    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-    const card = event.target.closest?.(".eta-report .embed[data-player] .embed-card");
+    if (
+      event.button ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
+    const card = event.target.closest?.(
+      ".eta-report .embed[data-player] .embed-card",
+    );
     if (!card) return;
     const figure = card.closest(".embed");
     // YouTube's player refuses a page that sends no `Referer`, with "Error
     // 153", and a page opened as a file sends none: there the card stays the
-    // link to the video it already is, opened in a new tab so the report stays.
+    // link to the video it already is, opened in a new tab so the publication stays.
     event.preventDefault();
-    if (location.protocol === "file:" && figure.classList.contains("embed-youtube")) {
+    if (
+      location.protocol === "file:" &&
+      figure.classList.contains("embed-youtube")
+    ) {
       open(card.href, "_blank", "noopener");
       return;
     }
@@ -198,7 +220,9 @@
     // an id to say it with.
     const id = String(++frames);
     const player = figure.dataset.player;
-    frame.src = figure.classList.contains("embed-bluesky") ? `${player}?id=${id}` : player;
+    frame.src = figure.classList.contains("embed-bluesky")
+      ? `${player}?id=${id}`
+      : player;
     frame.dataset.frame = id;
     frame.title = figure.dataset.title || "";
     frame.className = "embed-frame";
@@ -222,8 +246,11 @@
       if (frame.contentWindow !== event.source) continue;
       const resize = data?.["twttr.embed"];
       const height =
-        resize?.method === "twttr.private.resize" ? resize.params?.[0]?.height : data?.height;
-      if (Number.isFinite(height) && height > 0) frame.style.height = `${height}px`;
+        resize?.method === "twttr.private.resize"
+          ? resize.params?.[0]?.height
+          : data?.height;
+      if (Number.isFinite(height) && height > 0)
+        frame.style.height = `${height}px`;
     }
   });
   // An underline in the headline is drawn as a swoosh, one curve under each
@@ -239,7 +266,8 @@
       words.style.whiteSpace = "";
       if (words.getClientRects().length < 2) continue;
       words.style.whiteSpace = "nowrap";
-      if (words.getBoundingClientRect().width > title.clientWidth) words.style.whiteSpace = "";
+      if (words.getBoundingClientRect().width > title.clientWidth)
+        words.style.whiteSpace = "";
     }
     const box = title.getBoundingClientRect();
     for (const words of title.querySelectorAll("u")) {
@@ -256,7 +284,7 @@
     title.classList.add("swooshed");
   };
   // After the page has been read rather than now: in the fragment this script
-  // comes before the report it is for.
+  // comes before the publication it is for.
   const swooshAll = () => {
     for (const title of document.querySelectorAll(".eta-report #title")) {
       if (!title.querySelector("u")) continue;
@@ -279,8 +307,11 @@
   // A picture, a drawing (an SVG, which is its own original), or a video:
   // not an embed, whose player is the platform's.
   const mediaOf = (figure) =>
-    figure.querySelector(":scope > .full-size picture, :scope > img, :scope > video");
-  const figures = () => [...document.querySelectorAll(".eta-report figure[id]")].filter(mediaOf);
+    figure.querySelector(
+      ":scope > .full-size picture, :scope > img, :scope > video",
+    );
+  const figures = () =>
+    [...document.querySelectorAll(".eta-report figure[id]")].filter(mediaOf);
   // The file the figure shows, as the original's name, extension and all, the
   // way Wikipedia names one: what the address says, and what the reader would
   // save it as.
@@ -293,12 +324,19 @@
       media.querySelector("img").src
     );
   };
-  const fileOf = (figure) => decodeURIComponent(new URL(originalOf(figure)).pathname.split("/").pop());
+  const fileOf = (figure) =>
+    decodeURIComponent(new URL(originalOf(figure)).pathname.split("/").pop());
   let lightbox = null;
   let shown = null;
   const go = (figure, replace) => {
-    const url = figure ? MEDIA + encodeURIComponent(fileOf(figure)) : location.pathname + location.search;
-    history[replace ? "replaceState" : "pushState"]({ lightbox: !!figure }, "", url);
+    const url = figure
+      ? MEDIA + encodeURIComponent(fileOf(figure))
+      : location.pathname + location.search;
+    history[replace ? "replaceState" : "pushState"](
+      { lightbox: !!figure },
+      "",
+      url,
+    );
     render();
   };
   const step = (by) => {
@@ -347,7 +385,11 @@
     // outside a box does.
     box.addEventListener("click", (event) => {
       const { target } = event;
-      if (target === box || target.classList.contains("lightbox-stage") || beside(target, event)) {
+      if (
+        target === box ||
+        target.classList.contains("lightbox-stage") ||
+        beside(target, event)
+      ) {
         // Not also the link to the original the picture is.
         event.preventDefault();
         dismiss();
@@ -367,10 +409,13 @@
   };
   const render = () => {
     // Without `File:` too, as the first addresses were written.
-    const id = decodeURIComponent(location.hash.match(/^#\/media\/(?:File:)?(.+)/)?.[1] || "");
+    const id = decodeURIComponent(
+      location.hash.match(/^#\/media\/(?:File:)?(.+)/)?.[1] || "",
+    );
     const all = figures();
     // By its file, or by its id, as an address written by hand might.
-    const figure = id && (all.find((f) => fileOf(f) === id) || all.find((f) => f.id === id));
+    const figure =
+      id && (all.find((f) => fileOf(f) === id) || all.find((f) => f.id === id));
     if (!figure) {
       shown = null;
       // Out of the page, which is what stops a video playing in it.
@@ -400,7 +445,8 @@
     } else {
       // The largest copy the page has, chosen for the whole window now rather
       // than the column; clicking it opens the original.
-      for (const source of copy.querySelectorAll("source, img")) source.sizes = "100vw";
+      for (const source of copy.querySelectorAll("source, img"))
+        source.sizes = "100vw";
       const img = copy.tagName === "IMG" ? copy : copy.querySelector("img");
       img.removeAttribute("fetchpriority");
       img.removeAttribute("loading");
@@ -412,21 +458,37 @@
     }
     media.classList.add("lightbox-media");
     stage.prepend(media);
-    lightbox.setAttribute("aria-label", original.alt || copy.querySelector?.("img")?.alt || "Picture");
-    for (const button of lightbox.querySelectorAll(".lightbox-prev, .lightbox-next")) {
+    lightbox.setAttribute(
+      "aria-label",
+      original.alt || copy.querySelector?.("img")?.alt || "Picture",
+    );
+    for (const button of lightbox.querySelectorAll(
+      ".lightbox-prev, .lightbox-next",
+    )) {
       button.hidden = all.length < 2;
     }
     lightbox.querySelector(".lightbox-count").textContent =
       all.length > 1 ? `${all.indexOf(figure) + 1} / ${all.length}` : "";
     const caption = lightbox.querySelector(".lightbox-caption");
-    caption.replaceChildren(...[...figure.querySelectorAll(":scope > figcaption")].map((c) => c.cloneNode(true)));
+    caption.replaceChildren(
+      ...[...figure.querySelectorAll(":scope > figcaption")].map((c) =>
+        c.cloneNode(true),
+      ),
+    );
     // A copy, so not where a backlink lands or a fragment points.
     for (const el of caption.querySelectorAll("[id]")) el.removeAttribute("id");
     for (const el of caption.querySelectorAll(".source-tip")) el.remove();
     if (!lightbox.open) lightbox.showModal();
   };
   document.addEventListener("click", (event) => {
-    if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    if (
+      event.button ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    )
+      return;
     const link = event.target.closest?.(
       ".eta-report figure[id] > :is(.full-size, img), .eta-report .lightbox-open",
     );
@@ -438,7 +500,9 @@
   addEventListener("hashchange", render);
   const ready = () => {
     // A click on a video is the player's, so a video opens by a button of its own.
-    for (const video of document.querySelectorAll(".eta-report figure[id] > video")) {
+    for (const video of document.querySelectorAll(
+      ".eta-report figure[id] > video",
+    )) {
       const open = document.createElement("button");
       open.type = "button";
       open.className = "lightbox-open";
@@ -450,17 +514,17 @@
     render();
   };
   // The browser scrolls to a `#` once, as soon as the element exists, but on a
-  // host like Squarespace the report's stylesheet, fonts, and images arrive
+  // host like Squarespace the publication's stylesheet, fonts, and images arrive
   // after that and grow what is above it, leaving the target far down the
-  // window. So the target is put back at the top each time the report or the
+  // window. So the target is put back at the top each time the publication or the
   // page around it changes size, until the reader scrolls on their own.
   // Squarespace also scrolls smoothly on its own a moment after, a little past
   // the target, so any scroll before the reader's own is put back too.
   const keepTarget = () => {
-    const report = document.querySelector(".eta-report");
+    const publication = document.querySelector(".eta-report");
     const id = decodeURIComponent(location.hash.slice(1));
     const target = id && document.getElementById(id);
-    if (!report || !target || !report.contains(target)) return;
+    if (!publication || !target || !publication.contains(target)) return;
     const put = () => {
       if (Math.abs(target.getBoundingClientRect().top) > 1) {
         target.scrollIntoView({ behavior: "instant" });
@@ -478,15 +542,18 @@
       addEventListener(name, stop, true);
     }
     addEventListener("scroll", put);
-    resize.observe(report);
+    resize.observe(publication);
     resize.observe(document.body);
     // Long after everything above it has loaded; a reader who has not touched
     // the page by then is not owed a jump.
     setTimeout(stop, 10000);
   };
   keepTarget();
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);
+  if (document.readyState === "loading")
+    document.addEventListener("DOMContentLoaded", ready);
   else ready();
-  for (const name of ["pointerover", "focusin"]) document.addEventListener(name, place);
-  for (const name of ["pointerout", "focusout"]) document.addEventListener(name, release);
+  for (const name of ["pointerover", "focusin"])
+    document.addEventListener(name, place);
+  for (const name of ["pointerout", "focusout"])
+    document.addEventListener(name, release);
 })();

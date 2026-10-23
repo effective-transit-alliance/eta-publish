@@ -1,4 +1,4 @@
-"""What a report has to have before it is published.
+"""What a publication has to have before it is published.
 
 These read a parsed document and say what is missing.
 They are separate from `parse.py`, which warns about what it could not read:
@@ -55,15 +55,15 @@ and the writer never sees where it was cut.
 MAY_BE_EMPTY = frozenset({"Private Contributors", "SME/Liaison"})
 """Fields whose emptiness says something rather than being an omission.
 
-A report with nobody uncredited has an empty `Private Contributors:` line,
+A publication with nobody uncredited has an empty `Private Contributors:` line,
 and that is the answer, not a missing one.
-A report with no subject-matter expert to check it has an empty `SME/Liaison:`.
+A publication with no subject-matter expert to check it has an empty `SME/Liaison:`.
 Every other field empty is a line somebody meant to come back to.
 """
 
 
 def check(doc: Document) -> None:
-    """Warn about everything a published report should not be missing."""
+    """Warn about everything a live publication should not be missing."""
     _check_figures(doc)
     _check_named(doc)
     _check_review(doc)
@@ -123,7 +123,7 @@ SAYS_NOTHING_ABOUT_FIELDS = frozenset({Where.HEADING, Where.FOOTNOTE})
 
 A heading is styled as one, so it is never a field:
 `Appendix A: Freedom Tunnel` and `Ruling Grade: The Wrong Place to Scale Back`
-are section names, and the report is full of them.
+are section names, and the publication is full of them.
 
 A footnote is a citation, written to a convention of its own
 that opens with an author and quotes a headline after it:
@@ -262,7 +262,7 @@ def _check_named(doc: Document) -> None:
     unnamed = [block for block in doc.blocks if isinstance(block, Figure) and not block.image.named]
     if not unnamed:
         return
-    # One to a line, each with what the report says the picture is:
+    # One to a line, each with what the publication says the picture is:
     # the difficulty of fixing these is working out which picture
     # `img-6fb0f9c4` is.
     listed = Listed(*((Shown(block.image.filename), _describe(block)) for block in unnamed))
@@ -456,7 +456,7 @@ DESCRIPTION_LIMIT = 70
 
 
 def _describe(block: Figure) -> str:
-    """What the report says this picture is, for telling it from the others.
+    """What the publication says this picture is, for telling it from the others.
 
     The caption, because that is what a reader is told the picture is.
     Its alt text where there is no caption,
@@ -477,7 +477,7 @@ def _check_review(doc: Document) -> None:
     so what publishes from a document under review looks finished
     and is a snapshot of an argument nobody has finished having.
 
-    Both counts are this tab's: the document these reports live in has eight
+    Both counts are this tab's: the document these publications live in has eight
     tabs and 46 comments open across them, against three on the one that
     publishes, so a count for the file would be a number nobody could act on.
     """

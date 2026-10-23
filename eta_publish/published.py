@@ -1,6 +1,6 @@
 """`site/published/`: what the live Squarespace pages need hosted, and nothing else.
 
-A report published from its `report.html` is that fragment pasted into one code block,
+A publication that goes out as its `report.html` is that fragment pasted into one code block,
 and the fragment links its pictures, its videos, its PDF, and the shared stylesheet and script
 at the site's URL, since Squarespace has no way to be handed a directory of them.
 Those files have to be served for as long as the page is up,
@@ -12,7 +12,7 @@ Each file sits at the same path as in `site/unpublished/`,
 so a URL the fragment names is served by either one.
 
 Written from what is already under `site/unpublished/` rather than from this build alone:
-a report that failed to build this time keeps its last copy there,
+a publication that failed to build this time keeps its last copy there,
 and its live page still links every file of that copy.
 """
 
@@ -24,14 +24,16 @@ from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
 from .minify import MIN_ASSETS, is_min, min_name
-from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR
-from .site import Published, Report, saved_for, saved_responses
+from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR, Kind, path_kind
+from .site import Publication, Published, saved_for, saved_responses
 
-PUBLISHED_FILES = ("report.html", "report.md")
-"""What every published report carries whatever it links."""
+PUBLISHED_SUFFIXES = (".html", ".md")
+"""What every live publication carries whatever it links, as `report.html` and `report.md`
+or `statement.html` and `statement.md`."""
 
-SPLIT_FILES = "report.part*.html"
-"""The pieces a `--split` build writes beside `report.html`, for a page pasted in several."""
+SPLIT_SUFFIX = ".part*.html"
+"""The pieces a `--split` build writes beside `report.html`, for a page pasted in several,
+as `report.part01.html` and on."""
 
 _ATTRIBUTE = re.compile(r'\s(src|href|poster|srcset)="([^"]*)"')
 
@@ -39,7 +41,7 @@ _EXTERNAL = re.compile(r"^(?:[a-z][a-z0-9+.-]*:|//|#)", re.IGNORECASE)
 """A URL with a scheme, a host, or only a fragment: nothing that is a file here."""
 
 _OUTPUTS = frozenset({".html", ".md", ".pdf"})
-"""What a report writes of its own, once for its preview and once to publish."""
+"""What a publication writes of its own, once for its preview and once to publish."""
 
 _COPIED = frozenset({".html", ".md", ".css", ".js"})
 """What is copied rather than linked.
@@ -51,7 +53,7 @@ would change along with the file it was linked from."""
 def referenced(html: str, path: str, site_url: str) -> set[str]:
     """Every file `html` links that the site serves, relative to the site.
 
-    `path` is where the report is, which a relative link is relative to:
+    `path` is where the publication is, which a relative link is relative to:
     a fragment built with `--no-hosted-media` links its pictures beside itself.
     A `srcset` is a list, each entry a URL and the width it is.
 
@@ -88,29 +90,29 @@ def referenced(html: str, path: str, site_url: str) -> set[str]:
 
 
 def published_copy(path: Path) -> Path:
-    """The copy of a report's output `path` written for `site/published/`.
+    """The copy of a publication's output `path` written for `site/published/`.
 
-    A published report writes each of its outputs twice, and this is the second:
+    A live publication writes each of its outputs twice, and this is the second:
     linking the published host rather than the preview's, and without the warnings.
     Anything else the page links, a picture or the stylesheet, is the same file for both.
     """
     stem, dot, rest = path.name.partition(".")
-    # Not `assets/report.css`, which is shared and written once.
-    if stem != "report" or path.suffix not in _OUTPUTS:
+    # Not `assets/publication.css`, which is shared and written once.
+    if stem not in set(Kind) or path.suffix not in _OUTPUTS:
         return path
     return path.with_name(f"{stem}.{UNWARNED}{dot}{rest}")
 
 
 def write_published(
-    root: Path, reports: list[Report], complete: bool, site_url: str
-) -> list[tuple[Report, str]]:
-    """Write `root`'s `published/` from its `unpublished/`, for every `automated` report.
+    root: Path, publications: list[Publication], complete: bool, site_url: str
+) -> list[tuple[Publication, str]]:
+    """Write `root`'s `published/` from its `unpublished/`, for every `automated` publication.
 
-    Replaced whole each time, so a report no longer `automated` is no longer hosted.
+    Replaced whole each time, so a publication no longer `automated` is no longer hosted.
 
     `complete` is a build that has every picture on disk to copy,
     so a file the fragment links and that is not there is a broken live page:
-    those come back as each report's problem.
+    those come back as each publication's problem.
     A build without the pictures has none of them to copy and says nothing of it,
     and since none of them are committed, it writes the same committed files.
     """
@@ -119,19 +121,21 @@ def write_published(
     staging = root / f".{PUBLISHED_DIR}-building"
     shutil.rmtree(staging, ignore_errors=True)
     staging.mkdir(parents=True)
-    problems: list[tuple[Report, str]] = []
-    for report in reports:
-        if report.published is not Published.AUTOMATED:
+    problems: list[tuple[Publication, str]] = []
+    for publication in publications:
+        if publication.published is not Published.AUTOMATED:
             continue
-        directory = saved_for(report, saved)
+        directory = saved_for(publication, saved)
         if directory is None:
             # Not built here, which is a build of one document somewhere else;
-            # a whole build has already said which of its reports failed.
+            # a whole build has already said which of its publications failed.
             continue
         path = directory.relative_to(unpublished).as_posix()
-        pages = [directory / "report.html", *sorted(directory.glob(SPLIT_FILES))]
+        # A directory a build wrote is under a kind's path, or it would not have built.
+        kind = path_kind(path) or Kind.REPORT
+        pages = [directory / f"{kind}.html", *sorted(directory.glob(f"{kind}{SPLIT_SUFFIX}"))]
         pages = [page for page in pages if UNWARNED not in page.name and not is_min(page.name)]
-        files = {f"{path}/{name}" for name in PUBLISHED_FILES}
+        files = {f"{path}/{kind}{suffix}" for suffix in PUBLISHED_SUFFIXES}
         for page in pages:
             files.add(f"{path}/{page.name}")
             if published_copy(page).is_file():
@@ -155,7 +159,9 @@ def write_published(
                 link_or_copy(source, dest)
         if complete and missing:
             listed = ", ".join(f"`{name}`" for name in missing)
-            problems.append((report, f"its `report.html` links files it does not have: {listed}"))
+            problems.append(
+                (publication, f"its `{kind}.html` links files it does not have: {listed}")
+            )
     published = root / PUBLISHED_DIR
     shutil.rmtree(published, ignore_errors=True)
     staging.rename(published)

@@ -1,8 +1,8 @@
-"""What a report's embedded videos and posts look like before anyone plays them.
+"""What a publication's embedded videos and posts look like before anyone plays them.
 
 A page shows a card for each: who posted it, what it says, and a thumbnail.
 The platform's own player is loaded only when the reader asks for it,
-so reading the report asks nothing of YouTube, X, or Bluesky.
+so reading the publication asks nothing of YouTube, X, or Bluesky.
 
 The card is looked up once and recorded in `embeds.json`, which is committed:
 an offline build writes the same card, and a post deleted since keeps the one
@@ -88,7 +88,7 @@ def look_up(doc: Document, http: requests.Session | None = None) -> None:
     """Ask each platform about the embeds nothing has recorded a card for.
 
     A failure is recorded rather than raised, as the archive's are:
-    X in particular answers when it feels like it, and a report is not held
+    X in particular answers when it feels like it, and a publication is not held
     back over a thumbnail. The card falls back to the link it was.
     """
     http = http or requests.Session()
@@ -271,7 +271,7 @@ def write_captions(doc: Document, dest: Path) -> None:
     """Write the captions each served video has under its `Video:` line, as WebVTT beside it.
 
     Every build, offline too, since the doc is where they come from.
-    They stand in for any the platform has: somebody wrote these for this report.
+    They stand in for any the platform has: somebody wrote these for this publication.
     A `Captions:` line with nothing after it takes the platform's away as well.
     """
     stems = _stems(doc.embeds)
@@ -396,7 +396,8 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
 
 
 def _captions(ydl: YoutubeDL, info: Mapping[str, Any], outdir: Path, stem: str) -> Captions | None:
-    """Write the video's captions as `<stem>.vtt`, if the platform has any in the reports' language.
+    """Write the video's captions as `<stem>.vtt`, if the platform has any
+    in the publications' language.
 
     Captions somebody wrote before any the platform recognized from the speech.
     Of those, the `-orig` track is the speech as recognized,

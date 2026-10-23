@@ -11,7 +11,7 @@
   const home = new WeakMap();
   const built = new WeakMap();
   // A citation's box is built the first time it is wanted, out of the entry it
-  // already points at, rather than emitted beside every link. The report cites
+  // already points at, rather than emitted beside every link. The publication cites
   // 113 sources and a copy of each one's address next to each of its citations
   // is 17 KB of a fragment that has 400 KB to fit in. The section is the form
   // that always works; this is the shortcut for a reader who has a pointer.
@@ -79,13 +79,13 @@
   const show = (tip) => {
     const from = tip.parentElement;
     const ref = from.getBoundingClientRect();
-    // Moved out to the report for as long as it is open, because a box is only
+    // Moved out to the publication for as long as it is open, because a box is only
     // as opaque as what it is inside: a figure caption is set at `opacity: .75`
     // and a box within one is composited at .75 too, so the caption shows
     // through the words. An ancestor with `overflow` would clip it, and one
     // with a transform would be what `position: fixed` resolved against.
     //
-    // To the report rather than to `body`, because every rule that styles a box
+    // To the publication rather than to `body`, because every rule that styles a box
     // is written `.eta-report .source-tip`: outside that div the box keeps its
     // place on the screen and loses its background, which is worse than the
     // caption showing through it.
@@ -206,7 +206,7 @@
     const figure = card.closest(".embed");
     // YouTube's player refuses a page that sends no `Referer`, with "Error
     // 153", and a page opened as a file sends none: there the card stays the
-    // link to the video it already is, opened in a new tab so the report stays.
+    // link to the video it already is, opened in a new tab so the publication stays.
     event.preventDefault();
     if (
       location.protocol === "file:" &&
@@ -284,7 +284,7 @@
     title.classList.add("swooshed");
   };
   // After the page has been read rather than now: in the fragment this script
-  // comes before the report it is for.
+  // comes before the publication it is for.
   const swooshAll = () => {
     for (const title of document.querySelectorAll(".eta-report #title")) {
       if (!title.querySelector("u")) continue;
@@ -514,17 +514,17 @@
     render();
   };
   // The browser scrolls to a `#` once, as soon as the element exists, but on a
-  // host like Squarespace the report's stylesheet, fonts, and images arrive
+  // host like Squarespace the publication's stylesheet, fonts, and images arrive
   // after that and grow what is above it, leaving the target far down the
-  // window. So the target is put back at the top each time the report or the
+  // window. So the target is put back at the top each time the publication or the
   // page around it changes size, until the reader scrolls on their own.
   // Squarespace also scrolls smoothly on its own a moment after, a little past
   // the target, so any scroll before the reader's own is put back too.
   const keepTarget = () => {
-    const report = document.querySelector(".eta-report");
+    const publication = document.querySelector(".eta-report");
     const id = decodeURIComponent(location.hash.slice(1));
     const target = id && document.getElementById(id);
-    if (!report || !target || !report.contains(target)) return;
+    if (!publication || !target || !publication.contains(target)) return;
     const put = () => {
       if (Math.abs(target.getBoundingClientRect().top) > 1) {
         target.scrollIntoView({ behavior: "instant" });
@@ -542,7 +542,7 @@
       addEventListener(name, stop, true);
     }
     addEventListener("scroll", put);
-    resize.observe(report);
+    resize.observe(publication);
     resize.observe(document.body);
     // Long after everything above it has loaded; a reader who has not touched
     // the page by then is not owed a jump.
