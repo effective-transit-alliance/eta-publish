@@ -829,11 +829,9 @@ html:has(.eta-report .lightbox[open]) { overflow: hidden; }
     return box;
   };
   const render = () => {
-    // Without `File:` too, as the first addresses were written.
-    const id = decodeURIComponent(location.hash.match(/^#\/media\/(?:File:)?(.+)/)?.[1] || "");
+    const id = location.hash.startsWith(MEDIA) ? decodeURIComponent(location.hash.slice(MEDIA.length)) : "";
     const all = figures();
-    // By its file, or by its id, as an address written by hand might.
-    const figure = id && (all.find((f) => fileOf(f) === id) || all.find((f) => f.id === id));
+    const figure = id && all.find((f) => fileOf(f) === id);
     if (!figure) {
       shown = null;
       // Out of the page, which is what stops a video playing in it.
