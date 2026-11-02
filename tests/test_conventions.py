@@ -12,6 +12,7 @@ import pytest
 import requests
 from paths import HOST, named_images
 
+from eta_publish import images as images_module
 from eta_publish.checks import check_described
 from eta_publish.docs_json import JsonObject
 from eta_publish.emit.html import HtmlEmitter
@@ -27,6 +28,7 @@ from eta_publish.nodes import (
     Inline,
     Paragraph,
     Text,
+    Vector,
     plain_text,
 )
 from eta_publish.parse import parse
@@ -1149,6 +1151,22 @@ def test_a_renamed_image_is_found_under_its_old_name(tmp_path: Path) -> None:
     download(doc, images, session=Serving(b""), offline=True)
     assert doc.image_files["io.card"] == "ibx_automation-0c475eea.jpg"
     assert (images / "ibx_automation-0c475eea.jpg").read_bytes() == b"card"
+
+
+def test_an_offline_build_does_not_download_a_vector_it_has_no_copy_of(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Downloading it would mean signing in to Drive, which an offline build never asks."""
+
+    def unasked(file_id: str) -> bytes:
+        raise AssertionError("downloaded offline")
+
+    monkeypatch.setattr(images_module, "download_drive_file", unasked)
+    vector = Vector(file_id="ABC123", filename="chart.svg", title="Chart")
+    doc = Document(card=Image(object_id="io.card", filename="chart", vector=vector))
+    download(doc, tmp_path, session=Serving(b""), offline=True)
+    assert "io.card" in doc.unpublished
+    assert any("no copy of the vector" in str(w) for w in doc.warnings)
 
 
 def test_an_alt_text_saying_image_elsewhere_is_warned_about() -> None:
