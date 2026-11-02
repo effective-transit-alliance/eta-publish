@@ -394,14 +394,21 @@ def test_a_source_the_archive_could_not_be_asked_about_says_why(keyed: None) -> 
     assert list(map(str, offline.warnings)) == list(map(str, doc.warnings))
 
 
-def test_a_source_still_waiting_keeps_the_date_it_first_waited(keyed: None) -> None:
-    """Otherwise the page would change on every build over the same answer."""
+def test_a_source_still_waiting_keeps_the_date_and_words_it_first_waited_with(
+    keyed: None,
+) -> None:
+    """Otherwise the page would change on every build over the same answer,
+    as it did over which request a busy archive refused."""
     doc = cites("https://a.example/1")
     doc.archives["https://a.example/1"] = Archived(
-        timestamp="20261001", error=archive.NO_ANSWER, pending=True
+        timestamp="20261001",
+        error=archive.NO_ANSWER,
+        pending=True,
+        said="429 from https://web.archive.org/save",
     )
     archive.capture(doc, session=Answering(503))
     assert doc.archives["https://a.example/1"].timestamp == "20261001"
+    assert doc.archives["https://a.example/1"].said == "429 from https://web.archive.org/save"
 
 
 def test_a_pending_source_is_written_down_as_pending(keyed: None, tmp_path: Path) -> None:

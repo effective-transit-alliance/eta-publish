@@ -701,14 +701,16 @@ def capture(
         before = doc.archives.get(url)
         if result.lately and before is not None and before.pending:
             continue
-        # The date of the first attempt that heard this, so a source still
-        # waiting on the same answer does not change the page on every build.
+        # The date and words of the first attempt that heard this, so a source
+        # still waiting on the same answer does not change the page on every
+        # build. Which request a busy archive refused differs from one to the
+        # next, and is not a change to the source.
         same = before is not None and before.pending and before.error == result.short
         doc.archives[url] = Archived(
             timestamp=before.timestamp if same and before else today(),
             error=result.short,
             pending=True,
-            said=result.why,
+            said=before.said if same and before else result.why,
         )
     version(http, doc, wanted, before_any)
     return found, submitted
