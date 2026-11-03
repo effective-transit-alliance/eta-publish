@@ -30,7 +30,7 @@ min_version = "2026.10.3"
 biome = "2.5.15"
 ffmpeg = "9.0.2"
 "github:wilsonzlin/minify-html" = { version = "0.18.1", bin = "minhtml" }
-node = "26.12.0"
+node = "26.13.0"
 "npm:lightningcss" = "1.33.0"
 "npm:markdownlint-cli2" = "0.23.3"
 "npm:oxc-minify" = "0.155.0"
