@@ -30,6 +30,10 @@ jobs:
     concurrency:
       group: pages-build
       cancel-in-progress: true
+    # `GOOGLE_CREDENTIALS` is a secret of this environment, not of the repository,
+    # so a job outside it reads the secret as empty.
+    environment:
+      name: github-pages
     steps:
       - uses: actions/checkout@v7
 
