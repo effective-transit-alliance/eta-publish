@@ -38,7 +38,7 @@ September 9, 2026
 
 [Video: Too Damn Loud: Announcements on NYC Transit are Out of Control (Effective Transit Alliance on YouTube)](<https://youtube.com/shorts/o90JQBWdgTI?is=I4sZ3txy37d2RiGU>)<sup>\[1\]</sup>
 
-![](<images/img-831248b1.jpg>)
+![](images/img-831248b1.jpg)
 
 ## Too Damn Loud
 
@@ -58,7 +58,7 @@ Indeed, ETA recorded a one-way ride from 34 St-Hudson Yards to Flushing-Main St,
 Riders should not be subjected to constant sound for 25% of their ride.
 On the Berlin S-Bahn, a complex branched system that must announce train numbers and destinations, the announcements—all short snippets of information about the train’s identity and destination or the door closing warning—are 15 seconds per interstation segment, only about 12.5% of the ride, half as long as on New York City Transit.
 
-![PNG SVG](<images/img-b17aa21a.png>)\
+![PNG SVG](images/img-b17aa21a.png)\
 [PNG](<https://drive.google.com/file/d/1ceFr--thicXMKXMuKG87Rhxs7oY2xWgC/view?usp=drive_link>)<sup>\[3\]</sup> [SVG](<https://drive.google.com/file/d/18pQbx_DJ_n_OHNDaQlfHOvRSZqJPd88V/view?usp=drive_link>)<sup>\[4\]</sup>
 
 Hands over ears icon created by Gan Khoon Lay from the Noun Project, used with permission.
@@ -67,7 +67,7 @@ This misuse of public address systems is particularly frustrating because announ
 Announcements are critical for increasing riders’ situational awareness, ensuring that they always know where they are, where they are going, what’s going on around them, and what to do if service is disrupted.
 Audio announcements are especially vital for visually impaired riders, who rely on their presence and their clarity to navigate the transit system with minimal visual input.
 
-This noise pollution has proliferated gradually, often one message at a time.  Slowly, by following the path of least resistance, best practices were eroded.
+This noise pollution has proliferated gradually, often one message at a time. Slowly, by following the path of least resistance, best practices were eroded.
 What began as relatively clear announcements designed around riders' needs has slowly accreted more and more unnecessary pieces.
 One manager may have wanted to push a safety campaign.
 Another may have seen an opportunity for ad revenue.
@@ -166,7 +166,7 @@ Proper design is critical for announcements to serve as an effective accessibili
 The key is to keep the needs of various different groups in mind when designing announcements.
 Thankfully, the needs of most disabled riders line up with the general principles presented above: announcements should be clear, concise, and limited to the most important information about travel.
 
-*The blind and vision-impaired*
+_The blind and vision-impaired_
 
 Traditionally, it has been difficult for those with significant vision impairments to navigate transit systems without outside aid.
 Most transit systems have been designed for people to navigate primarily by sight, using either signs or landmarks.
@@ -179,7 +179,7 @@ Unnecessary announcements like PSAs, general safety or rules information, and ad
 It also takes a fair amount of concentration to separate announcements from loud background noises such as moving trains and large crowds of people.
 Similar to how radio discipline makes noisy communications understandable, a clear, concise system of announcements with a minimum of unnecessary noise reduces the amount of information that blind and vision-impaired riders need to process.
 
-*Riders who don’t speak English as a first language*
+_Riders who don’t speak English as a first language_
 
 It is a similar story for passengers who do not speak English as their first language, and especially those who don’t speak it fluently.
 New York is a world city of the highest order, welcoming untold numbers of visitors and immigrants from around the world, speaking every language on the planet.
@@ -190,7 +190,7 @@ They can’t parse the verbal announcements and often can’t even read the stat
 
 **Things that should be Avoided or Minimized**
 
-*Advertisements*
+_Advertisements_
 
 In a disturbing precedent, the MTA recently experimented with playing commercial advertisements over subway station PA systems.
 For all the reasons listed above, this is an inappropriate use of passenger information systems.
@@ -204,14 +204,14 @@ In the long run, such maneuvers could well push riders away from transit towards
 
 Announcements exist to inform passengers, not to take advantage of them.
 
-*Hiring Announcements*
+_Hiring Announcements_
 
 Hiring announcements have recently become common on the MTA.
 Staff who spoke to ETA not for attribution indicated that it generated a raft of consumer complaints.
 These announcements are essentially a hiring advertisement for the MTA itself, and should be treated as such.
 Riders should not be subjected to such messages simply in order to ride transit.
 
-*Public Service Announcements*
+_Public Service Announcements_
 
 New York straphangers have been subjected to more and more dubiously effective public service announcements (PSAs).
 These began with the now ubiquitous important messages from the NYPD, and have in recent years have expanded to include things like continual announcements about the dangers of subway surfing.
@@ -225,7 +225,7 @@ A private automobile never forces its driver to listen to such messages, or even
 If PSAs are to be a part of the subway experience, they should be limited to the digital screens, as with all other non-essentially pieces of travel information.
 Indeed, the MTA already has a successful history of both print and digital PSAs about such courtesy norms as using headphones, taking one’s bag off, not taking up multiple seats, and not blocking doors.
 
-*Long-Term Work*
+_Long-Term Work_
 
 One of the key things that audio announcements may be appropriate for is to communicate reroutes and/or delays caused by temporary work.
 When work is scheduled to take around two weeks or more, however, it can generally be assumed that riders are aware of service changes.
@@ -243,7 +243,7 @@ However, the current state of announcements is very far from any reasonable opti
 The constant barrage of PSAs and lengthy messages about the system disrespects the riders’ attention.
 Transit should strive to be a positive part of a rider's day, not an annoyance.
 
-Announcements that treat riders with respect are almost a reverse version of the [curb cut effect](<https://en.wikipedia.org/wiki/Curb_cut_effect>)<sup>\[7\]</sup>.  In this case, designing announcements that do not grate and do not waste straphangers’ time also winds up creating announcements that are less taxing for the visually impaired and easier to understand for those who don't speak English as a first language.
+Announcements that treat riders with respect are almost a reverse version of the [curb cut effect](<https://en.wikipedia.org/wiki/Curb_cut_effect>)<sup>\[7\]</sup>. In this case, designing announcements that do not grate and do not waste straphangers’ time also winds up creating announcements that are less taxing for the visually impaired and easier to understand for those who don't speak English as a first language.
 
 There is much more about announcements beyond the scope of this piece.
 This includes equipment design, ensuring that ongoing improvement is easy to implement, operator training, both on automated equipment and on improved techniques for manual announcements, and on the design of the passenger experience, in general.
@@ -259,11 +259,11 @@ It's time to let riders travel in peace.
 
     [49 CFR 37.167(b) & (c)](<https://www.ecfr.gov/current/title-49/subtitle-A/part-37/subpart-G/section-37.167>)<sup>\[9\]</sup>
 
-[^2]: Yu, Shaolu, 2016. "’I am like a deaf, dumb and blind person’: Mobility and immobility of Chinese (im)migrants in Flushing, Queens, New York City,” *Journal of Transport Geography*, 54(C) (June 2016): 10–21. [https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393](<https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393>)<sup>\[10\]</sup>
+[^2]: Yu, Shaolu, 2016. "’I am like a deaf, dumb and blind person’: Mobility and immobility of Chinese (im)migrants in Flushing, Queens, New York City,” _Journal of Transport Geography_, 54(C) (June 2016): 10–21. [https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393](<https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393>)<sup>\[10\]</sup>
 
-[^3]: Barbara Russo-Lennon, “Subway spots: MTA’s ad blitz delivers big bucks for NYC’s transit system and reliability for riders,” *AMNY*, July 3, 2025, [https://www.amny.com/news/mta-nyc-subway-ads-and-money/](<https://www.amny.com/news/mta-nyc-subway-ads-and-money/>)<sup>\[11\]</sup>
+[^3]: Barbara Russo-Lennon, “Subway spots: MTA’s ad blitz delivers big bucks for NYC’s transit system and reliability for riders,” _AMNY_, July 3, 2025, [https://www.amny.com/news/mta-nyc-subway-ads-and-money/](<https://www.amny.com/news/mta-nyc-subway-ads-and-money/>)<sup>\[11\]</sup>
 
-[^4]: *S-Bahn Berlin*, “Störungen und Bauarbeiten,” accessed August 24, 2026, [https://sbahn.berlin/fahren/bauen-stoerung/](<https://sbahn.berlin/fahren/bauen-stoerung/>)<sup>\[12\]</sup>.
+[^4]: _S-Bahn Berlin_, “Störungen und Bauarbeiten,” accessed August 24, 2026, [https://sbahn.berlin/fahren/bauen-stoerung/](<https://sbahn.berlin/fahren/bauen-stoerung/>)<sup>\[12\]</sup>.
 
 [^5]: Elevator replacements should not take months, but that is another piece.
 

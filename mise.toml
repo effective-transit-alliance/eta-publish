@@ -27,7 +27,7 @@
 min_version = "2026.10.3"
 
 [tools]
-biome = "2.5.15"
+biome = "2.6.4"
 ffmpeg = "9.0.2"
 "github:wilsonzlin/minify-html" = { version = "0.18.1", bin = "minhtml" }
 node = "26.13.0"

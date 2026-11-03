@@ -1,4 +1,4 @@
-"""Lay out and check what a build wrote: the HTML, the CSS, the JavaScript.
+"""Lay out and check what a build wrote: the HTML, the CSS, the JavaScript, the Markdown.
 
 The emitter's job is what the page says; this is where it sits on the line.
 What is emitted is committed and read as a diff, and a paragraph on one line
