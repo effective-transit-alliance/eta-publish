@@ -100,7 +100,7 @@ def test_markdown_images_resolve_next_to_the_archive(doc: Document, tmp_path: Pa
     emit(doc, tmp_path, site_url=HOST)
     archive = (tmp_path / "report.md").read_text()
 
-    links = re.findall(r"!\[[^\]]*\]\(<([^>]+)>\)", archive)
+    links = re.findall(r"!\[[^\]]*\]\(([^)]+)\)", archive)
     assert links
     for link in links:
         assert not link.startswith("http")

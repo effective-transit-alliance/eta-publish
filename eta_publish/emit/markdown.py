@@ -32,6 +32,7 @@ from ..nodes import (
     FootnoteRef,
     Heading,
     Image,
+    Inline,
     LineBreak,
     List,
     ListItem,
@@ -78,6 +79,32 @@ def url(href: str) -> str:
     The angle-bracket form is always valid, so it is used unconditionally.
     """
     return "<" + href.replace("<", "%3C").replace(">", "%3E") + ">"
+
+
+def image_url(href: str) -> str:
+    """An image's destination, bare unless a parenthesis, a space, or a backslash needs brackets.
+
+    `biome` lays out what is emitted, and it writes an image's destination so;
+    emitting it so too keeps the emitter's output the same as what is committed.
+    `biome` keeps a link's brackets, so `url` stays as it is.
+    """
+    if any(c in "()\\" or c.isspace() for c in href):
+        return url(href)
+    return href.replace("<", "%3C").replace(">", "%3E")
+
+
+def collapse_spaces(text: str) -> str:
+    """Every run of spaces as one, as `biome` writes the Markdown.
+
+    A browser shows one space for any number, so nothing on the page changes.
+    """
+    while "  " in text:
+        text = text.replace("  ", " ")
+    return text
+
+
+def word_char(c: str) -> bool:
+    return c.isalnum()
 
 
 def strip_trailing_space(text: str) -> str:
@@ -297,7 +324,7 @@ class MarkdownEmitter(Emitter):
         lines = (
             []
             if node.image.object_id in self.doc.unpublished
-            else [f"![{escape(node.image.alt)}]({url(self.href(node.image))})"]
+            else [f"![{escape(node.image.alt)}]({image_url(self.href(node.image))})"]
         )
         if caption:
             lines.append(caption)
@@ -340,7 +367,7 @@ class MarkdownEmitter(Emitter):
         # Ours, so named as the document names it and linked to our copy.
         cite = "" if node.copy else self.source_ref(node.url)
         lines = [
-            f"[![{escape(alt)}]({url(poster)})]({href})",
+            f"[![{escape(alt)}]({image_url(poster)})]({href})",
             f"[{escape(node.title or 'Video')}]({href}){cite}",
             *([self.inlines(node.credit)] if node.credit else []),
         ]
@@ -369,7 +396,28 @@ class MarkdownEmitter(Emitter):
     # ---- inline -----------------------------------------------------
 
     @override
-    def text(self, node: Text) -> str:
+    def inlines(self, content: list[Inline]) -> str:
+        """Each run, its italics marked with whatever the characters around it allow.
+
+        `_` is what `biome` writes, but it cannot open or close inside a word,
+        so a run touching a letter or digit takes `*`,
+        and so does one with a `_` of its own, as `biome` leaves it.
+        Which characters touch a run is only known once its neighbors are written,
+        so they are written first: a neighbor's own markers are never letters,
+        so which a neighbor takes does not change what touches this one.
+        """
+        first = [self.inline(i) for i in content]
+        out = ""
+        for n, node in enumerate(content):
+            if isinstance(node, Text) and node.italic:
+                after = next((part[0] for part in first[n + 1 :] if part), " ")
+                out += self.text(node, before=out[-1:] or " ", after=after)
+            else:
+                out += first[n]
+        return collapse_spaces(out)
+
+    @override
+    def text(self, node: Text, before: str = " ", after: str = " ") -> str:
         # The run's own edge whitespace goes outside its markers.
         # `**done: **` is not bold: a `**` after a space cannot close,
         # so the asterisks are printed, as SAS West's August 21 note was.
@@ -389,7 +437,9 @@ class MarkdownEmitter(Emitter):
         if node.bold:
             out = f"**{out}**"
         if node.italic:
-            out = f"*{out}*"
+            touches = (not lead and word_char(before)) or (not rest and word_char(after))
+            mark = "*" if touches or "_" in core else "_"
+            out = f"{mark}{out}{mark}"
         if node.href:
             out = f"[{out}]({url(node.href)}){self.source_ref(node.href)}"
         return f"{lead}{out}{rest}"
@@ -406,4 +456,4 @@ class MarkdownEmitter(Emitter):
 
     @override
     def image(self, node: Image) -> str:
-        return f"![{escape(node.alt)}]({url(self.href(node))})"
+        return f"![{escape(node.alt)}]({image_url(self.href(node))})"

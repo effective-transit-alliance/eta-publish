@@ -189,7 +189,8 @@ This is the key to successful deinterlining, ensuring that [98% of riders see fa
 With the increased frequency, frequent and reliable transfers diminish the value of one-seat rides.
 It would be better yet if M frequencies could be raised further; however, turnback capacity at Forest Hills and merge delays at Myrtle Av with the J/Z limit how many more M trains can be run.
 
-The [schedule](<https://www.mta.info/schedules/subway/m-train>)<sup>\[14\]</sup> released by the MTA today, however, only shows a small increase in service over the course of the day. There will be 9 tph both before and after the swap, with only 6 out of 18 morning rush-hour M trains having the promised 6-minute headways or better.
+The [schedule](<https://www.mta.info/schedules/subway/m-train>)<sup>\[14\]</sup> released by the MTA today, however, only shows a small increase in service over the course of the day.
+There will be 9 tph both before and after the swap, with only 6 out of 18 morning rush-hour M trains having the promised 6-minute headways or better.
 We hope that the MTA will continue to improve M service in upcoming schedule updates, at least up to the promised 6-minute headways, to ensure that as many people as possible see a positive impact from this change.
 
 The F/M swap is a perfect place to start deinterlining, as it will actually provide many one-seat rides and significantly reduce crowding.

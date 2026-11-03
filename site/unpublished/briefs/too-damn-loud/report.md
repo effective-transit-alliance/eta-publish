@@ -67,7 +67,8 @@ This misuse of public address systems is particularly frustrating because announ
 Announcements are critical for increasing riders’ situational awareness, ensuring that they always know where they are, where they are going, what’s going on around them, and what to do if service is disrupted.
 Audio announcements are especially vital for visually impaired riders, who rely on their presence and their clarity to navigate the transit system with minimal visual input.
 
-This noise pollution has proliferated gradually, often one message at a time. Slowly, by following the path of least resistance, best practices were eroded.
+This noise pollution has proliferated gradually, often one message at a time.
+Slowly, by following the path of least resistance, best practices were eroded.
 What began as relatively clear announcements designed around riders' needs has slowly accreted more and more unnecessary pieces.
 One manager may have wanted to push a safety campaign.
 Another may have seen an opportunity for ad revenue.
@@ -243,7 +244,8 @@ However, the current state of announcements is very far from any reasonable opti
 The constant barrage of PSAs and lengthy messages about the system disrespects the riders’ attention.
 Transit should strive to be a positive part of a rider's day, not an annoyance.
 
-Announcements that treat riders with respect are almost a reverse version of the [curb cut effect](<https://en.wikipedia.org/wiki/Curb_cut_effect>)<sup>\[7\]</sup>. In this case, designing announcements that do not grate and do not waste straphangers’ time also winds up creating announcements that are less taxing for the visually impaired and easier to understand for those who don't speak English as a first language.
+Announcements that treat riders with respect are almost a reverse version of the [curb cut effect](<https://en.wikipedia.org/wiki/Curb_cut_effect>)<sup>\[7\]</sup>.
+In this case, designing announcements that do not grate and do not waste straphangers’ time also winds up creating announcements that are less taxing for the visually impaired and easier to understand for those who don't speak English as a first language.
 
 There is much more about announcements beyond the scope of this piece.
 This includes equipment design, ensuring that ongoing improvement is easy to implement, operator training, both on automated equipment and on improved techniques for manual announcements, and on the design of the passenger experience, in general.
