@@ -403,8 +403,17 @@ def _fetch_vector(
     # like a `raw.githubusercontent.com/.../refs/heads/main/...`, keeps its URL
     # when the branch moves, and neither is an edit to the document, so a
     # build that reuses its saved response still has to ask.
-    # The copy is for an `--offline` build, which asks nothing.
-    if online or not original.exists():
+    # The copy is for an `--offline` build, which asks nothing,
+    # not even for a vector it has no copy of.
+    if not online and not original.exists():
+        doc.warn(
+            "no copy of the vector {} to build offline from; "
+            "the figure is published without a picture",
+            Shown(vector.title or vector.uri),
+        )
+        doc.unpublished[image.object_id] = "no copy to build offline from"
+        return True
+    if online:
         try:
             if vector.file_id:
                 data = download_drive_file(vector.file_id)
