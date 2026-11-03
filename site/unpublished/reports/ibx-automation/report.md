@@ -2,7 +2,7 @@
 
 October 21, 2026
 
-![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](<images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>)\
+![A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).](images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg)\
 A new artistic rendering of the IBX at New Utrecht Av. It appears to show a high-level platform on the far-side platform, although this is not yet confirmed. The station still lacks any platform screen doors (PSDs).\
 Credit: MTA, [via Gothamist](<https://gothamist.com/news/new-renderings-of-the-mtas-ibx-project-serving-brooklyn-queens-are-out>)<sup>\[1\]</sup>
 <!-- Source: [IBX\_NU\_Side\_Platform\_Crop\_2026\_0825.original.jpg](<https://images-prod.gothamist.com/images/IBX_NU_Side_Platform_Crop_2026_0825.original.jpg>) -->
@@ -33,7 +33,7 @@ Failure to cull unneeded constraints like this from the rolling stock procuremen
 Therefore, while there have been some welcome and encouraging words, the MTA has yet to commit to the concrete details underlying them: high-floor light metro vehicles.
 And more importantly, they are missing one crucial piece: automation.
 
-There is one type of light rail that is clearly ideal for the IBX: *automated light metro* (ALM).
+There is one type of light rail that is clearly ideal for the IBX: _automated light metro_ (ALM).
 The key properties of ALMs are:
 
 - Automated operations
@@ -58,7 +58,7 @@ This has been driven by all of the following factors:
 - Improved station siting
 - A [31%](<https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing>)<sup>\[17\]</sup> increase in speed[^3] after [ETA’s analysis](<https://www.etany.org/ibx-all-faiths-tunnel>)<sup>\[4\]</sup> and [Ben Brachfeld’s reporting](<https://www.amny.com/nyc-transit/queens-graveyard-hochul-interborough-express/>)<sup>\[18\]</sup> successfully pressured the MTA to [drop street running](<https://www.6sqft.com/mta-awards-166m-design-contract-for-interborough-express/>)<sup>\[19\]</sup> around All Faiths Cemetery
 
-![The ridership of the various IBX projections, as well as comparable lines in NYC. Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.](<images/ridership.svg>)\
+![The ridership of the various IBX projections, as well as comparable lines in NYC. Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.](images/ridership.svg)\
 The ridership of the various IBX projections, as well as comparable lines in NYC.[^4] Existing lines show recent (post-pandemic), measured numbers. Unopened lines show their projection year.[^5]\
 [Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/ibx-ridership-charts/>)<sup>\[20\]</sup>
 <!-- SVG: [ridership.svg](<https://raw.githubusercontent.com/effective-transit-alliance/ibx-ridership-charts/refs/heads/main/ridership.svg>) -->
@@ -87,12 +87,12 @@ Today, entirely new metro lines in developed and even middle-income countries ar
 In fact, at [InnoTrans](<https://www.innotrans.de/en>)<sup>\[30\]</sup> 2026, major rolling stock vendors who are interested in bidding on the IBX told ETA that they had difficulty understanding why the MTA would ever consider building the IBX unautomated.
 The global standard for a new-build metro line today, whether light or heavy, is automation.
 
-![Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](<images/automated_share_by_year_2016_to_2026.svg>)\
+![Share of new metro lines worldwide that are automated (> GoA2), by year. 136/362 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](images/automated_share_by_year_2016_to_2026.svg)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide, from 2016 to Sep 2026. 2026 data is incomplete, and China normally opens most metro lines in December.\
 [Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
 <!-- SVG: [automated\_share\_by\_year\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_2016_to_2026.svg>) -->
 
-![Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](<images/automated_share_by_year_ex_china_2016_to_2026.svg>)\
+![Share of new metro lines outside mainland China that are automated (> GoA2), by year. 66/128 new grade-separated, non-mainline urban rail lines opened in 2016 to 2026-10-11 are automated.](images/automated_share_by_year_ex_china_2016_to_2026.svg)\
 The automated share of new-build, grade-separated, non-mainline urban rail lines worldwide excluding China, from 2016 to Sep 2026. China has opened the majority of such new lines, and so distorts the trends elsewhere.\
 [Credit: ETA (Khyber Sen)](<https://github.com/effective-transit-alliance/automated-metro-data>)<sup>\[31\]</sup>, [UrbanRail.net](<https://www.urbanrail.net/news.htm>)<sup>\[32\]</sup>, [CAMET](<https://www.camet.org.cn/>)<sup>\[33\]</sup>
 <!-- SVG: [automated\_share\_by\_year\_ex\_china\_2016\_to\_2026.svg](<https://raw.githubusercontent.com/effective-transit-alliance/automated-metro-data/refs/heads/main/charts/automated_share_by_year_ex_china_2016_to_2026.svg>) -->
@@ -103,7 +103,7 @@ Automation is clearly being considered by the MTA: even two years ago, [consulta
 More recently, agency personnel have visited the [REM in Montreal](<https://bqrail.substack.com/api/v1/file/69603a69-34d1-4d20-b44a-921b6c45714e.pdf#page=9>)<sup>\[35\]</sup> and the under-construction [Ontario Line in Toronto](<https://bqrail.substack.com/api/v1/file/444137f8-68a8-4ab2-92e4-b52053366020.pdf#page=22>)<sup>\[36\]</sup>, both of which are ALMs.
 Now is the time to follow through and commit to automation.
 
-Automation is classified in the following internationally standardized grades, each called *grades of automation* (GoA) with an associated number:
+Automation is classified in the following internationally standardized grades, each called _grades of automation_ (GoA) with an associated number:
 
 - GoA0: line of sight manual operation with no signaling protection
 - GoA1: manual operation with signaling that protects train safety through Automatic Train Protection (ATP)
@@ -111,12 +111,12 @@ Automation is classified in the following internationally standardized grades, e
 - GoA3: driverless operation (DTO): the train runs automatically, but there is an on-board attendant to operate the train in emergencies
 - GoA4: unattended operation (UTO): the train runs automatically, with no crew on board except perhaps for security
 
-![The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.](<images/JFK_AirTrain_Front.jpg>)\
+![The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.](images/JFK_AirTrain_Front.jpg)\
 The automated JFK AirTrain. The front of the train is a large window with no cab or driver present.\
 Credit: Seungho Kang
 <!-- Source: [JFK AirTrain Front.jpg](<https://drive.google.com/file/d/1gi244dADgokC7gb8S9hmHEN9lfA4Rf_v/view>) -->
 
-![An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling.](<images/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg>)\
+![An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling.](images/Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg)\
 An F train waiting to enter the platform at Jackson Heights-Roosevelt Av, just barely behind a departing E train, thanks to CBTC’s moving block signaling.\
 Credit: ETA (Khyber Sen)
 <!-- Source: [Close CBTC operations at Jackson Heights 20250717\_204920.jpg](<https://drive.google.com/file/d/1wlXP11ep4zFiYwiJ5zn61iwpghmq8eFd/view>) -->
@@ -167,7 +167,7 @@ Automation and PSDs are generally considered together as PSDs make it simpler fo
 
 > ⚠ **Warning: Graphic Content: Someone pushed in front of a moving train.**
 
-[![WARNING: Graphic Content](<../../assets/warning-Graphic_Content.svg>)](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)\
+[![WARNING: Graphic Content](../../assets/warning-Graphic_Content.svg)](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)\
 [Joseph Lynskey hit by the 1 train at 18 St.](<videos/Joseph_Lynskey_hit_by_the_1_train_at_18_St.mp4>)\
 Credit: MTA security camera footage
 
@@ -177,7 +177,7 @@ The [PSDs for all 21 stations](<https://myemail.constantcontact.com/News-from-th
 Adjusted for inflation and the number and length of IBX stations,[^21] equipping all IBX platforms with PSDs would cost about $41 million,[^22] equal to only 0.75% of its [projected cost of $5.5 billion](<https://www.mta.info/press-release/icymi-governor-hochul-announces-interborough-express-project-design-and-environmental#:~:text=IBX%20project%20is-,%245.5%20billion,-.%20%242.75%20billion%20in>)<sup>\[52\]</sup>.
 The cost is only a small part of the larger project, and yet adds incredible value.
 
-![Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.](<images/Skyline_platform_screen_doors.png>)\
+![Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.](images/Skyline_platform_screen_doors.png)\
 Half-height PSDs at Hālawa station of the Honolulu Skyline, an ALM using Hitachi Driverless Metro rolling stock.\
 [Credit: Eli Fessler](<https://commons.wikimedia.org/wiki/File:Skyline_platform_screen_doors.jpg>)<sup>\[53\]</sup>
 <!-- Source: [Skyline\_platform\_screen\_doors.jpg](<https://upload.wikimedia.org/wikipedia/commons/4/44/Skyline_platform_screen_doors.jpg>) -->
@@ -199,7 +199,7 @@ This will be key to achieving the MTA’s commendable 32 minute runtime target.
 Finally, PSDs also increase the effective platform width, as passengers can safely stand closer to the platform edge.
 This matters for the IBX, as using PSDs to shave a few feet of platform width might mean another overpass doesn’t have to be rebuilt and widened, saving tens of millions, enough to pay for all of the PSDs.
 
-![The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.](<images/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg>)\
+![The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.](images/Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg)\
 The at-grade station crossing at Harsimus Cove on HBLR, where passengers must cross in front of the train to access the other platform.\
 [Credit: Sebastian Sinisterra](<https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>)<sup>\[57\]</sup>
 <!-- Source: [Harsimus\_Cove\_HBLR\_4th\_St\_RR\_Crossing.jpg](<https://upload.wikimedia.org/wikipedia/commons/9/9b/Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg>) -->
@@ -232,7 +232,7 @@ On fully grade-separated corridors, they are weaker: for example, the vehicles a
 LRVs are also normally narrow,[^31] even though the [existing tunnels permit wider trains](<https://bqrail.substack.com/p/full-size-trains-for-the-interborough>)<sup>\[62\]</sup>.
 
 Hopefully this is a case where the public-facing website was not updated with the latest planning.
-The alternatives are far worse: either good right-of-way decisions are not percolating over to rolling stock procurement, or the MTA is simply making the right decision without understanding the deeper reasons *why* full grade separation is the right decision.
+The alternatives are far worse: either good right-of-way decisions are not percolating over to rolling stock procurement, or the MTA is simply making the right decision without understanding the deeper reasons _why_ full grade separation is the right decision.
 
 ## Conclusion
 
@@ -266,43 +266,43 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 [^2]: (160,000/day) / (87,800/day) = 1.822
 
 [^3]: [42 min](<https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing#:~:text=10%20minutes%20less%20than%20the%20initial%20estimate>)<sup>\[67\]</sup> / [32 min](<https://www.governor.ny.gov/news/video-audio-photos-rush-transcript-governor-hochul-announces-interborough-express-advancing#:~:text=32%20minutes>)<sup>\[68\]</sup> = 1.3125.
-    The original LRT runtime was [39 minutes in the PEL](<https://www.mta.info/document/103691#page=5>)<sup>\[12\]</sup>, but IBX staff told ETA street-running delays were initially underestimated, hence the 10 minutes faster quoted by Hochul.
+The original LRT runtime was [39 minutes in the PEL](<https://www.mta.info/document/103691#page=5>)<sup>\[12\]</sup>, but IBX staff told ETA street-running delays were initially underestimated, hence the 10 minutes faster quoted by Hochul.
 
 [^4]: Sources: [Hai Yang et al.](<https://arxiv.org/abs/2408.01562>)<sup>\[23\]</sup>, [SAS West](<https://www.mta.info/document/222046#page=5>)<sup>\[69\]</sup>, [IBX current](<https://www.governor.ny.gov/news/governor-hochul-announces-interborough-express-advancing-planning-active-phase#:~:text=ridership%20projections%20to-,160%2C000,-per%20day%2C%20up>)<sup>\[14\]</sup>, [G](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_route.md>)<sup>\[15\]</sup>, [BQE](<https://www.nyc.gov/html/dot/html/infrastructure/bqecentral.shtml>)<sup>\[70\]</sup>, [SAS Phase 1](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md>)<sup>\[25\]</sup>, [IBX 20YN](<https://future.mta.info/documents/20-YearNeedsAssessment_ComparativeEvaluation.pdf#page=14>)<sup>\[71\]</sup>, [IBX PEL](<https://www.mta.info/document/103691#page=5>)<sup>\[12\]</sup>, [SAS Phase 2](<https://www.transit.dot.gov/sites/fta.dot.gov/files/2023-03/NY-New-York-Second-Avenue-Subway-Phase-2-NSE-Profile-FY24.pdf#page=1>)<sup>\[72\]</sup>, [IBX Feasibility](<https://www.mta.info/document/72081#page=16>)<sup>\[10\]</sup>.
 
 [^5]: SAS Phase 2 is the exception here, as its latest projections were made before the pandemic, hence the 2017 projection year.
 
 [^6]: STOPS depends on extensive calibration with existing ridership, which includes statistics like per-platform ridership, which the MTA does not make available.
-    Thus, there is a limit to its accuracy.
-    But the fact that it found a very similar number to the MTA’s closed-source Regional Transit Forecasting Model (RTFM) bodes well, and it also quite accurately (retroactively) predicted SAS Phase 1 ridership.
-    Including detailed ridership in open data would enable more accurate independent analyses confirming higher ridership potential.
+Thus, there is a limit to its accuracy.
+But the fact that it found a very similar number to the MTA’s closed-source Regional Transit Forecasting Model (RTFM) bodes well, and it also quite accurately (retroactively) predicted SAS Phase 1 ridership.
+Including detailed ridership in open data would enable more accurate independent analyses confirming higher ridership potential.
 
 [^7]: This number is somewhat higher than what MTA data suggests.
-    A naive count of SAS Phase 1 [2019 ridership](<https://www.mta.info/document/213556>)<sup>\[73\]</sup> that counts double the entries (as a proxy for entries and exits) at the 3 new SAS Phase 1 stations, plus Lexington Av/63 St, including all of its F riders, is 198,338, close to the [MTA’s 200,000](<https://www.governor.ny.gov/news/governor-hochul-and-mta-announce-second-avenue-subway-phase-2-moves-forward#:~:text=carried%20more%20than-,200%2C000,-passengers%20on%20a>)<sup>\[26\]</sup>.
-    A [more detailed analysis](<https://github.com/kkysen/mta-od-data/tree/main/raptor>)<sup>\[74\]</sup> of the fall [2025 origin destination data](<https://data.ny.gov/Transportation/MTA-Subway-Origin-Destination-Ridership-Estimate-2/y2qv-fytt/about_data>)<sup>\[75\]</sup> with the [RAPTOR routing algorithm](<https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf>)<sup>\[76\]</sup> and then scaling for both pandemic recovery at the SAS Phase 1 stations and [subway fare evasion](<https://metrics.mta.info/?subway/fareevasion>)<sup>\[77\]</sup> gives around [~184,000 for average weekday ridership](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md>)<sup>\[25\]</sup>.
-    An [average October, 2025 Wednesday gives around ~204,500](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md>)<sup>\[25\]</sup>, in case the MTA measured a single day.
-    [Transfer sensitivity analysis](<https://github.com/kkysen/mta-od-data/tree/main/raptor>)<sup>\[74\]</sup> shows there is little variance in these numbers for SAS Phase 1.
-    However, if the true number is lower than what the MTA suggests, this only strengthens the case for the IBX’s ridership.
+A naive count of SAS Phase 1 [2019 ridership](<https://www.mta.info/document/213556>)<sup>\[73\]</sup> that counts double the entries (as a proxy for entries and exits) at the 3 new SAS Phase 1 stations, plus Lexington Av/63 St, including all of its F riders, is 198,338, close to the [MTA’s 200,000](<https://www.governor.ny.gov/news/governor-hochul-and-mta-announce-second-avenue-subway-phase-2-moves-forward#:~:text=carried%20more%20than-,200%2C000,-passengers%20on%20a>)<sup>\[26\]</sup>.
+A [more detailed analysis](<https://github.com/kkysen/mta-od-data/tree/main/raptor>)<sup>\[74\]</sup> of the fall [2025 origin destination data](<https://data.ny.gov/Transportation/MTA-Subway-Origin-Destination-Ridership-Estimate-2/y2qv-fytt/about_data>)<sup>\[75\]</sup> with the [RAPTOR routing algorithm](<https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf>)<sup>\[76\]</sup> and then scaling for both pandemic recovery at the SAS Phase 1 stations and [subway fare evasion](<https://metrics.mta.info/?subway/fareevasion>)<sup>\[77\]</sup> gives around [~184,000 for average weekday ridership](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md>)<sup>\[25\]</sup>.
+An [average October, 2025 Wednesday gives around ~204,500](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_line.md>)<sup>\[25\]</sup>, in case the MTA measured a single day.
+[Transfer sensitivity analysis](<https://github.com/kkysen/mta-od-data/tree/main/raptor>)<sup>\[74\]</sup> shows there is little variance in these numbers for SAS Phase 1.
+However, if the true number is lower than what the MTA suggests, this only strengthens the case for the IBX’s ridership.
 
 [^8]: In China, there are two main types of rolling stock: [Type A](<https://www.checkerboardhill.com/2022/04/metro-train-carbody-standards-of-china/#:~:text=are%20built%20to.-,Type%20A,-Type%20A%20trains>)<sup>\[78\]</sup> and Type B. [Type B](<https://www.checkerboardhill.com/2022/04/metro-train-carbody-standards-of-china/#:~:text=1%2C%20Line%202-,Type%20B,-Type%20B%20trains>)<sup>\[79\]</sup> is the lower capacity one, which is narrower (2.8 m wide) and has shorter cars (19 m).
-    6B means 6-car Type B trains, so 119 m long.
-    By contrast, the high-capacity heavy metro lines are generally 8A, 3.09 m wide and 186 m long.
+6B means 6-car Type B trains, so 119 m long.
+By contrast, the high-capacity heavy metro lines are generally 8A, 3.09 m wide and 186 m long.
 
 [^9]: This counts all new-build, grade-separated, non-mainline urban rail lines.
 
 [^10]: As [FOILed](<https://bqrail.substack.com/p/interborough-express-progress-reports#:~:text=driverless%20vehicle%20operations>)<sup>\[80\]</sup> by John Pegram (BQRail).
-    The presentation was done on March 26, 2024 by WSP, the consultant for the environmental review.
+The presentation was done on March 26, 2024 by WSP, the consultant for the environmental review.
 
 [^11]: The Queens Boulevard Line (E/F/M/R) between 50 St/8 Av and 47-50 Sts/6 Av to Kew Gardens-Union Tpke (QBL West), in addition to the Culver Line (F) between Church Av and West 8 St, are also equipped with CBTC and are GoA2 now.
 
 [^12]: In Italy, where many urban subway lines have been built this century, some driverless and some not, the cost of underground station excavation has been fairly consistent at €500 per cubic meter outside the most difficult environments (such as Classical Roman sites), producing smaller driverless stations in Turin and Milan at €15 million per station and larger ones in more modern parts of Rome at €40 million.
 
 [^13]: M15 is 1.5 million riders/75 km route = 20,000 riders/km.
-    The [1 is 21,823 riders/route km](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_route.md>)<sup>\[15\]</sup>.
-    These numbers are sensitive to transfer modeling in [RAPTOR](<https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf>)<sup>\[76\]</sup>, but marginally (0.8%), especially compared to the M15 ridership projection
+The [1 is 21,823 riders/route km](<https://github.com/kkysen/mta-od-data/blob/main/src/mta_od_data/ridership/by_route.md>)<sup>\[15\]</sup>.
+These numbers are sensitive to transfer modeling in [RAPTOR](<https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/raptor_alenex.pdf>)<sup>\[76\]</sup>, but marginally (0.8%), especially compared to the M15 ridership projection
 
 [^14]: A 4-car Alstom Metropolis Saint-Laurent as used on REM holds 780 passengers and is 76.2 m long and 2.94 m wide, small enough to fit in the East NY Tunnels.
-    780/76.2 m \* 325 ft = 1014 ≈ 1000.
+780/76.2 m \* 325 ft = 1014 ≈ 1000.
 
 [^15]: The busiest 2-track rail crossing is the 53 St Tunnel at 22,621 pphpd and the busiest 4-track rail crossing is the Manhattan Bridge at 30,130 pphpd.
 
@@ -313,42 +313,42 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 [^18]: This is imputed from C$0.064/capacity-km per p. 37, a capacity of 91.86 per p. 19, and standard US-Canada PPP conversions [per the OECD](<https://data-explorer.oecd.org/vis?df[ds]=dsDisseminateFinalDMZ&df[id]=DSD_NAMAIN10%40DF_TABLE4&df[ag]=OECD.SDD.NAD&df[vs]=2.0&dq=A.AUS%2BAUT%2BBEL%2BCAN%2BCHL%2BCOL%2BCRI%2BCZE%2BDNK%2BEST%2BFIN%2BFRA%2BDEU%2BGRC%2BHUN%2BISL%2BIRL%2BISR%2BITA%2BJPN%2BKOR%2BLVA%2BLTU%2BLUX%2BMEX%2BNLD%2BNZL%2BNOR%2BPOL%2BPRT%2BSVK%2BSVN%2BESP%2BSWE%2BCHE%2BTUR%2BGBR%2BUSA...PPP_B1GQ.......&lom=LASTNPERIODS&lo=10&to[TIME_PERIOD]=false&ly[cl]=TIME_PERIOD&ly[rw]=REF_AREA,COMBINED_UNIT_MEASURE&vw=tb>)<sup>\[81\]</sup>.
 
 [^19]: According to the [2025 MTA payroll](<https://data.ny.gov/d/kcjb-nf3e>)<sup>\[82\]</sup>, there are 29,161 subway workers (NYCTA, department code 2xxx, no separation date), of which 3,899 (13.4%) are train operators and 2,764 (9.5%) are conductors.
-    Combined, they are 6,663 (22.8%).
+Combined, they are 6,663 (22.8%).
 
 [^20]: There are numerous Automated People Movers (APMs) at airports in the US.
-    Every single one is automated with PSDs.
-    However, Honolulu Skyline is the first metro with either PSDs or GoA4 automation.
+Every single one is automated with PSDs.
+However, Honolulu Skyline is the first metro with either PSDs or GoA4 automation.
 
 [^21]: IBX stations are planned to be [325 ft](<https://www.mta.info/document/187036#page=20>)<sup>\[40\]</sup>, a bit longer than the 260 ft Hitachi Driverless Metro trains on Honolulu Skyline.
-    However, this is an upper bound for IBX stations, as they are just ensuring everything is built for at least 325 ft until rolling stock is selected.
-    The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.
+However, this is an upper bound for IBX stations, as they are just ensuring everything is built for at least 325 ft until rolling stock is selected.
+The 260 ft length and 800/train capacity of Honolulu’s trains would allow for 32,000 pphpd with 90 second headways, which, as discussed, is more than any rail crossing into Manhattan.
 
 [^22]: $27 million / (21 stations \* 260 ft) \* (18 stations \* 325 ft) \* 1.431 inflation from Sep 2013 to Aug 2026 = $41.4 million. $41.4 million / $5.5 billion = 0.753%.
 
 [^23]: [$106 million EUR / 29 stations](<https://www.leparisien.fr/info-paris-ile-de-france-oise/transports/accidents-mortels-dans-le-metro-la-securisation-des-quais-un-chantier-long-et-couteux-27-04-2023-6HBP4OH5TFBDXM5SN2NMLM3JME.php>)<sup>\[83\]</sup> \* (602.1 ft / 90 m) / ([0.7060 EUR/USD PPP in 2019](<https://data.worldbank.org/indicator/PA.NUS.PPP?locations=FR>)<sup>\[84\]</sup>) \* (334.98 Aug 2026 CPI-U / 255.66 2019 CPI-U) = $13.83 million USD/station.
-    The contract was signed in 2016 and automation began in 2022, so the midpoint, 2019, is used.
+The contract was signed in 2016 and automation began in 2022, so the midpoint, 2019, is used.
 
 [^24]: [$2 billion HKD](<https://www.info.gov.hk/gia/general/200501/05/0105194.htm>)<sup>\[85\]</sup> / [74 platform faces](<https://www.info.gov.hk/gia/general/200501/05/0105194.htm#:~:text=of%20PSDs%20at-,74%20platforms,-of%20the%2030>)<sup>\[86\]</sup> \* 2 platform faces/station \* (602.1 ft / 180 m) / ([5.988 HKD/USD PPP in 2003](<https://data.worldbank.org/indicator/PA.NUS.PPP?locations=HK>)<sup>\[87\]</sup>) \* (334.98 Aug 2026 CPI-U / 184.00 2003 CPI-U) = $16.76 million USD/station.
-    The contract was signed in 2000 and construction finished in 2006, so the midpoint, 2003, is used.
+The contract was signed in 2000 and construction finished in 2006, so the midpoint, 2003, is used.
 
 [^25]: On the existing NYC subway, retrofitting PSDs at every station is unfortunately very difficult.
-    There are issues with [ADA clearance, platform edges that can’t support a PSD’s weight, different train door positions, and more](<https://www.mta.info/document/73241#page=3>)<sup>\[88\]</sup>.
-    These can be fixed, at even greater cost.
-    The NYC estimate is extremely high compared to other retrofitted cities.
-    But even if NYC had similar costs, the station design in NYC genuinely makes it more difficult.
+There are issues with [ADA clearance, platform edges that can’t support a PSD’s weight, different train door positions, and more](<https://www.mta.info/document/73241#page=3>)<sup>\[88\]</sup>.
+These can be fixed, at even greater cost.
+The NYC estimate is extremely high compared to other retrofitted cities.
+But even if NYC had similar costs, the station design in NYC genuinely makes it more difficult.
 
 [^26]: The cost of full-height PSDs was estimated to be [$7.01 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[89\]</sup> in 2018–2019 USD for only the 128 feasible stations.
-    Half-height PSDs were [$6.53 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[89\]</sup>.
-    Adjusted for inflation, this is $7.01 billion \* 1.322 / 128 = $72.4 million and $6.53 billion \* 1.322 / 128 = $67.4 million.
-    1.322 is inflation from the average of 2018 and 2019 to Aug 2026.
+Half-height PSDs were [$6.53 billion](<https://www.mta.info/document/73241#page=4>)<sup>\[89\]</sup>.
+Adjusted for inflation, this is $7.01 billion \* 1.322 / 128 = $72.4 million and $6.53 billion \* 1.322 / 128 = $67.4 million.
+1.322 is inflation from the average of 2018 and 2019 to Aug 2026.
 
 [^27]: The MTA chose light rail transit (LRT) as the mode for the IBX on January 10, 2023 in the [PEL study](<https://www.mta.info/document/103691>)<sup>\[90\]</sup>.
 
 [^28]: The [IBX1 LRT-18](<https://www.mta.info/document/114891#page=992>)<sup>\[7\]</sup> curve in the PEL study has a radius of 465 ft. The wider-radius (917 ft) [IBX2 LRT-11](<https://www.mta.info/document/114891#page=992>)<sup>\[7\]</sup> curve is for the Brooklyn Army Terminal station option further west, but the MTA has decided on the eastern option closer to 2 Av, which has the 465 ft curve radius.
-    The next tightest curve is [IBX1 LRT-36](<https://www.mta.info/document/114891#page=994>)<sup>\[91\]</sup> and [IBX2 LRT-37](<https://www.mta.info/document/114891#page=994>)<sup>\[91\]</sup> at 917 ft.
+The next tightest curve is [IBX1 LRT-36](<https://www.mta.info/document/114891#page=994>)<sup>\[91\]</sup> and [IBX2 LRT-37](<https://www.mta.info/document/114891#page=994>)<sup>\[91\]</sup> at 917 ft.
 
 [^29]: We’re not sure where the ~100 ft curve is, but the [old South Ferry loop](<https://www.nycsubway.org/wiki/Chapter_03._General_Arrangement_for_Construction#:~:text=150-,South%20Ferry%20loop,-111>)<sup>\[60\]</sup> is close (111 ft) and is still in occasional revenue service.
-    Other tighter curves may be in yard trackage.
+Other tighter curves may be in yard trackage.
 
 [^30]: In the former street-running section, there were multiple 100 ft curves: [IBX1 LRT-647](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>, [IBX1 LRT-661](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>, [IBX2 LRT641](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>, [IBX2 LRT656](<https://www.mta.info/document/114891#page=1014>)<sup>\[61\]</sup>.
 
@@ -357,7 +357,7 @@ We hope the MTA will continue to recognize the merits of our suggestions and bui
 [^32]: Besides not being automated, Montreal’s rubber-tired metro cannot run outdoors, which greatly limits expansion.
 
 [^33]: ETA members delivered public comment on October 29, 2025.
-    In the November general engineering contractor (GEC) progress report, they [began studying 750 vs 1500 V DC catenary](<https://bqrail.substack.com/api/v1/file/42b8fb33-73ef-4a87-8d9a-31260d311b91.pdf#page=6>)<sup>\[94\]</sup>.
+In the November general engineering contractor (GEC) progress report, they [began studying 750 vs 1500 V DC catenary](<https://bqrail.substack.com/api/v1/file/42b8fb33-73ef-4a87-8d9a-31260d311b91.pdf#page=6>)<sup>\[94\]</sup>.
 
 ## Sources
 

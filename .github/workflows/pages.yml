@@ -37,12 +37,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
 
       # `biome` lays out the emitted HTML, so a build without it writes nothing.
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v5
 
       # Which sources the Wayback Machine has no capture of.
       #

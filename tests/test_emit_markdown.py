@@ -6,8 +6,8 @@ import pytest
 from paths import FIXTURE_DIR, named_images
 
 from eta_publish.docs_json import JsonObject
-from eta_publish.emit.markdown import MarkdownEmitter
-from eta_publish.nodes import Document, Text
+from eta_publish.emit.markdown import MarkdownEmitter, image_url, url
+from eta_publish.nodes import Document, Inline, Paragraph, Text
 from eta_publish.parse import parse
 
 FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
@@ -102,7 +102,7 @@ def test_the_archive_keeps_the_source_line_as_a_comment(out: str) -> None:
 
 
 def test_figures_carry_caption_and_credit(out: str) -> None:
-    assert "![SAS West alignment map](<images/sas-west-036.png>)" in out
+    assert "![SAS West alignment map](images/sas-west-036.png)" in out
     assert "The SAS West and Phase 2 alignments." in out
     assert "Credit: MTA" in out
     # Not italicized: the live publication does not italicize either.
@@ -181,8 +181,8 @@ def test_a_value_holding_a_backtick_is_still_one_span() -> None:
     [
         # A `**` after a space cannot close, so this would print its asterisks.
         (Text(text="on August 21, 2026: ", bold=True), "**on August 21, 2026:** "),
-        (Text(text=" stressed", italic=True), " *stressed*"),
-        (Text(text=" both ", bold=True, italic=True), " ***both*** "),
+        (Text(text=" stressed", italic=True), " _stressed_"),
+        (Text(text=" both ", bold=True, italic=True), " _**both**_ "),
         (Text(text="saving ", href="https://a.example/"), "[saving](<https://a.example/>) "),
         (Text(text=" ", bold=True), " "),
         (Text(text=" plain "), " plain "),
@@ -190,3 +190,31 @@ def test_a_value_holding_a_backtick_is_still_one_span() -> None:
 )
 def test_edge_whitespace_goes_outside_the_markers(run: Text, written: str) -> None:
     assert MarkdownEmitter().text(run) == written
+
+
+def test_italics_take_an_asterisk_where_an_underscore_cannot_close() -> None:
+    """`_` is what `biome` writes, but it neither opens nor closes inside a word."""
+    emitter = MarkdownEmitter()
+    inside: list[Inline] = [
+        Text(text="un"),
+        Text(text="frigging", italic=True),
+        Text(text="believable"),
+    ]
+    assert emitter.inlines(inside) == "un*frigging*believable"
+    assert emitter.inlines([Text(text="a_b", italic=True)]) == "*a\\_b*"
+    assert emitter.inlines([Text(text="see "), Text(text="this", italic=True), Text(text=".")]) == (
+        "see _this_."
+    )
+
+
+def test_an_image_destination_is_bracketed_only_when_it_has_to_be() -> None:
+    assert image_url("images/a.png") == "images/a.png"
+    assert image_url("images/Bus_(disambiguation).png") == "<images/Bus_(disambiguation).png>"
+    assert image_url("images/a b.png") == "<images/a b.png>"
+    # A link keeps its brackets, as `biome` leaves them.
+    assert url("https://a.example/") == "<https://a.example/>"
+
+
+def test_spaces_after_a_sentence_collapse_so_it_splits() -> None:
+    paragraph = Paragraph([Text(text="One sentence.  Another one.")])
+    assert MarkdownEmitter().paragraph(paragraph) == "One sentence.\nAnother one."

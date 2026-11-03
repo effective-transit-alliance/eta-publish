@@ -11,13 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: true
 
       # `biome` formats the emitted HTML, so a build without it writes
       # nothing, and the tests compare against pages it laid out.
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v5
 
       - name: ruff format
         run: uv run ruff format --check

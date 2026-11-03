@@ -67,7 +67,7 @@ Deinterlining: Simpler Service, Fewer Delays
 
 Every New York subway rider knows the frustration of train stops and delays.
 One minute, you are speeding along; the next, you slow to a crawl and stop, for no obvious reason.
-Even worse, at times *every* train is running at a snail's pace, all due to an incident that happened miles away, on a completely different line.
+Even worse, at times _every_ train is running at a snail's pace, all due to an incident that happened miles away, on a completely different line.
 Obviously, no transit agency can completely prevent unexpected mishaps.
 They can, however, structure their services to prevent a single incident from spreading delays across the entire system, cascading for hours on end.
 
@@ -80,17 +80,17 @@ For example, the A train has branches running to both Far Rockaway and Lefferts 
 The same is true of D and N trains, which have separate branches toward Coney Island, but share tracks running express on 4 Av. This type of branching is relatively easy to schedule, as trains can be made to arrive at their merge point at staggered times so that they fit into a neatly spaced pattern in the middle.
 In this way, trains don't conflict with one another, and they provide more service to denser areas.
 
-![Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.](<images/img-a199edea.png>)\
+![Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.](images/img-a199edea.png)\
 Reverse branching makes scheduling transit systems incredibly complex and allows delays to propagate.
 
 Credit: ETA, [Kara Fischer](<https://thetransitgirl.tumblr.com/>)<sup>\[1\]</sup>
 
-The subway, however, also has many *reverse branches*, where services that have already branched out from one central trunk line join with a branch of another.
+The subway, however, also has many _reverse branches_, where services that have already branched out from one central trunk line join with a branch of another.
 A prominent example are the 7 Av (2/3) and Lexington Av (4/5) Expresses: these lines branch in the outer boroughs, but the 2 and 5 trains, which run separately in Manhattan, merge onto the same tracks along White Plains Rd in the Bronx and Nostrand Av in Brooklyn.
 Reverse branches are incredibly difficult to schedule: ensuring that trains always come to interlockings at different times quickly becomes a very difficult, and often impossible, problem to solve.
 Perhaps worse, when delays mess up this delicate balance, they can cause cascading delays across lines that would otherwise be unaffected.
 
-There is one simple solution to this scheduling and delay-inducing headache: eliminating reverse branches through a process called *deinterlining*.
+There is one simple solution to this scheduling and delay-inducing headache: eliminating reverse branches through a process called _deinterlining_.
 Deinterlining simplifies the subway’s complex and delicate arrangement, creating a more robust, reliable network.
 This is why, as the broader transit advocacy has noted for years (e.g., [Alon Levy](<https://pedestrianobservations.com/2018/06/12/how-deinterlining-can-improve-new-york-city-transit/>)<sup>\[2\]</sup>, [vanshnookenraggen](<https://www.vanshnookenraggen.com/_index/2020/10/deinterlining-with-one-switch/>)<sup>\[3\]</sup>, [Uday Schultz](<https://homesignalblog.wordpress.com/2021/06/15/deinterlining-some-quantitative-evidence/>)<sup>\[4\]</sup>, [NYTIP](<https://www.nerdynel.me/2019/02/nytip104bkirt/>)<sup>\[5\]</sup>, [Joint Transit Association](<https://www.youtube.com/watch?v=pLBeZaJboVU>)<sup>\[6\]</sup>, [Mystic Transit](<https://www.youtube.com/watch?v=ew4LOZq6Eqo>)<sup>\[7\]</sup>), deinterlining is a crucial step in enabling better service on the subway.
 
@@ -113,7 +113,7 @@ In other words, interlining not only creates built-in delays, but leaves the sch
 For example, a delay on the R in Queens could cascade to the N in Midtown, then to the D train in Brooklyn, which could affect the B in Manhattan, and so on.
 The result is that a disruption at one location can cascade across the whole system.
 
-![Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.](<images/img-da01ab69.png>)\
+![Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.](images/img-da01ab69.png)\
 Many of New York’s subway lines are interconnected through delicate acts of interlining, allowing delays to spread.
 
 This graph shows all B Division services that share tracks with at least one other service.
@@ -161,7 +161,7 @@ The most effective way to do this is through increased service.
 
 #### The [F/M swap](<https://www.mta.info/article/f-m-swap>)<sup>\[8\]</sup>
 
-![Credit: MTA](<images/img-5f0a3a08.jpg>)\
+![Credit: MTA](images/img-5f0a3a08.jpg)\
 Credit: MTA
 
 This morning, December 8th, 2025, the MTA [permanently switched the tunnels](<https://www.mta.info/article/f-m-swap>)<sup>\[8\]</sup> that the F and M trains use between Queens and Manhattan on weekdays.
@@ -173,7 +173,7 @@ The [current set of merges around Queens Plaza delay a staggering 15–20% of ru
 Instead, the E will now share tracks with 2 other services (the C and F) instead of 3, and the M will now share tracks with 3 other services (the F, J/Z, and R) instead of 4.
 The F/M swap will isolate the local and express tracks of the Queens Blvd Line, so delays can no longer propagate between the E/F and M/R trains.
 
-![Credit: MTA, via Roosevelt Islander](<images/img-c1aacb22.jpg>)\
+![Credit: MTA, via Roosevelt Islander](images/img-c1aacb22.jpg)\
 Credit: MTA, via [Roosevelt Islander](<https://rooseveltislander.com/2025/06/03/mta-plans-big-changes-coming-to-roosevelt-island-subway-service/>)<sup>\[11\]</sup>
 
 The value of deinterlining was proven by a recent natural experiment.
@@ -189,7 +189,8 @@ This is the key to successful deinterlining, ensuring that [98% of riders see fa
 With the increased frequency, frequent and reliable transfers diminish the value of one-seat rides.
 It would be better yet if M frequencies could be raised further; however, turnback capacity at Forest Hills and merge delays at Myrtle Av with the J/Z limit how many more M trains can be run.
 
-The [schedule](<https://www.mta.info/schedules/subway/m-train>)<sup>\[14\]</sup> released by the MTA today, however, only shows a small increase in service over the course of the day.  There will be 9 tph both before and after the swap, with only 6 out of 18 morning rush-hour M trains having the promised 6-minute headways or better.
+The [schedule](<https://www.mta.info/schedules/subway/m-train>)<sup>\[14\]</sup> released by the MTA today, however, only shows a small increase in service over the course of the day.
+There will be 9 tph both before and after the swap, with only 6 out of 18 morning rush-hour M trains having the promised 6-minute headways or better.
 We hope that the MTA will continue to improve M service in upcoming schedule updates, at least up to the promised 6-minute headways, to ensure that as many people as possible see a positive impact from this change.
 
 The F/M swap is a perfect place to start deinterlining, as it will actually provide many one-seat rides and significantly reduce crowding.
@@ -309,15 +310,15 @@ It is one of the easiest, most cost-effective ways to build a subway system that
 
 #### Corrections
 
-- An earlier version of this piece incorrectly stated that the MTA's new schedule for the M train did not increase service.  The schedule does include a modest service increase, just not one that reaches the levels promised.
+- An earlier version of this piece incorrectly stated that the MTA's new schedule for the M train did not increase service. The schedule does include a modest service increase, just not one that reaches the levels promised.
 
 NO CONTENT BELOW THIS LINE
 
 (insert the following images above, where marked)
 
-![](<images/img-96810135.jpg>)
+![](images/img-96810135.jpg)
 
-![](<images/img-5a4ea5b9.jpg>)
+![](images/img-5a4ea5b9.jpg)
 
 Sources:
 
@@ -342,7 +343,7 @@ Tweets:
 [^2]: 319,900 daily riders \* 1.7 min = 378 rider-days per day
 
 [^3]: 4 on 4 Av and its branches (36 St, 59 St, New Utrecht Av-62 St, Coney Island-Stillwell Av) and 7 on Brighton (7 Av, Prospect Park, Church Av, Newkirk Av, Kings Hwy, Sheepshead Bay, Brighton Beach).
-    Coney Island is not counted as it will always retain one-seat rides to both Manhattan trunks no matter what deinterlining plan is used.
+Coney Island is not counted as it will always retain one-seat rides to both Manhattan trunks no matter what deinterlining plan is used.
 
 ## Sources
 

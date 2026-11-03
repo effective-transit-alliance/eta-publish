@@ -33,11 +33,11 @@
 - the image `img-ae6ddd33` has no alt text and no caption; add a description to it in the doc
 - the alt text of image `img-cf3f2056` says `Image`, which a screen reader already says; give the image alt text without it in the doc (right-click, Alt text)
 
-![](<images/img-ae6ddd33.jpg>)
+![](images/img-ae6ddd33.jpg)
 
 ## Bring Back the Monthly: The Value of Affordable Transit Passes
 
-![Image: Tapping onto the subway with OMNY](<images/img-cf3f2056.jpg>)\
+![Image: Tapping onto the subway with OMNY](images/img-cf3f2056.jpg)\
 Image: Tapping onto the subway with OMNY
 
 Credit: Blair Lorenzo, ETA
@@ -84,7 +84,7 @@ They are also a powerful tool for transit agencies:
 
 - They **drive all-day transit ridership**, increasing utilization while lowering the per-passenger cost. Regular transit commuters to work or school are incentivized to buy a monthly pass, which then ensures that their other trips, during less busy times, have zero marginal cost.
 - They bring **predictable revenue streams** that are easy to plan around.
-- They **reduce fare evasion**, as those who have already purchased a pass have no incentive to evade the fare. Faregate vendors credit their systems with reducing *opportunistic* fare evasion,[^3] and the same arguments apply to prepaid passes: there is no reason for most people to avoid the fare if they have already paid.
+- They **reduce fare evasion**, as those who have already purchased a pass have no incentive to evade the fare. Faregate vendors credit their systems with reducing _opportunistic_ fare evasion,[^3] and the same arguments apply to prepaid passes: there is no reason for most people to avoid the fare if they have already paid.
 - They **make all-door bus boarding and proof-of-payment easier to implement**, as passes not only reduce evasion, but are quicker and easier to scan during an inspection.
 - They scale well with **pre-tax commuter benefits**, administered by organizations like TransitChek, Edenred, and JAWNT. These provide a specific pre-tax amount up to an IRS-defined limit. A consistently priced monthly pass allows easy configuration of that amount, whereas a cap leads to varied costs every month.
 - Historically, prepaid monthly passes have worked to reduce **transaction costs**, including curtailing the number of ticket-vending machines needed at stations. With modern payment by contactless card and app, this effect is reduced, but there is still less friction when the user buys one monthly than when they buy individual tickets. Many riders also prefer the simplicity of a single charge on their bank statement instead of dozens.
@@ -102,8 +102,8 @@ To put that number in perspective, there are on average only 21 or 22 workdays i
 That means that a full-time worker commuting to and from their job every day would have only taken a maximum of 44 rides, not breaking even on an unlimited-ride MetroCard.
 Things are even worse under the current weekly fare capping scheme: at $35 per week, the equivalent of an unlimited pass now breaks even at **50 rides per month, the highest ratio in the world**.
 
-![Worldwide Monthly Pass Ratios](<images/img-6b5eb7d1.png>)\
-*A comparison of monthly fare pass ratios. Note: for cities with multiple zones, only an inner zone pass is used.*
+![Worldwide Monthly Pass Ratios](images/img-6b5eb7d1.png)\
+_A comparison of monthly fare pass ratios. Note: for cities with multiple zones, only an inner zone pass is used._
 
 Other cities across both the country and the globe have taken a very different approach: they keep the cost of their monthly pass comparatively low in order to encourage as many riders as possible to use them.
 In ETA’s data, the average breakeven point is 29, usually higher in English-speaking countries and Japan, and lower in Continental Europe.
@@ -215,20 +215,20 @@ After all, the easiest transit trip to make is the one that you don't have to th
 
 [^1]: ($35/7 days) / ($132/30 days) = 1.136 vs $3 / $2.90 = 1.034
 
-[^2]: Badoe, D. & Yendeti, M., “Impact of Transit-Pass Ownership on Daily Number of Trips Made by Urban Public Transit,” *Journal of Urban Planning and Development* (2007, 133:4, 242). https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)
+[^2]: Badoe, D. & Yendeti, M., “Impact of Transit-Pass Ownership on Daily Number of Trips Made by Urban Public Transit,” _Journal of Urban Planning and Development_ (2007, 133:4, 242). https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)
 
 [^3]: Ironman Turnstile mentions this in its brochure, [https://www.ironmanturnstile.com/transportation-and-smart-hubs/](<https://www.ironmanturnstile.com/transportation-and-smart-hubs/>)<sup>\[9\]</sup>, and Cubic mentions that as an argument for reducing fare payment friction, [https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection](<https://www.cubic.com/news-events/blogs/why-enforcement-cant-be-the-only-solution-for-transit-revenue-protection>)<sup>\[10\]</sup>.
 
-[^4]: Brian D. Taylor, Mark Garrett, and Hiroyuki Iseki, “Measuring Cost Variability in Provision of Transit Service,” *Transportation Research Record* (2000, 1745(1), 101-112). https://doi.org/10.3141/1735-13
+[^4]: Brian D. Taylor, Mark Garrett, and Hiroyuki Iseki, “Measuring Cost Variability in Provision of Transit Service,” _Transportation Research Record_ (2000, 1745(1), 101-112). https://doi.org/10.3141/1735-13
 
     Professor Taylor also explains this phenomenon in [this presentation for the Transit Costs Project](<https://youtu.be/OVq1SRBy3aY?si=JyTyJlIe4zqtKe60>)<sup>\[11\]</sup>.
 
 [^5]: See computations in our report, Modernizing New York Commuter Rail, [https://www.etany.org/modernizing-new-york-commuter-rail](<https://www.etany.org/modernizing-new-york-commuter-rail>)<sup>\[12\]</sup>, footnotes 73–77.
-    Subway rolling stock lasts regardless of how intensively it is run, and the commuter rail crew schedules in Berlin, where there is limited difference between peak and off-peak frequency, get 12% more hours out of every train driver than Metro-North, which has to pay extra for split shifts, and 50% more than the LIRR, which does not.
-    Those computations are equally valid for subway and commuter rail service.
+Subway rolling stock lasts regardless of how intensively it is run, and the commuter rail crew schedules in Berlin, where there is limited difference between peak and off-peak frequency, get 12% more hours out of every train driver than Metro-North, which has to pay extra for split shifts, and 50% more than the LIRR, which does not.
+Those computations are equally valid for subway and commuter rail service.
 
 [^6]: Example: One ride to trigger the period, 11 more in the last three days of the first period, 12 more in the first four days of the last period.
-    The maximum is one short of 24 because at least one ride outside the first part of the rolling 7 days is needed to trigger the non-rolling window that splits the rolling window.
+The maximum is one short of 24 because at least one ride outside the first part of the rolling 7 days is needed to trigger the non-rolling window that splits the rolling window.
 
 [^7]: Singapore technically does have a monthly pass, but it’s not designed to be used by the mass public and is on a different system from the point-to-point distance-based fares that everyone uses.
 
