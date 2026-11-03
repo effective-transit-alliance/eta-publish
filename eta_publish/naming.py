@@ -174,6 +174,30 @@ def web_href(href: str, width: int, extension: str) -> str:
     return f"{WEB_DIR}/{stem}-{width}w.{extension}"
 
 
+PNG_SIDE = 2048
+"""How many pixels along its longer side an SVG's PNG is drawn.
+
+Large enough for a slide or a printed page, since a PNG cannot be scaled up
+the way the SVG it stands in for can, and small enough to send to someone.
+"""
+
+
+def png_href(href: str) -> str:
+    """What the PNG of the SVG `href` is called, under `IMAGE_DIR`.
+
+    For whoever cannot use an SVG: the SVG is what a figure shows and links,
+    and the PNG is offered only beside it, in the lightbox.
+    Named as the SVG is, so it saves under the same name.
+    """
+    stem = href.rpartition(".")[0]
+    return f"{WEB_DIR}/{stem}.png"
+
+
+def has_png(href: str) -> bool:
+    """Whether `href` is an SVG, which is offered as a PNG too."""
+    return href.rpartition(".")[2].lower() == "svg"
+
+
 def has_web_copies(href: str) -> bool:
     """Whether `href` is shown through copies: a raster, and not a GIF, which may move."""
     return href.rpartition(".")[2].lower() in ("jpg", "jpeg", "png", "webp")
