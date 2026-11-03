@@ -38,7 +38,7 @@ jobs:
           enable-cache: true
 
       # `biome` lays out the emitted HTML, so a build without it writes nothing.
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v5
 
       # Which sources the Wayback Machine has no capture of.
       #
