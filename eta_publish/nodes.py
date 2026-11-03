@@ -738,6 +738,12 @@ class Document:
     Recorded in `embeds.json` for the same reason as `image_files`:
     the extension is learned by fetching."""
 
+    media_hashes: dict[str, str] = field(default_factory=dict)
+    """Embed URL to the SHA-256 of its file in `media_files`, as last downloaded.
+
+    Recorded in `embeds.json`, as `images.json` records each picture's:
+    the files are not committed, so this is what says one has changed."""
+
     media_captions: dict[str, Captions] = field(default_factory=dict)
     """Embed URL to the captions its copied video came with, under `VIDEO_DIR`.
 

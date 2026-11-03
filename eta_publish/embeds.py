@@ -21,6 +21,7 @@ from urllib.parse import quote
 import requests
 lazy from yt_dlp import YoutubeDL
 
+from . import console
 from .docs_json import JsonObject
 from .naming import CAPTIONS_LANGUAGE, IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
 from .nodes import VIDEO_TYPES, Captions, Card, Cue, Document, Embed, Platform, Shown
@@ -39,7 +40,7 @@ deleted, never was, or made private."""
 PAGES_FILE_LIMIT = 100_000_000
 """The largest file GitHub Pages will publish."""
 
-_RECORDED = frozenset({"file", "captions", "captions_automatic"})
+_RECORDED = frozenset({"file", "sha256", "captions", "captions_automatic"})
 """What `embeds.json` records about an embed beside its card."""
 
 
@@ -53,6 +54,8 @@ def read_embed_index(dest: Path, doc: Document) -> None:
         doc.cards.setdefault(url, Card(**card))
         if entry.get("file"):
             doc.media_files.setdefault(url, entry["file"])
+        if entry.get("sha256"):
+            doc.media_hashes.setdefault(url, entry["sha256"])
         if entry.get("captions"):
             captions = Captions(entry["captions"], bool(entry.get("captions_automatic")))
             doc.media_captions.setdefault(url, captions)
@@ -73,6 +76,8 @@ def write_embed_index(dest: Path, doc: Document) -> None:
         entry = {k: v for k, v in card.__dict__.items() if v}
         if embed.url in doc.media_files:
             entry["file"] = doc.media_files[embed.url]
+        if sha256 := doc.media_hashes.get(embed.url):
+            entry["sha256"] = sha256
         if captions := doc.media_captions.get(embed.url):
             entry["captions"] = captions.file
             if captions.automatic:
@@ -241,12 +246,19 @@ def is_video(card: Card | None) -> bool:
     return card is not None and card.mime in VIDEO_TYPES
 
 
-def download(doc: Document, dest: Path, http: requests.Session | None = None) -> None:
+def download(
+    doc: Document, dest: Path, http: requests.Session | None = None, hosted: str = ""
+) -> None:
     """Write each embed's thumbnail, and each Drive or copied video, beside the images.
 
     Fetched every build, as the images are, because nothing is committed to
     tell a changed file from an unchanged one. A failure warns and the card
-    goes without its picture.
+    goes without its picture, unless a copy of the file `embeds.json` records
+    is still to be had, the same file by its recorded hash:
+    the last build's on disk, or else the one the site serves at `hosted`,
+    which is where `dest` is published.
+    a platform that will not serve a file today has not taken it back,
+    so that copy is used, with a note, and the page is what it was.
     """
     http = http or requests.Session()
     stems = _stems(doc.embeds)
@@ -255,16 +267,79 @@ def download(doc: Document, dest: Path, http: requests.Session | None = None) ->
         if card is None or card.error:
             continue
         stem = stems[embed.url]
+        folder = VIDEO_DIR if embed.copy or embed.platform is Platform.DRIVE else IMAGE_DIR
         try:
             if embed.copy and embed.platform is not Platform.DRIVE:
-                doc.media_files[embed.url] = _copied(embed, stem, dest / VIDEO_DIR, doc)
-            elif embed.platform is Platform.DRIVE:
-                if is_video(card):
-                    doc.media_files[embed.url] = _video(embed, card, stem, dest / VIDEO_DIR, doc)
-            elif card.thumbnail:
-                doc.media_files[embed.url] = _thumbnail(card, stem, dest / IMAGE_DIR, http)
+                file = _copied(embed, stem, dest / folder, doc)
+            elif embed.platform is Platform.DRIVE and is_video(card):
+                file = _video(embed, card, stem, dest / folder, doc)
+            elif embed.platform is not Platform.DRIVE and card.thumbnail:
+                file = _thumbnail(card, stem, dest / folder, http)
+            else:
+                continue
         except Exception as e:
+            kept = doc.media_files.get(embed.url)
+            sha256 = doc.media_hashes.get(embed.url)
+            served = f"{hosted}/{folder}/{kept}" if hosted else ""
+            if kept and (
+                _is_recorded(dest / folder / kept, sha256)
+                or _fetch_served(dest / folder / kept, served, sha256, http)
+            ):
+                console.write(
+                    console.note(
+                        "could not download what {} shows ({}); using the copy already made",
+                        Shown(embed.url),
+                        str(e),
+                    )
+                )
+                continue
             doc.warn("could not download what {} shows ({})", Shown(embed.url), str(e))
+            continue
+        doc.media_files[embed.url] = file
+        doc.media_hashes[embed.url] = sha256_file(dest / folder / file)
+
+
+def _is_recorded(path: Path, sha256: str | None) -> bool:
+    """Whether `path` is the file `embeds.json` records, by its hash.
+
+    One with no hash recorded is not taken on trust:
+    nothing says it is the one the page was built with.
+    """
+    return sha256 is not None and path.exists() and sha256_file(path) == sha256
+
+
+def _fetch_served(path: Path, url: str, sha256: str | None, http: requests.Session) -> bool:
+    """Whether the copy the site serves at `url` is the recorded one, written to `path` if so.
+
+    The site's is the last one pushed, so a fresh checkout, CI's included, has it too.
+    """
+    if not url or sha256 is None:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    partial = path.with_name(path.name + ".part")
+    try:
+        with http.get(url, timeout=TIMEOUT, stream=True) as response:
+            response.raise_for_status()
+            with partial.open("wb") as f:
+                for chunk in response.iter_content(1 << 20):
+                    f.write(chunk)
+    except requests.RequestException:
+        partial.unlink(missing_ok=True)
+        return False
+    if sha256_file(partial) != sha256:
+        partial.unlink()
+        return False
+    partial.replace(path)
+    return True
+
+
+def sha256_file(path: Path) -> str:
+    """The SHA-256 of a file, read a piece at a time, since a video can be large."""
+    digest = hashlib.sha256()
+    with path.open("rb") as f:
+        for chunk in iter(lambda: f.read(1 << 20), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def write_captions(doc: Document, dest: Path) -> None:

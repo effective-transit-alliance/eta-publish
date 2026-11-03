@@ -1035,7 +1035,7 @@ def build_one(
         console.step("looking up embeds")
         look_up(doc)
         if options.images:
-            download_embeds(doc, dest)
+            download_embeds(doc, dest, hosted=f"{options.unpublished_url}/{path}")
     write_frames(doc, dest)
     write_captions(doc, dest)
     write_embed_index(dest, doc)
