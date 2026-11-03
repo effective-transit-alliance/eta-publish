@@ -68,7 +68,9 @@ def test_a_warning_off_a_terminal_is_one_line() -> None:
 
 def test_a_warning_off_a_terminal_has_no_escape_sequences() -> None:
     """Redirected output is a file, and colour in a file is noise to search past."""
-    assert "\x1b" not in rendered(log.built("A report", "reports/a", [WARNING], plain()), plain())
+    assert "\x1b" not in rendered(
+        log.built("A publication", "reports/a", [WARNING], plain()), plain()
+    )
 
 
 def test_the_shown_values_keep_their_backticks_where_there_is_no_colour() -> None:
@@ -125,19 +127,21 @@ def test_the_cut_part_keeps_its_marks_on_a_terminal_too() -> None:
 def test_a_failure_says_its_reason_where_it_says_the_name() -> None:
     """One failure named twice, once with the reason and once without,
     is the same failure read twice."""
-    written = rendered(log.failed("A report", "the tab is named ``"), plain())
-    assert written.splitlines() == ["✗ A report", "  the tab is named ``"]
+    written = rendered(log.failed("A publication", "the tab is named ``"), plain())
+    assert written.splitlines() == ["✗ A publication", "  the tab is named ``"]
 
 
-def test_a_report_that_built_is_counted_by_its_warnings() -> None:
-    written = rendered(log.built("A report", "reports/a", [WARNING, WARNING], plain()), plain())
-    assert written.startswith("✓ reports/a · A report · 2 warnings")
+def test_a_publication_that_built_is_counted_by_its_warnings() -> None:
+    written = rendered(
+        log.built("A publication", "reports/a", [WARNING, WARNING], plain()), plain()
+    )
+    assert written.startswith("✓ reports/a · A publication · 2 warnings")
 
 
-def test_a_report_with_nothing_to_fix_says_nothing_about_warnings() -> None:
+def test_a_publication_with_nothing_to_fix_says_nothing_about_warnings() -> None:
     assert (
-        rendered(log.built("A report", "reports/a", [], plain()), plain())
-        == "✓ reports/a · A report\n"
+        rendered(log.built("A publication", "reports/a", [], plain()), plain())
+        == "✓ reports/a · A publication\n"
     )
 
 
@@ -145,8 +149,8 @@ def test_what_squarespace_is_given_by_hand_is_under_the_heading() -> None:
     """A field the document leaves blank is not a line to paste."""
     paste = [("SEO title", "The Headline"), ("SEO description", "")]
     assert (
-        rendered(log.built("A report", "reports/a", [], plain(), paste), plain())
-        == "✓ reports/a · A report\n  SEO title: The Headline\n"
+        rendered(log.built("A publication", "reports/a", [], plain(), paste), plain())
+        == "✓ reports/a · A publication\n  SEO title: The Headline\n"
     )
 
 
@@ -173,7 +177,7 @@ def test_a_note_is_marked_apart_from_a_warning() -> None:
     assert rendered(log.warning("biome lint failed"), plain()) == "! biome lint failed\n"
 
 
-def test_the_report_a_note_is_about_is_marked_as_the_value_it_is() -> None:
+def test_the_publication_a_note_is_about_is_marked_as_the_value_it_is() -> None:
     """`added` marks the same name, read off the same list, the same way: a name
     inside a sentence runs into the words around it unless it is picked out."""
     with log.about("IBX Automation"):
@@ -181,7 +185,7 @@ def test_the_report_a_note_is_about_is_marked_as_the_value_it_is() -> None:
     assert written == "· `IBX Automation`: looking up 3 sources in the archive\n"
 
 
-def test_a_note_outside_a_build_names_no_report() -> None:
+def test_a_note_outside_a_build_names_no_publication() -> None:
     """One document fetched on its own is the only document there is,
     and naming it says nothing the caller did not type."""
     assert rendered(log.note("nothing to archive"), plain()) == "· nothing to archive\n"
@@ -235,16 +239,16 @@ def test_what_was_added_is_read_back() -> None:
     """Both values were read off the document rather than typed,
     so reading them back is the only way anybody sees what they are."""
     written = rendered(
-        log.added(Path("reports.toml"), "IBX Automation", "Draft 2", plain()), plain()
+        log.added(Path("publications.toml"), "IBX Automation", "Draft 2", plain()), plain()
     )
-    assert written == "✓ reports.toml: added `IBX Automation`, tab `Draft 2`\n"
+    assert written == "✓ publications.toml: added `IBX Automation`, tab `Draft 2`\n"
 
 
 def test_a_heading_holds_its_fields_apart_without_colour() -> None:
     """Piped into a file there is no colour saying where one field stops,
     and three fields with two spaces between them are one field."""
-    written = rendered(log.built("A report", "reports/a", [WARNING], plain()), plain())
-    assert written.splitlines()[0] == "✓ reports/a · A report · 1 warning"
+    written = rendered(log.built("A publication", "reports/a", [WARNING], plain()), plain())
+    assert written.splitlines()[0] == "✓ reports/a · A publication · 1 warning"
 
 
 def test_a_title_is_a_title_and_not_markup() -> None:
@@ -301,7 +305,7 @@ def test_a_long_job_draws_a_bar_on_a_terminal() -> None:
     assert "checking the archive" in _written(console)
 
 
-def test_every_report_shares_the_one_bar() -> None:
+def test_every_publication_shares_the_one_bar() -> None:
     """Two displays cannot both have the bottom of the screen,
     and a second one opening its own is what pushes the first one around."""
     console = terminal()

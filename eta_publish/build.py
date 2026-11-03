@@ -44,7 +44,7 @@ from .embeds import (
     write_embed_index,
 )
 from .embeds import download as download_embeds
-from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, report_page
+from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, publication_page
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
 from .logo import LOGO, warning_poster
@@ -71,7 +71,7 @@ lazy from .images import (
     write_web_copies,
 )
 lazy from .pdf import TypstMissing, compile_pdf, install_template
-lazy from .site import report_path
+lazy from .site import check_kind, publication_kind, publication_path
 
 
 @dataclass(frozen=True)
@@ -88,7 +88,7 @@ class BuildOptions:
     images: bool = True
 
     archive: bool = True
-    """Whether to ask the Wayback Machine about the sources the report cites.
+    """Whether to ask the Wayback Machine about the sources the publication cites.
 
     On, because a link is archived at the moment it is cited or not at the
     moment it is cited. Off is for a build that should touch nothing: the
@@ -105,17 +105,17 @@ class BuildOptions:
 
     unpublished_url: str = field(kw_only=True)
     """Where `site/unpublished/` is served, which a preview's absolute links start with:
-    `reports.toml`'s `[site] unpublished`."""
+    `publications.toml`'s `[site] unpublished`."""
 
     published_url: str = field(kw_only=True)
     """Where `site/published/` is served, which a live page's absolute links start with:
-    `reports.toml`'s `[site] published`."""
+    `publications.toml`'s `[site] published`."""
 
     embed_assets: bool = False
     """Whether `report.html` carries its stylesheet and script rather than linking them.
 
     Linked by default, at `published_url`,
-    so a fragment is 28 KB smaller and every report shares one copy.
+    so a fragment is 28 KB smaller and every publication shares one copy.
     A linked copy only exists once the site is pushed, though,
     so embedding is for a fragment to paste before then.
     """
@@ -166,13 +166,13 @@ def load(
     without knowing the filename inside it.
 
     Which tab to read is part of the reference, as `?tab=` in the URL,
-    which is the only way it can be named in `reports.toml`.
+    which is the only way it can be named in `publications.toml`.
     """
     path = Path(ref)
     if path.is_dir():
         saved = path / DOC_JSON
         if not saved.is_file():
-            raise FileNotFoundError(f"{path} holds no {DOC_JSON}; is it a report directory?")
+            raise FileNotFoundError(f"{path} holds no {DOC_JSON}; is it a publication directory?")
         return json.loads(saved.read_text())
     if path.is_file():
         return json.loads(path.read_text())
@@ -211,7 +211,7 @@ def carry_over_review(document: JsonObject, saved: Path) -> None:
 
 
 def carry_over(previous: Path, dest: Path, doc: Document) -> None:
-    """Copy what the last build of this report left that this one reads.
+    """Copy what the last build of this publication left that this one reads.
 
     A build writes into a directory of its own and reads the last one's,
     so nothing is read from a file it is halfway through rewriting,
@@ -463,7 +463,7 @@ def require_image_index(dest: Path, doc: Document) -> None:
     """
     if not (dest / IMAGES_JSON).exists():
         raise ValueError(
-            f"no {IMAGES_JSON} here, so nothing says what this report's "
+            f"no {IMAGES_JSON} here, so nothing says what this publication's "
             f"{len(doc.images)} images were written as; "
             "build it once with the download before building it without"
         )
@@ -519,19 +519,19 @@ def _without_uri(embedded_object: JsonObject, properties_key: str) -> JsonObject
     }
 
 
-# The stylesheets and the script every report page shares, and the formatter
+# The stylesheets and the script every publication page shares, and the formatter
 # each is read by. Written once per build rather than into each page.
 SHARED_ASSETS = (
     "page.css",
-    "report.css",
-    "report.js",
+    "publication.css",
+    "publication.js",
     # The pages' tab icon, as well as what a chart credited to ETA carries.
     "logo.svg",
 )
 
 
 def write_assets(siteroot: Path, doc: Document) -> list[Path]:
-    """The one copy of what every report page links.
+    """The one copy of what every publication page links.
 
     Written as they are; `format.tree` lays out and checks the whole build
     afterwards, these among the rest.
@@ -599,11 +599,11 @@ def write_frames(doc: Document, dest: Path) -> None:
 
 
 def write_posters(doc: Document, dest: Path) -> list[Path]:
-    """What each kind of warning this report's videos carry shows before its video does.
+    """What each kind of warning this publication's videos carry shows before its video does.
 
     Made from the logo rather than kept, so an edit to the logo reaches them.
     Into the site's assets for the page, and beside the print copies for the PDF,
-    which can only read what is under the report.
+    which can only read what is under the publication.
     """
     dest.mkdir(parents=True, exist_ok=True)
     written = []
@@ -615,24 +615,30 @@ def write_posters(doc: Document, dest: Path) -> list[Path]:
 
 
 def asset_base(path: str) -> str:
-    """`ASSET_DIR` as seen from a report at `path`, which says how deep it is.
+    """`ASSET_DIR` as seen from a publication at `path`, which says how deep it is.
 
     Relative rather than rooted at `/`, because the site is served from
-    wherever Pages puts it and a report's own `URL:` decides its depth.
+    wherever Pages puts it and a publication's own `URL:` decides its depth.
     """
     return "/".join([".."] * len(PurePosixPath(path).parts) + [ASSET_DIR])
 
 
-PDF_NAME = "report.pdf"
-"""What `typst` compiles `report.typ` to, beside it."""
-
 UNWARNED = "published"
-"""What names a published report's outputs as `site/published/` takes them,
+"""What names a live publication's outputs as `site/published/` takes them,
 as `report.published.html`: linking the published host, and without the warnings."""
 
 
+def pdf_name(stem: str) -> str:
+    """What `typst` compiles `<kind>.typ` to, beside it, for the outputs named `stem`.
+
+    The preview's name for the published copies too: `report.published.pdf`
+    is served in `site/published/` as the `report.pdf` its page links.
+    """
+    return f"{stem.partition('.')[0]}.pdf"
+
+
 def media_base(path: str, site_url: str) -> str:
-    """Where the site serves the images of the report at `path`, as a URL."""
+    """Where the site serves the images of the publication at `path`, as a URL."""
     return f"{site_url}/{path}/{IMAGE_DIR}"
 
 
@@ -657,10 +663,10 @@ def emit(
     `pdf` is where `report.html` links the PDF: the site's copy, since the fragment
     is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
     `cards` is where the site serves the images, for the share card's absolute URL,
-    and `url` is where it serves this report, for `og:url`.
+    and `url` is where it serves this publication, for `og:url`.
     `page_url` is the live page, for the PDF to link its videos' figures on.
-    A `stem` other than `report` writes only the files `site/published/` takes,
-    so not `index.html`, which is the preview.
+    A `stem` that is more than the kind, `report.published`,
+    writes only the files `site/published/` takes, so not `index.html`, which is the preview.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
@@ -669,17 +675,18 @@ def emit(
         f"{stem}.typ": TypstEmitter(site_url=site_url, page_url=page_url),
     }
     written: dict[str, Path] = {}
-    if stem != "report":
+    if "." in stem:
         return _emit_each(doc, outdir, emitters, written)
-    # `index.html`, so a report directory is a page at its own URL:
-    # `/reports/<slug>/` serves the report rather than a listing of files.
-    # `report.html` beside it is the fragment, a piece of a page rather than one.
+    # `index.html`, so a publication directory is a page at its own URL:
+    # `/reports/<slug>/` serves the publication rather than a listing of files.
+    # `report.html` or `statement.html` beside it is the fragment,
+    # a piece of a page rather than one.
     page = outdir / "index.html"
     page.write_text(
-        report_page(
+        publication_page(
             doc,
             asset_base=assets,
-            pdf_href=PDF_NAME,
+            pdf_href=pdf_name(stem),
             card_base=cards,
             page_url=url,
             source_brackets=source_brackets,
@@ -736,10 +743,10 @@ def anonymous_warning() -> RenderableType:
 
 
 def warn_anonymous() -> None:
-    """Say, once a run however many reports it builds, what capturing without keys costs.
+    """Say, once a run however many publications it builds, what capturing without keys costs.
 
-    Again after the summary, from `__main__`: said while the first report with a
-    new source was building, it scrolls away under every report after it.
+    Again after the summary, from `__main__`: said while the first publication with a
+    new source was building, it scrolls away under every publication after it.
     """
     with _WARNING_ANONYMOUS:
         if ANONYMOUS_WARNED.is_set():
@@ -770,10 +777,10 @@ def archive_sources(doc: Document) -> None:
     Part of an ordinary build rather than a step somebody remembers to run: a
     source is archived because it was cited, and the moment it was cited is
     this one. Captured later, the snapshot is of whatever the page said later,
-    which is not what the report read.
+    which is not what the publication read.
 
     Only what is missing, so the cost is a handful of lookups on the build
-    after a draft gains a link, and the whole of a report's sources only on the
+    after a draft gains a link, and the whole of a publication's sources only on the
     first build that asks.
 
     Every one of them is asked of the replay, which is half a second and is what
@@ -782,7 +789,7 @@ def archive_sources(doc: Document) -> None:
     and nothing is written down for it either way.
 
     Asking what the Wayback Machine already holds needs no account, and most of
-    what these reports cite is already in it. That half runs on every build.
+    what these publications cite is already in it. That half runs on every build.
     Asking for a new capture needs keys, and without them the sources nothing
     has captured are left as they are, to be asked for by a build that can.
     """
@@ -824,31 +831,31 @@ def archive_sources(doc: Document) -> None:
     )
 
 
-def check_code_block_size(doc: Document, report: Path) -> None:
+def check_code_block_size(doc: Document, publication: Path) -> None:
     """Say something before a paste fails, not after.
 
     Asked once the tree has been formatted, because that is what the file
     will be when it is pasted: laying it out adds around an eighth to it,
     and a limit checked against the bytes before that is not the limit.
     """
-    size = report.stat().st_size
+    size = publication.stat().st_size
     if size > CODE_BLOCK_LIMIT:
         doc.warn(
-            f"{report.name} is {size:,} bytes, over Squarespace's "
+            f"{publication.name} is {size:,} bytes, over Squarespace's "
             f"{CODE_BLOCK_LIMIT:,} byte code block limit; "
             "split it at h2 boundaries with {}",
             Shown("--split"),
         )
     elif size > CODE_BLOCK_WARN:
         doc.warn(
-            f"{report.name} is {size:,} bytes, within Squarespace's "
+            f"{publication.name} is {size:,} bytes, within Squarespace's "
             f"{CODE_BLOCK_LIMIT:,} byte limit but large enough that the editor "
             "may be slow to save it"
         )
 
 
 def build_pdf(source: Path, outdir: Path, skipped_images: bool) -> Path | None:
-    """Compile the report PDF, reporting rather than failing the whole build.
+    """Compile the publication PDF, reporting rather than failing the whole build.
 
     The `.typ` is written either way,
     so a missing `typst` or a compile error costs the PDF and nothing else.
@@ -896,15 +903,16 @@ def write_outputs(
     skipped_images: bool,
     page_url: str = "",
 ) -> None:
-    """Write the report's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
+    """Write the publication's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
 
-    Twice for a report that is published: as `report.*` for the preview, linking the preview's
-    host, and as `report.published.*` for `site/published/`, linking the published host
+    Twice for a publication that is published: as `report.*` for the preview, linking the preview's
+    host, and as `report.published.*` for `site/published/`, linking the published host,
+    or `statement.*` and `statement.published.*` for a statement,
     and without the warnings, which are for whoever reviews a build and never for a reader.
     """
     images = media_base(path, site_url) if options.hosted_media else IMAGE_DIR
     linked = "" if options.embed_assets else f"{site_url}/{ASSET_DIR}"
-    pdf = f"{site_url}/{path}/{PDF_NAME}" if options.hosted_media else PDF_NAME
+    pdf = f"{site_url}/{path}/{pdf_name(stem)}" if options.hosted_media else pdf_name(stem)
     written = emit(
         doc,
         dest,
@@ -939,29 +947,29 @@ def build_one(
     read_from: Path | None = None,
     publishes: bool = False,
 ) -> tuple[Document, str]:
-    """Build one report, returning it and the site-relative path it went to.
+    """Build one publication, returning it and the site-relative path it went to.
 
-    `publishes` is a report out on a live page this build writes,
+    `publishes` is a publication out on a live page this build writes,
     which writes its outputs a second time for `site/published/`.
 
     The whole per-document order of operations lives here, and only here.
 
-    Where a report goes comes from its own front matter, inside the document,
+    Where a publication goes comes from its own front matter, inside the document,
     so the destination is unknown until the document has been read.
     That is why the response is not written on the way in:
-    it is saved into the report's directory afterwards,
+    it is saved into the publication's directory afterwards,
     whether it came from the API or from a previous build.
 
     `verify` is the caller's chance to say this is not the document it meant,
     given the parsed document and called before anything is written.
 
-    `cached` is the response the last build of this report saved, if there is one.
+    `cached` is the response the last build of this publication saved, if there is one.
     It is not read unless Drive says the document has not been edited since,
     which is a cheaper question than any of the ones it saves asking.
 
-    `previous` is the directory the last build of this report wrote, if it
+    `previous` is the directory the last build of this publication wrote, if it
     was not this one: what it recorded is carried over before anything reads it.
-    Without one, it is the report's own path under `read_from`, the last site.
+    Without one, it is the publication's own path under `read_from`, the last site.
     """
     console.step("reading the saved response" if options.offline else "fetching the document")
     document = load(ref, options.suggestions, options.comments, cached)
@@ -969,9 +977,12 @@ def build_one(
     doc = parse(document)
     if verify is not None:
         # Before the first directory is made,
-        # so a wrong answer leaves no report's worth of files behind.
+        # so a wrong answer leaves no publication's worth of files behind.
         verify(doc)
-    path = report_path(doc)
+    path = publication_path(doc)
+    # Refused here as well as checked against an entry:
+    # a document named on the command line has no entry to check it.
+    kind = publication_kind(doc)
     dest = outdir / path
     if previous is None and read_from is not None:
         previous = read_from / path
@@ -1000,6 +1011,7 @@ def build_one(
     carry_over_review(document, dest / DOC_JSON)
     read_review(doc, document)
     check(doc)
+    check_kind(doc)
     style(doc)
 
     # Sorted, as `images.json` is: this file is committed and compared against
@@ -1027,7 +1039,7 @@ def build_one(
     read_image_index(dest, doc)
     check_described(doc)
 
-    # Every build, embeds or none, so a report that loses its last one loses
+    # Every build, embeds or none, so a publication that loses its last one loses
     # its record too. Only what is missing is asked about, so the cost after
     # the first build is nothing; offline, the record is all there is.
     read_embed_index(dest, doc)
@@ -1059,13 +1071,13 @@ def build_one(
     check_pending(doc)
 
     # Written here rather than once per site, so that building a single
-    # report produces a page with everything it links.
+    # publication produces a page with everything it links.
     write_assets(outdir, doc)
     write_posters(doc, dest / PRINT_DIR)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
-    write_outputs(doc, dest, path, options, options.unpublished_url, "report", skipped_images)
-    for stale in dest.glob(f"report.{UNWARNED}.*"):
+    write_outputs(doc, dest, path, options, options.unpublished_url, kind, skipped_images)
+    for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
         # From a build that published it, which this one may not.
         stale.unlink()
     if publishes:
@@ -1076,7 +1088,7 @@ def build_one(
             path,
             options,
             options.published_url,
-            f"report.{UNWARNED}",
+            f"{kind}.{UNWARNED}",
             skipped_images,
             f"{LIVE_SITE}{doc.slug}" if doc.slug else "",
         )

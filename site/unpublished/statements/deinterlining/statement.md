@@ -384,7 +384,7 @@ Tweets:
 
 ## Contributors
 
-We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:
+We wish to acknowledge the following ETA members who contributed to this statement, and without whose hard work it would not be possible:
 
 - John Ericson
 - Madison Feinberg

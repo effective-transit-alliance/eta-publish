@@ -60,7 +60,7 @@ MAX_AT_ONCE = 8
 The transfer is the whole cost: 16 MB over 29 requests,
 none of which is waiting on any other.
 Bounded rather than unbounded because `build_site` is already
-running reports concurrently, and the two multiply.
+running publications concurrently, and the two multiply.
 """
 
 MAX_ENCODING_AT_ONCE = os.process_cpu_count() or 1
@@ -141,7 +141,7 @@ def download(
     # The `ETag` is the literal string `"v0"` for every image in the
     # document, so a conditional request is worse than none: asking for one
     # image with a different image's `ETag` returns `304 Not Modified` and an
-    # empty body. `If-None-Match` here would report "unchanged" for a picture
+    # empty body. `If-None-Match` here would publication "unchanged" for a picture
     # that had been replaced.
     #
     # There is no `Last-Modified`, no `Content-MD5`, no `Digest`, and no

@@ -113,7 +113,7 @@ def test_a_figure_absorbs_its_source_caption_and_credit(doc: Document) -> None:
 
 def test_a_short_paragraph_after_a_figure_stays_a_paragraph(doc: Document) -> None:
     """Folding captions by length would swallow body text,
-    and a report with 54 figures has many short paragraphs following one."""
+    and a publication with 54 figures has many short paragraphs following one."""
     after = doc.blocks[3]
     assert isinstance(after, Paragraph)
     assert _text(after.content) == "That is a lot of money."
@@ -236,7 +236,7 @@ def test_a_bare_image_source_link_is_still_an_editorial_note() -> None:
         {
             "body": {
                 "content": [
-                    _text_para("Report", "TITLE"),
+                    _text_para("Publication", "TITLE"),
                     _image_para("io.1"),
                     _text_para("A caption."),
                     _linked_para("Image Source", "https://www.flickr.com/photo_download.gne"),
@@ -273,7 +273,7 @@ def _social_card_doc(*header: JsonObject) -> Document:
                     _field_para("URL: /reports/r"),
                     *header,
                     _field_para("SEO Description: About it."),
-                    _text_para("Report", "TITLE"),
+                    _text_para("Publication", "TITLE"),
                     _text_para("The body."),
                 ]
             },
@@ -336,7 +336,7 @@ def test_a_short_is_a_header_field() -> None:
 
 
 def test_a_subtitle_finishing_a_headline_that_ends_in_a_colon_is_part_of_the_title() -> None:
-    """The report's name is both halves, though the page sets the second as the standfirst."""
+    """The publication's name is both halves, though the page sets the second as the standfirst."""
     doc = parse(
         {
             "body": {

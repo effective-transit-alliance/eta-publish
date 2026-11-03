@@ -1,17 +1,23 @@
-# The reports the site publishes, one `[[report]]` per document.
+# The publications the site publishes, one entry per document:
+# `[[report]]` for a report, the longer, researched kind,
+# and `[[statement]]` for a statement, the shorter kind that answers something and goes out quicker.
 #
-# Adding the next report is an entry here and nothing else:
+# Adding the next publication is an entry here and nothing else:
 # the site path comes from the document's own `URL:` line,
-# so nothing in this file or in the workflow names a report twice.
+# so nothing in this file or in the workflow names a publication twice.
 #
-# `name` is what the document is called in Drive, not the report's headline:
+# `name` is what the document is called in Drive, not the publication's headline:
 # it is what you search for to find the doc this entry points at.
-# A build refuses the report when the two have drifted apart,
+# A build refuses the publication when the two have drifted apart,
 # which it can only know once it has fetched the document.
 #
 # `tab` is what that tab is called, checked the same way and for the same reason:
 # a `?tab=` id is opaque, so nothing about the URL says which draft it points at,
 # and picking up last year's draft is a mistake the URL cannot show you.
+#
+# Which table an entry is in is checked the same way, against the document's `URL:` line:
+# `/reports/` is a report and `/statements/` is a statement.
+# `/briefs/` is a report too, with a warning: a brief is a short report, not a kind of its own.
 #
 # Both have to be right, and a blank one is wrong like any other wrong value:
 # no document is called nothing.
@@ -24,22 +30,22 @@
 # and the API returns the first tab unless told otherwise,
 # so a URL without one publishes the wrong draft.
 #
-# `published` says whether the report is out on Squarespace, and how:
-# `automated` when the live page is this report's `report.html`,
+# `published` says whether the publication is out on Squarespace, and how:
+# `automated` when the live page is this publication's `report.html`,
 # `manual` when it is a page built by hand there,
 # and `draft` when it is not out yet.
-# Only an `automated` report needs its pictures, videos, and stylesheets hosted,
+# Only an `automated` publication needs its pictures, videos, and stylesheets hosted,
 # since a page built by hand references nothing of ours.
 # Required, because either wrong default is a mistake:
-# a draft treated as live is hosted, and a live report treated as a draft loses its pictures.
+# a draft treated as live is hosted, and a live publication treated as a draft loses its pictures.
 
 # `[site]` is where each half of the site is served, which its absolute links start with.
 # `published` serves `site/published/`: what the live pages link,
 # the pasted `report.html`'s stylesheet, pictures, videos, and PDF.
-# `unpublished` serves `site/unpublished/`: every report's preview, drafts and warnings included.
+# `unpublished` serves `site/unpublished/`: every publication's preview, drafts and warnings included.
 # Here rather than on the command line, because the committed site is built against them.
 # Required, both of them: there is no default host to fall back on.
-# Moving `published` is this line, a rebuild, a deploy there, and repasting each `automated` report.
+# Moving `published` is this line, a rebuild, a deploy there, and repasting each `automated` publication.
 #
 # Both on one GitHub Pages site, with `site/published/` deployed under `/published/`.
 [site]
@@ -64,7 +70,7 @@ tab = "Draft 2 (live)"
 url = "https://docs.google.com/document/d/1--AKo1YU2iyFZzKh-DZxU5UlVOURySG2XlfKXC0c2aY/edit?tab=t.wnvaanbw75s"
 published = "manual"
 
-[[report]]
+[[statement]]
 name = "Deinterlining"
 tab = "Tab 1"
 url = "https://docs.google.com/document/d/1GB5qDuIjDB-Od7kmpmIgTtVDT7pCH5m02WVQ3aG_kRM/edit?tab=t.0"

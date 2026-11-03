@@ -1,8 +1,8 @@
-"""Building more than one report into one site.
+"""Building more than one publication into one site.
 
 The single-document path is covered everywhere else.
 What matters here is what only appears with several:
-where each report lands,
+where each publication lands,
 that one failure does not take the others with it,
 and that the index says so.
 """
@@ -31,17 +31,20 @@ from eta_publish.site import (
     Built,
     Failed,
     Hosts,
+    Kind,
+    Publication,
     Published,
-    Report,
     Site,
-    add_report,
+    add_publication,
     build_site,
     canonical,
+    check_kind,
     index_page,
-    listed_report,
+    listed_publication,
     load_hosts,
-    load_reports,
-    report_path,
+    load_publications,
+    publication_kind,
+    publication_path,
     reusable,
     saved_responses,
     social_image,
@@ -69,18 +72,44 @@ def doc() -> Document:
     return parse(FIXTURE)
 
 
-def test_a_report_is_published_at_the_path_its_header_names(doc: Document) -> None:
+def test_a_publication_is_published_at_the_path_its_header_names(doc: Document) -> None:
     doc.meta["URL"] = "/reports/digging-out-deep-hole-sas-west"
-    assert report_path(doc) == "reports/digging-out-deep-hole-sas-west"
+    assert publication_path(doc) == "reports/digging-out-deep-hole-sas-west"
 
 
-def test_a_report_with_no_url_is_refused(doc: Document) -> None:
+@pytest.mark.parametrize(
+    ("url", "kind"),
+    [("/reports/x", Kind.REPORT), ("/statements/x", Kind.STATEMENT), ("/briefs/x", Kind.REPORT)],
+)
+def test_the_path_says_which_kind_a_publication_is(doc: Document, url: str, kind: Kind) -> None:
+    doc.meta["URL"] = url
+    assert publication_kind(doc) == kind
+
+
+def test_a_brief_is_built_as_a_report_with_a_warning(doc: Document) -> None:
+    doc.meta["URL"] = "/briefs/too-damn-loud"
+    check_kind(doc)
+    assert "built as a report" in str(doc.warnings[-1])
+    doc.warnings.clear()
+    doc.meta["URL"] = "/reports/x"
+    check_kind(doc)
+    assert not doc.warnings
+
+
+def test_a_path_under_no_kind_is_refused(doc: Document) -> None:
+    """Built as either kind, it is a guess about which one it is."""
+    doc.meta["URL"] = "/news/x"
+    with pytest.raises(ValueError, match="report or a statement"):
+        publication_kind(doc)
+
+
+def test_a_publication_with_no_url_is_refused(doc: Document) -> None:
     """A slug of the headline is a plausible path and not the published one,
-    so guessing one publishes the report at the wrong URL, quietly."""
+    so guessing one publishes the publication at the wrong URL, quietly."""
     doc.meta.pop("URL", None)
     doc.title = "Digging Out of a Very Deep Hole"
     with pytest.raises(ValueError, match="no `URL:` line"):
-        report_path(doc)
+        publication_path(doc)
 
 
 def test_a_document_with_no_header_is_told_that_and_not_about_its_url(doc: Document) -> None:
@@ -91,28 +120,53 @@ def test_a_document_with_no_header_is_told_that_and_not_about_its_url(doc: Docum
     doc.meta.clear()
     doc.has_header = False
     with pytest.raises(ValueError, match="no `Header` section"):
-        report_path(doc)
+        publication_path(doc)
 
 
 def test_an_absolute_url_cannot_escape_the_site_root(doc: Document) -> None:
     """`/reports/x` is a published path, not a filesystem one;
     joined unstripped it would write to the root of the disk."""
     doc.meta["URL"] = "/reports/x"
-    assert not Path(report_path(doc)).is_absolute()
+    assert not Path(publication_path(doc)).is_absolute()
 
 
-def test_reports_are_read_from_the_list(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+def test_publications_are_read_from_the_list(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
     path.write_text(
         '[[report]]\nname = "SAS West"\ntab = "Draft 2"\nurl = "https://example.invalid/a"\n'
         'published = "draft"\n'
-        '\n[[report]]\nname = "IBX"\ntab = "Live version"\nurl = "https://example.invalid/b"\n'
+        '\n[[statement]]\nname = "Deinterlining"\ntab = "Tab 1"\nurl = "https://example.invalid/b"\n'
         'published = "draft"\n'
     )
-    assert load_reports(path) == [
-        Report(url="https://example.invalid/a", name="SAS West", tab="Draft 2"),
-        Report(url="https://example.invalid/b", name="IBX", tab="Live version"),
+    assert load_publications(path) == [
+        Publication(
+            url="https://example.invalid/a", name="SAS West", tab="Draft 2", kind=Kind.REPORT
+        ),
+        Publication(
+            url="https://example.invalid/b", name="Deinterlining", tab="Tab 1", kind=Kind.STATEMENT
+        ),
     ]
+
+
+def test_publications_load_in_the_order_the_list_gives(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    entry = 'name = "{0}"\ntab = "T"\nurl = "https://example.invalid/{0}"\npublished = "draft"\n'
+    path.write_text(
+        "[[report]]\n"
+        + entry.format("a")
+        + "[[statement]]\n"
+        + entry.format("b")
+        + "[[report]]\n"
+        + entry.format("c")
+    )
+    assert [p.name for p in load_publications(path)] == ["a", "b", "c"]
+
+
+def test_a_list_of_neither_kind_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    path.write_text('[[brief]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
+    with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
+        load_publications(path)
 
 
 @pytest.mark.parametrize("blank", ["name", "tab"])
@@ -124,7 +178,7 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     fields = {"name": "Digging Out of a Very Deep Hole", "tab": "Draft 2"}
     fields[blank] = ""
     site = build_site(
-        [Report(url=str(saved), name=fields["name"], tab=fields["tab"])],
+        [Publication(url=str(saved), name=fields["name"], tab=fields["tab"])],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -138,31 +192,58 @@ def test_an_entry_that_names_nothing_disagrees_like_any_other(tmp_path: Path, bl
     assert "``" in site.failed[0].error
 
 
-def test_one_finds_a_report_by_its_name_in_any_case(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+def test_an_entry_in_the_wrong_table_disagrees(tmp_path: Path) -> None:
+    """The fixture is under `/reports/`, so listing it as a statement is wrong about it."""
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    site = build_site(
+        [
+            Publication(
+                url=str(saved),
+                name="Digging Out of a Very Deep Hole",
+                tab="Draft 2",
+                kind=Kind.STATEMENT,
+            )
+        ],
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
+    )
+    assert not site.built
+    assert "lists this as a `statement`, but its `URL:` line makes it a `report`" in (
+        site.failed[0].error
+    )
+
+
+def test_one_finds_a_publication_by_its_name_in_any_case(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
     path.write_text(
         '[[report]]\nname = "IBX Automation"\ntab = "Live"\nurl = "https://example.invalid/b"\n'
         'published = "draft"\n'
     )
-    assert listed_report("ibx automation", path) == Report(
-        url="https://example.invalid/b", name="IBX Automation", tab="Live"
+    assert listed_publication("ibx automation", path) == Publication(
+        url="https://example.invalid/b", name="IBX Automation", tab="Live", kind=Kind.REPORT
     )
 
 
 def test_one_takes_anything_unlisted_as_the_document_itself(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text(
         '[[report]]\nname = "IBX"\ntab = "Live"\nurl = "https://example.invalid/b"\n'
         'published = "draft"\n'
     )
-    assert listed_report("https://example.invalid/c", path) == Report(
+    assert listed_publication("https://example.invalid/c", path) == Publication(
         url="https://example.invalid/c"
     )
-    assert listed_report("x", tmp_path / "missing.toml") == Report(url="x")
+    assert listed_publication("x", tmp_path / "missing.toml") == Publication(url="x")
 
 
 def test_one_refuses_a_name_two_entries_share(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text(
         '[[report]]\nname = "IBX"\ntab = "A"\nurl = "https://example.invalid/a"\n'
         'published = "draft"\n'
@@ -170,32 +251,32 @@ def test_one_refuses_a_name_two_entries_share(tmp_path: Path) -> None:
         'published = "draft"\n'
     )
     with pytest.raises(ValueError, match="more than one"):
-        listed_report("IBX", path)
+        listed_publication("IBX", path)
 
 
 def test_an_entry_without_a_url_is_an_error(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "Nameless"\n')
     with pytest.raises(ValueError, match="no `url`"):
-        load_reports(path)
+        load_publications(path)
 
 
 def test_an_entry_says_how_it_is_published(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "automated"\n')
-    assert load_reports(path)[0].published is Published.AUTOMATED
+    assert load_publications(path)[0].published is Published.AUTOMATED
 
 
 @pytest.mark.parametrize("published", ["", 'published = ""\n', 'published = "live"\n'])
 def test_an_entry_that_does_not_say_how_it_is_published_is_an_error(
     tmp_path: Path, published: str
 ) -> None:
-    """Either default would be wrong about some report:
+    """Either default would be wrong about some publication:
     a draft taken as live is hosted, and a live one taken as a draft loses its pictures."""
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text(f'[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n{published}')
     with pytest.raises(ValueError, match="not one of `automated`, `manual`, `draft`"):
-        load_reports(path)
+        load_publications(path)
 
 
 def test_add_names_an_entry_from_the_document(tmp_path: Path) -> None:
@@ -203,38 +284,40 @@ def test_add_names_an_entry_from_the_document(tmp_path: Path) -> None:
     not off a person reading them out of Drive."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "IBX Automation", "tabTitle": "Live version"}))
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text(
         '# a comment worth keeping\n\n[[report]]\nname = "A"\ntab = "B"\nurl = "u"\n'
         'published = "draft"\n'
     )
 
-    added = add_report(str(saved), path)
-    assert added == Report(url=str(saved), name="IBX Automation", tab="Live version")
+    added = add_publication(str(saved), path)
+    assert added == Publication(
+        url=str(saved), name="IBX Automation", tab="Live version", kind=Kind.REPORT
+    )
     assert "# a comment worth keeping" in path.read_text()
-    assert load_reports(path)[-1] == added
+    assert load_publications(path)[-1] == added
     assert added.published is Published.DRAFT
 
 
 def test_add_refuses_a_document_already_listed(tmp_path: Path) -> None:
     """Two entries for one document publish it twice to one path,
     and the second build overwrites the first."""
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="already lists"):
-        add_report("u", path)
+        add_publication("u", path)
 
 
 def test_add_refuses_a_document_that_names_no_tab(tmp_path: Path) -> None:
     """It cannot write down an answer the document does not give,
-    and writing an empty one down is what `load_reports` refuses."""
+    and writing an empty one down is what `load_publications` refuses."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "Titled", "tabTitle": ""}))
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="no `tab`"):
-        add_report(str(saved), path)
-    assert len(load_reports(path)) == 1
+        add_publication(str(saved), path)
+    assert len(load_publications(path)) == 1
 
 
 def test_add_says_which_tabs_there_are_when_the_url_names_none(
@@ -253,30 +336,32 @@ def test_add_says_which_tabs_there_are_when_the_url_names_none(
         raise TabNotFound("this document has 2 tabs; pass the URL including\n  t.a  Live version")
 
     monkeypatch.setattr(site, "load", no_tab)
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
 
-    result = CliRunner().invoke(app, ["add", "https://example.invalid/d/x", "-r", str(path)])
+    result = CliRunner().invoke(app, ["add", "https://example.invalid/d/x", "-p", str(path)])
     assert result.exit_code != 0
     assert "t.a  Live version" in result.output
-    assert len(load_reports(path)) == 1
+    assert len(load_publications(path)) == 1
 
 
 def test_a_title_with_a_quotation_mark_stays_one_string(tmp_path: Path) -> None:
     saved = tmp_path / "doc.json"
-    saved.write_text(json.dumps({**FIXTURE, "title": 'The "Deep Hole" Report', "tabTitle": "D2"}))
-    path = tmp_path / "reports.toml"
+    saved.write_text(
+        json.dumps({**FIXTURE, "title": 'The "Deep Hole" Publication', "tabTitle": "D2"})
+    )
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
-    add_report(str(saved), path)
-    assert load_reports(path)[-1].name == 'The "Deep Hole" Report'
+    add_publication(str(saved), path)
+    assert load_publications(path)[-1].name == 'The "Deep Hole" Publication'
 
 
 def test_the_project_list_parses() -> None:
     """The committed one, so a typo in it fails here rather than in CI."""
-    reports = load_reports()
-    assert reports
+    publications = load_publications()
+    assert publications
     assert all(
-        "?tab=" in r.url or "&tab=" in r.url or not r.url.startswith("http") for r in reports
+        "?tab=" in r.url or "&tab=" in r.url or not r.url.startswith("http") for r in publications
     )
 
 
@@ -290,13 +375,13 @@ def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
     # and would reach for the network, and the test suite never does that.
     broken = tmp_path / "broken.json"
     broken.write_text("{not json")
-    reports = [
-        Report(url=str(broken), name="gone", tab="Draft 2"),
-        Report(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
+    publications = [
+        Publication(url=str(broken), name="gone", tab="Draft 2"),
+        Publication(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
     ]
     seed_image_index(tmp_path / "site")
     site = build_site(
-        reports,
+        publications,
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -305,17 +390,17 @@ def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
             published_url=HOSTS.published,
         ),
     )
-    assert [f.report.name for f in site.failed] == ["gone"]
-    assert [b.report.name for b in site.built] == ["Digging Out of a Very Deep Hole"]
+    assert [f.publication.name for f in site.failed] == ["gone"]
+    assert [b.publication.name for b in site.built] == ["Digging Out of a Very Deep Hole"]
     assert (tmp_path / "site" / site.built[0].path / "index.html").exists()
 
 
-def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
+def test_a_whole_site_replaces_the_site_but_keeps_a_publication_that_failed(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """What no report wrote this time is gone, unless its report could not be built.
+    """What no publication wrote this time is gone, unless its publication could not be built.
 
-    A site missing a report beats no site, and the last copy of it beats a missing one.
+    A site missing a publication beats no site, and the last copy of it beats a missing one.
     """
     import eta_publish.build as build
     from eta_publish.__main__ import Suggestions, publish
@@ -330,19 +415,19 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
     kept = out / "reports" / "kept"
     kept.mkdir(parents=True)
     (kept / "doc.json").write_text(json.dumps({"documentId": "abc", "tabId": "t.1"}))
-    (kept / "report.html").write_text("the last build of a report that failed")
+    (kept / "report.html").write_text("the last build of a publication that failed")
     (out / "reports" / "dropped").mkdir()
-    (out / "reports" / "dropped" / "report.html").write_text("no report writes this any more")
+    (out / "reports" / "dropped" / "report.html").write_text("no publication writes this any more")
     good = tmp_path / "good.json"
     good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
-    reports = [
-        Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1"),
-        Report(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
+    publications = [
+        Publication(url="https://docs.google.com/document/d/abc/edit?tab=t.1"),
+        Publication(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
     ]
 
     with pytest.raises(Exit):
         publish(
-            reports,
+            publications,
             root,
             Suggestions.REJECTED,
             False,
@@ -353,26 +438,26 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_report_that_failed(
             hosts=HOSTS,
         )
 
-    assert (kept / "report.html").read_text() == "the last build of a report that failed"
+    assert (kept / "report.html").read_text() == "the last build of a publication that failed"
     assert not (out / "reports" / "dropped").exists()
     assert (out / SLUG / "report.html").is_file()
     assert [p.name for p in tmp_path.iterdir() if "building" in p.name] == []
 
 
-def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
+def test_one_publication_replaces_only_its_own_directory(tmp_path: Path) -> None:
     from eta_publish.__main__ import Suggestions, publish
 
     root = tmp_path / "site"
     out = root / UNPUBLISHED_DIR
     seed_image_index(out)
-    (out / SLUG / "stale.html").write_text("written by an older build of this report")
+    (out / SLUG / "stale.html").write_text("written by an older build of this publication")
     (out / "reports" / "other").mkdir()
-    (out / "reports" / "other" / "report.html").write_text("another report's")
+    (out / "reports" / "other" / "report.html").write_text("another publication's")
     good = tmp_path / "good.json"
     good.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
 
     publish(
-        [Report(url=str(good))],
+        [Publication(url=str(good))],
         root,
         Suggestions.REJECTED,
         False,
@@ -384,7 +469,7 @@ def test_one_report_replaces_only_its_own_directory(tmp_path: Path) -> None:
 
     assert not (out / SLUG / "stale.html").exists()
     assert (out / SLUG / "report.html").is_file()
-    assert (out / "reports" / "other" / "report.html").read_text() == "another report's"
+    assert (out / "reports" / "other" / "report.html").read_text() == "another publication's"
 
 
 @pytest.mark.parametrize(
@@ -412,7 +497,7 @@ def test_the_fragment_links_its_images_where_the_site_serves_them(
         unpublished_url=HOSTS.unpublished,
         published_url=HOSTS.published,
     )
-    site = build_site([Report(url=str(saved))], out, options)
+    site = build_site([Publication(url=str(saved))], out, options)
     fragment = (out / site.built[0].path / "report.html").read_text()
     assert src in fragment
     # The page is served beside its images either way.
@@ -420,13 +505,13 @@ def test_the_fragment_links_its_images_where_the_site_serves_them(
 
 
 def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
-    """A report that failed its own check must not leave a published directory:
+    """A publication that failed its own check must not leave a published directory:
     the next run compares against it and finds nothing wrong."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
     out = tmp_path / "site"
     site = build_site(
-        [Report(url=str(saved), name="Some Other Document", tab="Draft 2")],
+        [Publication(url=str(saved), name="Some Other Document", tab="Draft 2")],
         out,
         BuildOptions(
             images=False,
@@ -441,7 +526,7 @@ def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
 
 
 def test_a_saved_response_is_found_by_the_document_it_came_from(tmp_path: Path) -> None:
-    """A report's directory is named after its `URL:` line, which is a path and
+    """A publication's directory is named after its `URL:` line, which is a path and
     not an id, so the response's own `documentId` is what joins it to an entry."""
     written = tmp_path / "reports" / "a-report"
     written.mkdir(parents=True)
@@ -477,7 +562,7 @@ def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
             }
         )
     )
-    report = Report(
+    publication = Publication(
         url="https://docs.google.com/document/d/abc/edit?tab=t.1",
         name="Digging Out of a Very Deep Hole",
         tab="Draft 2",
@@ -490,7 +575,7 @@ def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
     monkeypatch.setattr(build_module, "fetch", boom, raising=False)
     seed_image_index(out)
     site = build_site(
-        [report],
+        [publication],
         out,
         BuildOptions(
             images=False,
@@ -515,7 +600,7 @@ def test_offline_refuses_a_response_read_the_other_way(tmp_path: Path) -> None:
         json.dumps({**FIXTURE, "documentId": "abc", "tabId": "t.1", "suggestions": "rejected"})
     )
     site = build_site(
-        [Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
+        [Publication(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
         out,
         BuildOptions(
             offline=True,
@@ -529,10 +614,10 @@ def test_offline_refuses_a_response_read_the_other_way(tmp_path: Path) -> None:
     assert "needs a fetch" in site.failed[0].error
 
 
-def test_offline_says_which_report_it_has_nothing_saved_for(tmp_path: Path) -> None:
+def test_offline_says_which_publication_it_has_nothing_saved_for(tmp_path: Path) -> None:
     """Fetching one document in a run asked to fetch nothing is worse than saying so."""
     site = build_site(
-        [Report(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
+        [Publication(url="https://docs.google.com/document/d/abc/edit?tab=t.1", name="A", tab="B")],
         tmp_path / "site",
         BuildOptions(
             offline=True,
@@ -545,11 +630,11 @@ def test_offline_says_which_report_it_has_nothing_saved_for(tmp_path: Path) -> N
     assert "nothing saved" in site.failed[0].error
 
 
-def test_reports_are_built_at_once_and_reported_in_order(
+def test_publications_are_built_at_once_and_reported_in_order(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, doc: Document
 ) -> None:
-    """A list of reports reads as the list it is, whatever order Google answers in,
-    and the whole point is that one report's wait is not another's."""
+    """A list of publications reads as the list it is, whatever order Google answers in,
+    and the whole point is that one publication's wait is not another's."""
     import time
 
     import eta_publish.site as site_module
@@ -563,11 +648,11 @@ def test_reports_are_built_at_once_and_reported_in_order(
         return doc, f"reports/{ref.rsplit('/', 1)[-1]}"
 
     monkeypatch.setattr(site_module, "build_one", build)
-    reports = [Report(url=f"https://example.invalid/{name}") for name in order]
+    publications = [Publication(url=f"https://example.invalid/{name}") for name in order]
 
     started = time.perf_counter()
     site = build_site(
-        reports,
+        publications,
         tmp_path / "site",
         options=BuildOptions(unpublished_url=HOSTS.unpublished, published_url=HOSTS.published),
     )
@@ -581,13 +666,13 @@ def test_reports_are_built_at_once_and_reported_in_order(
     assert elapsed < 2 * SLOW
 
 
-def test_a_note_says_which_report_it_is_about(
+def test_a_note_says_which_publication_it_is_about(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     doc: Document,
     capsys: pytest.CaptureFixture[str],
 ) -> None:
-    """Several reports are built at once and each writes as it goes,
+    """Several publications are built at once and each writes as it goes,
     so a note about one of them that does not name it names none of them."""
     import eta_publish.site as site_module
 
@@ -597,12 +682,13 @@ def test_a_note_says_which_report_it_is_about(
         return doc, f"reports/{name}"
 
     monkeypatch.setattr(site_module, "build_one", build)
-    reports = [
-        Report(url=f"https://example.invalid/{name}", name=name.title()) for name in ("one", "two")
+    publications = [
+        Publication(url=f"https://example.invalid/{name}", name=name.title())
+        for name in ("one", "two")
     ]
 
     build_site(
-        reports,
+        publications,
         tmp_path / "site",
         options=BuildOptions(unpublished_url=HOSTS.unpublished, published_url=HOSTS.published),
     )
@@ -614,8 +700,12 @@ def test_a_note_says_which_report_it_is_about(
 
 def test_the_index_lists_what_built_and_what_did_not(doc: Document) -> None:
     site = Site(
-        built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="reports/sas-west")],
-        failed=[Failed(report=Report(url="u2", name="Next"), error="not found")],
+        built=[
+            Built(
+                publication=Publication(url="u", name="SAS West"), doc=doc, path="reports/sas-west"
+            )
+        ],
+        failed=[Failed(publication=Publication(url="u2", name="Next"), error="not found")],
     )
     page = index_page(site)
     assert 'href="reports/sas-west/"' in page
@@ -627,7 +717,7 @@ def test_the_index_lists_the_newest_first_and_the_undated_last() -> None:
     def built(name: str, published: str) -> Built:
         doc = Document(meta={"Publish Due Date": published} if published else {})
         doc.title = name
-        return Built(report=Report(url=name, name=name), doc=doc, path=name)
+        return Built(publication=Publication(url=name, name=name), doc=doc, path=name)
 
     site = Site(
         built=[built("Old", "Aug 19, 2026"), built("Draft", ""), built("New", "Oct 16, 2026")]
@@ -636,11 +726,13 @@ def test_the_index_lists_the_newest_first_and_the_undated_last() -> None:
     assert page.index("New") < page.index("Old") < page.index("Draft")
 
 
-def test_a_card_summarizes_the_report_by_its_short(doc: Document) -> None:
+def test_a_card_summarizes_the_publication_by_its_short(doc: Document) -> None:
     """What a blog post's excerpt or `What's New` says, not the search result's preview."""
     doc.meta["Short"] = "The short."
     doc.meta["SEO Description"] = "The SEO description."
-    site = Site(built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="r/s")])
+    site = Site(
+        built=[Built(publication=Publication(url="u", name="SAS West"), doc=doc, path="r/s")]
+    )
     page = index_page(site)
     assert "The short." in page
     assert "The SEO description." not in page
@@ -681,7 +773,7 @@ def test_a_missing_list_is_reported_as_a_bad_argument(tmp_path: Path) -> None:
     assert str(absent) in result.output
 
 
-def test_a_report_directory_is_a_document(tmp_path: Path) -> None:
+def test_a_publication_directory_is_a_document(tmp_path: Path) -> None:
     """A build writes `doc.json` beside its outputs,
     so what one run wrote is what the next can be handed,
     with no network and no knowing the filename inside it."""
@@ -702,7 +794,47 @@ def test_a_report_directory_is_a_document(tmp_path: Path) -> None:
     assert (built / "doc.json").is_file()
 
 
-def test_a_build_elsewhere_carries_over_only_what_the_report_still_uses(tmp_path: Path) -> None:
+def test_a_statement_is_written_as_one(tmp_path: Path) -> None:
+    """Its outputs say what it is, as its path does."""
+    saved = tmp_path / "doc.json"
+    text = (FIXTURE_DIR / "doc.json").read_text()
+    assert "/reports/digging-out-deep-hole-sas-west" in text
+    saved.write_text(text.replace("/reports/digging-out-deep-hole-sas-west", "/statements/x"))
+    (tmp_path / "site" / "statements" / "x").mkdir(parents=True)
+    (tmp_path / "site" / "statements" / "x" / IMAGES_JSON).write_text(
+        (FIXTURE_DIR / IMAGES_JSON).read_text()
+    )
+    site = build_site(
+        [Publication(url=str(saved))],
+        tmp_path / "site",
+        BuildOptions(
+            images=False,
+            archive=False,
+            unpublished_url=HOSTS.unpublished,
+            published_url=HOSTS.published,
+        ),
+    )
+    assert not site.failed, site.failed
+    built = tmp_path / "site" / "statements" / "x"
+    assert {p.name for p in built.glob("*.md")} == {"statement.md"}
+    assert not list(built.glob("report.*"))
+
+
+@pytest.mark.parametrize(
+    ("url", "kind"), [("/statements/x", "statement"), ("/reports/x", "report")]
+)
+def test_the_contributors_line_calls_the_publication_what_it_is(
+    doc: Document, url: str, kind: str
+) -> None:
+    from eta_publish.emit.base import contributors_note
+
+    doc.meta["URL"] = url
+    assert f"contributed to this {kind}," in contributors_note(doc)
+
+
+def test_a_build_elsewhere_carries_over_only_what_the_publication_still_uses(
+    tmp_path: Path,
+) -> None:
     """What the last build recorded comes along, and a picture nothing names any more does not.
 
     The point of building into a directory of its own is that a file the build
@@ -759,11 +891,11 @@ def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
 def test_a_name_that_is_not_the_documents_is_warned_about(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """`reports.toml` names each report, and only the fetch knows if it is right."""
+    """`publications.toml` names each publication, and only the fetch knows if it is right."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Report(url=str(saved), name="SAS West")],
+        [Publication(url=str(saved), name="SAS West")],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -773,7 +905,7 @@ def test_a_name_that_is_not_the_documents_is_warned_about(
         ),
     )
     warning = capsys.readouterr().err
-    assert "reports.toml calls this `SAS West`" in warning
+    assert "publications.toml calls this `SAS West`" in warning
     assert f"`{FIXTURE['title']}`" in warning
 
 
@@ -783,7 +915,7 @@ def test_the_documents_own_name_is_not_warned_about(
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Report(url=str(saved), name=str(FIXTURE["title"]))],
+        [Publication(url=str(saved), name=str(FIXTURE["title"]))],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -792,7 +924,7 @@ def test_the_documents_own_name_is_not_warned_about(
             published_url=HOSTS.published,
         ),
     )
-    assert "reports.toml calls this" not in capsys.readouterr().err
+    assert "publications.toml calls this" not in capsys.readouterr().err
 
 
 def test_a_tab_that_is_not_the_documents_is_warned_about(
@@ -802,7 +934,7 @@ def test_a_tab_that_is_not_the_documents_is_warned_about(
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE | {"tabTitle": "Draft 2"}))
     build_site(
-        [Report(url=str(saved), tab="Draft 1")],
+        [Publication(url=str(saved), tab="Draft 1")],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -812,7 +944,7 @@ def test_a_tab_that_is_not_the_documents_is_warned_about(
         ),
     )
     warning = capsys.readouterr().err
-    assert "reports.toml expects the tab `Draft 1`" in warning
+    assert "publications.toml expects the tab `Draft 1`" in warning
     assert "`Draft 2`" in warning
 
 
@@ -824,7 +956,7 @@ def test_a_response_that_names_no_tab_cannot_confirm_one(tmp_path: Path) -> None
     assert "tabTitle" not in FIXTURE
     saved.write_text(json.dumps(FIXTURE))
     site = build_site(
-        [Report(url=str(saved), name="Digging Out of a Very Deep Hole", tab="Draft 1")],
+        [Publication(url=str(saved), name="Digging Out of a Very Deep Hole", tab="Draft 1")],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -844,7 +976,7 @@ def test_an_entry_that_names_neither_is_not_warned_about(
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Report(url=str(saved))],
+        [Publication(url=str(saved))],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -853,7 +985,7 @@ def test_an_entry_that_names_neither_is_not_warned_about(
             published_url=HOSTS.published,
         ),
     )
-    assert "reports.toml" not in capsys.readouterr().err
+    assert "publications.toml" not in capsys.readouterr().err
 
 
 def test_a_url_that_climbs_out_of_the_site_is_refused(doc: Document) -> None:
@@ -862,10 +994,10 @@ def test_a_url_that_climbs_out_of_the_site_is_refused(doc: Document) -> None:
     doc.title = "Digging Out of a Very Deep Hole"
     doc.meta["URL"] = "/../../../../tmp/pwned"
     with pytest.raises(ValueError, match="climbs out of the site"):
-        report_path(doc)
+        publication_path(doc)
 
 
-def _report_dir(tmp_path: Path, recorded: dict[str, dict[str, str]]) -> Path:
+def _publication_dir(tmp_path: Path, recorded: dict[str, dict[str, str]]) -> Path:
     previous = tmp_path / "reports" / "x"
     (previous / "images").mkdir(parents=True)
     (previous / IMAGES_JSON).write_text(json.dumps(recorded))
@@ -876,7 +1008,7 @@ def test_a_response_whose_images_are_gone_is_not_reused(tmp_path: Path) -> None:
     """The response is committed and the images are not,
     so a fresh checkout has one describing pictures that are not beside it.
     Reused there, the build downloads nothing and publishes a page with no images."""
-    previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
+    previous = _publication_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
     assert (
         reusable(
             previous,
@@ -889,7 +1021,7 @@ def test_a_response_whose_images_are_gone_is_not_reused(tmp_path: Path) -> None:
 
 
 def test_a_response_whose_images_are_there_is_reused(tmp_path: Path) -> None:
-    previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
+    previous = _publication_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
     (previous / "images" / "img-a.jpg").write_bytes(b"")
     assert (
         reusable(
@@ -917,7 +1049,7 @@ def test_an_image_the_code_now_names_differently_is_not_on_disk(tmp_path: Path) 
 def test_a_build_that_wants_no_images_does_not_ask_where_they_are(tmp_path: Path) -> None:
     """It is not going to download them either way,
     so the pictures on disk are not what it is asking about."""
-    previous = _report_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
+    previous = _publication_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
     assert (
         reusable(
             previous,
@@ -936,7 +1068,7 @@ def test_a_download_that_turned_up_nothing_does_not_erase_the_index(tmp_path: Pa
     """`images.json` is the one file that says which pictures a complete build wrote,
     and a build that fetched none of them knows less than it did, not more."""
     recorded = {"kix.1": {"file": "img-a.jpg", "sha256": "abc"}}
-    previous = _report_dir(tmp_path, recorded)
+    previous = _publication_dir(tmp_path, recorded)
     write_image_index(previous, {})
     assert json.loads((previous / IMAGES_JSON).read_text()) == recorded
 
@@ -988,7 +1120,7 @@ def test_skipping_the_download_needs_the_record_of_one(tmp_path: Path, doc: Docu
 
 def test_what_the_commands_say_is_not_on_stdout(tmp_path: Path) -> None:
     """A build's product is the files under `site/` and `add`'s is the line it
-    wrote into `reports.toml`, so what either says about doing it is commentary,
+    wrote into `publications.toml`, so what either says about doing it is commentary,
     the way `cargo build` narrates on stderr and leaves stdout clear.
     Only `--help` answers a question that was asked, and only it uses stdout."""
     from typer.testing import CliRunner
@@ -997,10 +1129,10 @@ def test_what_the_commands_say_is_not_on_stdout(tmp_path: Path) -> None:
 
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps({**FIXTURE, "title": "IBX Automation", "tabTitle": "Live version"}))
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
 
-    result = CliRunner().invoke(app, ["add", str(saved), "-r", str(path)])
+    result = CliRunner().invoke(app, ["add", str(saved), "-p", str(path)])
     assert result.exit_code == 0
     assert result.stdout == ""
     assert "added `IBX Automation`, tab `Live version`" in result.stderr
@@ -1010,16 +1142,16 @@ def test_what_the_commands_say_is_not_on_stdout(tmp_path: Path) -> None:
     assert "eta-publish" in result.stdout
 
 
-def test_reports_are_separated_from_each_other(
+def test_publications_are_separated_from_each_other(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """A report is a heading and everything under it,
+    """A publication is a heading and everything under it,
     and two of them run together are one list of warnings rather than two.
     Nothing above the first, which would be a blank line opening the build."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Report(url=str(saved)), Report(url=str(saved))],
+        [Publication(url=str(saved)), Publication(url=str(saved))],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -1060,11 +1192,11 @@ def test_what_is_not_a_docs_url_is_left_alone() -> None:
 def test_the_same_document_copied_twice_is_recognized_as_listed(tmp_path: Path) -> None:
     """The second copy carries a different `?pli=` and a different heading,
     and it is the same document, which is what the refusal is about."""
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     listed = "https://docs.google.com/document/d/1GB5qDuIjDB/edit?tab=t.0"
     path.write_text(f'[[report]]\nname = "A"\ntab = "B"\nurl = "{listed}"\npublished = "draft"\n')
     with pytest.raises(ValueError, match="already lists"):
-        add_report(f"{listed}&pli=1#heading=h.mkzkbxod1acf", path)
+        add_publication(f"{listed}&pli=1#heading=h.mkzkbxod1acf", path)
 
 
 def test_a_build_the_archive_did_not_answer_in_full_is_published(
@@ -1098,7 +1230,7 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
     out = tmp_path / "site"
     seed_image_index(out)
     site = build_site(
-        [Report(url=str(saved))],
+        [Publication(url=str(saved))],
         out,
         BuildOptions(
             images=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
@@ -1114,7 +1246,7 @@ def test_a_build_the_archive_did_not_answer_in_full_is_published(
 def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    """Said among a document's warnings, it scrolled away under the next report."""
+    """Said among a document's warnings, it scrolled away under the next publication."""
     from eta_publish import __main__, archive, build
 
     def capture(doc: Document, **_: object) -> tuple[int, int]:
@@ -1131,14 +1263,14 @@ def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     build.archive_sources(doc)
     build.archive_sources(doc)
     assert capsys.readouterr().err.count("WITHOUT archive.org keys") == 1
-    __main__.report_outcome(Site(built=[], failed=[]))
+    __main__.publication_outcome(Site(built=[], failed=[]))
     assert "WITHOUT archive.org keys" in capsys.readouterr().err
 
 
-def test_one_ctrl_c_stops_a_build_without_waiting_for_its_reports(
+def test_one_ctrl_c_stops_a_build_without_waiting_for_its_publications(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """`Ctrl+C` reaches only the main thread, and the reports are on others.
+    """`Ctrl+C` reaches only the main thread, and the publications are on others.
 
     Waiting for them to finish is what made the first `Ctrl+C` look like
     nothing and the second a traceback through the thread pool's join.
@@ -1161,13 +1293,13 @@ def test_one_ctrl_c_stops_a_build_without_waiting_for_its_reports(
 
     monkeypatch.setattr(site_module, "build_one", stuck)
     # A real `SIGINT`, as `Ctrl+C` sends: one only flagged for the main thread
-    # does not wake it from waiting on a report, and so tests nothing here.
+    # does not wake it from waiting on a publication, and so tests nothing here.
     threading.Timer(0.2, os.kill, (os.getpid(), signal.SIGINT)).start()
     started = time.monotonic()
     try:
         with pytest.raises(Stopped) as stopped:
             build_site(
-                [Report(url=str(tmp_path / "doc.json"), name="Slow")],
+                [Publication(url=str(tmp_path / "doc.json"), name="Slow")],
                 tmp_path / "site",
                 options=BuildOptions(
                     unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
@@ -1210,17 +1342,19 @@ def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
     assert social_image(doc, "reports/r", site_url=HOST) == ""
 
 
-def test_a_card_shows_the_reports_share_card_where_it_has_one(doc: Document) -> None:
+def test_a_card_shows_the_publications_share_card_where_it_has_one(doc: Document) -> None:
     doc.card = Image(object_id="io.card", filename="card")
     doc.image_files["io.card"] = "card.jpg"
-    site = Site(built=[Built(report=Report(url="u", name="SAS West"), doc=doc, path="r/s")])
+    site = Site(
+        built=[Built(publication=Publication(url="u", name="SAS West"), doc=doc, path="r/s")]
+    )
     assert 'src="r/s/images/card.jpg"' in index_page(site)
     doc.card = None
     assert 'class="card"' not in index_page(site)
 
 
 def test_the_hosts_are_the_lists_own(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text(
         '[site]\npublished = "https://reports.example.org/"\n'
         'unpublished = "https://preview.example.org"\n'
@@ -1232,7 +1366,7 @@ def test_the_hosts_are_the_lists_own(tmp_path: Path) -> None:
 
 def test_a_list_must_say_where_its_site_is(tmp_path: Path) -> None:
     """No host to fall back on: a default is a host someone forgot to change."""
-    path = tmp_path / "reports.toml"
+    path = tmp_path / "publications.toml"
     path.write_text("")
     with pytest.raises(ValueError, match="no `\\[site\\]` table"):
         load_hosts(path)
@@ -1244,8 +1378,8 @@ def test_a_list_must_say_where_its_site_is(tmp_path: Path) -> None:
 
 
 def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
-    path = tmp_path / "reports.toml"
-    path.write_text('[site]\npublished = "reports.example.org"\n')
+    path = tmp_path / "publications.toml"
+    path.write_text('[site]\npublished = "publications.example.org"\n')
     with pytest.raises(ValueError, match="not an `https://` URL"):
         load_hosts(path)
 

@@ -37,7 +37,7 @@ def with_paragraph(text: str) -> Document:
 
 
 def test_it_opens_the_way_the_page_does(out: str) -> None:
-    """The same report as the page and the PDF, not a different view of it."""
+    """The same publication as the page and the PDF, not a different view of it."""
     assert out.startswith("# Digging Out of a Very Deep Hole: Saving Billions on 125th Street\n")
 
 
@@ -105,7 +105,7 @@ def test_figures_carry_caption_and_credit(out: str) -> None:
     assert "![SAS West alignment map](<images/sas-west-036.png>)" in out
     assert "The SAS West and Phase 2 alignments." in out
     assert "Credit: MTA" in out
-    # Not italicized: the published report does not italicize either.
+    # Not italicized: the live publication does not italicize either.
     assert "*Credit: MTA*" not in out
 
 
@@ -121,7 +121,7 @@ def test_markdown_syntax_in_prose_is_escaped() -> None:
 
 def test_a_url_containing_parentheses_survives() -> None:
     """A bare `)` would end the link early and drop the rest into the prose.
-    These reports cite Wikipedia and agency PDFs, which have plenty."""
+    These publications cite Wikipedia and agency PDFs, which have plenty."""
     doc_json: JsonObject = json.loads(json.dumps(FIXTURE))
     href = "https://en.wikipedia.org/wiki/Second_Avenue_Subway_(Phase_2)"
     doc_json["body"]["content"].append(

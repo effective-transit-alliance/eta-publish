@@ -56,23 +56,23 @@ from ..nodes import (
     plain_text,
 )
 from .base import (
-    CONTRIBUTORS_NOTE,
     PLATFORM_NAMES,
     Emitter,
+    contributors_note,
     shown_url,
     warning_markup,
 )
 
 # Only styles what the emitter produces, inheriting the rest from the theme,
-# so a report does not fight the site around it.
-REPORT_CSS = read("report.css")
+# so a publication does not fight the site around it.
+PUBLICATION_CSS = read("publication.css")
 
 # Positions the footnote tooltip, which the stylesheet cannot:
 # whether there is room under the reference is a question about the window,
 # and the answer changes with the scroll position.
 # Without this the tooltip still appears on hover, under the reference,
 # and is only in the wrong place near an edge of the screen.
-REPORT_JS = read("report.js")
+PUBLICATION_JS = read("publication.js")
 
 
 # A Squarespace code block holds 400 KB.
@@ -138,7 +138,7 @@ def lines(parts: Iterable[Piece]) -> Piece:
     """One part per line.
 
     A newline between two blocks is whitespace HTML collapses,
-    and it is what makes a diff of a rebuilt report readable.
+    and it is what makes a diff of a rebuilt publication readable.
     """
     return joined("\n", parts)
 
@@ -156,7 +156,7 @@ def markup(node: Piece) -> Markup:
 HTML_H2 = 2
 """The heading level a piece is cut at.
 
-`h2` is what a report's sections are: `Heading 1` in the document,
+`h2` is what a publication's sections are: `Heading 1` in the document,
 which publishes one level down because the headline is the `h1`.
 """
 
@@ -179,7 +179,7 @@ def phase_markup(phase: str) -> str:
     that means nothing to a reader who does not already know what it is a phase of.
 
     A function rather than only a method,
-    because `report_page` writes it above the headline
+    because `publication_page` writes it above the headline
     and never walks to it.
     """
     if not phase:
@@ -191,7 +191,7 @@ def player_url(node: Embed, card: Card) -> str:
     """The platform's own player for `node`, which the script loads on click.
 
     Each is an `iframe` of the platform's, rather than its embed script,
-    so nothing of theirs runs in the report's page even once it is playing.
+    so nothing of theirs runs in the publication's page even once it is playing.
     `youtube-nocookie.com` is YouTube's own address for a player that sets
     no cookie until the video is played.
     """
@@ -239,7 +239,7 @@ class HtmlEmitter(Emitter):
         # Where a page finds the site's assets beside it, as it links its stylesheet;
         # empty for the fragment, whose `asset_base` says where they are.
         self.page_assets = page_assets
-        # Turn off once `REPORT_CSS` lives in the site's Custom CSS.
+        # Turn off once `PUBLICATION_CSS` lives in the site's Custom CSS.
         self.inline_css = inline_css
         # Off for a page, which links one copy; on for the fragment, which
         # is pasted somewhere with nothing to link to.
@@ -248,9 +248,9 @@ class HtmlEmitter(Emitter):
         # Empty for a page, which links its own.
         self.asset_base = asset_base
         # Off for a page, which writes the phase above the headline itself;
-        # on for the fragment, which emits it with the rest of the report.
+        # on for the fragment, which emits it with the rest of the publication.
         self.inline_phase = inline_phase
-        # Where the report's PDF is, as the masthead links it; empty for no link.
+        # Where the publication's PDF is, as the masthead links it; empty for no link.
         self.pdf_href = pdf_href
         # Whether a cited link shows its `[n]` where it hovers. Off, the
         # number is still in the markup, where the backlinks land, and is the
@@ -321,8 +321,8 @@ class HtmlEmitter(Emitter):
         so a second walk of the same document has to start where the first did
         or it produces the same ids suffixed to avoid themselves.
 
-        Called by `groups`, which is the walk. A report emitted whole and the
-        same report emitted in pieces are two walks of one document,
+        Called by `groups`, which is the walk. A publication emitted whole and the
+        same publication emitted in pieces are two walks of one document,
         and the pieces have to carry the ids the whole one published.
 
         The document is set here as well as by `emit`, because a walk needs it:
@@ -347,28 +347,28 @@ class HtmlEmitter(Emitter):
         self._taken.update(b.anchor for b in doc.blocks if isinstance(b, Heading))
 
     def whole(self, doc: Document) -> list[str]:
-        """Everything in the report, in one group."""
+        """Everything in the publication, in one group."""
         return [part for group in self.groups(doc) for part in group]
 
     def wrapped(self, group: list[str]) -> list[str]:
-        """One group as a standalone fragment: what a piece is, and what a report is.
+        """One group as a standalone fragment: what a piece is, and what a publication is.
 
         The stylesheet and the script ride on each, and each is its own
         `.eta-report` div, so consecutive code blocks still pick up the same CSS.
         """
         shell = []
         if self.inline_css:
-            shell.append(markup(tag.style[Markup(f"\n{REPORT_CSS}")]))
+            shell.append(markup(tag.style[Markup(f"\n{PUBLICATION_CSS}")]))
         elif self.asset_base:
-            href = f"{self.asset_base}/report.css"
+            href = f"{self.asset_base}/publication.css"
             shell.append(markup(htpy.link(rel="stylesheet", href=href)))
         # Unlike the stylesheet, which a site can carry once under Custom CSS,
-        # this travels with the report: it is small, and a fragment pasted
+        # this travels with the publication: it is small, and a fragment pasted
         # without it puts a tooltip off the edge of the screen.
         if self.inline_js:
-            shell.append(markup(tag.script[Markup(f"\n{REPORT_JS}")]))
+            shell.append(markup(tag.script[Markup(f"\n{PUBLICATION_JS}")]))
         elif self.asset_base:
-            src = f"{self.asset_base}/report.js"
+            src = f"{self.asset_base}/publication.js"
             shell.append(markup(htpy.script(src=src, defer=True)))
         # The one pair of tags written out rather than built:
         # a group is a list of lines the caller joins, and the wrapper opens
@@ -379,7 +379,7 @@ class HtmlEmitter(Emitter):
         return [*shell, Markup(f'<div class="{root}">'), *group, Markup("</div>")]
 
     def groups(self, doc: Document) -> list[list[str]]:
-        """The report in the groups a split cuts it into: one per `h2` in the body.
+        """The publication in the groups a split cuts it into: one per `h2` in the body.
 
         Everything ahead of the first heading goes with the first group,
         and the back matter with the last, which is where they read.
@@ -412,18 +412,18 @@ class HtmlEmitter(Emitter):
     def masthead(self, doc: Document) -> str:
         """The headline, standfirst and dateline, beside the hero where there is room.
 
-        The site's own reports set the title beside the picture on a wide
+        The site's own publications set the title beside the picture on a wide
         screen, so this does too, and the stylesheet stacks them on a phone.
 
         The warnings come between the dateline and the hero,
         because stacked, the hero fills the screen
         and a warning under it is a warning nobody scrolls to;
         side by side, the stylesheet moves them under both.
-        In the fragment as well as the page, so that a report pasted into the
+        In the fragment as well as the page, so that a publication pasted into the
         live site with warnings still on it says so at the top.
         """
         text = tag.div(class_="masthead-text")[
-            Markup(self.report_title(doc)),
+            Markup(self.publication_title(doc)),
             Markup(self.standfirst(doc)),
             Markup(self.dateline(doc)),
             Markup(self.pdf_link()),
@@ -440,7 +440,7 @@ class HtmlEmitter(Emitter):
             ]
         )
 
-    def report_title(self, doc: Document) -> str:
+    def publication_title(self, doc: Document) -> str:
         """The headline, which belongs to the fragment as it does the page."""
         headline = self.inlines(doc.headline) if doc.headline else doc.title
         return markup(tag.h1(id="title")[self.mark("title", "title"), headline])
@@ -458,7 +458,7 @@ class HtmlEmitter(Emitter):
     def contributors(self, doc: Document) -> str:
         """Who is credited, in a section at the end, the way ETA credits them.
 
-        Not a byline under the title: a report is the work of most of a chapter,
+        Not a byline under the title: a publication is the work of most of a chapter,
         and nine names above the first paragraph read as a masthead rather than a credit.
 
         The names come from `Public Contributors:`, in the order the document lists them,
@@ -473,7 +473,7 @@ class HtmlEmitter(Emitter):
                 "\n",
                 tag.h2[self.mark("contributors"), "Contributors"],
                 "\n",
-                tag.p[CONTRIBUTORS_NOTE],
+                tag.p[contributors_note(doc)],
                 "\n",
                 tag.ul["\n", lines(tag.li[name] for name in names), "\n"],
                 "\n",
@@ -490,7 +490,7 @@ class HtmlEmitter(Emitter):
         return phase_markup(doc.phase) if self.inline_phase else ""
 
     def dateline(self, doc: Document) -> str:
-        """When the report published, from `Final Due Date:` in the header.
+        """When the publication went out, from `Final Due Date:` in the header.
 
         Plain text rather than a `<time>`,
         which only carries machine-readable meaning with an ISO stamp:
@@ -502,7 +502,7 @@ class HtmlEmitter(Emitter):
         return markup(tag.p(class_="dateline", id="date")[self.mark("date", "date"), date])
 
     def pdf_link(self) -> str:
-        """A link to the report as a PDF, for a reader who wants to print or keep it."""
+        """A link to the publication as a PDF, for a reader who wants to print or keep it."""
         if not self.pdf_href:
             return ""
         return markup(
@@ -512,7 +512,7 @@ class HtmlEmitter(Emitter):
         )
 
     def warnings(self, doc: Document) -> str:
-        """Everything the build has to say about this report, where it will be read.
+        """Everything the build has to say about this publication, where it will be read.
 
         A warning names a field, a file, or a line in backticks,
         rendered as code rather than shown with the backticks in it.
@@ -548,10 +548,10 @@ class HtmlEmitter(Emitter):
 
     def toc(self, doc: Document) -> str:
         """The sections, as a list rather than the run of pipe-separated links
-        the published report uses, which has nowhere to put a subsection.
+        the live publication uses, which has nowhere to put a subsection.
 
         Every heading the page shows is listed, the back matter this emitter
-        writes included, rather than the published report's top two levels.
+        writes included, rather than the live publication's top two levels.
 
         A document with no headings of its own gets no table of contents:
         a table listing only the footnotes is a link.
@@ -663,9 +663,9 @@ class HtmlEmitter(Emitter):
         ]
 
     def sources(self, doc: Document) -> str:
-        """Every source the report cites, with the archived copy beside it.
+        """Every source the publication cites, with the archived copy beside it.
 
-        The original first, because that is what the report read and where the
+        The original first, because that is what the publication read and where the
         page still lives while it lives. The capture after it, because that is
         what is left when it does not.
         """
@@ -867,7 +867,7 @@ class HtmlEmitter(Emitter):
         """`emit()`, with the paragraphs inside it numbered from `scope`.
 
         A footnote and a table cell are made of paragraphs,
-        but they are not passages of the report:
+        but they are not passages of the publication:
         numbering them along with it would put 43 between 12 and 13.
         """
         was = self._scope, self._paragraphs, self._marked
@@ -897,7 +897,7 @@ class HtmlEmitter(Emitter):
     def heading(self, node: Heading) -> str:
         """Every heading carries a link to itself.
 
-        A section of a report this long is what people send each other,
+        A section of a publication this long is what people send each other,
         and the anchor is already there:
         this only gives the reader something to copy it from.
         """
@@ -911,7 +911,7 @@ class HtmlEmitter(Emitter):
 
     @override
     def paragraph(self, node: Paragraph) -> str:
-        """A paragraph is linkable, because a report this long gets quoted
+        """A paragraph is linkable, because a publication this long gets quoted
         a paragraph at a time.
         One holding no text is not: nothing to hash, and nothing anyone would link to."""
         lead, self._lead = self._lead, None
@@ -950,7 +950,7 @@ class HtmlEmitter(Emitter):
     @override
     def figure(self, node: Figure) -> str:
         # `Figure.source` is not emitted:
-        # it names the original file in Drive, for whoever assembles the report,
+        # it names the original file in Drive, for whoever assembles the publication,
         # and does not appear on the published page.
         # A figure whose SVG could not be had is published without a picture,
         # never with the raster standing in for it.
@@ -975,7 +975,7 @@ class HtmlEmitter(Emitter):
     def embed(self, node: Embed, card: Card) -> str:
         """A card for the video or post, which becomes the platform's player when clicked.
 
-        A card rather than the player, so reading the report asks nothing of
+        A card rather than the player, so reading the publication asks nothing of
         YouTube, X, or Bluesky until the reader does. The card is a link to the
         post, so without the script, or in a reader that strips it, it is still
         the way there. The player's address rides on the figure for the script.
@@ -1224,7 +1224,7 @@ class HtmlEmitter(Emitter):
         gap before the file arrives.
 
         Without them an image is zero pixels tall until it loads, and with 29
-        of them loading lazily the report is 1,280 pixels shorter than it will
+        of them loading lazily the publication is 1,280 pixels shorter than it will
         be. A reader who opens `#src50` lands where that anchor was before the
         pictures pushed it down.
 
@@ -1289,13 +1289,13 @@ class HtmlEmitter(Emitter):
         return markup(tag.a(class_="full-size", href=src)[htpy.picture[[*sources, img]]])
 
 
-# Enough to read the report as it will look, and nothing more.
+# Enough to read the publication as it will look, and nothing more.
 # A page pasted into Squarespace inherits that site's typography,
 # so matching it here would be a guess that goes stale.
 PAGE_CSS = read("page.css")
 
 
-def report_page(
+def publication_page(
     doc: Document,
     image_base: str = IMAGE_DIR,
     asset_base: str = ASSET_DIR,
@@ -1306,7 +1306,7 @@ def report_page(
     *,
     site_url: str,
 ) -> str:
-    """The whole report as a page,
+    """The whole publication as a page,
     which is what a build writes as `index.html` and what the site serves.
 
     Not the fragment with a wrapper bolted on:
@@ -1329,7 +1329,7 @@ def report_page(
         page_assets=asset_base,
         site_url=site_url,
     ).emit(doc)
-    # The share card is what a link to the report unfurls as, and the only place it appears:
+    # The share card is what a link to the publication unfurls as, and the only place it appears:
     # a picture of the title, which a reader who has arrived does not need.
     card: list[Piece] = []
     # What Squarespace previews in a search result, as its page settings show it.
@@ -1353,34 +1353,34 @@ def report_page(
     head: list[Piece] = [
         htpy.meta(charset="utf-8"),
         htpy.meta(name="viewport", content="width=device-width, initial-scale=1"),
-        # Until the reports are published, nothing here should be findable.
+        # Until the publications are published, nothing here should be findable.
         # `robots.txt` only asks a crawler not to fetch a page,
         # which leaves one already indexed where it is;
         # `noindex` is what takes it back out,
         # and it is the only one of the two that a project page can carry at all,
         # since `robots.txt` is read from the root of the host
         # and these pages are served from a path under it.
-        # Remove this, and `site/unpublished/robots.txt`, when the reports go out.
+        # Remove this, and `site/unpublished/robots.txt`, when the publications go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
         tag.title[doc.title],
         # Without one a browser shows whatever it last cached for the host, or nothing.
         htpy.link(rel="icon", type="image/svg+xml", href=f"{asset_base}/logo.svg"),
         htpy.meta(name="description", content=description),
-        # What a link to the report unfurls as, beside the card's picture.
+        # What a link to the publication unfurls as, beside the card's picture.
         htpy.meta(property="og:type", content="article"),
         htpy.meta(property="og:site_name", content="Effective Transit Alliance"),
         *([htpy.meta(property="og:url", content=page_url)] if page_url else []),
         htpy.meta(property="og:title", content=doc.title),
         htpy.meta(property="og:description", content=description),
         *card,
-        # Linked rather than inlined: every report page carries the same
+        # Linked rather than inlined: every publication page carries the same
         # stylesheets and the same script, and `asset_base` is where the
         # build put the one copy, relative to this page.
         *(
             htpy.link(rel="stylesheet", href=f"{asset_base}/{name}")
-            for name in ("page.css", "report.css")
+            for name in ("page.css", "publication.css")
         ),
-        htpy.script(src=f"{asset_base}/report.js", defer=True),
+        htpy.script(src=f"{asset_base}/publication.js", defer=True),
         *([Markup(phase_markup(doc.phase))] if doc.phase else []),
     ]
     # `<!doctype html>` is not an element and no builder emits one.

@@ -1,6 +1,6 @@
-#import "template.typ": capped_image, report, video_warning
+#import "template.typ": capped_image, publication, video_warning
 
-#show: report.with(
+#show: publication.with(
   title: "Monthly Passes",
   headline: [Monthly Passes],
   subtitle: none,

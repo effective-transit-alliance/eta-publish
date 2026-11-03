@@ -1,7 +1,7 @@
 """The `.min` copies of what a build wrote: smaller to paste and to serve, and drawn the same.
 
-`report.min.html` is `report.html` minified, linking `report.min.css` and `report.min.js`
-where `report.html` links `report.css` and `report.js`.
+`report.min.html` is `report.html` minified, linking `publication.min.css` and `publication.min.js`
+where `report.html` links `publication.css` and `publication.js`.
 It is the one to paste into a Squarespace code block: a fifth to a quarter smaller,
 which is that much further under the code block's limit and that much less for the editor to save.
 
@@ -21,13 +21,13 @@ from .format import installed, pinned
 
 SCRIPT = Path(__file__).with_name("minify.mjs")
 
-FRAGMENT_ASSETS = ("report.css", "report.js")
+FRAGMENT_ASSETS = ("publication.css", "publication.js")
 """What `report.html` links, and so what `report.min.html` links the `.min` copies of."""
 
 PAGE_ASSETS = ("page.css", *FRAGMENT_ASSETS)
-"""What a report's `index.html` links."""
+"""What a publication's `index.html` links."""
 
-MIN_ASSETS = ("report.min.css", "report.min.js")
+MIN_ASSETS = ("publication.min.css", "publication.min.js")
 """What `report.min.html` links, each with its source map beside it as `<name>.map`."""
 
 

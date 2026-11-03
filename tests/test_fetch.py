@@ -1,7 +1,7 @@
 """Tab selection, which is where a silent wrong-document bug would hide.
 
 By default `documents.get` fills `body` from the first tab only,
-so a report drafted in a later tab would parse cleanly and be wrong.
+so a publication drafted in a later tab would parse cleanly and be wrong.
 """
 
 import json

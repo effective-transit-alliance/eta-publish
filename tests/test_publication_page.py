@@ -1,4 +1,4 @@
-"""The report as a page: `index.html`, which is what the site serves."""
+"""The publication as a page: `index.html`, which is what the site serves."""
 
 import json
 import re
@@ -10,7 +10,7 @@ import pytest
 from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.build import emit
-from eta_publish.emit.html import report_page
+from eta_publish.emit.html import publication_page
 from eta_publish.nodes import Document
 from eta_publish.parse import parse
 
@@ -80,14 +80,14 @@ def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Pa
 def test_warnings_are_shown_where_someone_will_see_them() -> None:
     doc = named_images(parse(FIXTURE))
     doc.warn("something looked wrong")
-    assert "something looked wrong" in report_page(doc, site_url=HOST)
+    assert "something looked wrong" in publication_page(doc, site_url=HOST)
 
 
 def test_no_warnings_means_no_warning_box(doc: Document) -> None:
     # The fixture's header carries one unrecognized field on purpose;
     # what is under test is the box, not the warning.
     doc.warnings.clear()
-    assert 'class="warnings"' not in report_page(doc, site_url=HOST)
+    assert 'class="warnings"' not in publication_page(doc, site_url=HOST)
 
 
 def test_markdown_images_resolve_next_to_the_archive(doc: Document, tmp_path: Path) -> None:
