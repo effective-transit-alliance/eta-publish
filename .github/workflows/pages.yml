@@ -17,26 +17,19 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# Read-only on the repository.
-# `pages` and `id-token` are what the deploy needs,
-# and nothing here writes a commit.
+# Read-only on the repository, and nothing here writes a commit.
+# `deploy` alone gets what publishing needs.
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-# One deploy at a time, and let a running one finish:
-# cancelling mid-deploy can leave the site serving a half-uploaded build.
-concurrency:
-  group: pages
-  cancel-in-progress: false
 
 jobs:
-  publish:
+  # A newer push makes this build moot, so it is cancelled rather than finished:
+  # it is the slow part, and nothing it does is seen until `deploy` runs.
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
+    concurrency:
+      group: pages-build
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v7
 
@@ -141,5 +134,21 @@ jobs:
         with:
           path: site/unpublished
 
+  # One deploy at a time, and let a running one finish:
+  # cancelling mid-deploy can leave the site serving a half-uploaded build.
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    # `pages` and `id-token` are what the deploy needs.
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v5
