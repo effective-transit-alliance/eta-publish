@@ -17,7 +17,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
-from urllib.parse import unquote, urlsplit
+from urllib.parse import quote, unquote, urlsplit
 
 from pymdownx.slugs import slugify as _slugify
 
@@ -428,3 +428,19 @@ def warning_poster_name(kind: str) -> str:
     """What a video warned of as `kind` shows until it is played, under `ASSET_DIR`:
     see `logo.warning_poster`."""
     return f"warning-{media_stem(kind) or 'video'}.svg"
+
+
+def media_address(file: str) -> str:
+    """The id of `file`'s lightbox, and so the `#` a link opens it at:
+    `/media/File:` and the file's name, extension and all, the way Wikipedia names one.
+
+    An id rather than an address only the script understands,
+    so a link to it works with nothing but the stylesheet:
+    `:target` shows the lightbox whose id the `#` names.
+    """
+    return f"/media/File:{Path(file).name}"
+
+
+def media_fragment(address: str) -> str:
+    """A `media_address` as the `#` of a link, escaped as a URL's fragment is."""
+    return "#" + quote(address, safe="/:")

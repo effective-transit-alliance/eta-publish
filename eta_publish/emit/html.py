@@ -8,6 +8,7 @@ render as undifferentiated body text.
 """
 
 from collections.abc import Callable, Iterable
+from dataclasses import dataclass
 from pathlib import Path
 from string import ascii_lowercase
 from typing import cast, override
@@ -26,6 +27,8 @@ from ..naming import (
     WEB_FORMATS,
     content_anchor,
     has_web_copies,
+    media_address,
+    media_fragment,
     video_frame_name,
     warning_poster_name,
     web_href,
@@ -90,6 +93,19 @@ it matches an element against every other member of that union on its own,
 and against the whole union only once the callable is gone.
 The narrowing is this file's, not a doubt about the library.
 """
+
+
+@dataclass
+class Lightbox:
+    """A figure as its lightbox shows it, gathered on the walk and written after the back matter."""
+
+    address: str
+    """Its id, which a link's `#` opens it at: see `media_address`."""
+    anchor: str
+    """The figure's id, which closing it goes back to."""
+    media: Piece
+    label: str
+    captions: Piece
 
 
 class Tag(Element):
@@ -259,6 +275,11 @@ class HtmlEmitter(Emitter):
         self._in_tip = False
         """Whether what is being emitted is the box a reference carries,
         which is a copy of a note and so cannot carry boxes of its own."""
+        self._copying = False
+        """Whether what is being emitted is a lightbox's copy of a caption:
+        no ids, which the caption has, and no uses, which the caption counted,
+        but links the keyboard stops at, since nothing else in the lightbox is the way there."""
+        self._lightboxes: list[Lightbox] = []
         self._taken: set[str] = set()
         # A paragraph's id is its section's id and its place in that section,
         # so both reset at every heading.
@@ -344,6 +365,7 @@ class HtmlEmitter(Emitter):
         self._paragraphs = 0
         self._marked = True
         self._lead = None
+        self._lightboxes = []
         self._taken.update(b.anchor for b in doc.blocks if isinstance(b, Heading))
 
     def whole(self, doc: Document) -> list[str]:
@@ -403,7 +425,12 @@ class HtmlEmitter(Emitter):
 
         back = [
             part
-            for part in (self.footnotes(doc), self.sources(doc), self.contributors(doc))
+            for part in (
+                self.footnotes(doc),
+                self.sources(doc),
+                self.contributors(doc),
+                self.lightboxes(),
+            )
             if part
         ]
         groups[-1].extend(back)
@@ -653,9 +680,9 @@ class HtmlEmitter(Emitter):
         number = self.source_number(href)
         if not number:
             return None
-        if self._in_tip:
+        if self._in_tip or self._copying:
             return tag.sup(class_="source-ref")[
-                tag.a(tabindex="-1", href=f"#src{number}")[f"[{number}]"]
+                tag.a(tabindex="-1" if self._in_tip else None, href=f"#src{number}")[f"[{number}]"]
             ]
         use = self._source_uses[href] = self._source_uses.get(href, 0) + 1
         return tag.sup(class_="source-ref", id=f"srcref{number}-{use}")[
@@ -958,18 +985,96 @@ class HtmlEmitter(Emitter):
         # The caption as the picture's `title` too, which a pointer resting on
         # the picture shows, beside the `alt` that says what is in it.
         title = plain_text(node.caption) if node.caption else None
-        parts: list[Piece] = [] if unpublished else [self.image(node.image, title)]
-        if node.caption:
-            parts.append(tag.figcaption(class_="figure-caption")[self.inlines(node.caption)])
-        if node.credit:
-            parts.append(tag.figcaption(class_="figure-credit")[self.inlines(node.credit)])
+        anchor = self.take(node.image.filename)
+        parts: list[Piece] = []
+        if not unpublished:
+            # Opening its lightbox, which links the file as the document holds it.
+            file = self.doc.image_href(node.image)
+            address = self.take(media_address(file))
+            picture = self.picture(node.image, title)
+            parts.append(tag.a(class_="full-size", href=media_fragment(address))[picture])
+            self._lightboxes.append(
+                Lightbox(
+                    address=address,
+                    anchor=anchor,
+                    media=tag.a(
+                        class_="lightbox-media",
+                        href=self.image_src(file),
+                        target="_blank",
+                        rel="noopener",
+                    )[self.picture(node.image, title, lightbox=True)],
+                    label="Picture",
+                    captions=self.copied(lambda: self.figure_captions(node.caption, node.credit)),
+                )
+            )
+        parts.append(self.figure_captions(node.caption, node.credit))
         # The stylesheet reads `--aspect` twice:
         # to divide a line between the figures of a row,
         # and to cap how tall any one figure gets.
         aspect = self.doc.image_aspect(node.image)
         shape = f"--aspect: {aspect:.3f}" if aspect is not None else None
-        anchor = self.take(node.image.filename)
         return markup(tag.figure(id=anchor, style=shape)[self.mark(anchor, "figure"), parts])
+
+    def figure_captions(self, caption: list[Inline], credit: list[Inline]) -> Piece:
+        return [
+            tag.figcaption(class_="figure-caption")[self.inlines(caption)] if caption else None,
+            tag.figcaption(class_="figure-credit")[self.inlines(credit)] if credit else None,
+        ]
+
+    def copied[T](self, emit: Callable[[], T]) -> T:
+        """What `emit` writes, as a lightbox's copy of it: see `_copying`."""
+        self._copying = True
+        try:
+            return emit()
+        finally:
+            self._copying = False
+
+    def lightboxes(self) -> str:
+        """Every figure's lightbox, in the order the figures read, hidden until opened.
+
+        Written out rather than built by the script, so one opens with the stylesheet alone:
+        `:target` shows the one the address's `#` names, and its links are
+        its way to the next, the previous, and back to the figure.
+        The script, where it runs, opens the same one as a modal `dialog`,
+        above whatever the site around the publication stacks,
+        and adds the keys and a history that Back closes in one step.
+
+        After the back matter, so nothing reads as being in the last section,
+        and never in the way of the page as it reads: a `dialog` is hidden until opened.
+        """
+        boxes = self._lightboxes
+        out: list[Piece] = []
+        for at, box in enumerate(boxes):
+            steps = None
+            if len(boxes) > 1:
+                before = boxes[at - 1].address
+                after = boxes[(at + 1) % len(boxes)].address
+                steps = [
+                    tag.a(
+                        class_="lightbox-prev",
+                        href=media_fragment(before),
+                        aria_label="Previous picture",
+                    )["\u2039"],
+                    tag.a(
+                        class_="lightbox-next",
+                        href=media_fragment(after),
+                        aria_label="Next picture",
+                    )["\u203a"],
+                ]
+            count = f"{at + 1} / {len(boxes)}" if len(boxes) > 1 else None
+            out.append(
+                tag.dialog(class_="lightbox", id=box.address, aria_label=box.label)[
+                    tag.div(class_="lightbox-bar")[
+                        tag.span(class_="lightbox-count")[count],
+                        tag.a(class_="lightbox-close", href=f"#{box.anchor}", aria_label="Close")[
+                            "\u00d7"
+                        ],
+                    ],
+                    tag.div(class_="lightbox-stage")[box.media, steps],
+                    tag.div(class_="lightbox-caption")[box.captions],
+                ]
+            )
+        return markup(out) if out else ""
 
     @override
     def embed(self, node: Embed, card: Card) -> str:
@@ -1063,44 +1168,71 @@ class HtmlEmitter(Emitter):
         and its name is a caption, as an image's are.
         """
         anchor = self.take(Path(file).stem)
-        # A copy is ETA's to show, so nothing points back at the post it came from.
-        ref = None if node.copy else self.source_ref(node.url)
-        cited = tag.span(class_="cited")[ref] if ref else None
-        caption = tag.figcaption(class_="figure-caption")[node.title, cited] if node.title else None
-        credit = (
-            tag.figcaption(class_="figure-credit")[self.inlines(node.credit)]
-            if node.credit
-            else None
+        address = self.take(media_address(file))
+
+        def parts() -> tuple[Piece, Piece, Piece, Piece]:
+            # A copy is ETA's to show, so nothing points back at the post it came from.
+            ref = None if node.copy else self.source_ref(node.url)
+            cited = tag.span(class_="cited")[ref] if ref else None
+            caption = (
+                tag.figcaption(class_="figure-caption")[node.title, cited] if node.title else None
+            )
+            credit = (
+                tag.figcaption(class_="figure-credit")[self.inlines(node.credit)]
+                if node.credit
+                else None
+            )
+            warning = (
+                tag.p(class_="embed-warning", role="note")[self.inlines(node.warning)]
+                if node.warning
+                else None
+            )
+            return warning, caption, credit, cited if caption is None else None
+
+        def video(preload: str) -> Tag:
+            # A video has no `alt`; its name is what it is labeled by, and what
+            # resting the pointer on it shows, as a picture's caption is.
+            return tag.video(
+                src=self.media_src(file, VIDEO_DIR),
+                title=node.title or None,
+                aria_label=node.title or None,
+                controls=True,
+                preload=preload,
+                # The first frame, as the PDF shows it, rather than whichever the browser picks.
+                poster=self.warning_poster(node.warning_kind)
+                if node.warning
+                else self.media_src(video_frame_name(file), IMAGE_DIR),
+            )[
+                self.captions_track(node),
+                tag.a(href=node.url)["Watch the video"] if not node.copy else None,
+            ]
+
+        warning, caption, credit, cited = parts()
+        copy_warning, copy_caption, copy_credit, copy_cited = self.copied(parts)
+        self._lightboxes.append(
+            Lightbox(
+                address=address,
+                anchor=anchor,
+                # Its warning still before it, which is what the warning is for.
+                # Nothing fetched until it is played: the page's own copy has already asked.
+                media=tag.div(class_="lightbox-media")[copy_warning, video("none")],
+                label="Video",
+                captions=[copy_caption, copy_credit, copy_cited],
+            )
         )
-        warning = (
-            tag.p(class_="embed-warning", role="note")[self.inlines(node.warning)]
-            if node.warning
-            else None
-        )
-        # A video has no `alt`; its name is what it is labeled by, and what
-        # resting the pointer on it shows, as a picture's caption is.
-        video = tag.video(
-            src=self.media_src(file, VIDEO_DIR),
-            title=node.title or None,
-            aria_label=node.title or None,
-            controls=True,
-            preload="metadata",
-            # The first frame, as the PDF shows it, rather than whichever the browser picks.
-            poster=self.warning_poster(node.warning_kind)
-            if node.warning
-            else self.media_src(video_frame_name(file), IMAGE_DIR),
-        )[
-            self.captions_track(node),
-            tag.a(href=node.url)["Watch the video"] if not node.copy else None,
-        ]
+        # A click on a video is the player's, so a video opens by a link of its own.
+        opener = tag.a(
+            class_="lightbox-open", href=media_fragment(address), aria_label="Open larger"
+        )["\u2922"]
         return markup(
             tag.figure(id=anchor)[
                 self.mark(anchor, "video"),
                 warning,
-                video,
+                opener,
+                video("metadata"),
                 caption,
                 credit,
-                cited if caption is None else None,
+                cited,
             ]
         )
 
@@ -1194,7 +1326,8 @@ class HtmlEmitter(Emitter):
         # A footnote can itself carry a reference to another one.
         # Inside a box there is nothing to hover, and a note that reaches
         # itself would build a box out of a box without end.
-        if self._in_tip:
+        # A lightbox's copy of a caption has the caption's box a click away.
+        if self._in_tip or self._copying:
             return markup(
                 tag.sup(class_="footnote-ref")[self.link(f"#fn{node.number}")[node.number]]
             )
@@ -1216,6 +1349,20 @@ class HtmlEmitter(Emitter):
 
     @override
     def image(self, node: Image, title: str | None = None) -> str:
+        """A picture in the prose, linked to the file as the document holds it,
+        for whoever wants to zoom in; a figure's opens its lightbox instead."""
+        href = self.doc.image_href(node)
+        picture = self.picture(node, title)
+        # A bare `img`, as an SVG is, is the picture itself.
+        if node.object_id not in self.doc.image_shapes or not has_web_copies(href):
+            return picture
+        return markup(tag.a(class_="full-size", href=self.image_src(href))[picture])
+
+    def image_src(self, href: str) -> str:
+        """Where the file as the document holds it is served."""
+        return f"{self.image_base}/{href}" if self.image_base else href
+
+    def picture(self, node: Image, title: str | None = None, *, lightbox: bool = False) -> str:
         """The picture, at the size of the file that was written.
 
         `width` and `height` are the file's own pixels, not how wide it is
@@ -1237,17 +1384,24 @@ class HtmlEmitter(Emitter):
         in view is only a delay. It is asked for first instead.
 
         A raster is shown through `picture`, from the AVIF and WebP copies at
-        `WEB_WIDTHS` that `images.write_web_copies` writes, and is a link to
-        the file as the document holds it, for whoever wants to zoom in.
+        `WEB_WIDTHS` that `images.write_web_copies` writes.
         `sizes` is how wide the stylesheet lets the figure get, so a phone is
         sent the narrow copy; in a row of several it overstates, which costs a
         wider copy than needed and never a blurry one.
+
+        In a lightbox, the largest copy alone, lazy even for the hero, and
+        without the caption as its `title`, which the lightbox shows under it:
+        a hidden lightbox's picture is not asked for until it is opened,
+        and a window is about as wide as the largest copy anyway, which a
+        `srcset` repeated for every figure would cost the fragment 1 KB a figure to say.
         """
+        if lightbox:
+            title = None
         href = self.doc.image_href(node)
-        src = f"{self.image_base}/{href}" if self.image_base else href
+        src = self.image_src(href)
         shape = self.doc.image_shapes.get(node.object_id)
         width, height = shape if shape else (None, None)
-        hero = self.doc.hero is not None and self.doc.hero.image is node
+        hero = not lightbox and self.doc.hero is not None and self.doc.hero.image is node
         if width is None or height is None or not has_web_copies(href):
             return markup(
                 htpy.img(
@@ -1286,7 +1440,7 @@ class HtmlEmitter(Emitter):
             width=largest,
             height=round(height * largest / width),
         )
-        return markup(tag.a(class_="full-size", href=src)[htpy.picture[[*sources, img]]])
+        return markup(img if lightbox else htpy.picture[[*sources, img]])
 
 
 # Enough to read the publication as it will look, and nothing more.
