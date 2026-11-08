@@ -2,13 +2,13 @@
   "kix.3ceb7gpb6okx": {
     "file": "Close_CBTC_operations_at_Jackson_Heights_20250717_204920-d3faa511.jpg",
     "height": 1715,
-    "sha256": "52b14e2c48347f825a4bc7de9bdc71ba2882355afe00467ce25a1f78487268ce",
+    "pixels_sha256": "83ffcd364daee907958436d48f100314059ee552c7da60f26e3a52f6aaea84a0",
     "width": 1536
   },
   "kix.5qe5oqancvsg": {
     "file": "IBX_NU_Side_Platform_Crop_2026_0825.original.jpg",
     "height": 1365,
-    "sha256": "ad6508e0aab56a67dca99c02ad2e42879f7ee534727eab3075131df014aa2f7e",
+    "pixels_sha256": "d9fa1888d485fb7cc7dac2f81e7e77823b39cdf314778c02c80c86bc46a33a51",
     "width": 2048
   },
   "kix.6awmxdt1c94k": {
@@ -18,13 +18,13 @@
   "kix.981yqm2a5a03": {
     "file": "Skyline_platform_screen_doors.png",
     "height": 1536,
-    "sha256": "e70a0e68cf8eddb2dbe93127906886a5be67ac788b4dc29437544251ad4448df",
+    "pixels_sha256": "1ef1fc0457ae8f9f457adaac0283246caf42d7e404be479940403b1c67f97ec1",
     "width": 2048
   },
   "kix.dzityh6jxt34": {
     "file": "JFK_AirTrain_Front.jpg",
     "height": 1536,
-    "sha256": "83143904f69f98ce7a665f9b1f73b7830480f182b34fd5e2831989a465a20e5d",
+    "pixels_sha256": "04ca2f6abd07741d9e0306ab6464334d526256405f0da4e8870b5d3c8fb65fa9",
     "width": 2048
   },
   "kix.jgxhj1hqsf1i": {
@@ -35,7 +35,7 @@
   "kix.md2vnbfacwp5": {
     "file": "social_card-ibx_automation.jpg",
     "height": 628,
-    "sha256": "5ffecf7463be8ad7b79e7bb2aed7e02fe0090cb891c13bb548ee5ffe7ff45497",
+    "pixels_sha256": "80921b99826584569bbcea41eb4a7ec4806d1726d4a5a9295738fa37b7d299ed",
     "width": 1200
   },
   "kix.tx1fjdbmxbaz": {
@@ -46,7 +46,7 @@
   "kix.wy9tafmqauu3": {
     "file": "Harsimus_Cove_HBLR_4th_St_RR_Crossing-d646232e.jpg",
     "height": 893,
-    "sha256": "ce5f2401e2eddece1ec9777932a184d4b38ec7e61a53893ed581853276af79dc",
+    "pixels_sha256": "8187c44bf3cf50e291d7f1025e56e23f306b9b663250372f0c7bf3d9c343edf5",
     "width": 1644
   }
 }

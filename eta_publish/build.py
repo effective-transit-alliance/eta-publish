@@ -13,7 +13,7 @@ lazy import subprocess
 
 from rich.console import RenderableType
 lazy from PIL import Image as Pillow
-lazy from PIL import UnidentifiedImageError
+lazy from PIL import ImageSequence, UnidentifiedImageError
 
 from . import console
 from .archive import (
@@ -345,7 +345,7 @@ def write_image_index(
     index = {
         object_id: {
             "file": path.name,
-            "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+            **_digest(path),
             **_pixel_size(path),
             **_description(path),
         }
@@ -355,6 +355,35 @@ def write_image_index(
         index[object_id] = {"unpublished": why}
     index = dict(sorted(index.items()))
     (dest / IMAGES_JSON).write_text(json.dumps(index, indent=2, sort_keys=True) + "\n")
+
+
+def _digest(path: Path) -> dict[str, str]:
+    """A hash of what `path` shows: its decoded pixels, or its bytes for a file that has none.
+
+    Google Docs serves the same picture in more than one encoding,
+    switching between them from one download to the next:
+    one Monthly Passes photo came down as three different JPEG files.
+    Hashing the bytes made every build a coin toss as to whether `site/` changed.
+    The pixels were the same each time,
+    and the embedded color profiles differed by at most one level in one channel,
+    so neither the profile nor any other metadata is hashed.
+
+    Every frame is hashed, so an animation that changes partway through still shows,
+    and in the file's own orientation:
+    the EXIF tag that turns a photo upright is metadata too,
+    and Docs has applied it by the time it serves the file.
+    An SVG is a drawing rather than a grid, and is written by the build itself,
+    so its bytes are already what it shows.
+    """
+    try:
+        with Pillow.open(path) as opened:
+            digest = hashlib.sha256()
+            for frame in ImageSequence.Iterator(opened):
+                digest.update(f"{frame.mode} {frame.width}x{frame.height}\n".encode())
+                digest.update(frame.tobytes())
+            return {"pixels_sha256": digest.hexdigest()}
+    except OSError, UnidentifiedImageError:
+        return {"sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
 def _pixel_size(path: Path) -> dict[str, int]:
