@@ -2,19 +2,19 @@
   "kix.1l24jy6bi018": {
     "file": "img-cf3f2056.jpg",
     "height": 2047,
-    "sha256": "9a8d0c7d8f29a283fe2445c3a2838169a0d0b067c0a671255e8d8cbebe12059b",
+    "pixels_sha256": "8667ba6d85fca7d75cc78525aa24645e4c74996c9058957147d8047552ee1231",
     "width": 2048
   },
   "kix.6iv6rxu0joqi": {
     "file": "img-6b5eb7d1.png",
     "height": 742,
-    "sha256": "ac6c00b0597952df6fdd1342bd8a35fa0af0300e6df9389b9a7025939f711bbf",
+    "pixels_sha256": "3319122268ca20f1218744aa0cec8f1a7fa0be238f7b76f1c2249e3d29a8bc1d",
     "width": 1200
   },
   "kix.a8pybogzdcax": {
     "file": "img-ae6ddd33.jpg",
     "height": 628,
-    "sha256": "99a88bc89af8668af57230b143b25217a1511f7e62324c2fe75a40ecd4c34134",
+    "pixels_sha256": "c32f12f69e2a924a0f2e5c86de547d18855402d3a27552e45cbb9794bf559b85",
     "width": 1198
   }
 }

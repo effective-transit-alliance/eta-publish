@@ -7,11 +7,14 @@ that one failure does not take the others with it,
 and that the index says so.
 """
 
+import hashlib
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 from paths import FIXTURE_DIR, HOST, HOSTS
+from PIL import Image as Pillow
 from test_conventions import build, field, image, para
 from typer import Exit
 
@@ -1071,6 +1074,34 @@ def test_a_download_that_turned_up_nothing_does_not_erase_the_index(tmp_path: Pa
     previous = _publication_dir(tmp_path, recorded)
     write_image_index(previous, {})
     assert json.loads((previous / IMAGES_JSON).read_text()) == recorded
+
+
+def _index_entry(tmp_path: Path, name: str, write: Callable[[Path], object]) -> dict[str, str]:
+    path = tmp_path / name
+    write(path)
+    write_image_index(tmp_path, {"kix.1": path})
+    return json.loads((tmp_path / IMAGES_JSON).read_text())["kix.1"]
+
+
+def test_the_same_pixels_encoded_differently_are_recorded_the_same(tmp_path: Path) -> None:
+    """Google Docs serves one picture as more than one file,
+    and which one a build gets is a coin toss;
+    what readers see is what the index has to follow."""
+    picture = Pillow.new("RGB", (4, 3), "teal")
+    fast = _index_entry(tmp_path, "fast.png", lambda p: picture.save(p, compress_level=1))
+    small = _index_entry(tmp_path, "small.png", lambda p: picture.save(p, compress_level=9))
+    assert (tmp_path / "fast.png").read_bytes() != (tmp_path / "small.png").read_bytes()
+    assert fast["pixels_sha256"] == small["pixels_sha256"]
+
+    picture.putpixel((0, 0), (0, 128, 129))
+    changed = _index_entry(tmp_path, "changed.png", picture.save)
+    assert changed["pixels_sha256"] != fast["pixels_sha256"]
+
+
+def test_a_drawing_is_recorded_by_its_bytes(tmp_path: Path) -> None:
+    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
+    entry = _index_entry(tmp_path, "chart.svg", lambda p: p.write_bytes(svg))
+    assert entry["sha256"] == hashlib.sha256(svg).hexdigest()
 
 
 def test_a_picture_nothing_wrote_has_no_name_to_emit(doc: Document) -> None:

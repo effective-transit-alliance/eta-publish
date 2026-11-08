@@ -2,13 +2,13 @@
   "kix.9htcorb8042p": {
     "file": "img-b17aa21a.png",
     "height": 1000,
-    "sha256": "d69f7385097567d32a943abd944b21ed616e4040eab7f335c18a4a9b45a59df9",
+    "pixels_sha256": "1729065385dbf08ebed47bb956c2dfd1ec04fe7946e1b6c2dd5362e36b9d702b",
     "width": 1427
   },
   "kix.djm0a1aand4k": {
     "file": "img-831248b1.jpg",
     "height": 787,
-    "sha256": "32a70dac4b2f52490706e1daf4eabbbfa6a057d918b2761aa5ed0e4812cce9d3",
+    "pixels_sha256": "57e98efdf3ee42022730217b9e27b73fe628e0edb2f2b8087fbe5148d85b6fa1",
     "width": 510
   }
 }
