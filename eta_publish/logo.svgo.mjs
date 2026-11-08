@@ -9,6 +9,11 @@
 // of shapes that have no stroke, and while it is there `svgo` leaves their transforms alone,
 // which kept the icons thousands of units across and their coordinates as long.
 //
+// Curves stay curves, though, instead of becoming arcs:
+// rounded to two decimals, an arc's ends can come out closer together than its diameter,
+// and a renderer then moves its center to fit, so the left of the train's two round lights
+// came out lopsided and taller than the right.
+//
 // The `width` and `height` are dropped, since a chart says how big to draw it;
 // the `viewBox`, which is what lets it scale, `svgo` keeps.
 export default {
@@ -16,7 +21,10 @@ export default {
   floatPrecision: 2,
   plugins: [
     "convertStyleToAttrs",
-    "preset-default",
+    {
+      name: "preset-default",
+      params: { overrides: { convertPathData: { makeArcs: false } } },
+    },
     "removeDimensions",
   ],
 };
