@@ -1024,7 +1024,11 @@ class Parser:
             .get("embeddedObject", {})
         )
         if "imageProperties" not in embedded:
-            self.doc.warn("inline object {} has no image; skipped", Shown(object_id))
+            self.doc.warn(
+                "inline object {} is not a picture (a drawing or chart, perhaps), "
+                "so it is missing from every output; replace it with an image",
+                Shown(object_id),
+            )
             return None
         image_props = embedded["imageProperties"]
         # `contentUri` says where to fetch this image, not whether it is one:
@@ -1288,7 +1292,9 @@ class Parser:
                 out.append(embed)
                 continue
 
-            if has_image(para):
+            # An inline object that isn't a picture, such as a drawing, was already warned about
+            # and dropped from `inlines`, so the paragraph is prose.
+            if any(isinstance(i, Image) for i in inlines):
                 figure = Figure(image=self._only_image(inlines), source=pending_source or [])
                 self._claim_name(figure, pending_source or [])
                 out.append(figure)

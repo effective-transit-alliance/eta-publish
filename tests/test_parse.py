@@ -264,6 +264,26 @@ def test_a_bare_image_source_link_is_still_an_editorial_note() -> None:
     assert not [b for b in doc.blocks if isinstance(b, Paragraph)]
 
 
+def test_an_inline_object_that_is_not_a_picture_is_skipped() -> None:
+    """A drawing or chart is an inline object with no `imageProperties`.
+    It is warned about and dropped, and the rest of the paragraph stays prose."""
+    para = _text_para("Before the drawing.")
+    para["paragraph"]["elements"].append({"inlineObjectElement": {"inlineObjectId": "io.1"}})
+    doc = parse(
+        {
+            "body": {"content": [_text_para("Publication", "TITLE"), para]},
+            "inlineObjects": {"io.1": {"inlineObjectProperties": {"embeddedObject": {}}}},
+            "footnotes": {},
+            "lists": {},
+        }
+    )
+    assert not [b for b in doc.blocks if isinstance(b, Figure)]
+    assert [_text(b.content) for b in doc.blocks if isinstance(b, Paragraph)] == [
+        "Before the drawing."
+    ]
+    assert [w for w in doc.warnings if "is not a picture" in str(w)]
+
+
 def _social_card_doc(*header: JsonObject) -> Document:
     return parse(
         {
