@@ -95,22 +95,31 @@ bun install
 
 ### Authentication
 
-The Docs API needs an OAuth client, which is free and takes a few minutes.
-It is per-person: the token identifies you,
+The Docs API needs an OAuth client.
+The token it produces is per-person: it identifies you,
 and grants read access only to documents you can already open.
 
-1. Open the [Google Cloud console](https://console.cloud.google.com/)
-   and create a project, or reuse one.
-2. Enable the **Google Docs API** for it,
-   under *APIs & Services* → *Library*.
-3. Under *APIs & Services* → *OAuth consent screen*, configure it as
-   **External**, in **Testing**,
-   and add your own Google account under *Test users*.
-   Nothing is being published to Google, so it never needs verification.
-4. Under *APIs & Services* → *Credentials*,
-   create an **OAuth client ID** of type **Desktop app**, and download its JSON.
-5. Save it as `~/.config/eta-publish/client_secret.json`,
+ETA's Google Cloud project, `eta-publish`, already has one:
+a **Desktop app** client, in a project whose audience is **Internal**,
+so any `etany.org` account can sign in with it
+and nobody else can.
+Google never reviews an Internal app,
+and its sign-ins don't expire weekly the way a Testing app's do.
+
+1. Get the desktop client's JSON from one of the project's owners,
+   or download it yourself if you are one, from
+   [its clients](https://console.cloud.google.com/auth/clients?project=eta-publish).
+2. Save it as `~/.config/eta-publish/client_secret.json`,
    or point `$ETA_CLIENT_SECRETS` at it.
+3. Sign in with your `etany.org` account when the first run asks.
+
+Without an `etany.org` account, use a project of your own instead:
+enable the **Google Docs API** and **Google Drive API** in it,
+set its audience to **External**, in **Testing**,
+with your own Google account as a test user,
+and create a **Desktop app** client there.
+Nothing is being published to Google, so it never needs verification,
+but a Testing app's sign-in expires after a week.
 
 The first run opens a browser to approve read-only access.
 The token is cached at `~/.config/eta-publish/token.json` and refreshes itself,
@@ -759,8 +768,8 @@ The interactive flow is unchanged and still the default:
 
 These are load-bearing.
 The block counts, the 7.1 version, and the two documented limits
-were verified against the live site and Squarespace's own documentation;
-the one estimate below is marked as such.
+were verified against the live site and Squarespace's own documentation,
+and the fragment sizes were measured from real builds.
 
 - **There is no content API.** The public Squarespace API covers commerce only.
   Nothing can create or update a page from a script,
@@ -771,11 +780,10 @@ the one estimate below is marked as such.
   A single code block on an otherwise empty page
   is the closest thing to a pure HTML page, and it is close enough.
 - **A code block holds 400 KB (~300,000 characters).**
-  Two measurements bracket the SAS West report: its source text is 69 KB,
-  and the live page's rendered text blocks come to 226 KB
-  including Squarespace's own markup, which this emitter does not produce.
-  The fragment should land between them, comfortably inside the limit,
-  but it has not been generated from the real document yet.
+  The largest publication so far, the SAS West report,
+  comes to 347 KB as `report.html` and 269 KB as `report.min.html`,
+  inside the limit but not by much.
+  A build warns past 250 KB, and past 400 KB says to split it.
   `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**
   Custom Files is a manual GUI that accepts images and fonts only.
@@ -881,14 +889,10 @@ Regenerate with `uv run pytest --regenerate-snapshots`.
 
 # Status
 
-The parser and all three emitters work, against a fixture.
-
-**Not yet run against a real report.**
-That needs OAuth credentials, and it is the next thing worth doing:
-every finding so far that mattered came from the real document's shape
-rather than from the fixture, and there are almost certainly more.
-It will also settle the code block size estimate,
-the one unmeasured number here.
+Every publication in `publications.toml` builds from its real document,
+and the committed `site/` is what those builds write.
+IBX Automation is live on Squarespace as its pasted `report.html`;
+the others are still pages built by hand there.
 
 # TODO
 
