@@ -105,6 +105,7 @@ so any `etany.org` account can sign in with it
 and nobody else can.
 Google never reviews an Internal app,
 and its sign-ins don't expire weekly the way a Testing app's do.
+[`docs/accounts.md`](docs/accounts.md#google) describes the project and its credentials.
 
 1. Get the desktop client's JSON from one of the project's owners,
    or download it yourself if you are one, from
