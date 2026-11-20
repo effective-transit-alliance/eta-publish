@@ -35,11 +35,15 @@ The code, the tests, and the publications built here
 ### `effective-transit-alliance/eta-drafts` (private)
 
 Will hold drafts that aren't public yet; empty for now.
+[`drafts-plan.md`](drafts-plan.md) describes what goes in it.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
   (see [Tokens](#tokens)).
 - **Secret `CLOUDFLARE_ACCOUNT_ID`:** the Cloudflare account's ID.
   It's not really a secret (it's in every dashboard URL), but it's kept with the token.
+- **Not set yet: `GOOGLE_CREDENTIALS`,** the same service account key as `eta-publish`'s,
+  for deploys to fetch the drafts' documents
+  (see [the plan](drafts-plan.md#deploys-fetch-the-documents)).
 
 ## Google
 
