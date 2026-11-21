@@ -37,75 +37,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10.3.3
+      # The tools, the fonts, the archive lookups and the key,
+      # set up as `eta-drafts`'s deploy sets them up.
+      - id: setup
+        uses: ./.github/actions/build-setup
         with:
-          enable-cache: true
-
-      # `biome` lays out the emitted HTML, so a build without it writes nothing.
-      - uses: jdx/mise-action@v5
-
-      # The npm packages, at what `bun.lock` pins, failing rather than resolving afresh
-      # if `package.json` asks for something the lockfile does not have.
-      # Not cached: from an empty cache they install in about a second,
-      # and the cache they install from is 46 MB to save and restore.
-      - name: bun install
-        run: bun install --frozen-lockfile
-
-      # Which sources the Wayback Machine has no capture of.
-      #
-      # A runner starts with nothing, so without this every run re-asks the
-      # index about all of them, which is the slowest thing the build does and
-      # takes minutes. Nothing is written to `site/` either way, so a restored
-      # cache, a stale one and a missing one all build the same bytes and
-      # `check-committed-site.sh` compares the same.
-      #
-      # `~/.cache/eta-publish` is where `platformdirs` puts it on Linux.
-      #
-      # The key carries the run id so each run saves its own, and `restore-keys`
-      # is what makes the previous one the starting point: a key that never
-      # changes would restore the first run's cache forever and never save
-      # another, and the week would never expire.
-      - name: Restore the archive lookups
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/eta-publish
-          key: archive-lookups-${{ github.run_id }}
-          restore-keys: archive-lookups-
-
-      # Written to the runner's temp directory rather than the workspace,
-      # so it cannot be picked up by a later step that globs the checkout.
-      - name: Write the service account key
-        env:
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-        run: |
-          if [ -z "$GOOGLE_CREDENTIALS" ]; then
-            echo "::error::the GOOGLE_CREDENTIALS secret is not set; see README" >&2
-            exit 1
-          fi
-          umask 077
-          printf '%s' "$GOOGLE_CREDENTIALS" > "$RUNNER_TEMP/key.json"
-
-      # Pinned rather than latest:
-      # the PDF is a deliverable,
-      # and a Typst release that changed layout would silently reflow it.
-      - name: Install Typst
-        run: |
-          version=0.15.1
-          url="https://github.com/typst/typst/releases/download/v${version}/typst-x86_64-unknown-linux-musl.tar.xz"
-          curl -fsSL "$url" | tar -xJ --strip-components=1 -C "$RUNNER_TEMP" \
-            "typst-x86_64-unknown-linux-musl/typst"
-          echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
-
-      # A chart credited to ETA is drawn to see whether its top right corner is empty
-      # for the logo, with DejaVu standing in for the fonts it names.
-      # Without DejaVu its text draws as nothing, so the build puts every logo
-      # above its chart, and the committed charts no longer match.
-      - name: Install the fonts charts are drawn in
-        run: |
-          if ! fc-list | grep -q "DejaVu Sans"; then
-            sudo apt-get update
-            sudo apt-get install -y fonts-dejavu-core
-          fi
+          google-credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       # Which documents to build lives in `publications.toml`,
       # so adding the next publication is a pull request rather than an edit to this file.
@@ -117,7 +54,7 @@ jobs:
       # which is the safe direction.
       - name: Build the publications, and check they are what was committed
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/key.json
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.setup.outputs.key-file }}
         run: scripts/check-committed-site.sh
 
       # The deploy is a copy of `site/unpublished/`, minus one file,
