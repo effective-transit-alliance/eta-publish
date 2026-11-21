@@ -2,7 +2,7 @@
 
 Everything `eta-publish` and `eta-drafts` depend on outside this repository:
 which accounts exist, what each one holds, and where every credential lives.
-State as of 2026-11-20.
+State as of 2026-11-21.
 
 No secret is written here, only where it is kept.
 This repository is public,
@@ -31,6 +31,11 @@ The code, the tests, and the publications built here
 - **Secret `GOOGLE_CREDENTIALS`,** on the `github-pages` environment, not the repository:
   the JSON key of the Google service account `eta-publish-ci` (see [Google](#google)).
   A job outside that environment reads it as empty.
+- **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
+  the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
+  for the push workflow to start `eta-drafts`'s
+  (see [the plan](drafts-plan.md)).
+  No workflow uses it yet.
 
 ### `effective-transit-alliance/eta-drafts` (private)
 
@@ -130,21 +135,23 @@ Without that, a custom domain would be public even with the `pages.dev` addresse
 
 ## Tokens
 
-Both Cloudflare tokens have no expiration: they work until deleted.
+All three tokens have no expiration: they work until deleted.
 
 | Token | Kind | Permissions | Used by | Where it is |
 | --- | --- | --- | --- | --- |
 | `eta-drafts setup (claude)` | user token, owned by `khybersen@etany.org` | Account: Cloudflare Pages Edit; Access: Apps and Policies Edit; Access: Organizations, Identity Providers, and Groups Edit | setting up and changing Cloudflare from a local machine, by Claude Code | `~/.config/eta-publish/cloudflare-token` |
 | `eta-drafts GitHub Actions` | account token | Cloudflare Pages Edit, entire account | deploying the drafts site from CI | `~/.config/eta-publish/cloudflare-ci-token`, and `CLOUDFLARE_API_TOKEN` in `eta-drafts` |
+| `eta-publish triggers eta-drafts` | GitHub fine-grained personal access token, Khyber's, for `effective-transit-alliance` | Actions: Read and write, on `eta-drafts` only | `eta-publish`'s push workflow, to start `eta-drafts`'s | `~/.config/eta-publish/github-drafts-dispatch-token`, and `DRAFTS_DISPATCH_TOKEN` in `eta-publish` |
 
-- **Why two:** the setup token can change who may view drafts and how they sign in.
+- **Why two Cloudflare tokens:** the setup token can change who may view drafts and how they sign in.
   Keeping it off CI means a leak from CI can only touch Pages.
   An account token's Access calls return nothing,
   so the CI token can't even read who may view drafts.
 - **Not included:** changing the account itself (its name, members, billing),
   which needs Account Settings permission. Do that in the dashboard.
-- **Manage them:** user tokens at <https://dash.cloudflare.com/profile/api-tokens>,
-  account tokens under **Manage account → Account API tokens**.
+- **Manage them:** Cloudflare user tokens at <https://dash.cloudflare.com/profile/api-tokens>,
+  account tokens under **Manage account → Account API tokens**,
+  and the GitHub token at <https://github.com/settings/personal-access-tokens>.
   A token's permissions can be changed there without making a new one.
 - **Check one works,** without printing it:
 
@@ -154,6 +161,14 @@ Both Cloudflare tokens have no expiration: they work until deleted.
   ```
 
   An account token is checked at `/accounts/<account id>/tokens/verify` instead.
+  The GitHub token can read `eta-drafts`'s workflows but not its code:
+
+  ```sh
+  GH_TOKEN=$(cat ~/.config/eta-publish/github-drafts-dispatch-token) \
+    gh api repos/effective-transit-alliance/eta-drafts/actions/workflows --jq .total_count
+  ```
+
+  Whether it can start one is only testable once `eta-drafts` has a workflow.
 
 ## Local files
 
@@ -167,12 +182,17 @@ each file readable only by its owner (`chmod 600`).
 | `cloudflare-google-oauth.json` | Google web OAuth client, for Cloudflare's Google sign-in |
 | `cloudflare-token` | Cloudflare user token `eta-drafts setup (claude)` |
 | `cloudflare-ci-token` | Cloudflare account token `eta-drafts GitHub Actions` |
+| `github-drafts-dispatch-token` | GitHub token `eta-publish triggers eta-drafts` |
 
-To save a new token without it appearing on screen or in shell history:
+To save a new token without it appearing on screen or in shell history,
+and without overwriting a file that's already there:
 
 ```sh
-(umask 077 && read -rsp 'Token: ' t && printf '%s\n' "$t" > ~/.config/eta-publish/<file>)
+(set -o noclobber; umask 077; read -rsp 'Token: ' t && printf '%s\n' "$t" > ~/.config/eta-publish/<file>)
 ```
+
+A token is shown only once, so overwriting its file loses it for good;
+the only way back is to roll the token for a new value.
 
 ## Squarespace
 
