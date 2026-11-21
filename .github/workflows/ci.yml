@@ -19,6 +19,13 @@ jobs:
       # nothing, and the tests compare against pages it laid out.
       - uses: jdx/mise-action@v5
 
+      # The npm packages, at what `bun.lock` pins, failing rather than resolving afresh
+      # if `package.json` asks for something the lockfile does not have.
+      # Not cached: from an empty cache they install in about a second,
+      # and the cache they install from is 46 MB to save and restore.
+      - name: bun install
+        run: bun install --frozen-lockfile
+
       - name: ruff format
         run: uv run ruff format --check
 

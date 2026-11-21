@@ -6,7 +6,7 @@ and is what a chart carries: under a quarter of the size, and drawn the same.
 It is committed like the site, so a diff shows what an edit to the logo did.
 
 Every build writes it first, so an edited logo cannot go out as the old one.
-`svgo` runs on Node, and starting Node is most of the fifth of a second it takes,
+`svgo` runs on `bun`, and starting it is most of the eighth of a second it takes,
 which every build and every test of one would pay for an answer that almost never changes.
 So the answer is cached, keyed on everything that decides it.
 """
@@ -20,7 +20,7 @@ from pathlib import Path
 import platformdirs
 
 from . import PACKAGE_NAME
-from .format import ROOT, pinned
+from .format import LOCKFILE, ROOT, bun
 
 ASSETS = Path(__file__).parent / "assets"
 SOURCE = ASSETS / "logo.src.svg"
@@ -36,7 +36,10 @@ def minify(source: Path) -> str:
     """What `svgo` makes of `source`."""
     result = subprocess.run(
         [
-            pinned("npm:svgo", "svgo"),
+            bun(),
+            "run",
+            "--bun",
+            "svgo",
             "--quiet",
             "--config",
             CONFIG,
@@ -58,13 +61,16 @@ def minify(source: Path) -> str:
 def write_logo(source: Path = SOURCE, logo: Path = LOGO, cache: Path | None = None) -> bool:
     """Write `logo` from `source`, saying whether that changed it.
 
-    The key is the source, the configuration, and which `svgo`,
-    whose path names its version: anything else the same, the answer is too.
+    The key is the source, the configuration,
+    `bun.lock`, which pins `svgo` and every package it uses,
+    and which `bun` runs it, whose path names its version:
+    anything else the same, the answer is too.
     A cache that cannot be read or written is only a slower build.
     """
     cache = cache or cache_path()
-    svgo = pinned("npm:svgo", "svgo")
-    key = hashlib.sha256(source.read_bytes() + CONFIG.read_bytes() + svgo.encode()).hexdigest()
+    key = hashlib.sha256(
+        source.read_bytes() + CONFIG.read_bytes() + LOCKFILE.read_bytes() + bun().encode()
+    ).hexdigest()
     cached: object
     try:
         cached = json.loads(cache.read_text())

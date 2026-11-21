@@ -13,6 +13,7 @@ the page are formatted as a stylesheet and a script, which no HTML-only
 formatter does.
 """
 
+import fcntl
 import subprocess
 from functools import cache
 from pathlib import Path
@@ -55,16 +56,40 @@ def pinned(tool: str, binary: str) -> str:
     return path
 
 
+LOCKFILE = ROOT / "bun.lock"
+"""What pins the npm packages, `package.json`'s and everything they depend on."""
+
+
 @cache
-def installed(tool: str) -> str:
-    """Where `tool`, at the version `mise.toml` pins, is installed:
-    for a library with no binary to ask `pinned` about, such as an npm package used from Node.
+def bun() -> str:
+    """The `bun` that `mise.toml` pins, with `node_modules/` made what `bun.lock` says first.
+
+    That install is the counterpart of `pinned` installing a tool `mise` lacks:
+    a checkout whose `bun.lock` changed since the last `bun install`
+    would otherwise run the packages it had before, and minify the logo with them.
+    `--frozen-lockfile` so it only ever installs what the lockfile says,
+    and fails rather than rewriting the lockfile if `package.json` disagrees with it.
+    When nothing changed it takes a few milliseconds, so it is done once per run
+    rather than only when `node_modules/` is missing.
+
+    Under a lock on `bun.lock`, since a test run builds in a second process beside its own,
+    and two installs writing one `node_modules/` at once is not something `bun` promises to survive.
+
+    Every npm tool runs on `bun` itself rather than on Node, so the runtime is pinned too:
+    `bun run --bun` for a package's command, which otherwise runs the `node` on `$PATH`.
     """
-    try:
-        path = _mise("where", tool)
-    except MiseMissing:
-        _mise("install", tool)
-        path = _mise("where", tool)
+    path = pinned("bun", "bun")
+    with LOCKFILE.open() as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        result = subprocess.run(
+            [path, "install", "--frozen-lockfile"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    if result.returncode != 0:
+        raise RuntimeError(f"`bun install --frozen-lockfile` failed:\n{result.stderr.strip()}")
     return path
 
 
