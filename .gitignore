@@ -17,6 +17,10 @@ token.json
 # see `docs/drafts-plan.md`.
 /drafts/
 
+# Where `wrangler` caches which Cloudflare account and Pages project it deployed to,
+# written in the checkout it runs from by `eta-publish drafts preview`.
+/.wrangler/
+
 # `site/` is the site, written by `eta-publish`, and
 # `tests/fixture/` is the same shape built from a hand-written document.
 # Only the text is committed: the images are 18 MB and the PDF 19 MB, and
