@@ -266,6 +266,11 @@ and on `workflow_dispatch` to redeploy the same list on demand.
 CI authenticates as a **service account**, not a person;
 [the Pages pipeline](#the-pages-pipeline) explains why.
 
+It signs in with **Workload Identity Federation**, so there is no key to store:
+each run trades the token GitHub signs for it
+for short-lived credentials as the service account.
+The organization's policy forbids service account keys in any case.
+
 Set it up once:
 
 ```sh
@@ -275,11 +280,27 @@ gcloud config set project eta-publish
 gcloud iam service-accounts create eta-publish-ci \
   --display-name "eta-publish CI"
 
-gcloud iam service-accounts keys create key.json \
-  --iam-account eta-publish-ci@eta-publish.iam.gserviceaccount.com
+# Turned on once, for the token exchange.
+gcloud services enable iam.googleapis.com iamcredentials.googleapis.com sts.googleapis.com
+
+# The pool holds one provider per repository that signs in.
+gcloud iam workload-identity-pools create github-actions \
+  --location global --display-name "GitHub Actions"
+
+gcloud iam workload-identity-pools providers create-oidc eta-publish \
+  --location global --workload-identity-pool github-actions \
+  --display-name eta-publish \
+  --issuer-uri https://token.actions.githubusercontent.com \
+  --attribute-mapping google.subject=assertion.sub,attribute.repository=assertion.repository,attribute.repository_id=assertion.repository_id \
+  --attribute-condition "assertion.repository=='effective-transit-alliance/eta-publish' && assertion.environment=='github-pages'"
+
+gcloud iam service-accounts add-iam-policy-binding \
+  eta-publish-ci@eta-publish.iam.gserviceaccount.com \
+  --role roles/iam.workloadIdentityUser \
+  --member principalSet://iam.googleapis.com/projects/635412927675/locations/global/workloadIdentityPools/github-actions/attribute.repository/effective-transit-alliance/eta-publish
 ```
 
-No IAM roles are needed: access to the document comes from sharing it,
+No other IAM roles are needed: access to the document comes from sharing it,
 not from a project role.
 
 Then share each publication with
@@ -290,32 +311,27 @@ the document links as `SVG:` charts in one action,
 and it covers the next publication in that folder without another visit.
 Without the chart files, the vectors fall back to the rasters with a warning.
 
-Finally, hand the key and the document URL to GitHub, and delete the key:
+Finally, have Pages serve what the workflow uploads, rather than a branch:
 
 ```sh
-gh secret set GOOGLE_CREDENTIALS < key.json
-rm key.json
-
-# Pages serves what the workflow uploads, rather than a branch.
 gh api -X POST repos/:owner/:repo/pages -f build_type=workflow
 ```
 
 Then run it with `gh workflow run Pages`,
 or from the Actions tab.
 
-Two things to know about the key:
+Two things to know about the sign-in:
 
-- **It is a long-lived secret in a public repository's settings.**
-  Fork pull requests never receive it,
-  and `pull_request_target`, which would hand it to unreviewed code,
+- **Only `main`'s Pages workflow can sign in.**
+  The provider's condition requires this repository and the `github-pages` environment,
+  and that environment admits only `main`.
+  Fork pull requests never get a token to trade,
+  and `pull_request_target`, which would hand one to unreviewed code,
   is deliberately not used here.
-  Anyone with write access can read it, as with any Actions secret.
-- **Rotate it with**
-  `gcloud iam service-accounts keys list --iam-account <account>`
-  and `keys delete`, which revokes it immediately.
-  Workload Identity Federation removes the stored key entirely
-  by exchanging GitHub's OIDC token for a short-lived one;
-  it is the better answer if this outlives being a convenience.
+- **Revoke it with**
+  `gcloud iam workload-identity-pools providers disable eta-publish --location global --workload-identity-pool github-actions`,
+  which stops every exchange at once.
+  Nothing is stored, and the access a run is given expires within the hour.
 
 The deployed site is public.
 It publishes an unreleased publication at a stable URL,
@@ -759,7 +775,7 @@ and are already `403` the next day.
 So CI needs credentials, and they are a service account, not a person.
 A service account is an identity inside the Cloud project, with no inbox,
 no password, and an empty Drive of its own,
-so its key grants read access to exactly what has been shared with it
+so signing in as it grants read access to exactly what has been shared with it
 and to nothing else in anyone's Drive.
 The interactive flow is unchanged and still the default:
 `_credentials` uses a service account only when
