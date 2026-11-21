@@ -165,9 +165,42 @@ def test_publications_load_in_the_order_the_list_gives(tmp_path: Path) -> None:
     assert [p.name for p in load_publications(path)] == ["a", "b", "c"]
 
 
-def test_a_list_of_neither_kind_is_refused(tmp_path: Path) -> None:
+def test_a_list_with_no_entries_is_refused(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    path.write_text("")
+    with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
+        load_publications(path)
+
+
+def test_an_unknown_heading_is_an_error_not_skipped(tmp_path: Path) -> None:
+    """`[[reports]]` for `[[report]]` would otherwise build nothing, and say nothing."""
     path = tmp_path / "publications.toml"
     path.write_text('[[brief]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
+    with pytest.raises(ValueError, match=f"{path}: `brief` is not a heading"):
+        load_publications(path)
+
+
+def test_an_unknown_table_is_an_error_too(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    path.write_text('[extra]\nname = "A"\n')
+    with pytest.raises(ValueError, match="`extra` is not a heading"):
+        load_publications(path)
+    path.write_text('stray = "A"\n')
+    with pytest.raises(ValueError, match="`stray` is not a heading"):
+        load_publications(path)
+
+
+def test_a_table_of_a_known_kind_must_be_a_list(tmp_path: Path) -> None:
+    path = tmp_path / "publications.toml"
+    path.write_text('[report]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
+    with pytest.raises(ValueError, match="`report` must be written `\\[\\[report\\]\\]`"):
+        load_publications(path)
+
+
+def test_the_site_table_is_not_an_unknown_heading(tmp_path: Path) -> None:
+    """`[site]` passes the heading check; with no entries it is then refused as empty."""
+    path = tmp_path / "publications.toml"
+    path.write_text('[site]\npublished = "https://a.example"\n')
     with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
         load_publications(path)
 
