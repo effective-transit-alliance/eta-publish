@@ -219,9 +219,6 @@ def load_publications(path: Path = PUBLICATIONS) -> list[Publication]:
                 kind=kind,
             )
         )
-    if not publications:
-        tables = " or ".join(f"[[{kind}]]" for kind in Kind)
-        raise ValueError(f"{path}: no {tables} entries")
     return publications
 
 
