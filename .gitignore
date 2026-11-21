@@ -13,6 +13,10 @@ token.json
 # Scratch output directories from ad-hoc runs.
 /out*/
 
+# A clone of the private `eta-drafts`, a repository of its own:
+# see `docs/drafts-plan.md`.
+/drafts/
+
 # `site/` is the site, written by `eta-publish`, and
 # `tests/fixture/` is the same shape built from a hand-written document.
 # Only the text is committed: the images are 18 MB and the PDF 19 MB, and
