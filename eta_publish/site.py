@@ -177,6 +177,20 @@ def load_publications(path: Path = PUBLICATIONS) -> list[Publication]:
     """
     text = path.read_text()
     data = tomllib.loads(text)
+    # Nothing is skipped silently: `[[reports]]` for `[[report]]` would otherwise
+    # build a site without the publication, and no one would be told why.
+    # `tomllib` keys every heading by its first name, so a `[reports]` table
+    # and a `[[reports]]` list are both caught here.
+    kinds = ", ".join(f"`[[{kind}]]`" for kind in Kind)
+    for key, value in data.items():
+        if key == "site":
+            continue
+        if key not in set(Kind):
+            raise ValueError(
+                f"{path}: `{key}` is not a heading a list has, only `[site]` and {kinds}"
+            )
+        if not isinstance(value, list):
+            raise ValueError(f"{path}: `{key}` must be written `[[{key}]]`, once for each entry")
     # In the order the file lists them, which `tomllib` loses between tables:
     # it gathers each table's entries on their own, so their headers give the order back.
     tables = {kind: iter(data.get(kind, [])) for kind in Kind}
