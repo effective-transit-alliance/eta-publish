@@ -6,7 +6,7 @@ It is the one to paste into a Squarespace code block: a fifth to a quarter small
 which is that much further under the code block's limit and that much less for the editor to save.
 
 None of it is committed. The formatted files are what a diff reviews,
-and these are made from them by tools that `mise.toml` pins, on every build,
+and these are made from them by tools that `mise.toml` and `bun.lock` pin, on every build,
 locally and on GitHub Pages alike.
 
 `minhtml` for the page, which drops a space between two tags only where it draws nothing.
@@ -17,7 +17,7 @@ each writing a source map that carries the file as written.
 import subprocess
 from pathlib import Path
 
-from .format import installed, pinned
+from .format import bun, pinned
 
 SCRIPT = Path(__file__).with_name("minify.mjs")
 
@@ -47,10 +47,8 @@ def assets(directory: Path) -> list[Path]:
     with its source map, returning what was written."""
     _run(
         [
-            pinned("node", "node"),
+            bun(),
             str(SCRIPT),
-            installed("npm:lightningcss"),
-            installed("npm:oxc-minify"),
             str(directory),
             *PAGE_ASSETS,
         ],

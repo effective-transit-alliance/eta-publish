@@ -40,3 +40,6 @@ token.json
 # The `.min` copies and their source maps, which every build makes from the committed files.
 /site/**/*.min.*
 /tests/fixture/**/*.min.*
+
+# The npm packages `bun install` installs from `bun.lock`.
+/node_modules/

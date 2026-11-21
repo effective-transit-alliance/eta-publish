@@ -73,8 +73,10 @@ They cannot drift out of sync, because nothing maintains them by hand.
 ## Setup
 
 [`mise`](https://mise.jdx.dev) is required, not optional:
-it installs `uv`, `pre-commit`, and `biome` at the versions `mise.toml` pins,
+it installs `uv`, `pre-commit`, `biome`, and `bun` at the versions `mise.toml` pins,
 and `biome` lays out every emitted page, so a build without it writes nothing.
+`bun` installs the npm packages the build and the checks run, such as `svgo`,
+at the versions `bun.lock` pins.
 Install `mise` itself first,
 then [activate it in your shell](https://mise.jdx.dev/getting-started.html#activate-mise)
 so the tools it installs are on `$PATH`:
@@ -88,6 +90,7 @@ Then, from the repository:
 ```sh
 mise install
 uv sync
+bun install
 ```
 
 ### Authentication

@@ -32,11 +32,12 @@ repos:
         types: [python]
         pass_filenames: false
 
-      # From `mise.toml`, where its version is pinned.
+      # From `node_modules/`, as `bun.lock` pins it and what it depends on,
+      # and on `bun` rather than on whichever `node` is on `$PATH`.
       # The rules it skips, and why, are in `.markdownlint-cli2.jsonc`.
       - id: markdownlint-cli2
         name: markdownlint-cli2
-        entry: mise x -- markdownlint-cli2
+        entry: mise x -- bun run --bun markdownlint-cli2
         language: system
         types: [markdown]
 

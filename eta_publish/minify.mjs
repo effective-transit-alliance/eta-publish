@@ -1,28 +1,22 @@
 // The `.min` copies of the stylesheets and the script, for `minify.py`.
 //
 // `lightningcss` for the stylesheets and `oxc` for the script,
-// through their Node APIs: `oxc` has no command line,
-// and `lightningcss`'s is a placeholder until an install script `mise` does not run replaces it.
-// One run of Node for all three, since starting it is most of what this costs.
+// through their JavaScript APIs, since neither package has a command line.
+// One run of `bun` for all three, since starting it is most of what this costs.
+// Both are found in the repository's `node_modules/`, at the versions `bun.lock` pins,
+// which is where an import from this file looks.
 //
 // Each gets a source map carrying the file as written, named as it sits beside the copy,
 // so a browser's tools show it with its comments without the original being served.
 //
-// Usage: node minify.mjs <lightningcss install> <oxc-minify install> <directory> <file>...
-// where an install is what `mise where` says, holding `node_modules/<package>`.
+// Usage: bun minify.mjs <directory> <file>...
 
 import { readFileSync, writeFileSync } from "node:fs";
-import { createRequire } from "node:module";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { transform } from "lightningcss";
+import { minify } from "oxc-minify";
 
-const [lightningcssDir, oxcDir, directory, ...files] = process.argv.slice(2);
-
-const { transform } = createRequire(join(lightningcssDir, "package.json"))(
-	"lightningcss",
-);
-const oxc = createRequire(join(oxcDir, "package.json")).resolve("oxc-minify");
-const { minify } = await import(pathToFileURL(oxc).href);
+const [directory, ...files] = process.argv.slice(2);
 
 for (const file of files) {
 	const source = readFileSync(join(directory, file), "utf8");

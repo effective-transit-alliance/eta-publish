@@ -44,6 +44,13 @@ jobs:
       # `biome` lays out the emitted HTML, so a build without it writes nothing.
       - uses: jdx/mise-action@v5
 
+      # The npm packages, at what `bun.lock` pins, failing rather than resolving afresh
+      # if `package.json` asks for something the lockfile does not have.
+      # Not cached: from an empty cache they install in about a second,
+      # and the cache they install from is 46 MB to save and restore.
+      - name: bun install
+        run: bun install --frozen-lockfile
+
       # Which sources the Wayback Machine has no capture of.
       #
       # A runner starts with nothing, so without this every run re-asks the

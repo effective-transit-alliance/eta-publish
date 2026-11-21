@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "devDependencies": {
+    "lightningcss": "1.33.0",
+    "markdownlint-cli2": "0.24.0",
+    "oxc-minify": "0.156.0",
+    "svgo": "4.1.0"
+  }
+}
