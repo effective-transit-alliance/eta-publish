@@ -165,11 +165,10 @@ def test_publications_load_in_the_order_the_list_gives(tmp_path: Path) -> None:
     assert [p.name for p in load_publications(path)] == ["a", "b", "c"]
 
 
-def test_a_list_with_no_entries_is_refused(tmp_path: Path) -> None:
+def test_a_list_with_no_entries_lists_nothing(tmp_path: Path) -> None:
     path = tmp_path / "publications.toml"
     path.write_text("")
-    with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
-        load_publications(path)
+    assert load_publications(path) == []
 
 
 def test_an_unknown_heading_is_an_error_not_skipped(tmp_path: Path) -> None:
@@ -198,11 +197,9 @@ def test_a_table_of_a_known_kind_must_be_a_list(tmp_path: Path) -> None:
 
 
 def test_the_site_table_is_not_an_unknown_heading(tmp_path: Path) -> None:
-    """`[site]` passes the heading check; with no entries it is then refused as empty."""
     path = tmp_path / "publications.toml"
     path.write_text('[site]\npublished = "https://a.example"\n')
-    with pytest.raises(ValueError, match=r"no \[\[report\]\] or \[\[statement\]\] entries"):
-        load_publications(path)
+    assert load_publications(path) == []
 
 
 @pytest.mark.parametrize("blank", ["name", "tab"])
@@ -807,6 +804,26 @@ def test_a_missing_list_is_reported_as_a_bad_argument(tmp_path: Path) -> None:
     result = CliRunner().invoke(app, ["all", str(absent)])
     assert result.exit_code != 0
     assert str(absent) in result.output
+
+
+def test_all_with_a_list_of_no_entries_builds_an_empty_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A list keeps its `[site]` before anything is listed in it, and building it succeeds."""
+    from typer.testing import CliRunner
+
+    from eta_publish.__main__ import app
+
+    monkeypatch.chdir(tmp_path)
+    path = tmp_path / "publications.toml"
+    path.write_text(
+        f'[site]\npublished = "{HOSTS.published}"\nunpublished = "{HOSTS.unpublished}"\n'
+    )
+    seed_image_index(tmp_path / "site" / UNPUBLISHED_DIR)
+    result = CliRunner().invoke(
+        app, ["all", str(path), "--no-images", "--no-archive", "--no-comments"]
+    )
+    assert result.exit_code == 0, result.output
 
 
 def test_a_publication_directory_is_a_document(tmp_path: Path) -> None:
