@@ -1,6 +1,9 @@
 # Plan: private drafts in `eta-drafts`
 
-Decided 2026-11-20; none of it is built yet.
+Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
+Of the code, `main` has only the build setup the drafts deploy shares,
+`.github/actions/build-setup`;
+the rest isn't merged yet.
 [`accounts.md`](accounts.md) has the accounts and credentials it uses,
 which already exist.
 
@@ -16,7 +19,7 @@ locally and deployed, before and after it lands.
 
 | Kind | Label on the drafts site | Where it lives | Public? |
 | --- | --- | --- | --- |
-| Published by the tool | **Published** | `eta-publish`, `site/published/` | yes |
+| Published by the tool | **Automatically Published** | `eta-publish`, `site/published/` | yes |
 | Published by hand, not yet moved to the tool | **Manually Published** | `eta-publish`, `site/unpublished/` | yes |
 | Not published anywhere yet | **Draft** | `eta-drafts` | no |
 
@@ -27,13 +30,19 @@ When a draft is published, it moves from `eta-drafts` into this repository.
 The drafts already in this repository's history stay there:
 they've all been published since.
 
+All three share one set of paths.
+A draft can never be built at a path a publication here already has:
+once something is published at a path, it stays live there,
+so a draft at the same path is an error, not a replacement.
+
 ## Repositories
 
 - **`eta-publish` (public):** the code, the tests, `site/published/`, `site/unpublished/`,
   and their entries in `publications.toml`. Unchanged apart from what's below.
 - **`eta-drafts` (private):** the drafts' entries in a `publications.toml` of its own,
   their built output with the saved Google Docs data it's rebuilt from,
-  and a file such as `eta-publish.rev` naming the `eta-publish` commit that built them.
+  and `eta-publish.rev`, naming the `eta-publish` commit that built them:
+  one line, the full 40-character commit ID.
 
 The pin is a plain file rather than `uv.lock`
 because `uv lock` fetches the commit it pins from GitHub,
@@ -48,10 +57,18 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
 1. **Build with the working copy.** `uv run eta-publish all` builds `drafts/` too,
    with whatever code is in the working copy, uncommitted edits included.
    The tool needs to learn to find the drafts' list and output under `drafts/`.
-2. **Deploy from the working copy.** A command (name to be decided)
-   builds the same way and uploads the result as a preview to
-   `<branch>.eta-drafts.pages.dev`, behind the same sign-in,
-   with no commit or push. It uses the local Cloudflare token, which has Pages Edit.
+   A `drafts/` without its `publications.toml` is an error;
+   a list with no entries is fine, and builds nothing.
+   With no `drafts/` at all, as in this repository's CI, the drafts are skipped.
+2. **Preview from the working copy.** `eta-publish drafts preview`
+   builds the same way and uploads the result as a preview of the current branch,
+   behind the same sign-in, with no commit or push.
+   Its address is `<alias>.eta-drafts.pages.dev`,
+   where the alias is the branch name as Cloudflare writes it:
+   lowercased, with anything not a letter or digit turned into `-`.
+   Its pages link within that preview, not to production.
+   It uses the local Cloudflare token, which has Pages Edit.
+   There is no local deploy to `main`'s site: that's only done from CI.
 
 ## A drafts commit for every code commit
 
@@ -114,7 +131,7 @@ instead of deploying the committed `site/`
 (see [the Pages pipeline](../README.md#the-pages-pipeline)).
 
 Deploying the drafts site does the same,
-both from CI and with the local deploy command:
+both from CI and with `eta-publish drafts preview`:
 it fetches the live documents, images included,
 so a deploy shows the documents as they are now, not as of the commit.
 The drafts commits above still rebuild from the saved data,
@@ -130,18 +147,28 @@ and the drafts from `eta-drafts`, all built by the same code.
 - Every page has a banner saying which kind it is.
   The banner is only added for the drafts site, never to the real published output.
 
-## Still to set up
+## How the deploy is set up
 
-- A GitHub token, or a GitHub App, that lets `eta-publish`'s workflow trigger `eta-drafts`'s,
-  limited to `eta-drafts`. Someone with admin rights on the organization makes it.
-- `GOOGLE_CREDENTIALS` in `eta-drafts`, for deploys to fetch the documents:
-  the same `eta-publish-ci` service account key as in `eta-publish`,
-  with each draft, or its folder, shared with that account as a Viewer.
+`eta-drafts`'s deploy workflow checks out the `eta-publish` commit it pins,
+and runs that commit's `.github/actions/build-setup`,
+so it sets up exactly what that commit's code was written against,
+the same way this repository's Pages workflow does.
+It builds and uploads with `eta-publish drafts deploy`,
+which refuses to run anywhere but GitHub Actions.
+
+It reads the documents as the `eta-publish-ci` service account,
+signing in with Workload Identity Federation rather than a key,
+which the organization's policy forbids creating.
+Each draft, or its folder, has to be shared with that account as a Viewer.
+
+The token that lets `eta-publish`'s workflow start `eta-drafts`'s exists,
+limited to `eta-drafts`.
+[`accounts.md`](accounts.md) has both.
 
 ## Order of work
 
 1. Teach the tool to build drafts from `drafts/`, and the local build (1 above).
-2. The local deploy command (2 above).
+2. `eta-publish drafts preview` (2 above).
 3. The deploy workflow in `eta-drafts`, and the three-kind index and banners.
 4. The local `pre-commit` and `post-commit` hooks, and the `pre-push` check in `drafts/`.
 5. The push-time workflow here, filling in missing drafts commits, with branch mirroring.
