@@ -46,9 +46,10 @@ Will hold drafts that aren't public yet; empty for now.
   (see [Tokens](#tokens)).
 - **Secret `CLOUDFLARE_ACCOUNT_ID`:** the Cloudflare account's ID.
   It's not really a secret (it's in every dashboard URL), but it's kept with the token.
-- **Not set yet: `GOOGLE_CREDENTIALS`,** the same service account key as `eta-publish`'s,
-  for deploys to fetch the drafts' documents
-  (see [the plan](drafts-plan.md#deploys-fetch-the-documents)).
+- **No Google key:** deploys will read the drafts' documents as `eta-publish-ci`
+  by signing in with Workload Identity Federation,
+  through the `eta-drafts` provider (see [Google](#google)),
+  so there's no secret to set.
 
 ## Google
 
@@ -61,8 +62,11 @@ Will hold drafts that aren't public yet; empty for now.
 - **Where:** inside the `etany.org` organization, moved there on 2026-11-02.
 - **Owners:** `khybersen@etany.org`, and Khyber's personal Google account,
   which created the project before it moved.
-- **APIs used:** Google Docs and Google Drive.
+- **APIs used:** Google Docs and Google Drive,
+  and IAM, IAM Service Account Credentials and Security Token Service for Workload Identity Federation.
   The others enabled (BigQuery, Cloud Storage, logging and so on) are Google's defaults.
+- **No new service account keys:** the organization's policy forbids creating them.
+  The one key `eta-publish-ci` has was made on 2026-10-21, before the policy applied to the project.
 - **Sign-in audience (Google Auth Platform → Audience):** **Internal**,
   so only `etany.org` accounts can sign in through its OAuth clients,
   Google never reviews the app, and sign-ins don't expire weekly the way they do in Testing.
@@ -74,7 +78,7 @@ It holds three credentials:
 | --- | --- | --- | --- |
 | (desktop client) | OAuth client, **Desktop app** | `eta-publish` run locally, to read the Docs as you | `~/.config/eta-publish/client_secret.json`; the sign-in it produces is cached in `~/.config/eta-publish/token.json` |
 | `Cloudflare Access (eta-ny)` | OAuth client, **Web application** | Cloudflare Access, for "Sign in with Google" on the drafts site | `~/.config/eta-publish/cloudflare-google-oauth.json`, and inside Cloudflare's identity provider settings |
-| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | `GOOGLE_CREDENTIALS` in `eta-publish`'s `github-pages` environment |
+| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | its key in `GOOGLE_CREDENTIALS`, in `eta-publish`'s `github-pages` environment; `eta-drafts` has no key and signs in with Workload Identity Federation instead |
 
 The web client allows only:
 
@@ -89,6 +93,25 @@ It reads a document only because the document,
 or a folder it's in, is shared with it as a Viewer.
 
 Clients: <https://console.cloud.google.com/auth/clients?project=eta-publish>.
+
+### Workload Identity Federation
+
+Lets a GitHub Actions run act as `eta-publish-ci` without a key:
+the run trades the token GitHub signs for it for short-lived Google credentials.
+
+- **Pool `github-actions`** ("GitHub Actions"), with one provider per repository.
+  Each provider trusts tokens from `https://token.actions.githubusercontent.com`,
+  and accepts only those its condition allows:
+  - **`eta-drafts`:** `assertion.repository=='effective-transit-alliance/eta-drafts'`.
+    Its deploy runs on every branch, for the previews, so it isn't limited further.
+  - **`eta-publish`:** `assertion.repository=='effective-transit-alliance/eta-publish' && assertion.environment=='github-pages'`,
+    and that environment admits only `main`.
+    Nothing uses it yet: the Pages workflow still uses the key.
+- **Grant:** each repository's runs have `roles/iam.workloadIdentityUser` on `eta-publish-ci`,
+  as `principalSet://iam.googleapis.com/projects/635412927675/locations/global/workloadIdentityPools/github-actions/attribute.repository/effective-transit-alliance/<repository>`.
+- **Revoke:** disabling a provider stops its repository's sign-ins at once.
+
+Pools: <https://console.cloud.google.com/iam-admin/workload-identity-pools?project=eta-publish>.
 
 ## Cloudflare
 
@@ -111,11 +134,13 @@ Its ID is in `eta-drafts`'s `CLOUDFLARE_ACCOUNT_ID` secret and in every dashboar
 
 ### Pages project `eta-drafts`
 
-- **Address:** <https://eta-drafts.pages.dev>, with previews at `<branch>.eta-drafts.pages.dev`.
+- **Address:** <https://eta-drafts.pages.dev>, with previews at `<alias>.eta-drafts.pages.dev`,
+  the alias being the branch name lowercased, with anything not a letter or digit turned into `-`.
   Pages projects can't be renamed, so neither can these addresses.
 - **Direct upload,** not connected to Git: CI builds the site and uploads it.
 - **Production branch:** `main`.
-- Nothing deployed yet, so after signing in the site shows "Connection timed out".
+- Nothing deployed to production yet, so after signing in the main site shows "Connection timed out".
+  One test preview, of the branch `drafts-preview`, is up and empty.
 
 ### Access application `eta-drafts`
 
