@@ -51,7 +51,7 @@ class _Build:
         # Beside `site/` rather than in the system's temporary directory, which
         # is often another filesystem: the build hard-links the images it
         # reuses, and a link cannot cross one.
-        from eta_publish.__main__ import abandoned
+        from eta_publish.publish import abandoned
 
         abandoned(root, ".site-test-")
         self.dir = Path(tempfile.mkdtemp(dir=root, prefix=f".site-test-{os.getpid()}-"))
@@ -163,12 +163,12 @@ def _no_staff_page(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPat
     """
     if "network" in request.keywords:
         return
-    import eta_publish.__main__ as main
+    from eta_publish import publish
 
     def kept(saved: tuple[str, ...]) -> tuple[str, ...]:
         return saved
 
-    monkeypatch.setattr(main, "look_up", kept)
+    monkeypatch.setattr(publish, "look_up", kept)
 
 
 @pytest.fixture(autouse=True)

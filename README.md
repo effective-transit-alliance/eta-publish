@@ -153,6 +153,10 @@ and sources with no capture publish saying they have no archive, which is true.
 # Only for this list and this output: not with another list, `-o`, or `--into`.
 uv run eta-publish all
 
+# Build the drafts in `drafts/`, and upload them as this branch's preview,
+# at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
+uv run eta-publish drafts preview
+
 # Or one document, before it is on the list, somewhere scratch.
 uv run eta-publish one <google-doc-url> -o out
 
