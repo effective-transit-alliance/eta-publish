@@ -228,7 +228,7 @@ class MarkdownEmitter(Emitter):
 
     def credited(self, name: str) -> str:
         """A contributor's name, linked to their entry on ETA's staff page if they have one."""
-        href = about_us_url(name)
+        href = about_us_url(name, self.doc.staff)
         return f"[{escape(name)}]({url(href)})" if href else name
 
     def sources(self, doc: Document) -> str:

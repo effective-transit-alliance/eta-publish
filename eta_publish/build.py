@@ -160,6 +160,10 @@ class BuildOptions:
     the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
 
+    staff: tuple[str, ...] = ()
+    """The names ETA's staff page lists, which a contributor is linked to the page by:
+    read once for the whole build, see `staff.look_up`."""
+
 
 DOC_JSON = "doc.json"
 IMAGES_JSON = "images.json"
@@ -1120,6 +1124,8 @@ def build_one(
     # After the record is read, because the page counts it checks against are in it.
     check_pages(doc)
     check_pending(doc)
+
+    doc.staff = options.staff
 
     # Written here rather than once per site, so that building a single
     # publication produces a page with everything it links.

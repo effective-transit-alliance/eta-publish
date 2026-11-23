@@ -14,7 +14,7 @@ import re
 import tempfile
 import unicodedata
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Collection, Iterable
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
 from urllib.parse import quote, unquote, urlsplit
@@ -87,28 +87,9 @@ which shows its warning and captions, rather than the bare file, which shows nei
 ABOUT_US = f"{LIVE_SITE}/about-us"
 """ETA's staff page, where a contributor on staff is credited with a bio."""
 
-STAFF = frozenset(
-    {
-        "Blair Lorenzo",
-        "Yangbo Du",
-        "Madison Feinberg",
-        "Robert Hale",
-        "Alon Levy",
-        "William Meehan",
-        "Khyber Sen",
-    }
-)
-"""The people `ABOUT_US` has an entry for, which a byline links each of to theirs.
 
-This mirrors the `<h2>` names on that page as of 2026-11-23, exactly as it writes them,
-and must be updated when the page changes:
-a name missing here only goes unlinked,
-but a name here that the page dropped links to a page that never scrolls to it.
-"""
-
-
-def about_us_url(name: str) -> str | None:
-    """Where `ABOUT_US` introduces `name`, or `None` for someone it does not list.
+def about_us_url(name: str, staff: Collection[str]) -> str | None:
+    """Where `ABOUT_US` introduces `name`, or `None` if `staff`, the names it lists, lacks it.
 
     Matched by the name exactly as the byline shows it, the way the page heads its entry.
 
@@ -119,7 +100,7 @@ def about_us_url(name: str) -> str | None:
     and `-` too, which `quote` leaves alone and the syntax reads as a delimiter;
     `quote` with nothing safe already encodes `&` and `,`, the other two.
     """
-    if name not in STAFF:
+    if name not in staff:
         return None
     return f"{ABOUT_US}#:~:text={quote(name, safe='').replace('-', '%2D')}"
 

@@ -6,7 +6,6 @@ since the collision branch is the only one that can be positional.
 
 import pytest
 
-from eta_publish import naming
 from eta_publish.naming import (
     AnchorAllocator,
     about_us_url,
@@ -172,22 +171,25 @@ def test_a_url_names_the_image_file_its_path_ends_in(url: str, name: str) -> Non
     assert url_filename(url) == name
 
 
+STAFF = ("Blair Lorenzo", "Khyber Sen")
+
+
 def test_a_name_on_staff_links_to_the_first_place_the_about_page_shows_it() -> None:
-    assert about_us_url("Khyber Sen") == "https://www.etany.org/about-us#:~:text=Khyber%20Sen"
+    assert about_us_url("Khyber Sen", STAFF) == (
+        "https://www.etany.org/about-us#:~:text=Khyber%20Sen"
+    )
 
 
 def test_a_name_not_on_staff_links_nowhere() -> None:
     """Matched exactly as the byline shows it: not by surname, and not ignoring case."""
-    assert about_us_url("Ada Lovelace") is None
-    assert about_us_url("Sen") is None
-    assert about_us_url("khyber sen") is None
+    assert about_us_url("Ada Lovelace", STAFF) is None
+    assert about_us_url("Sen", STAFF) is None
+    assert about_us_url("khyber sen", STAFF) is None
 
 
-def test_the_text_fragment_encodes_what_its_syntax_reads_as_delimiters(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
+def test_the_text_fragment_encodes_what_its_syntax_reads_as_delimiters() -> None:
     """`-`, `&` and `,` separate the parts of a text directive, so a name holding one is encoded."""
-    monkeypatch.setattr(naming, "STAFF", frozenset({"Anne-Marie Smith, Jr. & Co"}))
-    assert about_us_url("Anne-Marie Smith, Jr. & Co") == (
+    name = "Anne-Marie Smith, Jr. & Co"
+    assert about_us_url(name, (name,)) == (
         "https://www.etany.org/about-us#:~:text=Anne%2DMarie%20Smith%2C%20Jr.%20%26%20Co"
     )
