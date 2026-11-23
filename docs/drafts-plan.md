@@ -1,8 +1,8 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
-Of the code, step 1 of the order of work below is built:
-`eta-publish all` builds `drafts/`.
+Of the code, steps 1 and 2 of the order of work below are built:
+`eta-publish all` builds `drafts/`, and `eta-publish drafts preview` previews it.
 So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
@@ -82,7 +82,12 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    Its address is `<alias>.eta-drafts.pages.dev`,
    where the alias is the branch name as Cloudflare writes it:
    lowercased, with anything not a letter or digit turned into `-`.
-   Its pages link within that preview, not to production.
+   Its pages link within that preview, not to production,
+   wherever the list's `[site]` says `eta-drafts.pages.dev`;
+   a `[site]` at any other host is refused.
+   It uploads `drafts/site/unpublished/` with `published/` inside it
+   and no `doc.json`, through `wrangler pages deploy`:
+   only the drafts so far, since showing all three kinds is step 3.
    It uses the local Cloudflare token, which has Pages Edit.
    There is no local deploy to `main`'s site: that's only done from CI.
 

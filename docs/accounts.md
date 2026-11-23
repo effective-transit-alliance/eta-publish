@@ -138,7 +138,8 @@ Its ID is in `eta-drafts`'s `CLOUDFLARE_ACCOUNT_ID` secret and in every dashboar
 - **Address:** <https://eta-drafts.pages.dev>, with previews at `<alias>.eta-drafts.pages.dev`,
   the alias being the branch name lowercased, with anything not a letter or digit turned into `-`.
   Pages projects can't be renamed, so neither can these addresses.
-- **Direct upload,** not connected to Git: CI builds the site and uploads it.
+- **Direct upload,** not connected to Git: CI builds the site and uploads it,
+  and `eta-publish drafts preview` uploads a branch's preview from a local machine.
 - **Production branch:** `main`.
 - Nothing deployed to production yet, so after signing in the main site shows "Connection timed out".
   One test preview, of the branch `drafts-preview`, is up and empty.
@@ -165,7 +166,7 @@ All three tokens have no expiration: they work until deleted.
 
 | Token | Kind | Permissions | Used by | Where it is |
 | --- | --- | --- | --- | --- |
-| `eta-drafts setup (claude)` | user token, owned by `khybersen@etany.org` | Account: Cloudflare Pages Edit; Access: Apps and Policies Edit; Access: Organizations, Identity Providers, and Groups Edit | setting up and changing Cloudflare from a local machine, by Claude Code | `~/.config/eta-publish/cloudflare-token` |
+| `eta-drafts setup (claude)` | user token, owned by `khybersen@etany.org` | Account: Cloudflare Pages Edit; Access: Apps and Policies Edit; Access: Organizations, Identity Providers, and Groups Edit | setting up and changing Cloudflare from a local machine, by Claude Code, and the uploads of `eta-publish drafts preview` | `~/.config/eta-publish/cloudflare-token` |
 | `eta-drafts GitHub Actions` | account token | Cloudflare Pages Edit, entire account | deploying the drafts site from CI | `~/.config/eta-publish/cloudflare-ci-token`, and `CLOUDFLARE_API_TOKEN` in `eta-drafts` |
 | `eta-publish triggers eta-drafts` | GitHub fine-grained personal access token, Khyber's, for `effective-transit-alliance` | Actions: Read and write, on `eta-drafts` only | `eta-publish`'s push workflow, to start `eta-drafts`'s | `~/.config/eta-publish/github-drafts-dispatch-token`, and `DRAFTS_DISPATCH_TOKEN` in `eta-publish` |
 
