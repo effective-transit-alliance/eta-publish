@@ -41,13 +41,24 @@ so a draft at the same path is an error, not a replacement.
   and their entries in `publications.toml`. Unchanged apart from what's below.
 - **`eta-drafts` (private):** the drafts' entries in a `publications.toml` of its own,
   their built output with the saved Google Docs data it's rebuilt from,
-  and `eta-publish.rev`, naming the `eta-publish` commit that built them:
-  one line, the full 40-character commit ID.
+  and a submodule `eta-publish`, pinning the `eta-publish` commit that built them.
 
-The pin is a plain file rather than `uv.lock`
-because `uv lock` fetches the commit it pins from GitHub,
+The pin is a submodule, git's own way to pin another repository,
+rather than a file format of our own, or `uv.lock`:
+`uv lock` fetches the commit it pins from GitHub,
 which fails for a commit not pushed yet,
 and the local hook below pins commits before they're pushed.
+GitHub shows the pin as a link to that commit,
+and each drafts commit's diff shows the pin moving.
+
+The submodule is never checked out.
+Locally, `drafts/` is already inside the `eta-publish` checkout,
+so checking it out would nest a second copy of `eta-publish` inside the first.
+`.gitmodules` sets `update = none` for it, with a comment saying why,
+so `git clone --recurse-submodules` and `git submodule update --init` skip it.
+The hook records the pin without a checkout,
+with `git update-index --cacheinfo 160000,<commit>,eta-publish`,
+and the deploy reads it with `git rev-parse HEAD:eta-publish`.
 
 ## Working locally
 
