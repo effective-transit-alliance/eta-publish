@@ -31,6 +31,7 @@
     [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("...rch Record (2000, 1745(1), 101-112). https://doi.org/10.3141/...")],
     [the image #raw("img-ae6ddd33") has no alt text and no caption; add a description to it in the doc],
     [the alt text of image #raw("img-cf3f2056") says #raw("Image"), which a screen reader already says; give the image alt text without it in the doc (right-click, Alt text)],
+    [the image #raw("img-6b5eb7d1") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
   ),
   hero: [
 #figure(

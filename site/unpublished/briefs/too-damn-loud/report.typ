@@ -34,6 +34,7 @@
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("...become intolerable. The region's transit agencies, and the MT...")],
     [style: an apostrophe should be #raw("’"), not #raw("'"): #raw("... New York is too damn loud. It's time to let riders travel in...")],
     [the image #raw("img-831248b1") has no alt text and no caption; add a description to it in the doc],
+    [the image #raw("img-b17aa21a") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
   ),
 )
 

@@ -14,6 +14,7 @@ import re
 from dataclasses import replace
 from itertools import groupby
 
+from .branding import credited_to_eta
 from .nodes import (
     Cut,
     Document,
@@ -212,6 +213,48 @@ def check_described(doc: Document) -> None:
                 Shown(figure.image.filename),
                 Shown(word.group()),
             )
+
+
+CHART_FLATNESS = 0.75
+"""How flat a raster has to be, by `Document.image_flatness`, to look like a chart.
+
+From every picture in the publications in `site/` when this was written:
+photographs and photo illustrations came to 0.18 at most, ETA's own to 0.05,
+and screenshots of maps and drawings to 0.6 at most.
+Charts and other flat graphics came to 0.97 or more as PNGs, ETA's one chart among them,
+and to 0.79 or more as JPEGs, whose compression spreads each flat color over many near ones.
+So a flat graphic credited to ETA, like a sign, is warned about too, and should be an SVG as well.
+"""
+
+
+def check_charts(doc: Document) -> None:
+    """Warn about ETA's chart that publishes as a raster, with no `SVG:` line by it.
+
+    ETA draws its charts as SVGs, which stay sharp at any size, carry their own description,
+    and get the logo and a dark mode drawn into them,
+    so one pasted with no `SVG:` line is almost always one whose line was forgotten.
+    ETA's is one credited to ETA, or credited to nobody:
+    a chart someone else drew says so, and one with no credit is most likely ETA's own,
+    often with ETA's logo drawn into it, which `_check_figures` asks to be credited too.
+    After the images, since only the pixels say whether a picture looks like a chart.
+    """
+    for figure in doc.figures:
+        image = figure.image
+        flatness = doc.image_flatness.get(image.object_id)
+        if image.vector is not None or flatness is None or flatness < CHART_FLATNESS:
+            continue
+        if figure.credit:
+            if not credited_to_eta(doc, image):
+                continue
+            whose = "is credited to ETA"
+        else:
+            whose = "has no credit, so is taken to be ETA's,"
+        doc.warn(
+            f"the image {{}} {whose} and looks like a chart, but has no {{}} line;"
+            " link the chart's SVG on one under it, so the SVG publishes instead of the raster",
+            Shown(image.filename),
+            Shown("SVG:"),
+        )
 
 
 def _check_figures(doc: Document) -> None:

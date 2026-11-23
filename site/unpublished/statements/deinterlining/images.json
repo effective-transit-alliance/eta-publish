@@ -1,36 +1,42 @@
 {
   "kix.4x3387bq18e": {
     "file": "img-5f0a3a08.jpg",
+    "flatness": 0.79,
     "height": 356,
     "pixels_sha256": "a97a9204058ce640693d2365f7bc1698a9a803d36be7b2064947db5acb6f1113",
     "width": 354
   },
   "kix.ltdn9d3lr6ci": {
     "file": "img-5a4ea5b9.jpg",
+    "flatness": 0.86,
     "height": 917,
     "pixels_sha256": "452005d294d4a172eef62d23dc72ee69205e22a9b1ac9d6b0b3264f206e7c50d",
     "width": 1639
   },
   "kix.m2mjb2rybdms": {
     "file": "img-a199edea.png",
+    "flatness": 0.99,
     "height": 1275,
     "pixels_sha256": "49eb2057dedad5df3c8d7ecb7c421f2b1cd86cd0a25056e37aa7c4df9cad241c",
     "width": 900
   },
   "kix.ongo2wlt70r6": {
     "file": "img-da01ab69.png",
+    "flatness": 0.99,
     "height": 1080,
     "pixels_sha256": "088519edd652de22bab14ee57dda6791f85f9d46c7ef624ae80ed52f7ed3ebff",
     "width": 1080
   },
   "kix.pjfgxn2htrgc": {
     "file": "img-c1aacb22.jpg",
+    "flatness": 0.83,
     "height": 846,
     "pixels_sha256": "0834949699c99f3573e8591ff07f330d38f00d5a0971ab02bbbdb366ba2d78d4",
     "width": 1450
   },
   "kix.r5dr7c744w41": {
     "file": "img-96810135.jpg",
+    "flatness": 0.83,
     "height": 846,
     "pixels_sha256": "0834949699c99f3573e8591ff07f330d38f00d5a0971ab02bbbdb366ba2d78d4",
     "width": 1450

@@ -33,7 +33,7 @@ from .archive import (
     uncounted,
     write_archive_index,
 )
-from .checks import check, check_described, check_pages, plural
+from .checks import check, check_charts, check_described, check_pages, plural
 from .docs_json import JsonObject
 from .embeds import (
     EMBEDS_JSON,
@@ -364,6 +364,7 @@ def write_image_index(
             "file": path.name,
             **_digest(path),
             **_pixel_size(path),
+            **_flatness(path),
             **_description(path),
         }
         for object_id, path in sorted(written.items())
@@ -415,6 +416,29 @@ def _pixel_size(path: Path) -> dict[str, int]:
             return {"width": opened.width, "height": opened.height}
     except OSError, UnidentifiedImageError:
         return {}
+
+
+FLAT_COLORS = 16
+"""How many of an image's most common colors `_flatness` counts the pixels of."""
+
+
+def _flatness(path: Path) -> dict[str, float]:
+    """The share of `path`'s pixels in its `FLAT_COLORS` most common colors, or nothing for an SVG.
+
+    What tells a chart pasted as a raster from a photograph without looking at it:
+    see `Document.image_flatness`.
+    Of the full-size pixels, not a thumbnail's,
+    since resampling blends colors and a Pillow release could change how.
+    Rounded, so the committed `images.json` doesn't carry float noise.
+    """
+    try:
+        with Pillow.open(path) as opened:
+            pixels = opened.convert("RGB")
+    except OSError, UnidentifiedImageError:
+        return {}
+    total = pixels.width * pixels.height
+    colors = sorted((count for count, _ in pixels.getcolors(total) or []), reverse=True)
+    return {"flatness": round(sum(colors[:FLAT_COLORS]) / total, 2)}
 
 
 def _description(path: Path) -> dict[str, str]:
@@ -489,6 +513,8 @@ def read_image_index(dest: Path, doc: Document) -> None:
             doc.image_files.setdefault(object_id, entry["file"])
         if "width" in entry and "height" in entry:
             doc.image_shapes.setdefault(object_id, (entry["width"], entry["height"]))
+        if "flatness" in entry:
+            doc.image_flatness.setdefault(object_id, entry["flatness"])
         if "alt" in entry:
             doc.image_alts.setdefault(object_id, entry["alt"])
         if "unpublished" in entry:
@@ -1093,6 +1119,7 @@ def build_one(
             require_image_index(dest, doc)
     read_image_index(dest, doc)
     check_described(doc)
+    check_charts(doc)
 
     # Every build, embeds or none, so a publication that loses its last one loses
     # its record too. Only what is missing is asked about, so the cost after

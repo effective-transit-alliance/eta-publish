@@ -1,84 +1,98 @@
 {
   "kix.1l0tdeahqwci": {
     "file": "img-f5b8dae7.jpg",
+    "flatness": 0.51,
     "height": 720,
     "pixels_sha256": "02b9a64dadadcf3346d72f9ad0f05e5fcba9750fbb3c907da31dbcc88194a35b",
     "width": 1247
   },
   "kix.25lzhjo02u5r": {
     "file": "image-9.png",
+    "flatness": 0.31,
     "height": 647,
     "pixels_sha256": "d5c53b2438f4f631289b5ebbe5f86f338b0d73ef4b94e72c0bceb69e9c3fb217",
     "width": 1175
   },
   "kix.2b6311sni148": {
     "file": "sas-west-217.jpg",
+    "flatness": 0.6,
     "height": 1039,
     "pixels_sha256": "b0e12c7c66c97b7ad06229cc95109651d53942de9535f60c622e268c5b299fcc",
     "width": 1972
   },
   "kix.5f8qb1e53uqj": {
     "file": "img-2a097531.jpg",
+    "flatness": 0.05,
     "height": 1200,
     "pixels_sha256": "efcdd5a760f3fc932cd3a57918111ba401069d22b147277bebb2755f47c2e2d5",
     "width": 1004
   },
   "kix.5m0lp5x3do0c": {
     "file": "sas-2-029-3ec53fb1.jpg",
+    "flatness": 0.09,
     "height": 1041,
     "pixels_sha256": "f442e53763f1fe9a0911582a785397a1b7543c29848a3f95584152df7ba72438",
     "width": 2048
   },
   "kix.5si80bedf091": {
     "file": "SAS_West_-_Tunnel_Profile_-_pg_18.screenshot-af4262b6.png",
+    "flatness": 0.93,
     "height": 882,
     "pixels_sha256": "c83ab7e683a9377c57a962d883ae636065242ae731a5bfbe6b964ab52ce702c4",
     "width": 1931
   },
   "kix.6hazwnhbbagf": {
     "file": "img-44bf278f.png",
+    "flatness": 0.97,
     "height": 1101,
     "pixels_sha256": "a4b797059d339b5ebe9d30be3dc164bb70ef24bfab3bb6fc5d8633ece0c4c6b6",
     "width": 1498
   },
   "kix.6v8dr3hm2747": {
     "file": "img-8827f5de.jpg",
+    "flatness": 0.14,
     "height": 628,
     "pixels_sha256": "8b9a47f283a363a2e64b621536eb9de25e683b34878bcb423f192b8df9287fba",
     "width": 1200
   },
   "kix.b4ia7kdtx0ue": {
     "file": "italian-case-study-139.jpg",
+    "flatness": 0.01,
     "height": 227,
     "pixels_sha256": "7750a747543c305ba4db2534ca87c21c0d00c22f40e797c3456ff52a8fe9dca9",
     "width": 329
   },
   "kix.ch19ya9or1pe": {
     "file": "Screenshot_2026-07-18_100636-4392a78e.png",
+    "flatness": 0.31,
     "height": 995,
     "pixels_sha256": "4eb5a93e4736cfaf38fe80342a2832459b7c8e3168dd05eecd8a2376d4f86a61",
     "width": 1982
   },
   "kix.g6ye3awr80uz": {
     "file": "img-6a139fa2.png",
+    "flatness": 0.2,
     "height": 330,
     "pixels_sha256": "c41c67a43e2d6483decb46caa77332e164751ec3d6efd6c305cb627b2ade012b",
     "width": 561
   },
   "kix.glhmyfb8x29b": {
     "file": "sas-west-036-afb00c85.jpg",
+    "flatness": 0.31,
     "height": 783,
     "pixels_sha256": "6fdf2873fe709f07bcc05057609a8e3a8822614a990f8c7cf4425a8d691e17d4",
     "width": 737
   },
   "kix.glpoxo2dancx": {
     "file": "72nd_Street_IRT_Broadway_013-a5e93aab.jpg",
+    "flatness": 0.03,
     "height": 1044,
     "pixels_sha256": "4abe3c9c205ac73e69a46ecf42c9dad2e841f6bbbb294c9c67044e72e6f82855",
     "width": 2048
   },
   "kix.hnphzye6xbna": {
     "file": "W125irtjeh-6c3ad309.jpg",
+    "flatness": 0.11,
     "height": 1089,
     "pixels_sha256": "500b213b882b9d8681eefddcd45403d5f77b4f2a0d0fd57d8249dd69b7766287",
     "width": 2048
@@ -89,84 +103,98 @@
   },
   "kix.jifqmjs2kbp2": {
     "file": "galleria-tratta-centrale.png",
+    "flatness": 0.68,
     "height": 586,
     "pixels_sha256": "b15a902850b71bd83198bda2ea6cdc4968f86031c533b6a7698140440444b72e",
     "width": 600
   },
   "kix.kgo8ajh1s27l": {
     "file": "1-s2.0-S2214509525014135-gr2_lrg.png",
+    "flatness": 0.36,
     "height": 695,
     "pixels_sha256": "905e150996ab7b2c8d7996c5f194178668da51f95e47be312448538201ca687b",
     "width": 565
   },
   "kix.llssjjfgvjxv": {
     "file": "1000024411-0fb4cdcf.jpg",
+    "flatness": 0.5,
     "height": 784,
     "pixels_sha256": "314239845d9e003c42e20978bedbac6b4465e2257cda5b7ee12d428b8ba564cf",
     "width": 1050
   },
   "kix.pkavr88s3yhk": {
     "file": "img-4b8ff8de.jpg",
+    "flatness": 0.02,
     "height": 1278,
     "pixels_sha256": "4addea2e440ea20b4565633c17d797f8bbe5db214d22b63d53f55b3fc0908d2c",
     "width": 1920
   },
   "kix.q2nrep19wmb6": {
     "file": "sas-west-207.png",
+    "flatness": 0.57,
     "height": 762,
     "pixels_sha256": "fba78209a26e9c8b67c15019124b497c3ea270c91d8ed36893df4eaf851e1eae",
     "width": 1792
   },
   "kix.t0qchj2qf8sg": {
     "file": "Express_Bus_Terminal_Station_-_Seoul_Line_9_-_Seungho_Kang.png",
+    "flatness": 0.03,
     "height": 1536,
     "pixels_sha256": "060ee6a69133314554b65790e5258b8ce163d7375ee3f3937d70299d7439bf69",
     "width": 2048
   },
   "kix.uju7t02yz82o": {
     "file": "img-d4734d4b.jpg",
+    "flatness": 0.02,
     "height": 681,
     "pixels_sha256": "8d9ff5512c128eb3aaef8b6b2eff16a535fe74a0ca995a81b9a22081e7acec0c",
     "width": 1024
   },
   "kix.uyms48a3zm7g": {
     "file": "diagram-station-edouard-montpetit-REM-ed748d24.png",
+    "flatness": 0.79,
     "height": 715,
     "pixels_sha256": "cd26b03bbdfc7ffdcce16e962132f2179b0786cf4e8951dbd9a496722f37397b",
     "width": 862
   },
   "kix.vbsn4ena6jnv": {
     "file": "96st_station-52b19425.jpg",
+    "flatness": 0.81,
     "height": 1467,
     "pixels_sha256": "af3178e0b64ba766911f62d0468e521b5bccc9e4595b4bebfc452f1b3c139a8e",
     "width": 1080
   },
   "kix.vd9n68l8xwyn": {
     "file": "Screenshot_2026-04-27_160823-e68e5d52.png",
+    "flatness": 0.39,
     "height": 624,
     "pixels_sha256": "79d756b2915a891628bf69b27f77af18351e606aa13a55e8116df518cd22e04a",
     "width": 800
   },
   "kix.vyl1e3g290t8": {
     "file": "img-6fb0f9c4.jpg",
+    "flatness": 0.18,
     "height": 2000,
     "pixels_sha256": "95a77858486f211576439861bc8890c1405a9bad19b8e451b801aa615e63b990",
     "width": 1500
   },
   "kix.wf2wyd22fy6t": {
     "file": "img-e47b1bdb.png",
+    "flatness": 0.78,
     "height": 729,
     "pixels_sha256": "6ee858750aa6f5affdce8f92f636accd38ead1242be381476f4a21271bfc85dc",
     "width": 1069
   },
   "kix.xlbkpjm9hbia": {
     "file": "nyc-mta-116th-station-design-a718beb8.png",
+    "flatness": 0.87,
     "height": 731,
     "pixels_sha256": "28c09d2b4d83984007c661c1d6238ecdda436a5fdfd3c1255f6e26a31bbee8c9",
     "width": 966
   },
   "kix.y2t2fqcnx3ld": {
     "file": "img-3230dd0e.png",
+    "flatness": 0.25,
     "height": 798,
     "pixels_sha256": "9affcabb1a9c772cfb60a197ff36c82795cdf9972a1e21fdd37b7dc3172a6671",
     "width": 1247

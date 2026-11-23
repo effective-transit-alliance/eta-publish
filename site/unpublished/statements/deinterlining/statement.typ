@@ -50,6 +50,12 @@
     [style: a range should use an en dash, #raw("–"), not a hyphen: #raw("25-29 Capital Plan: https://www.m...")],
     [the image #raw("img-96810135") has no alt text and no caption; add a description to it in the doc],
     [the image #raw("img-5a4ea5b9") has no alt text and no caption; add a description to it in the doc],
+    [the image #raw("img-a199edea") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
+    [the image #raw("img-da01ab69") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
+    [the image #raw("img-5f0a3a08") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
+    [the image #raw("img-c1aacb22") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
+    [the image #raw("img-96810135") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
+    [the image #raw("img-5a4ea5b9") has no credit, so is taken to be ETA's, and looks like a chart, but has no #raw("SVG:") line; link the chart's SVG on one under it, so the SVG publishes instead of the raster],
   ),
 )
 

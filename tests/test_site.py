@@ -1407,7 +1407,7 @@ def test_a_download_that_turned_up_nothing_does_not_erase_the_index(tmp_path: Pa
     assert json.loads((previous / IMAGES_JSON).read_text()) == recorded
 
 
-def _index_entry(tmp_path: Path, name: str, write: Callable[[Path], object]) -> dict[str, str]:
+def _index_entry(tmp_path: Path, name: str, write: Callable[[Path], object]) -> JsonObject:
     path = tmp_path / name
     write(path)
     write_image_index(tmp_path, {"kix.1": path})
@@ -1435,6 +1435,22 @@ def test_a_drawing_is_recorded_by_its_bytes(tmp_path: Path) -> None:
     assert entry["sha256"] == hashlib.sha256(svg).hexdigest()
 
 
+def test_a_chart_is_recorded_flatter_than_a_photograph(tmp_path: Path) -> None:
+    """A few flat colors against a pixel of its own almost everywhere."""
+    chart = Pillow.new("RGB", (40, 30), "white")
+    chart.paste((66, 133, 244), (5, 10, 15, 30))
+    photo = Pillow.effect_noise((40, 30), 64).convert("RGB")
+    flat = _index_entry(tmp_path, "chart.png", chart.save)
+    noisy = _index_entry(tmp_path, "photo.png", photo.save)
+    assert flat["flatness"] == 1.0
+    assert noisy["flatness"] < 0.5
+
+
+def test_a_drawing_has_no_flatness(tmp_path: Path) -> None:
+    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
+    assert "flatness" not in _index_entry(tmp_path, "chart.svg", lambda p: p.write_bytes(svg))
+
+
 def test_a_picture_nothing_wrote_has_no_name_to_emit(doc: Document) -> None:
     """The stem is not an answer: an extension is learned by fetching,
     so `images/img-d4734d4b` is a path no browser serves as an image,
@@ -1456,12 +1472,13 @@ def test_a_build_that_downloaded_nothing_reads_both_back(tmp_path: Path) -> None
     committed, so `images.json` is the record of both and the only thing such a
     build has to go on."""
     (tmp_path / IMAGES_JSON).write_text(
-        json.dumps({"kix.1": {"file": "img-a.jpg", "width": 10, "height": 5}})
+        json.dumps({"kix.1": {"file": "img-a.jpg", "width": 10, "height": 5, "flatness": 0.97}})
     )
     doc = Document()
     read_image_index(tmp_path, doc)
     assert doc.image_files == {"kix.1": "img-a.jpg"}
     assert doc.image_shapes == {"kix.1": (10, 5)}
+    assert doc.image_flatness == {"kix.1": 0.97}
 
 
 def test_what_this_build_downloaded_beats_what_the_last_one_recorded(tmp_path: Path) -> None:
