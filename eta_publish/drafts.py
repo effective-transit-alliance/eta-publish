@@ -2,6 +2,7 @@
 
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
     eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
+    eta-publish drafts deploy   the same from CI, for any branch, `main` included
 
 See `docs/drafts-plan.md`.
 """
@@ -206,6 +207,34 @@ def preview(
     except pages.Refused as e:
         refuse(str(e))
     build_and_upload(branch, token, suggestions, archive, comments, what="drafts preview")
+
+
+@drafts.command()
+def deploy(
+    branch: Annotated[
+        str,
+        Option(
+            help="the `eta-drafts` branch being deployed: `main` is the drafts site itself,"
+            " and any other its preview at `<branch>.eta-drafts.pages.dev`"
+        ),
+    ],
+    suggestions: Suggested = Suggestions.REJECTED,
+    archive: Archive = True,
+    comments: Comments = True,
+) -> None:
+    """Build the drafts site and upload it for `--branch`: what `eta-drafts`'s workflow runs.
+
+    As `drafts preview` does, for any branch, `main` included,
+    with the Cloudflare token in `$CLOUDFLARE_API_TOKEN`.
+    Only in GitHub Actions, where what is built is what is committed:
+    from a working copy, a deploy is `drafts preview`.
+    """
+    what = "drafts deploy"
+    try:
+        token = pages.ci_token()
+    except pages.Refused as e:
+        refuse(str(e), what)
+    build_and_upload(branch, token, suggestions, archive, comments, what=what)
 
 
 def build_and_upload(

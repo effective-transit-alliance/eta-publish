@@ -382,3 +382,71 @@ def test_preview_with_a_drafts_directory_but_no_list_says_which_file_is_missing(
     assert result.exit_code == 1
     assert "drafts/publications.toml" in result.output
     assert uploads.calls == []
+
+
+def test_ci_token_refuses_outside_github_actions(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "secret")
+
+    with pytest.raises(preview.Refused, match="GitHub Actions"):
+        preview.ci_token()
+    assert os.environ["CLOUDFLARE_API_TOKEN"] == "secret"
+
+
+def test_ci_token_refuses_a_missing_token(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", " ")
+
+    with pytest.raises(preview.Refused, match="CLOUDFLARE_API_TOKEN"):
+        preview.ci_token()
+
+
+def test_ci_token_takes_the_token_out_of_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "secret\n")
+
+    assert preview.ci_token() == "secret"
+    assert "CLOUDFLARE_API_TOKEN" not in os.environ
+
+
+def deploy_drafts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, branch: str
+) -> tuple[Result, Uploads]:
+    """`eta-publish drafts deploy --branch <branch>`, laid out as `preview_drafts` lays it out."""
+    monkeypatch.chdir(tmp_path)
+    write_drafts_list(tmp_path / "publications.toml", "", HOSTS)
+    write_drafts_list(tmp_path / "drafts" / "publications.toml", "", HOSTS)
+    uploads = Uploads()
+    monkeypatch.setattr(preview, "upload", uploads)
+    result = CliRunner().invoke(
+        app, ["drafts", "deploy", "--branch", branch, "--no-archive", "--no-comments"]
+    )
+    return result, uploads
+
+
+def test_deploy_refuses_outside_github_actions_and_uploads_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("GITHUB_ACTIONS", raising=False)
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "secret")
+    result, uploads = deploy_drafts(tmp_path, monkeypatch, "main")
+
+    assert result.exit_code == 1
+    assert "GitHub Actions" in " ".join(result.output.split())
+    assert uploads.calls == []
+
+
+@pytest.mark.parametrize("branch", ["main", "Fix/API"])
+def test_deploy_in_github_actions_uploads_the_drafts_site_for_any_branch(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, branch: str
+) -> None:
+    monkeypatch.setenv("GITHUB_ACTIONS", "true")
+    monkeypatch.setenv("CLOUDFLARE_API_TOKEN", "secret")
+    result, uploads = deploy_drafts(tmp_path, monkeypatch, branch)
+
+    assert result.exit_code == 0, result.output
+    [(files, deployed, token)] = uploads.calls
+    assert deployed == branch
+    assert token == "secret"
+    assert "ETA drafts" in files["index.html"]
+    assert "secret" not in result.output
