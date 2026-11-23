@@ -1,12 +1,13 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Four commands, because there are four things to do:
+Five commands, because there are five things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
+    eta-publish drafts preview  build the drafts, and upload them as this branch's preview
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
@@ -27,12 +28,12 @@ import tempfile
 from dataclasses import replace
 from enum import StrEnum
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, NoReturn
 
 from rich.text import Text
 from typer import Argument, BadParameter, Exit, Option, Typer
 
-from . import console, format, minify
+from . import console, format, minify, preview
 from .build import (
     ANONYMOUS_WARNED,
     UNWARNED,
@@ -560,6 +561,70 @@ def add(
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
     console.write(console.added(publications, added.name or "", added.tab or "", log), log)
+
+
+drafts = Typer(
+    help="The drafts in `drafts/`, a clone of the private `eta-drafts`; see `docs/drafts-plan.md`."
+)
+app.add_typer(drafts, name="drafts")
+
+
+@drafts.command(name="preview")
+def preview_drafts(
+    suggestions: Suggested = Suggestions.REJECTED,
+    archive: Archive = True,
+    comments: Comments = True,
+) -> None:
+    """Build the drafts from the working copy, and upload them as this branch's preview.
+
+    Built as `all` builds them, from `drafts/publications.toml` into `drafts/site/`,
+    with the code as it is, uncommitted edits included, and from the live documents,
+    since the images cannot be rebuilt from anything saved.
+    Then uploaded to `<branch>.eta-drafts.pages.dev`, behind the drafts site's sign-in,
+    with nothing committed or pushed.
+
+    Refused on `main`, whose deploy is the drafts site itself.
+    Nothing is uploaded when a draft fails to build.
+    """
+    path = DRAFTS / PUBLICATIONS
+    # Everything that can refuse, before minutes spent building.
+    try:
+        branch = preview.branch()
+        token = preview.token()
+    except preview.Refused as e:
+        refuse(str(e))
+    try:
+        listed = load_publications(path)
+        hosts = load_hosts(path)
+    except (OSError, ValueError) as e:
+        refuse(str(e))
+    site = publish(
+        listed,
+        DRAFTS / SITE,
+        suggestions,
+        split=False,
+        images=True,
+        comments=comments,
+        archive=archive,
+        listed=listed,
+        whole=True,
+        hosts=hosts,
+    )
+    publication_outcome(site)
+    log = console.for_stream()
+    log.line()
+    with preview.staged(DRAFTS / SITE) as staged:
+        try:
+            preview.upload(staged, branch, token)
+        except RuntimeError as e:
+            refuse(str(e))
+
+
+def refuse(reason: str) -> NoReturn:
+    """Say why the preview is not uploaded, as a failed build says why, and exit non-zero."""
+    log = console.for_stream()
+    console.write(console.failed("drafts preview", reason), log)
+    raise Exit(code=1)
 
 
 @app.command()
