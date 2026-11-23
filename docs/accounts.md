@@ -32,9 +32,6 @@ The code, the tests, and the publications built here
   by signing in with Workload Identity Federation,
   through the `eta-publish` provider (see [Google](#google)),
   which accepts only runs in the `github-pages` environment.
-- **Secret `GOOGLE_CREDENTIALS`,** on the `github-pages` environment, not the repository:
-  the JSON key of the Google service account `eta-publish-ci`, which nothing reads any more.
-  It and the key are deleted once a deploy has worked without them.
 - **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
   the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
   for the push workflow to start `eta-drafts`'s
@@ -69,8 +66,8 @@ Will hold drafts that aren't public yet; empty for now.
 - **APIs used:** Google Docs and Google Drive,
   and IAM, IAM Service Account Credentials and Security Token Service for Workload Identity Federation.
   The others enabled (BigQuery, Cloud Storage, logging and so on) are Google's defaults.
-- **No new service account keys:** the organization's policy forbids creating them.
-  The one key `eta-publish-ci` has was made on 2026-10-21, before the policy applied to the project.
+- **No service account keys:** the organization's policy forbids creating them,
+  so CI signs in only with Workload Identity Federation.
 - **Sign-in audience (Google Auth Platform → Audience):** **Internal**,
   so only `etany.org` accounts can sign in through its OAuth clients,
   Google never reviews the app, and sign-ins don't expire weekly the way they do in Testing.
@@ -82,7 +79,7 @@ It holds three credentials:
 | --- | --- | --- | --- |
 | (desktop client) | OAuth client, **Desktop app** | `eta-publish` run locally, to read the Docs as you | `~/.config/eta-publish/client_secret.json`; the sign-in it produces is cached in `~/.config/eta-publish/token.json` |
 | `Cloudflare Access (eta-ny)` | OAuth client, **Web application** | Cloudflare Access, for "Sign in with Google" on the drafts site | `~/.config/eta-publish/cloudflare-google-oauth.json`, and inside Cloudflare's identity provider settings |
-| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | none: both repositories sign in with Workload Identity Federation; its old key is in `GOOGLE_CREDENTIALS`, in `eta-publish`'s `github-pages` environment, unused, until both are deleted |
+| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | none: both repositories sign in with Workload Identity Federation |
 
 The web client allows only:
 
