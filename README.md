@@ -849,6 +849,12 @@ because the emitted HTML is committed
 and a formatter that changed its mind between versions
 would rewrite every publication without a publication having changed.
 
+With a clone of `eta-drafts` in `drafts/` (see `docs/drafts-plan.md`),
+the hooks also build the drafts with the code being committed,
+and make each commit's drafts commit in `drafts/`, on the branch of the same name.
+Run `pre-commit install` in `drafts/` too,
+for its check that what it pushes pins code already on GitHub.
+
 `ruff format`, `ruff check`, `ty`, `pyrefly`, `biome format`, and `pytest`
 run as pre-commit hooks and again in CI.
 `biome format` lays out the stylesheets, scripts, and configuration in the repo,

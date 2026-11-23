@@ -1,13 +1,15 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-23 with what's been decided and set up since.
-Of the code, steps 1 to 3 of the order of work below are built:
+Of the code, steps 1 to 4 of the order of work below are built:
 `eta-publish all` builds `drafts/`,
 `eta-publish drafts site` builds the drafts site with all three kinds,
 `eta-publish drafts preview` uploads it as a preview of the current commit,
 and `eta-publish drafts deploy` uploads it from CI,
 where every push to `eta-publish` deploys it for its branch
 (see [how the deploy is set up](#how-the-deploy-is-set-up)).
+Locally, every commit gets its drafts commit in `drafts/`, from the hooks in `scripts/drafts-commit.sh`
+(see [a drafts commit for every code commit](#a-drafts-commit-for-every-code-commit)).
 So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
@@ -118,8 +120,22 @@ and its message names the full commit, so a drafts commit can be traced back.
 
 - `pre-commit` builds the drafts with the code being committed,
   and fails the commit on a build error, as a broken publication here does now.
+  It builds into a directory of its own, leaving `drafts/` as it is.
 - `post-commit` commits the new pin and the rebuilt drafts in `drafts/`,
-  on the branch of the same name.
+  on the branch of the same name, which starts from `main`'s drafts commits the first time.
+  The rebuild is offline and with no images, as CI's is,
+  so the same code commit builds the same files on both.
+  It leaves the commit to CI when the working copy isn't the code committed,
+  as with `git commit <path>`, or when commits before it have no drafts commits yet,
+  since only the code checked out can be built with.
+- After an amend or a rebase, the drafts commits for the commits rewritten are dropped,
+  and the hook makes new ones, the way the code branch itself was rewritten.
+  It drops only drafts commits it made itself, which it can make again,
+  and never one on `origin`'s `main`.
+  Anything else in the way, such as a pull, stops it, to be rebased by hand.
+
+Both are `scripts/drafts-commit.sh`, which `pre-commit install` installs as hooks.
+`drafts/` gets its own `pre-commit install` for the `pre-push` check below.
 
 **On push, in CI:** a workflow here tells `eta-drafts` which commits arrived.
 For each one, in order, `eta-drafts` makes the matching commit,
