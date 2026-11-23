@@ -18,6 +18,7 @@ from paths import FIXTURE_DIR, HOST, HOSTS
 from PIL import Image as Pillow
 from test_conventions import build, field, image, para
 from typer import Exit
+from typer.testing import Result
 
 from eta_publish import console
 from eta_publish.build import (
@@ -622,6 +623,151 @@ def test_two_documents_at_one_path_are_refused_before_anything_is_put_in_place(
     assert len(wrote) == 1
     assert (out / SLUG / "report.html").read_text() == "the last build"
     assert [p.name for p in tmp_path.iterdir() if "building" in p.name] == []
+
+
+def write_list(path: Path, url: str, *, site: bool = True, listed: bool = True) -> None:
+    """A list of one publication, with the `[site]` every list must have."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    hosts = f'[site]\npublished = "{HOSTS.published}"\nunpublished = "{HOSTS.unpublished}"\n\n'
+    path.write_text(
+        (hosts if site else "")
+        + (
+            "[[report]]\n"
+            + 'name = "Digging Out of a Very Deep Hole"\n'
+            + 'tab = "Draft 2"\n'
+            + f'url = "{url}"\n'
+            + 'published = "draft"\n'
+            if listed
+            else ""
+        )
+    )
+
+
+def build_everything(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *args: str,
+    drafts: bool = True,
+    drafts_site: bool = True,
+    drafts_listed: bool = True,
+    docs_url: bool = False,
+) -> Result:
+    """`eta-publish all` in a directory laid out as a checkout with `drafts/` cloned in it."""
+    from typer.testing import CliRunner
+
+    from eta_publish.__main__ import app
+
+    monkeypatch.chdir(tmp_path)
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    # A Google Doc, for a build that has to go to the network to make anything of it.
+    main = "https://docs.google.com/document/d/abc/edit?tab=t.1" if docs_url else str(saved)
+    write_list(tmp_path / "publications.toml", main)
+    write_list(tmp_path / "other.toml", main)
+    (tmp_path / "drafts").mkdir()
+    if drafts:
+        write_list(
+            tmp_path / "drafts" / "publications.toml",
+            str(saved),
+            site=drafts_site,
+            listed=drafts_listed,
+        )
+    for site in ("site", "drafts/site", "out", "elsewhere"):
+        seed_image_index(tmp_path / site / UNPUBLISHED_DIR)
+    return CliRunner().invoke(app, ["all", "--no-images", "--no-archive", "--no-comments", *args])
+
+
+def test_all_builds_the_drafts_beside_the_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = build_everything(tmp_path, monkeypatch)
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+    assert (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+
+
+def test_all_without_a_drafts_list_builds_only_the_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """CI has no `drafts/`, and a `drafts/` with nothing listed in it is not an error."""
+    result = build_everything(tmp_path, monkeypatch, drafts=False)
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["-o", "out"],
+        ["other.toml"],
+    ],
+)
+def test_all_builds_the_drafts_only_for_the_committed_list_and_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, args: list[str]
+) -> None:
+    result = build_everything(tmp_path, monkeypatch, *args)
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
+
+
+def test_all_into_a_directory_does_not_build_the_drafts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Absolute, because `biome` is run from the repository, not from where the build is.
+    result = build_everything(tmp_path, monkeypatch, "--into", str(tmp_path / "elsewhere"))
+
+    assert result.exit_code == 0, result.output
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
+
+
+def test_all_builds_the_drafts_when_the_committed_list_and_site_are_named(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """By where they are, so naming the defaults is the same build as leaving them out."""
+    result = build_everything(tmp_path, monkeypatch, "publications.toml", "-o", "site")
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+
+
+def test_a_publication_failing_in_the_site_does_not_keep_the_drafts_from_being_built(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import eta_publish.build as build
+
+    def unreachable(*args: object, **kwargs: object) -> object:
+        raise RuntimeError("Google is not answering")
+
+    monkeypatch.setattr(build, "fetch", unreachable)
+    result = build_everything(tmp_path, monkeypatch, docs_url=True)
+
+    assert result.exit_code == 1
+    assert (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+
+
+def test_all_with_an_empty_drafts_list_builds_the_site_and_succeeds(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The drafts list keeps its `[site]`, and nothing listed in it builds nothing."""
+    result = build_everything(tmp_path, monkeypatch, drafts_listed=False)
+
+    assert result.exit_code == 0, result.output
+    assert (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
+
+
+def test_a_mistake_in_the_drafts_list_is_found_before_the_site_is_built(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result = build_everything(tmp_path, monkeypatch, drafts_site=False)
+
+    assert result.exit_code != 0
+    assert "[site]" in result.output
+    assert not (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
 
 
 @pytest.mark.parametrize(
