@@ -42,6 +42,7 @@ from eta_publish.site import (
     build_site,
     canonical,
     check_kind,
+    clashes,
     index_page,
     listed_publication,
     load_hosts,
@@ -503,6 +504,78 @@ def test_one_publication_replaces_only_its_own_directory(tmp_path: Path) -> None
     assert not (out / SLUG / "stale.html").exists()
     assert (out / SLUG / "report.html").is_file()
     assert (out / "reports" / "other" / "report.html").read_text() == "another publication's"
+
+
+def placed(doc: Document, *paths: str) -> list[Built]:
+    """A publication built at each of `paths`, named for its place in the list."""
+    return [
+        Built(publication=Publication(url=f"doc{i}", name=f"Doc {i}", tab="Draft"), doc=doc, path=p)
+        for i, p in enumerate(paths)
+    ]
+
+
+def test_two_publications_at_one_path_clash(doc: Document) -> None:
+    built = placed(doc, "reports/a", "reports/b", "reports/a")
+    assert clashes([(None, built)]) == [
+        "`Doc 0` (tab `Draft`) and `Doc 2` (tab `Draft`) are both at `/reports/a`"
+    ]
+
+
+def test_a_publication_inside_another_clashes_whichever_is_listed_first(doc: Document) -> None:
+    said = "`/reports/a/b` is inside `/reports/a`"
+    assert said in clashes([(None, placed(doc, "reports/a", "reports/a/b"))])[0]
+    assert said in clashes([(None, placed(doc, "reports/a/b", "reports/a"))])[0]
+
+
+def test_a_path_that_only_starts_with_another_does_not_clash(doc: Document) -> None:
+    """A directory, not a string: `reports/ab` is beside `reports/a`, not in it."""
+    assert clashes([(None, placed(doc, "reports/a", "reports/ab", "statements/a"))]) == []
+
+
+def test_a_clash_across_lists_names_each_list(doc: Document) -> None:
+    """For a site laid out from more than one list, which is the same check over all of them."""
+    public, drafts = Path("publications.toml"), Path("drafts/publications.toml")
+    assert clashes([(public, placed(doc, "reports/a")), (drafts, placed(doc, "reports/a"))]) == [
+        "`Doc 0` (tab `Draft`, in `publications.toml`) and "
+        "`Doc 0` (tab `Draft`, in `drafts/publications.toml`) are both at `/reports/a`"
+    ]
+
+
+def test_two_documents_at_one_path_are_refused_before_anything_is_put_in_place(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Both build, into one directory, and neither is what it says: nothing is installed."""
+    from eta_publish.__main__ import Suggestions, publish
+
+    root = tmp_path / "site"
+    out = root / UNPUBLISHED_DIR
+    seed_image_index(out)
+    (out / SLUG / "report.html").write_text("the last build")
+    publications = []
+    for i, name in enumerate(["First", "Second"]):
+        saved = tmp_path / f"{name}.json"
+        saved.write_text(
+            json.dumps({**FIXTURE, "documentId": f"doc{i}", "title": name, "tabTitle": "Draft 2"})
+        )
+        publications.append(Publication(url=str(saved), name=name, tab="Draft 2"))
+
+    with pytest.raises(Exit):
+        publish(
+            publications,
+            root,
+            Suggestions.REJECTED,
+            False,
+            False,
+            False,
+            archive=False,
+            whole=True,
+            hosts=HOSTS,
+        )
+
+    said = " ".join(capsys.readouterr().err.split())
+    assert f"`First` (tab `Draft 2`) and `Second` (tab `Draft 2`) are both at `/{SLUG}`" in said
+    assert (out / SLUG / "report.html").read_text() == "the last build"
+    assert [p.name for p in tmp_path.iterdir() if "building" in p.name] == []
 
 
 @pytest.mark.parametrize(
