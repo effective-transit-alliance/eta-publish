@@ -837,7 +837,8 @@ would rewrite every publication without a publication having changed.
 `ruff format`, `ruff check`, `ty`, `pyrefly`, and `pytest`
 run as pre-commit hooks and again in CI.
 The `pytest` hook skips a commit that changes only files no test reads,
-like `docs/` and `README.md`, as `scripts/pytest-unless-unread.sh` lists them.
+like `docs/` and `README.md`, as `scripts/pytest-unless-unread.sh` lists them,
+and a commit whose tree the tests already passed on in this checkout.
 Tests run against checked-in Docs API responses,
 so neither ever needs Google credentials or the network.
 
