@@ -28,9 +28,13 @@ The code, the tests, and the publications built here
 - **GitHub Pages:** built by `.github/workflows/pages.yml` on every push to `main`
   and served at <https://effective-transit-alliance.github.io/eta-publish/>.
   [Publishing to GitHub Pages](../README.md#publishing-to-github-pages) has the setup.
+- **No Google key:** the Pages build reads the documents as `eta-publish-ci`
+  by signing in with Workload Identity Federation,
+  through the `eta-publish` provider (see [Google](#google)),
+  which accepts only runs in the `github-pages` environment.
 - **Secret `GOOGLE_CREDENTIALS`,** on the `github-pages` environment, not the repository:
-  the JSON key of the Google service account `eta-publish-ci` (see [Google](#google)).
-  A job outside that environment reads it as empty.
+  the JSON key of the Google service account `eta-publish-ci`, which nothing reads any more.
+  It and the key are deleted once a deploy has worked without them.
 - **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
   the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
   for the push workflow to start `eta-drafts`'s
@@ -78,7 +82,7 @@ It holds three credentials:
 | --- | --- | --- | --- |
 | (desktop client) | OAuth client, **Desktop app** | `eta-publish` run locally, to read the Docs as you | `~/.config/eta-publish/client_secret.json`; the sign-in it produces is cached in `~/.config/eta-publish/token.json` |
 | `Cloudflare Access (eta-ny)` | OAuth client, **Web application** | Cloudflare Access, for "Sign in with Google" on the drafts site | `~/.config/eta-publish/cloudflare-google-oauth.json`, and inside Cloudflare's identity provider settings |
-| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | its key in `GOOGLE_CREDENTIALS`, in `eta-publish`'s `github-pages` environment; `eta-drafts` has no key and signs in with Workload Identity Federation instead |
+| `eta-publish-ci@eta-publish.iam.gserviceaccount.com` | service account | GitHub Actions, to read the Docs without a person | none: both repositories sign in with Workload Identity Federation; its old key is in `GOOGLE_CREDENTIALS`, in `eta-publish`'s `github-pages` environment, unused, until both are deleted |
 
 The web client allows only:
 
@@ -106,7 +110,7 @@ the run trades the token GitHub signs for it for short-lived Google credentials.
     Its deploy runs on every branch, for the previews, so it isn't limited further.
   - **`eta-publish`:** `assertion.repository=='effective-transit-alliance/eta-publish' && assertion.environment=='github-pages'`,
     and that environment admits only `main`.
-    Nothing uses it yet: the Pages workflow still uses the key.
+    The Pages workflow's build job signs in through it.
 - **Grant:** each repository's runs have `roles/iam.workloadIdentityUser` on `eta-publish-ci`,
   as `principalSet://iam.googleapis.com/projects/635412927675/locations/global/workloadIdentityPools/github-actions/attribute.repository/effective-transit-alliance/<repository>`.
 - **Revoke:** disabling a provider stops its repository's sign-ins at once.

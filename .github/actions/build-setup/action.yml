@@ -1,26 +1,23 @@
 # Everything a runner needs before it can build the publications from the live documents:
-# the tools, the fonts, the archive lookups, and the Google key.
+# the tools, the fonts, the archive lookups, and the sign-in to Google.
 #
 # One place for both workflows that build: this repository's Pages workflow,
 # and `eta-drafts`'s deploy, which runs it from the `eta-publish` commit it pins,
 # so a drafts deploy sets up exactly what that commit's code was written against
 # (see `docs/drafts-plan.md`).
 name: Set up a build
-description: Install what building the publications needs, and write the Google key.
+description: Install what building the publications needs, and sign in to Google.
 
 inputs:
-  google-credentials:
-    description: the service account key's JSON, the `GOOGLE_CREDENTIALS` secret
+  workload-identity-provider:
+    description: >-
+      the provider in the `github-actions` pool that accepts this repository's runs,
+      as its full resource name
     required: true
   working-directory:
     description: the `eta-publish` checkout, relative to the workspace
     required: false
     default: .
-
-outputs:
-  key-file:
-    description: where the key was written, for `$GOOGLE_APPLICATION_CREDENTIALS`
-    value: ${{ steps.key.outputs.path }}
 
 runs:
   using: composite
@@ -65,21 +62,20 @@ runs:
         key: archive-lookups-${{ github.run_id }}
         restore-keys: archive-lookups-
 
-    # Written to the runner's temp directory rather than the workspace,
-    # so it cannot be picked up by a later step that globs the checkout.
-    - name: Write the service account key
-      id: key
-      shell: bash
-      env:
-        GOOGLE_CREDENTIALS: ${{ inputs.google-credentials }}
-      run: |
-        if [ -z "$GOOGLE_CREDENTIALS" ]; then
-          echo "::error::the GOOGLE_CREDENTIALS secret is not set; see README" >&2
-          exit 1
-        fi
-        umask 077
-        printf '%s' "$GOOGLE_CREDENTIALS" > "$RUNNER_TEMP/key.json"
-        echo "path=$RUNNER_TEMP/key.json" >> "$GITHUB_OUTPUT"
+    # Workload Identity Federation rather than a stored key:
+    # the run trades the token GitHub signs for it for short-lived Google credentials,
+    # and acts as `eta-publish-ci`, which reads the documents shared with it.
+    # Which runs may do so is the provider's condition, one provider per repository.
+    #
+    # The job needs `id-token: write`, and must have checked out first, as the action requires.
+    # It writes its credentials file, `gha-creds-*.json`, to the workspace root,
+    # and removes it when the job ends.
+    # It exports `$GOOGLE_APPLICATION_CREDENTIALS` naming that file to the steps after it,
+    # which is what `eta-publish` looks for to sign in without a browser.
+    - uses: google-github-actions/auth@v3
+      with:
+        workload_identity_provider: ${{ inputs.workload-identity-provider }}
+        service_account: eta-publish-ci@eta-publish.iam.gserviceaccount.com
 
     # Pinned rather than latest:
     # the PDF is a deliverable,
