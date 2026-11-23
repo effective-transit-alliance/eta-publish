@@ -50,10 +50,12 @@ repos:
         types: [python]
         pass_filenames: false
 
+      # Skipped for a commit that changes only files no test reads:
+      # `scripts/pytest-unless-unread.sh` says which, and why not an `exclude:`.
       - id: pytest
         name: pytest
-        entry: uv run pytest
-        language: system
+        entry: scripts/pytest-unless-unread.sh
+        language: script
         pass_filenames: false
         always_run: true
 
