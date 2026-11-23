@@ -153,6 +153,12 @@ and sources with no capture publish saying they have no archive, which is true.
 # Only for this list and this output: not with another list, `-o`, or `--into`.
 uv run eta-publish all
 
+# Build the drafts site into `out`, uploading nothing:
+# `publications.toml` and `drafts/publications.toml` laid out as one site,
+# each page labeled with its kind, under an index grouping them by kind.
+# Leaves `site/` and `drafts/site/` as they are; takes `--offline`.
+uv run eta-publish drafts site out
+
 # Build the drafts in `drafts/`, and upload them as this branch's preview,
 # at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
 uv run eta-publish drafts preview
