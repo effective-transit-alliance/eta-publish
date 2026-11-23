@@ -1,7 +1,7 @@
 """Building a list of publications into a site, for every command that builds one.
 
-`all` and `one` in `__main__` both build through `publish`,
-and offer the options it takes spelled the same way.
+`all` and `one` in `__main__`, and the `drafts` commands in `drafts`,
+all build through `publish`, and offer the options it takes spelled the same way.
 """
 
 import glob
@@ -98,8 +98,8 @@ Comments = Annotated[
     bool,
     Option(help="ask how many comment threads are open; the slowest thing a build does"),
 ]
-"""The options `all` and `one` share, spelled once,
-so two commands that build the same way offer the same switches."""
+"""The options the commands that build share, spelled once,
+so commands that build the same way offer the same switches."""
 
 
 def publish(

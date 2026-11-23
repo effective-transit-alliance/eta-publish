@@ -1,12 +1,13 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Four commands, because there are four things to do:
+Five commands, because there are five things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
+    eta-publish drafts preview  build the drafts, and upload them as this branch's preview
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
@@ -27,6 +28,7 @@ from rich.text import Text
 from typer import Argument, BadParameter, Option, Typer
 
 from . import console
+from .drafts import drafts
 from .format import ROOT
 from .logo import LOGO, write_logo
 from .publish import (
@@ -55,6 +57,7 @@ from .site import (
 )
 
 app = Typer(context_settings={"help_option_names": ["-h", "--help"]}, help=__doc__)
+app.add_typer(drafts, name="drafts")
 
 
 @app.command(name="all")
