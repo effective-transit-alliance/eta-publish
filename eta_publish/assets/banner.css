@@ -3,14 +3,31 @@
    No margin under it, since what is under it is the masthead's band.
    The margins and padding are `page.css`'s `body` turned inside out:
    `50%` is half the body's width, and `50vw` half the window's. */
-.kind-banner { --kind: #555;
-               margin: -3rem calc(50% - 50vw) 0;
-               padding: .7rem calc(50vw - 50%);
-               background: var(--kind); color: #fff;
-               font: 1rem/1.5 system-ui, sans-serif; }
-.kind-banner a { color: inherit; }
-.kind-label { text-transform: uppercase; letter-spacing: .05em; margin-right: .3em; }
+.kind-banner {
+  --kind: #555;
+  margin: -3rem calc(50% - 50vw) 0;
+  padding: 0.7rem calc(50vw - 50%);
+  background: var(--kind);
+  color: #fff;
+  font:
+    1rem / 1.5 system-ui,
+    sans-serif;
+}
+.kind-banner a {
+  color: inherit;
+}
+.kind-label {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-right: 0.3em;
+}
 /* White on each is over 6:1. */
-.kind-automatically-published { --kind: #1d6b3a; }
-.kind-manually-published { --kind: #2b4f86; }
-.kind-draft { --kind: #8a4b00; }
+.kind-automatically-published {
+  --kind: #1d6b3a;
+}
+.kind-manually-published {
+  --kind: #2b4f86;
+}
+.kind-draft {
+  --kind: #8a4b00;
+}

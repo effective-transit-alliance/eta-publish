@@ -838,8 +838,10 @@ because the emitted HTML is committed
 and a formatter that changed its mind between versions
 would rewrite every publication without a publication having changed.
 
-`ruff format`, `ruff check`, `ty`, `pyrefly`, and `pytest`
+`ruff format`, `ruff check`, `ty`, `pyrefly`, `biome format`, and `pytest`
 run as pre-commit hooks and again in CI.
+`biome format` lays out the stylesheets, scripts, and configuration in the repo,
+which a build copies from but does not lay out itself.
 The `pytest` hook skips a commit that changes only files no test reads,
 like `docs/` and `README.md`, as `scripts/pytest-unless-unread.sh` lists them,
 and a commit whose tree the tests already passed on in this checkout.

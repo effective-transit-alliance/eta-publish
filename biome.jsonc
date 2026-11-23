@@ -13,6 +13,15 @@
     // this repo's code, and what a build writes, indent with spaces.
     "indentStyle": "space"
   },
+  "overrides": [
+    {
+      // The code and configuration here, as wide as `ruff` lets the Python be.
+      // Not what a build writes, which stays at the default width:
+      // a wider one would rewrite every publication without a publication having changed.
+      "includes": ["eta_publish/**", "*.json", "*.jsonc"],
+      "formatter": { "lineWidth": 100 }
+    }
+  ],
   "linter": {
     "rules": {
       "a11y": {

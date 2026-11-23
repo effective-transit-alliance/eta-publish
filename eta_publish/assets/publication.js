@@ -346,7 +346,11 @@
       // outside a box does.
       box.addEventListener("click", (event) => {
         const { target } = event;
-        if (target === box || target.classList.contains("lightbox-stage") || beside(target, event)) {
+        if (
+          target === box ||
+          target.classList.contains("lightbox-stage") ||
+          beside(target, event)
+        ) {
           // Not also the link to the original the picture is.
           event.preventDefault();
           dismiss();
