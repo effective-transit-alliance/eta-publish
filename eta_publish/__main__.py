@@ -263,6 +263,8 @@ def publish(
     the entire list, which replaces the entire site; otherwise only the publications
     built are replaced. `into` builds there and leaves `outdir` as it is.
 
+    Every preview page says which kind of publication it is.
+
     Then `published/` is written from what was installed, for the `automated`
     publications in `listed`, the whole list whichever of it was built.
     """
@@ -277,6 +279,7 @@ def publish(
         hosted_media=hosted_media,
         embed_assets=embed_assets,
         source_brackets=source_brackets,
+        banners=True,
         unpublished_url=hosts.unpublished,
         published_url=hosts.published,
     )

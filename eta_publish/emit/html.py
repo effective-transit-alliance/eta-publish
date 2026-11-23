@@ -192,6 +192,54 @@ def link_mark(anchor: str, what: str = "section") -> Tag:
     return tag.a(class_="link-mark", href=f"#{anchor}", aria_label=f"Link to this {what}")
 
 
+BANNER_CSS = read("banner.css")
+"""How a `Banner` looks, carried in the page it is on, since only a build with banners has one:
+in `page.css` it would be linked by every page, including those that show none."""
+
+
+@dataclass(frozen=True)
+class Banner:
+    """Which kind of publication a preview page is, said across the top of it.
+
+    Only the preview page carries one:
+    the fragment that is published never does.
+    """
+
+    label: str
+    """The kind: `Automatically Published`, for one."""
+
+    says: str
+    """What that kind is, in a sentence."""
+
+    live: str = ""
+    """Where the live page is, for a kind that has one."""
+
+
+def kind_class(label: str) -> str:
+    """The class `banner.css` colors the kind called `label` by:
+    `kind-manually-published` for `Manually Published`."""
+    return "-".join(["kind", *label.lower().split()])
+
+
+def banner_markup(banner: Banner) -> str:
+    """`banner` as the strip at the top of a page, with the stylesheet it needs."""
+    live: list[Piece] = []
+    if banner.live:
+        live = [" ", tag.a(href=banner.live)["The live page."]]
+    return markup(
+        [
+            tag.style[Markup(f"\n{BANNER_CSS}")],
+            "\n",
+            tag.div(class_=f"kind-banner {kind_class(banner.label)}", role="note")[
+                tag.strong(class_="kind-label")[banner.label],
+                " ",
+                banner.says,
+                *live,
+            ],
+        ]
+    )
+
+
 def phase_markup(phase: str) -> str:
     """What a reader of a draft has to be told before reading it.
 
@@ -1480,11 +1528,14 @@ def publication_page(
     card_base: str = "",
     page_url: str = "",
     source_brackets: bool = False,
+    banner: Banner | None = None,
     *,
     site_url: str,
 ) -> str:
     """The whole publication as a page,
     which is what a build writes as `index.html` and what the site serves.
+
+    `banner` is which kind of publication it is, above everything else on it.
 
     Not the fragment with a wrapper bolted on:
     `report.html` is a `div` to paste into a Squarespace code block,
@@ -1558,6 +1609,7 @@ def publication_page(
             for name in ("page.css", "publication.css")
         ),
         htpy.script(src=f"{asset_base}/publication.js", defer=True),
+        *([Markup(banner_markup(banner))] if banner is not None else []),
         *([Markup(phase_markup(doc.phase))] if doc.phase else []),
     ]
     # `<!doctype html>` is not an element and no builder emits one.

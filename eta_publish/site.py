@@ -36,9 +36,9 @@ from . import console
 from .archive import Stopped
 from .assets import read
 from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
-from .emit.html import Piece, lines, markup, phase_markup, tag
+from .emit.html import Banner, Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, Kind, path_kind
+from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, LIVE_SITE, Kind, path_kind
 from .nodes import Document, Shown
 from .parse import parse
 
@@ -63,6 +63,32 @@ class Published(StrEnum):
 
     DRAFT = "draft"
     """Not out yet."""
+
+
+KINDS: dict[Published, tuple[str, str]] = {
+    Published.DRAFT: ("Draft", "Not published anywhere yet."),
+    Published.AUTOMATED: (
+        "Automatically Published",
+        "Live on etany.org, published with eta-publish.",
+    ),
+    Published.MANUAL: (
+        "Manually Published",
+        "Live on etany.org, published there by hand, not yet with eta-publish.",
+    ),
+}
+"""What a preview page calls each kind of publication, and what it says each one is."""
+
+
+def kind_banner(publication: Publication, doc: Document) -> Banner:
+    """The banner on `publication`'s preview page, linking the live page if it has one.
+
+    Live at the document's own `URL:` on ETA's site, which is where both live kinds are.
+    """
+    label, says = KINDS[publication.published]
+    live = ""
+    if publication.published is not Published.DRAFT and doc.slug:
+        live = f"{LIVE_SITE}{doc.slug}"
+    return Banner(label=label, says=says, live=live)
 
 
 @dataclass(frozen=True)
@@ -617,6 +643,7 @@ def build_site(
                     previous=previous,
                     read_from=read_from,
                     publishes=publication.published is Published.AUTOMATED,
+                    banner=partial(kind_banner, publication) if options.banners else None,
                 )
             finally:
                 rows.drop(named)

@@ -44,7 +44,13 @@ from .embeds import (
     write_embed_index,
 )
 from .embeds import download as download_embeds
-from .emit.html import CODE_BLOCK_LIMIT, CODE_BLOCK_WARN, HtmlEmitter, publication_page
+from .emit.html import (
+    CODE_BLOCK_LIMIT,
+    CODE_BLOCK_WARN,
+    Banner,
+    HtmlEmitter,
+    publication_page,
+)
 from .emit.markdown import MarkdownEmitter
 from .emit.typst import TypstEmitter
 from .logo import LOGO, warning_poster
@@ -145,6 +151,13 @@ class BuildOptions:
     document rather than an API call, and it costs more than fetching the
     document does. Left unasked, the last answer stands, the way it already
     does for the service account that cannot ask it at all.
+    """
+
+    banners: bool = False
+    """Whether each preview page says which kind of publication it is.
+
+    Only the preview, `index.html`:
+    the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
 
 
@@ -683,6 +696,7 @@ def emit(
     source_brackets: bool = False,
     stem: str = "report",
     page_url: str = "",
+    banner: Banner | None = None,
     *,
     site_url: str,
 ) -> dict[str, Path]:
@@ -696,6 +710,8 @@ def emit(
     `page_url` is the live page, for the PDF to link its videos' figures on.
     A `stem` that is more than the kind, `report.published`,
     writes only the files `site/published/` takes, so not `index.html`, which is the preview.
+    `banner` goes on `index.html` and nowhere else:
+    the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
@@ -719,6 +735,7 @@ def emit(
             card_base=cards,
             page_url=url,
             source_brackets=source_brackets,
+            banner=banner,
             site_url=site_url,
         )
     )
@@ -931,6 +948,7 @@ def write_outputs(
     stem: str,
     skipped_images: bool,
     page_url: str = "",
+    banner: Banner | None = None,
 ) -> None:
     """Write the publication's outputs as `stem.*`, linking the site at `site_url`, and its PDF.
 
@@ -955,6 +973,7 @@ def write_outputs(
         stem=stem,
         site_url=site_url,
         page_url=page_url,
+        banner=banner,
     )
     typ = written.get(f"{stem}.typ")
     if typ is not None:
@@ -975,6 +994,7 @@ def build_one(
     previous: Path | None = None,
     read_from: Path | None = None,
     publishes: bool = False,
+    banner: Callable[[Document], Banner] | None = None,
 ) -> tuple[Document, str]:
     """Build one publication, returning it and the site-relative path it went to.
 
@@ -999,6 +1019,8 @@ def build_one(
     `previous` is the directory the last build of this publication wrote, if it
     was not this one: what it recorded is carried over before anything reads it.
     Without one, it is the publication's own path under `read_from`, the last site.
+
+    `banner` says which kind of publication the preview page is, given the parsed document.
     """
     console.step("reading the saved response" if options.offline else "fetching the document")
     document = load(ref, options.suggestions, options.comments, cached)
@@ -1105,7 +1127,16 @@ def build_one(
     write_posters(doc, dest / PRINT_DIR)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
-    write_outputs(doc, dest, path, options, options.unpublished_url, kind, skipped_images)
+    write_outputs(
+        doc,
+        dest,
+        path,
+        options,
+        options.unpublished_url,
+        kind,
+        skipped_images,
+        banner=banner(doc) if banner is not None else None,
+    )
     for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
         # From a build that published it, which this one may not.
         stale.unlink()
