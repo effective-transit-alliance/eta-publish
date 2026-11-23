@@ -35,6 +35,7 @@ September 9, 2026
 - style: an apostrophe should be `’`, not `'`: `...become intolerable. The region's transit agencies, and the MT...`
 - style: an apostrophe should be `’`, not `'`: `... New York is too damn loud. It's time to let riders travel in...`
 - the image `img-831248b1` has no alt text and no caption; add a description to it in the doc
+- the image `img-b17aa21a` has no credit, so is taken to be ETA's, and looks like a chart, but has no `SVG:` line; link the chart's SVG on one under it, so the SVG publishes instead of the raster
 
 [Video: Too Damn Loud: Announcements on NYC Transit are Out of Control (Effective Transit Alliance on YouTube)](<https://youtube.com/shorts/o90JQBWdgTI?is=I4sZ3txy37d2RiGU>)<sup>\[1\]</sup>
 

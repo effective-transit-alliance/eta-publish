@@ -487,7 +487,7 @@ def _charted(
 ) -> Document:
     """A document with one figure, credited and as flat as given."""
     image = Image(object_id="io.1", filename="station-lengths", vector=vector)
-    doc = Document(blocks=[Figure(image=image, credit=[Text(text=credit)])])
+    doc = Document(blocks=[Figure(image=image, credit=[Text(text=credit)] if credit else [])])
     doc.image_flatness = {"io.1": flatness}
     check_charts(doc)
     return doc
@@ -512,6 +512,15 @@ def test_a_chart_credited_to_eta_with_no_svg_line_is_warned_about() -> None:
 )
 def test_a_picture_that_is_not_an_eta_chart_missing_its_svg_is_not(doc: Document) -> None:
     assert doc.warnings == []
+
+
+def test_a_chart_with_no_credit_is_taken_to_be_etas() -> None:
+    """Most likely ETA's own, often with the logo drawn into it."""
+    assert [str(w) for w in _charted(credit="").warnings] == [
+        "the image `station-lengths` has no credit, so is taken to be ETA's,"
+        " and looks like a chart, but has no `SVG:` line; link the chart's SVG on one under it,"
+        " so the SVG publishes instead of the raster"
+    ]
 
 
 def test_a_picture_with_no_flatness_recorded_is_not_warned_about() -> None:

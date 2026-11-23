@@ -228,11 +228,14 @@ So a flat graphic credited to ETA, like a sign, is warned about too, and should 
 
 
 def check_charts(doc: Document) -> None:
-    """Warn about a chart credited to ETA that publishes as a raster, with no `SVG:` line by it.
+    """Warn about ETA's chart that publishes as a raster, with no `SVG:` line by it.
 
     ETA draws its charts as SVGs, which stay sharp at any size, carry their own description,
     and get the logo and a dark mode drawn into them,
     so one pasted with no `SVG:` line is almost always one whose line was forgotten.
+    ETA's is one credited to ETA, or credited to nobody:
+    a chart someone else drew says so, and one with no credit is most likely ETA's own,
+    often with ETA's logo drawn into it, which `_check_figures` asks to be credited too.
     After the images, since only the pixels say whether a picture looks like a chart.
     """
     for figure in doc.figures:
@@ -240,10 +243,14 @@ def check_charts(doc: Document) -> None:
         flatness = doc.image_flatness.get(image.object_id)
         if image.vector is not None or flatness is None or flatness < CHART_FLATNESS:
             continue
-        if not credited_to_eta(doc, image):
-            continue
+        if figure.credit:
+            if not credited_to_eta(doc, image):
+                continue
+            whose = "is credited to ETA"
+        else:
+            whose = "has no credit, so is taken to be ETA's,"
         doc.warn(
-            "the image {} is credited to ETA and looks like a chart, but has no {} line;"
+            f"the image {{}} {whose} and looks like a chart, but has no {{}} line;"
             " link the chart's SVG on one under it, so the SVG publishes instead of the raster",
             Shown(image.filename),
             Shown("SVG:"),
