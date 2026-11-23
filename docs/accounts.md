@@ -136,7 +136,8 @@ Its ID is in `eta-drafts`'s `CLOUDFLARE_ACCOUNT_ID` secret and in every dashboar
 ### Pages project `eta-drafts`
 
 - **Address:** <https://eta-drafts.pages.dev>, with previews at `<alias>.eta-drafts.pages.dev`,
-  the alias being the branch name lowercased, with anything not a letter or digit turned into `-`.
+  the alias being the branch name lowercased, with anything not a letter or digit turned into `-`,
+  and local ones at `<alias>-<commit>.eta-drafts.pages.dev`.
   Pages projects can't be renamed, so neither can these addresses.
 - **Direct upload,** not connected to Git: CI is to build the site and upload it,
   with `eta-publish drafts deploy`,

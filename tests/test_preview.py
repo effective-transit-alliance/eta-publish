@@ -61,6 +61,45 @@ def test_branch_refuses_a_detached_head(repo: Path) -> None:
         preview.branch()
 
 
+def commit_of(repo: Path) -> str:
+    return subprocess.run(
+        ["git", "rev-parse", "--short=7", "HEAD"],
+        cwd=repo,
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout.strip()
+
+
+def test_local_name_is_the_branch_and_its_commit(repo: Path) -> None:
+    """Never the branch's own name, which is CI's preview of it."""
+    git(repo, "checkout", "-b", "foo")
+
+    assert preview.local_name() == f"foo-{commit_of(repo)}"
+
+
+def test_local_name_says_dirty_with_an_edited_tracked_file(repo: Path) -> None:
+    git(repo, "checkout", "-b", "foo")
+    (repo / "a").write_text("1")
+    git(repo, "add", "a")
+    git(repo, "commit", "-m", "a")
+    (repo / "a").write_text("2")
+
+    assert preview.local_name() == f"foo-{commit_of(repo)}-dirty"
+
+
+def test_local_name_does_not_count_an_untracked_file(repo: Path) -> None:
+    git(repo, "checkout", "-b", "foo")
+    (repo / "notes.pdf").write_text("")
+
+    assert preview.local_name() == f"foo-{commit_of(repo)}"
+
+
+def test_local_name_refuses_main(repo: Path) -> None:
+    with pytest.raises(preview.Refused, match="main"):
+        preview.local_name()
+
+
 def test_token_refuses_a_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(preview, "TOKEN", tmp_path / "t")
 
@@ -213,7 +252,7 @@ def preview_drafts(
             raise preview.Refused(refused)
         return branch
 
-    monkeypatch.setattr(preview, "branch", named)
+    monkeypatch.setattr(preview, "local_name", named)
     monkeypatch.setattr(preview, "token", lambda: "secret")
     monkeypatch.setattr(preview, "upload", uploads)
     result = CliRunner().invoke(app, ["drafts", "preview", "--no-archive", "--no-comments"])

@@ -82,11 +82,15 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    With no `drafts/` at all, as in this repository's CI, the drafts are skipped.
 2. **Preview from the working copy.** `eta-publish drafts preview`
    builds the same way, with all three kinds as [the drafts site shows them](#what-the-drafts-site-shows),
-   and uploads the result as a preview of the current branch,
+   and uploads the result as a preview of the current commit,
    behind the same sign-in, with no commit or push.
-   Its address is `<alias>.eta-drafts.pages.dev`,
+   Its address is `<alias>-<commit>.eta-drafts.pages.dev`,
+   with `-dirty` after it when a tracked file has uncommitted edits,
    where the alias is the branch name as Cloudflare writes it:
-   lowercased, with anything not a letter or digit turned into `-`.
+   lowercased, with anything not a letter or digit turned into `-`,
+   and the commit is its first 7 hex digits.
+   Not `<alias>.eta-drafts.pages.dev`, which is CI's preview of the branch, on every push:
+   the two would overwrite each other.
    Its pages link within that preview, not to production or the public site;
    a drafts `[site]` other than `eta-drafts.pages.dev` with `published/` under it is refused.
    It builds in a directory of its own in `drafts/`, leaving `site/` and `drafts/site/` as they are,

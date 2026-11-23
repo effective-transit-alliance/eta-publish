@@ -1,7 +1,7 @@
 """`eta-publish drafts`: the drafts in `drafts/`, a clone of the private `eta-drafts`.
 
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
-    eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
+    eta-publish drafts preview  build the drafts site, and upload it as a preview of this commit
     eta-publish drafts deploy   the same from CI, for any branch, `main` included
 
 See `docs/drafts-plan.md`.
@@ -183,18 +183,20 @@ def preview(
     archive: Archive = True,
     comments: Comments = True,
 ) -> None:
-    """Build the drafts site from the working copy, and upload it as this branch's preview.
+    """Build the drafts site from the working copy, and upload it as a preview of this commit.
 
     Every publication, the drafts in `drafts/publications.toml` and the ones in `publications.toml`,
     each labeled with its kind, built and laid out as `drafts site` builds them:
     with the code as it is, uncommitted edits included, and from the live documents,
     since the images cannot be rebuilt from anything saved.
-    Then uploaded to `<branch>.eta-drafts.pages.dev`, behind the drafts site's sign-in,
+    Then uploaded to `<branch>-<commit>.eta-drafts.pages.dev`,
+    or `<branch>-<commit>-dirty` with uncommitted edits, behind the drafts site's sign-in,
     with nothing committed or pushed.
+    Not to `<branch>.eta-drafts.pages.dev`, which is CI's preview of the branch, on every push.
     Built in a directory of its own, so `site/` and `drafts/site/` are left as they are.
 
     The preview's pages and fragments link their assets at the preview's own host,
-    `<branch>.eta-drafts.pages.dev`, so the preview shows its own branch's assets
+    `<branch>-<commit>.eta-drafts.pages.dev`, so the preview shows its own assets
     and not production's, or the public site's.
 
     Refused on `main`, whose deploy is the drafts site itself, made from CI.
@@ -202,7 +204,7 @@ def preview(
     """
     # Everything that can refuse, before minutes spent building.
     try:
-        branch = pages.branch()
+        branch = pages.local_name()
         token = pages.token()
     except pages.Refused as e:
         refuse(str(e))
