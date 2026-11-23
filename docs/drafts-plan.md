@@ -1,20 +1,20 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-23 with what's been decided and set up since.
-Of the code, steps 1 to 4 of the order of work below are built:
+All five steps of the order of work below are built:
 `eta-publish all` builds `drafts/`,
 `eta-publish drafts site` builds the drafts site with all three kinds,
 `eta-publish drafts preview` uploads it as a preview of the current commit,
 and `eta-publish drafts deploy` uploads it from CI,
 where every push to `eta-publish` deploys it for its branch
 (see [how the deploy is set up](#how-the-deploy-is-set-up)).
-Locally, every commit gets its drafts commit in `drafts/`, from the hooks in `scripts/drafts-commit.sh`
+Every commit gets its drafts commit, locally in `drafts/` from the hooks in `scripts/drafts-commit.sh`,
+and otherwise from CI on push
 (see [a drafts commit for every code commit](#a-drafts-commit-for-every-code-commit)).
 So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
 and the label on every preview page saying which kind of publication it is.
-The rest isn't merged yet.
 [`accounts.md`](accounts.md) has the accounts and credentials it uses,
 which already exist.
 
@@ -137,11 +137,18 @@ and its message names the full commit, so a drafts commit can be traced back.
 Both are `scripts/drafts-commit.sh`, which `pre-commit install` installs as hooks.
 `drafts/` gets its own `pre-commit install` for the `pre-push` check below.
 
-**On push, in CI:** a workflow here tells `eta-drafts` which commits arrived.
-For each one, in order, `eta-drafts` makes the matching commit,
-unless one naming that code commit is already there (made locally).
-The jobs run one at a time and none is cancelled, so no commit is skipped.
-This covers commits made where there's no `drafts/`, such as GitHub's web editor.
+**On push, in CI:** `.github/workflows/drafts.yml` here starts `eta-drafts`'s `sync.yml` with the branch.
+It finds the code commits on the branch with no drafts commit yet,
+from the pin of the drafts branch's last commit, with `scripts/drafts-commit.sh missing`,
+and makes the drafts commit for the oldest, with that commit's code and its own build setup.
+A job can set up only once, so it then starts another run for the rest,
+and once there are none left, the deploy.
+Runs for a branch go one at a time, none cancelled once running,
+and each finds the commits afresh, so a run GitHub replaces while it waits leaves none out.
+This covers commits made where there's no `drafts/`, such as GitHub's web editor,
+and the ones the local hook leaves to CI.
+A rewritten code branch gets its drafts commits made again, as the local hook does after a rebase,
+and the drafts branch is pushed only over what the run fetched, so a push made meanwhile is never lost.
 
 If both make one for the same code commit, the two are identical,
 since the same code rebuilds the same data,
@@ -195,14 +202,13 @@ and the drafts from `eta-drafts`, all built by the same code.
 
 ## How the deploy is set up
 
-Every push to `eta-publish` runs its `.github/workflows/drafts.yml`,
-which starts `eta-drafts`'s `.github/workflows/deploy.yml` with the branch and the commit pushed:
-`main` deploys to `eta-drafts.pages.dev`, and any other branch to `<alias>.eta-drafts.pages.dev`.
-A newer push to a branch cancels the older one's deploy.
-Until the drafts commits below pin a code commit, the deploy is of the commit pushed,
-with the drafts from `eta-drafts`'s branch of the same name, or from `main` while there is none.
+`eta-drafts`'s `.github/workflows/deploy.yml` deploys a branch's last drafts commit:
+`main` to `eta-drafts.pages.dev`, and any other branch to `<alias>.eta-drafts.pages.dev`.
+It's started by `sync.yml` once the branch has all its drafts commits,
+and runs on every push to `eta-drafts` too, as of drafts pulled from their documents.
+A newer deploy of a branch cancels the older one.
 
-The deploy workflow checks out that `eta-publish` commit,
+The deploy workflow checks out the `eta-publish` commit the drafts commit pins,
 and runs that commit's `.github/actions/build-setup`,
 so it sets up exactly what that commit's code was written against,
 the same way this repository's Pages workflow does.

@@ -1,10 +1,12 @@
-# Deploy the drafts site for every push: `main` to `eta-drafts.pages.dev`,
-# and any other branch to its preview, `<branch>.eta-drafts.pages.dev`.
+# Make the drafts commits for every push, and then deploy the drafts site:
+# `main` to `eta-drafts.pages.dev`, and any other branch to its preview, `<branch>.eta-drafts.pages.dev`.
 #
-# The deploy itself is `eta-drafts`'s workflow, since the drafts are private
+# Both are `eta-drafts`'s sync workflow, since the drafts are private
 # and the Cloudflare token is that repository's secret (see `docs/drafts-plan.md`).
-# This only starts it, with the branch and the commit pushed,
+# This only starts it, with the branch pushed,
 # through `DRAFTS_DISPATCH_TOKEN`, which can do nothing but run `eta-drafts`'s workflows.
+# It finds the commits pushed itself, as the ones its branch has no drafts commits for,
+# so a run that never starts, or is replaced by a newer one, leaves none of them out.
 name: Drafts
 
 on:
@@ -22,15 +24,12 @@ jobs:
     steps:
       # The workflow as `eta-drafts`'s `main` has it:
       # one started this way has to be on the repository's default branch.
-      # Which `eta-drafts` branch the drafts come from is the workflow's to decide.
-      - name: Start `eta-drafts`'s deploy
+      - name: Start `eta-drafts`'s sync
         env:
           GH_TOKEN: ${{ secrets.DRAFTS_DISPATCH_TOKEN }}
           BRANCH: ${{ github.ref_name }}
-          COMMIT: ${{ github.sha }}
         run: >-
-          gh workflow run deploy.yml
+          gh workflow run sync.yml
           --repo effective-transit-alliance/eta-drafts
           --ref main
           -f branch="$BRANCH"
-          -f eta-publish="$COMMIT"

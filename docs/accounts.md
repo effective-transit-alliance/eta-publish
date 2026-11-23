@@ -34,13 +34,15 @@ The code, the tests, and the publications built here
   which accepts only runs in the `github-pages` environment.
 - **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
   the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
-  for `.github/workflows/drafts.yml` to start `eta-drafts`'s deploy on every push
+  for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push
   (see [the plan](drafts-plan.md)).
 
 ### `effective-transit-alliance/eta-drafts` (private)
 
 Holds drafts that aren't public yet: none so far,
-only an empty `publications.toml` and the deploy workflow, `.github/workflows/deploy.yml`.
+only an empty `publications.toml`, the pin of `eta-publish`,
+and the workflows that make the drafts commits and deploy them,
+`.github/workflows/sync.yml` and `.github/workflows/deploy.yml`.
 [`drafts-plan.md`](drafts-plan.md) describes what goes in it.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
@@ -104,7 +106,7 @@ the run trades the token GitHub signs for it for short-lived Google credentials.
   Each provider trusts tokens from `https://token.actions.githubusercontent.com`,
   and accepts only those its condition allows:
   - **`eta-drafts`:** `assertion.repository=='effective-transit-alliance/eta-drafts'`.
-    Its deploy runs on every branch, for the previews, so it isn't limited further.
+    Its sync and deploy run on every branch, for the previews, so it isn't limited further.
   - **`eta-publish`:** `assertion.repository=='effective-transit-alliance/eta-publish' && assertion.environment=='github-pages'`,
     and that environment admits only `main`.
     The Pages workflow's build job signs in through it.
