@@ -157,14 +157,21 @@ def build_all(
     Both defaults name the committed thing,
     so `eta-publish all` with no arguments rebuilds the site as it ships,
     and the drafts' site too, from a clone of `eta-drafts` in `drafts/`.
+    Without a `drafts/`, as in CI, only the site; a `drafts/` without its list is an error.
     """
     lists = [(publications, outdir)]
-    if into is None and committed(publications, outdir) and (DRAFTS / PUBLICATIONS).exists():
+    if into is None and committed(publications, outdir) and DRAFTS.is_dir():
         lists.append((DRAFTS / PUBLICATIONS, DRAFTS / SITE))
     # Every list read before anything is built,
     # so a mistake in the second is not found after minutes spent on the first.
     loaded = []
     for path, _ in lists:
+        if path == DRAFTS / PUBLICATIONS and not path.exists():
+            raise BadParameter(
+                f"`{DRAFTS}/` is there but `{path}` is not: "
+                "the drafts are built from it, so a clone of `eta-drafts` without it is broken",
+                param_hint="LIST",
+            )
         try:
             loaded.append((load_publications(path), load_hosts(path)))
         except (OSError, ValueError) as e:

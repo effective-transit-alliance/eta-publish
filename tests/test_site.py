@@ -648,6 +648,7 @@ def build_everything(
     monkeypatch: pytest.MonkeyPatch,
     *args: str,
     drafts: bool = True,
+    drafts_dir: bool = True,
     drafts_site: bool = True,
     drafts_listed: bool = True,
     docs_url: bool = False,
@@ -664,8 +665,9 @@ def build_everything(
     main = "https://docs.google.com/document/d/abc/edit?tab=t.1" if docs_url else str(saved)
     write_list(tmp_path / "publications.toml", main)
     write_list(tmp_path / "other.toml", main)
-    (tmp_path / "drafts").mkdir()
-    if drafts:
+    if drafts_dir:
+        (tmp_path / "drafts").mkdir()
+    if drafts and drafts_dir:
         write_list(
             tmp_path / "drafts" / "publications.toml",
             str(saved),
@@ -673,6 +675,8 @@ def build_everything(
             listed=drafts_listed,
         )
     for site in ("site", "drafts/site", "out", "elsewhere"):
+        if site.startswith("drafts/") and not drafts_dir:
+            continue
         seed_image_index(tmp_path / site / UNPUBLISHED_DIR)
     return CliRunner().invoke(app, ["all", "--no-images", "--no-archive", "--no-comments", *args])
 
@@ -687,15 +691,27 @@ def test_all_builds_the_drafts_beside_the_site(
     assert (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
 
 
-def test_all_without_a_drafts_list_builds_only_the_site(
+def test_all_without_a_drafts_directory_builds_only_the_site(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """CI has no `drafts/`, and a `drafts/` with nothing listed in it is not an error."""
-    result = build_everything(tmp_path, monkeypatch, drafts=False)
+    """CI has no `drafts/` at all, and builds the site and nothing else, silently."""
+    result = build_everything(tmp_path, monkeypatch, drafts_dir=False)
 
     assert result.exit_code == 0, result.output
+    assert "drafts" not in result.output
     assert (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").is_file()
-    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
+    assert not (tmp_path / "drafts").exists()
+
+
+def test_all_with_a_drafts_directory_but_no_list_is_an_error_and_builds_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A clone of `eta-drafts` without its list is broken, not something to build around."""
+    result = build_everything(tmp_path, monkeypatch, drafts=False)
+
+    assert result.exit_code != 0
+    assert "drafts/publications.toml" in result.output
+    assert not (tmp_path / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
 
 
 @pytest.mark.parametrize(
