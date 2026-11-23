@@ -442,7 +442,7 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_publication_that_failed(
     A site missing a publication beats no site, and the last copy of it beats a missing one.
     """
     import eta_publish.build as build
-    from eta_publish.__main__ import Suggestions, publish
+    from eta_publish.publish import Suggestions, publish
 
     def unreachable(*args: object, **kwargs: object) -> object:
         raise RuntimeError("Google is not answering")
@@ -484,7 +484,7 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_publication_that_failed(
 
 
 def test_one_publication_replaces_only_its_own_directory(tmp_path: Path) -> None:
-    from eta_publish.__main__ import Suggestions, publish
+    from eta_publish.publish import Suggestions, publish
 
     root = tmp_path / "site"
     out = root / UNPUBLISHED_DIR
@@ -573,7 +573,7 @@ def test_two_documents_at_one_path_are_refused_before_anything_is_put_in_place(
     reading a file the other was halfway through rewriting, rather than clash.
     """
     from eta_publish import build as build_module
-    from eta_publish.__main__ import Suggestions, publish
+    from eta_publish.publish import Suggestions, publish
 
     parsed = Barrier(2, timeout=10)
 
@@ -1609,7 +1609,7 @@ def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
     """Said among a document's warnings, it scrolled away under the next publication."""
-    from eta_publish import __main__, archive, build
+    from eta_publish import archive, build, publish
 
     def capture(doc: Document, **_: object) -> tuple[int, int]:
         return 0, 0
@@ -1619,13 +1619,13 @@ def test_capturing_without_keys_is_said_once_and_again_after_the_summary(
     monkeypatch.delenv(archive.SECRET_KEY, raising=False)
     monkeypatch.delenv(archive.CI, raising=False)
     monkeypatch.setattr(build, "ANONYMOUS_WARNED", build.ANONYMOUS_WARNED.__class__())
-    monkeypatch.setattr(__main__, "ANONYMOUS_WARNED", build.ANONYMOUS_WARNED)
+    monkeypatch.setattr(publish, "ANONYMOUS_WARNED", build.ANONYMOUS_WARNED)
     doc = parse(FIXTURE)
     doc.archives.clear()
     build.archive_sources(doc)
     build.archive_sources(doc)
     assert capsys.readouterr().err.count("WITHOUT archive.org keys") == 1
-    __main__.publication_outcome(Site(built=[], failed=[]))
+    publish.publication_outcome(Site(built=[], failed=[]))
     assert "WITHOUT archive.org keys" in capsys.readouterr().err
 
 
@@ -1679,7 +1679,7 @@ def test_a_stopped_builds_leftovers_are_removed_and_a_running_ones_are_not(tmp_p
     import os
     import subprocess
 
-    from eta_publish.__main__ import abandoned
+    from eta_publish.publish import abandoned
 
     gone = subprocess.Popen(["true"])
     gone.wait()

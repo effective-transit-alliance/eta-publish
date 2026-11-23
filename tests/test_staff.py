@@ -114,8 +114,8 @@ def test_an_offline_build_links_the_saved_names_and_reads_no_page(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     """And saves them again, so the next build has them too."""
-    import eta_publish.__main__ as main
-    from eta_publish.__main__ import Suggestions, publish
+    import eta_publish.publish as building
+    from eta_publish.publish import Suggestions, publish
 
     root = tmp_path / "site"
     out = root / UNPUBLISHED_DIR
@@ -130,7 +130,7 @@ def test_an_offline_build_links_the_saved_names_and_reads_no_page(
     def read(saved: tuple[str, ...]) -> tuple[str, ...]:
         raise AssertionError("an offline build read the staff page")
 
-    monkeypatch.setattr(main, "look_up", read)
+    monkeypatch.setattr(building, "look_up", read)
     site = publish(
         [Publication(url="https://docs.google.com/document/d/abc/edit?tab=t.1")],
         root,

@@ -795,7 +795,7 @@ def anonymous_warning() -> RenderableType:
 def warn_anonymous() -> None:
     """Say, once a run however many publications it builds, what capturing without keys costs.
 
-    Again after the summary, from `__main__`: said while the first publication with a
+    Again after the summary, from `publish`: said while the first publication with a
     new source was building, it scrolls away under every publication after it.
     """
     with _WARNING_ANONYMOUS:
