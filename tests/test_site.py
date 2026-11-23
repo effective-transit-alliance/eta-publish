@@ -11,6 +11,7 @@ import hashlib
 import json
 from collections.abc import Callable
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 from paths import FIXTURE_DIR, HOST, HOSTS
@@ -27,6 +28,7 @@ from eta_publish.build import (
     require_image_index,
     write_image_index,
 )
+from eta_publish.docs_json import JsonObject
 from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
@@ -35,6 +37,8 @@ from eta_publish.site import (
     Failed,
     Hosts,
     Kind,
+    PathTaken,
+    Placing,
     Publication,
     Published,
     Site,
@@ -541,11 +545,52 @@ def test_a_clash_across_lists_names_each_list(doc: Document) -> None:
     ]
 
 
+def test_a_path_claimed_second_is_refused_and_named_in_list_order() -> None:
+    """Whichever claims first, the refusal names the two as the list does."""
+    first = Publication(url="doc0", name="First")
+    second = Publication(url="doc1", name="Second")
+    placing = Placing()
+    placing.claim(1, second, "reports/a")
+    # The same publication again, as a build that fetches the document twice for its images does.
+    placing.claim(1, second, "reports/a")
+    with pytest.raises(PathTaken) as refused:
+        placing.claim(0, first, "reports/a/b")
+    assert str(refused.value) == (
+        "`First` at `/reports/a/b` and `Second` at `/reports/a`: "
+        "`/reports/a/b` is inside `/reports/a`"
+    )
+    placing.claim(0, first, "reports/ab")
+
+
 def test_two_documents_at_one_path_are_refused_before_anything_is_put_in_place(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Both build, into one directory, and neither is what it says: nothing is installed."""
+    """Whichever claims the path second writes nothing, and nothing is installed.
+
+    Both are held once parsed until the other is too, which is the order that
+    had both write into one directory at once: one of them would then fail,
+    reading a file the other was halfway through rewriting, rather than clash.
+    """
+    from eta_publish import build as build_module
     from eta_publish.__main__ import Suggestions, publish
+
+    parsed = Barrier(2, timeout=10)
+
+    def parse_and_wait(document: JsonObject) -> Document:
+        doc = parse(document)
+        parsed.wait()
+        return doc
+
+    # The first thing a build writes into its directory, given a last build to carry over.
+    wrote = []
+    carry_over = build_module.carry_over
+
+    def carry_over_and_count(previous: Path, dest: Path, doc: Document) -> None:
+        wrote.append(dest)
+        carry_over(previous, dest, doc)
+
+    monkeypatch.setattr(build_module, "parse", parse_and_wait)
+    monkeypatch.setattr(build_module, "carry_over", carry_over_and_count)
 
     root = tmp_path / "site"
     out = root / UNPUBLISHED_DIR
@@ -574,6 +619,7 @@ def test_two_documents_at_one_path_are_refused_before_anything_is_put_in_place(
 
     said = " ".join(capsys.readouterr().err.split())
     assert f"`First` (tab `Draft 2`) and `Second` (tab `Draft 2`) are both at `/{SLUG}`" in said
+    assert len(wrote) == 1
     assert (out / SLUG / "report.html").read_text() == "the last build"
     assert [p.name for p in tmp_path.iterdir() if "building" in p.name] == []
 

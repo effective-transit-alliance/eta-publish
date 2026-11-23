@@ -27,6 +27,7 @@ from datetime import date
 from enum import StrEnum
 from functools import partial
 from pathlib import Path, PurePosixPath
+from threading import Lock
 
 import htpy
 from markupsafe import Markup
@@ -148,6 +149,11 @@ class Failed:
 class Site:
     built: list[Built] = field(default_factory=list)
     failed: list[Failed] = field(default_factory=list)
+    clashed: list[str] = field(default_factory=list)
+    """Each refusal of a publication at a path another of the build had taken, as `clashes` says it.
+
+    Those publications are in `failed` too, since they did not build,
+    but a clash is not one publication failing: nothing says which of the two is meant there."""
 
 
 def social_image(doc: Document, path: str, site_url: str) -> str:
@@ -491,6 +497,40 @@ def named(publication: Publication, listed: Path | None = None) -> str:
     return f"`{label(publication)}`" + (f" ({', '.join(said)})" if said else "")
 
 
+@dataclass(frozen=True)
+class Placed:
+    """A publication at its path, and the list it is in, if there is more than one to name."""
+
+    publication: Publication
+    path: str
+    listed: Path | None = None
+
+
+def clash(placed: Placed, other: Placed) -> str | None:
+    """What is wrong with these two publications being where they are, if anything.
+
+    At one path, or one inside the other,
+    since a publication's directory is all of what is under its path:
+    `reports/a` and `reports/a/b` would have the second's files in the first's directory.
+    A directory and not a string, though: `reports/ab` is beside `reports/a`, not in it.
+
+    Named in the order given, which is the order they are listed in.
+    """
+    path = placed.path
+    other_path = other.path
+    parts = PurePosixPath(path).parts
+    other_parts = PurePosixPath(other_path).parts
+    shorter = min(len(parts), len(other_parts))
+    if parts[:shorter] != other_parts[:shorter]:
+        return None
+    a = named(placed.publication, placed.listed)
+    b = named(other.publication, other.listed)
+    if parts == other_parts:
+        return f"{a} and {b} are both at `/{path}`"
+    outer, inner = sorted((path, other_path), key=lambda p: len(PurePosixPath(p).parts))
+    return f"{a} at `/{path}` and {b} at `/{other_path}`: `/{inner}` is inside `/{outer}`"
+
+
 def clashes(lists: Iterable[tuple[Path | None, list[Built]]]) -> list[str]:
     """Every two publications of `lists` that would be at one path, or one inside the other.
 
@@ -502,37 +542,66 @@ def clashes(lists: Iterable[tuple[Path | None, list[Built]]]) -> list[str]:
     A path in one never meets a path in the other: each is served under its own prefix,
     and a path starts at its kind, so none is in the other's.
 
-    Inside, too, since a publication's directory is all of what is under its path:
-    `reports/a` and `reports/a/b` would have the second's files in the first's directory.
-
     Only what built has a path, since the path is the document's `URL:` line,
     known once the document is fetched, which is part of its build.
-    So this is checked after the builds and before anything is laid out from them:
-    two publications built at one path have both written into one directory,
-    and whichever wrote a file last is what it says.
+    Within one build, `Placing` has already refused whichever of two at one path claimed it second
+    before it wrote anything, so this finds nothing there;
+    it is for lists built apart and laid out together,
+    checked after their builds and before anything is laid out from them.
     """
-    placed = [(listed, built) for listed, from_list in lists for built in from_list]
+    placed = [
+        Placed(built.publication, built.path, listed)
+        for listed, from_list in lists
+        for built in from_list
+    ]
     found = []
-    for i, (listed, built) in enumerate(placed):
-        parts = PurePosixPath(built.path).parts
-        for other_listed, other in placed[i + 1 :]:
-            other_parts = PurePosixPath(other.path).parts
-            shorter = min(len(parts), len(other_parts))
-            if parts[:shorter] != other_parts[:shorter]:
-                continue
-            a = named(built.publication, listed)
-            b = named(other.publication, other_listed)
-            if parts == other_parts:
-                found.append(f"{a} and {b} are both at `/{built.path}`")
-            else:
-                outer, inner = sorted(
-                    (built.path, other.path), key=lambda p: len(PurePosixPath(p).parts)
-                )
-                found.append(
-                    f"{a} at `/{built.path}` and {b} at `/{other.path}`: "
-                    f"`/{inner}` is inside `/{outer}`"
-                )
+    for i, one in enumerate(placed):
+        for other in placed[i + 1 :]:
+            said = clash(one, other)
+            if said is not None:
+                found.append(said)
     return found
+
+
+class PathTaken(ValueError):
+    """A publication whose path clashes with one another publication of the build has taken."""
+
+
+class Placing:
+    """Where each publication of one build goes, claimed before it writes anything there.
+
+    The builds run at once, each into its own publication's directory under one output directory,
+    so two documents at one path would otherwise both write into one directory,
+    each reading the other's files halfway through being rewritten.
+    That fails one of them over a file it did not write, which reads as a broken build
+    rather than as the clash it is, and leaves the other's directory a mix of both.
+
+    A claim is made once the document is parsed and before anything is written,
+    which is as soon as the path is known. The second to claim a path
+    that clashes with one already claimed, by `clash`, the rule `clashes` applies, is refused,
+    and writes nothing.
+    """
+
+    def __init__(self) -> None:
+        self._lock = Lock()
+        self._claimed: dict[int, Placed] = {}
+
+    def claim(self, index: int, publication: Publication, path: str) -> None:
+        """Claim `path` for `publication`, at `index` in the list, or raise `PathTaken`.
+
+        Again for the same `index` is the same publication claiming again,
+        which a build does when it fetches the document a second time for its images.
+        """
+        with self._lock:
+            mine = Placed(publication, path)
+            for other_index, theirs in self._claimed.items():
+                if other_index == index:
+                    continue
+                # In list order, whichever got here first.
+                said = clash(mine, theirs) if index < other_index else clash(theirs, mine)
+                if said is not None:
+                    raise PathTaken(said)
+            self._claimed[index] = mine
 
 
 def verifier(publication: Publication) -> Callable[[Document], None]:
@@ -621,10 +690,19 @@ def build_site(
     saved = saved_responses(read_from or outdir)
     site = Site()
     log = console.for_stream()
+    placing = Placing()
 
-    def build(publication: Publication) -> tuple[Document, str]:
+    def build(index: int, publication: Publication) -> tuple[Document, str]:
         previous = saved_for(publication, saved)
         named = label(publication)
+        checked = verifier(publication)
+
+        def verify(doc: Document) -> None:
+            # After the entry's own check: a document that is not the one listed
+            # has no claim to the path it names.
+            checked(doc)
+            placing.claim(index, publication, publication_path(doc))
+
         # Named for the whole of the build, so the notes it writes along the
         # way say which publication they are about. Several publications are built at
         # once and each writes as it goes, so an unattributed line is one the
@@ -638,7 +716,7 @@ def build_site(
                     source(publication, previous, options),
                     outdir,
                     options,
-                    verify=verifier(publication),
+                    verify=verify,
                     cached=reusable(previous, options),
                     previous=previous,
                     read_from=read_from,
@@ -661,14 +739,17 @@ def build_site(
 
 def _built(
     publications: list[Publication],
-    build: Callable[[Publication], tuple[Document, str]],
+    build: Callable[[int, Publication], tuple[Document, str]],
     site: Site,
     log: Console,
     options: BuildOptions,
 ) -> Site:
     """Run `build` over every publication at once, writing each out in list order as it is done."""
     pool = ThreadPoolExecutor(max_workers=max(1, min(len(publications), MAX_AT_ONCE)))
-    started = [(publication, pool.submit(build, publication)) for publication in publications]
+    started = [
+        (publication, pool.submit(build, index, publication))
+        for index, publication in enumerate(publications)
+    ]
     try:
         for index, (publication, building) in enumerate(started):
             # A blank line between publications and none above the first:
@@ -685,6 +766,8 @@ def _built(
                 # which is to keep going and say which publication did not make it.
                 console.write(console.failed(named, str(e)), log)
                 site.failed.append(Failed(publication=publication, error=str(e)))
+                if isinstance(e, PathTaken):
+                    site.clashed.append(str(e))
                 continue
             paste = [
                 ("SEO title", doc.title),
