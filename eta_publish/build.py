@@ -33,7 +33,7 @@ from .archive import (
     uncounted,
     write_archive_index,
 )
-from .checks import check, check_described, check_pages, plural
+from .checks import check, check_charts, check_described, check_pages, plural
 from .docs_json import JsonObject
 from .embeds import (
     EMBEDS_JSON,
@@ -1119,6 +1119,7 @@ def build_one(
             require_image_index(dest, doc)
     read_image_index(dest, doc)
     check_described(doc)
+    check_charts(doc)
 
     # Every build, embeds or none, so a publication that loses its last one loses
     # its record too. Only what is missing is asked about, so the cost after

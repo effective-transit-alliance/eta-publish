@@ -707,7 +707,8 @@ class Document:
     """Docs object id to the share of the written file's pixels in its 16 most common colors.
 
     Near 1 for a chart, a few flat colors on a plain background,
-    and well under for a photograph, whose every pixel is a slightly different color.
+    and well under for a photograph, whose every pixel is a slightly different color:
+    `check_charts` warns about a chart pasted with no `SVG:` line by it.
     From the same record as `image_shapes`, and empty for an SVG, which has no pixels.
     """
 

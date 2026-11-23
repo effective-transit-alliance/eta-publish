@@ -6,7 +6,7 @@ from dataclasses import replace
 import pytest
 from paths import FIXTURE_DIR
 
-from eta_publish.checks import check, check_pages
+from eta_publish.checks import CHART_FLATNESS, check, check_charts, check_pages
 from eta_publish.nodes import (
     Archived,
     Block,
@@ -17,6 +17,7 @@ from eta_publish.nodes import (
     Inline,
     Paragraph,
     Text,
+    Vector,
 )
 from eta_publish.parse import REQUIRED_FIELDS, parse
 
@@ -479,3 +480,43 @@ def test_open_suggestions_are_not_warned_about_in_a_preview_of_them(doc: Documen
     doc.suggestions_accepted = True
     check(doc)
     assert not any("suggestions still open" in w for w in map(str, doc.warnings))
+
+
+def _charted(
+    credit: str = "Credit: ETA", flatness: float = 0.97, vector: Vector | None = None
+) -> Document:
+    """A document with one figure, credited and as flat as given."""
+    image = Image(object_id="io.1", filename="station-lengths", vector=vector)
+    doc = Document(blocks=[Figure(image=image, credit=[Text(text=credit)])])
+    doc.image_flatness = {"io.1": flatness}
+    check_charts(doc)
+    return doc
+
+
+def test_a_chart_credited_to_eta_with_no_svg_line_is_warned_about() -> None:
+    assert [str(w) for w in _charted().warnings] == [
+        "the image `station-lengths` is credited to ETA and looks like a chart,"
+        " but has no `SVG:` line; link the chart's SVG on one under it,"
+        " so the SVG publishes instead of the raster"
+    ]
+
+
+@pytest.mark.parametrize(
+    "doc",
+    [
+        pytest.param(_charted(vector=Vector(file_id="f", filename="c")), id="with its SVG"),
+        pytest.param(_charted(credit="Credit: MTA"), id="someone else's"),
+        pytest.param(_charted(flatness=0.05), id="a photograph"),
+        pytest.param(_charted(flatness=CHART_FLATNESS - 0.01), id="just under"),
+    ],
+)
+def test_a_picture_that_is_not_an_eta_chart_missing_its_svg_is_not(doc: Document) -> None:
+    assert doc.warnings == []
+
+
+def test_a_picture_with_no_flatness_recorded_is_not_warned_about() -> None:
+    """An SVG, or a build that never saw the pixels: nothing says it looks like a chart."""
+    image = Image(object_id="io.1", filename="chart")
+    doc = Document(blocks=[Figure(image=image, credit=[Text(text="Credit: ETA")])])
+    check_charts(doc)
+    assert doc.warnings == []
