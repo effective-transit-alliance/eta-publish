@@ -806,7 +806,7 @@ and the fragment sizes were measured from real builds.
 - **A code block holds 400 KB (~300,000 characters).**
   The largest publication so far, the SAS West report,
   comes to 272 KB as `report.min.html`, the copy pasted,
-  inside the limit but not by much; the formatted `report.html` is 423 KB.
+  inside the limit but not by much; the formatted `report.html` is 401 KB.
   A build warns past 250 KB, and past 400 KB says to split it.
   `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**

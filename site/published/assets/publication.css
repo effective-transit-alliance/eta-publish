@@ -405,8 +405,7 @@
     width: 100vw;
     background: var(--navy);
     --shape:
-        linear-gradient(#000 0 0) top / 100% calc(100% - var(--wave) + 1px)
-        no-repeat,
+        linear-gradient(#000 0 0) top / 100% calc(100% - var(--wave) + 1px) no-repeat,
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1' preserveAspectRatio='none'%3E%3Cpath d='M0 0H1V.5C.85 0 .65 0 .5 .5S.15 1 0 .5Z'/%3E%3C/svg%3E")
         bottom / 100% var(--wave) no-repeat;
     -webkit-mask: var(--shape);
@@ -544,10 +543,7 @@
 @media (min-width: 40rem) {
     .eta-report .sources ol {
         display: grid;
-        grid-template-columns: auto fit-content(5em) fit-content(12.5em) minmax(
-                0,
-                1fr
-            );
+        grid-template-columns: auto fit-content(5em) fit-content(12.5em) minmax(0, 1fr);
         column-gap: 0.5em;
         padding-left: 0;
         counter-reset: source;
@@ -883,9 +879,7 @@ html:has(.eta-report .lightbox[open]) {
    itself to clear it, and that padding is white: Firefox shows it for a
    moment when scrolling up fast. The navy reaches up behind the header,
    only in the first section, where there is nothing above it to cover. */
-.page-section:first-child:has(.eta-report > .masthead)
-    .eta-report
-    .masthead::before {
+.page-section:first-child:has(.eta-report > .masthead) .eta-report .masthead::before {
     top: -100vh;
 }
 .fluid-engine:has(> .fe-block:only-child .eta-report) {

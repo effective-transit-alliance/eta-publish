@@ -9,20 +9,13 @@
         "includes": ["**", "!**/*.svg", "!**/*.min.*"]
     },
     "formatter": {
-        // `biome` indents with a tab by default;
-        // this repo's code, and what a build writes, indent with 4 spaces, as the Python does.
+        // `biome` indents with a tab by default, and wraps at 80;
+        // this repo's code, and what a build writes, are laid out as the Python is:
+        // 4 spaces to an indent, and as wide as `ruff` lets it be.
         "indentStyle": "space",
-        "indentWidth": 4
+        "indentWidth": 4,
+        "lineWidth": 100
     },
-    "overrides": [
-        {
-            // The code and configuration here, as wide as `ruff` lets the Python be.
-            // Not what a build writes, which stays at the default width:
-            // a wider one would rewrite every publication without a publication having changed.
-            "includes": ["eta_publish/**", "*.json", "*.jsonc"],
-            "formatter": { "lineWidth": 100 }
-        }
-    ],
     "linter": {
         "rules": {
             "a11y": {

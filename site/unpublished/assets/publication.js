@@ -19,8 +19,7 @@
         const already = built.get(cited) || cited.querySelector(".source-tip");
         if (already) return already;
         const ref = cited.querySelector(".source-ref a");
-        const entry =
-            ref && document.getElementById(ref.getAttribute("href").slice(1));
+        const entry = ref && document.getElementById(ref.getAttribute("href").slice(1));
         if (!entry) return null;
         const tip = document.createElement("span");
         tip.className = "source-tip";
@@ -48,9 +47,7 @@
     const refOf = (e) => {
         // Not inside a note's box, which is already a box: a citation in there is
         // a copy of one in the note, and its entry is a jump away from both.
-        const cited = e.target.closest?.(
-            ".eta-report .cited:not(.footnote-tip *)",
-        );
+        const cited = e.target.closest?.(".eta-report .cited:not(.footnote-tip *)");
         return cited || e.target.closest?.(".eta-report .footnote-ref");
     };
     const tipOf = (e) => {
@@ -106,15 +103,9 @@
         const above = ref.top - GAP - box.height;
         // Under it unless that runs off the bottom, and over it only where the
         // box fits: with neither edge free, under is the one that can be scrolled to.
-        const top =
-            below + box.height <= innerHeight - GAP || above < GAP
-                ? below
-                : above;
+        const top = below + box.height <= innerHeight - GAP || above < GAP ? below : above;
         const middle = ref.left + ref.width / 2 - box.width / 2;
-        const left = Math.min(
-            Math.max(middle, GAP),
-            innerWidth - box.width - GAP,
-        );
+        const left = Math.min(Math.max(middle, GAP), innerWidth - box.width - GAP);
         tip.style.cssText = `display:block;position:fixed;left:${left}px;top:${top}px;transform:none`;
     };
     // Handed back to the stylesheet, so that a box measured against one scroll
@@ -160,27 +151,17 @@
                 close(held);
                 held = null;
             }
-            if (
-                event.target.closest?.(".footnote-tip, .source-tip") ||
-                !refOf(event)
-            )
-                return;
+            if (event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event)) return;
             clearTimeout(pressing);
             pressing = setTimeout(() => hold(event.target), PRESS);
         },
         { passive: true },
     );
     for (const name of ["touchend", "touchmove", "touchcancel"]) {
-        document.addEventListener(name, () => clearTimeout(pressing), {
-            passive: true,
-        });
+        document.addEventListener(name, () => clearTimeout(pressing), { passive: true });
     }
     document.addEventListener("contextmenu", (event) => {
-        if (
-            hovers() ||
-            event.target.closest?.(".footnote-tip, .source-tip") ||
-            !refOf(event)
-        )
+        if (hovers() || event.target.closest?.(".footnote-tip, .source-tip") || !refOf(event))
             return;
         event.preventDefault();
         hold(event.target);
@@ -201,27 +182,16 @@
     // frame. Nothing of the platform's loads before then.
     let frames = 0;
     document.addEventListener("click", (event) => {
-        if (
-            event.button ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-        )
+        if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
             return;
-        const card = event.target.closest?.(
-            ".eta-report .embed[data-player] .embed-card",
-        );
+        const card = event.target.closest?.(".eta-report .embed[data-player] .embed-card");
         if (!card) return;
         const figure = card.closest(".embed");
         // YouTube's player refuses a page that sends no `Referer`, with "Error
         // 153", and a page opened as a file sends none: there the card stays the
         // link to the video it already is, opened in a new tab so the publication stays.
         event.preventDefault();
-        if (
-            location.protocol === "file:" &&
-            figure.classList.contains("embed-youtube")
-        ) {
+        if (location.protocol === "file:" && figure.classList.contains("embed-youtube")) {
             open(card.href, "_blank", "noopener");
             return;
         }
@@ -230,14 +200,11 @@
         // an id to say it with.
         const id = String(++frames);
         const player = figure.dataset.player;
-        frame.src = figure.classList.contains("embed-bluesky")
-            ? `${player}?id=${id}`
-            : player;
+        frame.src = figure.classList.contains("embed-bluesky") ? `${player}?id=${id}` : player;
         frame.dataset.frame = id;
         frame.title = figure.dataset.title || "";
         frame.className = "embed-frame";
-        frame.allow =
-            "autoplay; encrypted-media; fullscreen; picture-in-picture";
+        frame.allow = "autoplay; encrypted-media; fullscreen; picture-in-picture";
         frame.allowFullscreen = true;
         card.replaceWith(frame);
         frame.focus();
@@ -253,17 +220,14 @@
                 return;
             }
         }
-        for (const frame of document.querySelectorAll(
-            ".eta-report .embed-frame",
-        )) {
+        for (const frame of document.querySelectorAll(".eta-report .embed-frame")) {
             if (frame.contentWindow !== event.source) continue;
             const resize = data?.["twttr.embed"];
             const height =
                 resize?.method === "twttr.private.resize"
                     ? resize.params?.[0]?.height
                     : data?.height;
-            if (Number.isFinite(height) && height > 0)
-                frame.style.height = `${height}px`;
+            if (Number.isFinite(height) && height > 0) frame.style.height = `${height}px`;
         }
     });
     // An underline in the headline is drawn as a swoosh, one curve under each
@@ -317,9 +281,7 @@
     // since stepping to the next picture replaces the entry rather than adding one.
     // The address is the state: everything here changes the address and then
     // shows whatever it says.
-    const boxes = () => [
-        ...document.querySelectorAll(".eta-report .lightbox[id]"),
-    ];
+    const boxes = () => [...document.querySelectorAll(".eta-report .lightbox[id]")];
     const boxAt = (hash) => {
         const id = decodeURIComponent(hash.slice(1));
         if (!id) return null;
@@ -328,20 +290,12 @@
     };
     const figureOf = (box) =>
         document.getElementById(
-            decodeURIComponent(
-                box.querySelector(".lightbox-close").hash.slice(1),
-            ),
+            decodeURIComponent(box.querySelector(".lightbox-close").hash.slice(1)),
         );
     let shown = null;
     const go = (box, replace) => {
-        const url = box
-            ? `#${encodeURI(box.id)}`
-            : location.pathname + location.search;
-        history[replace ? "replaceState" : "pushState"](
-            { lightbox: !!box },
-            "",
-            url,
-        );
+        const url = box ? `#${encodeURI(box.id)}` : location.pathname + location.search;
+        history[replace ? "replaceState" : "pushState"]({ lightbox: !!box }, "", url);
         render();
     };
     const dismiss = () => {
@@ -365,10 +319,8 @@
         const r = el.getBoundingClientRect();
         const scale = Math.min(r.width / width, r.height / height);
         return (
-            Math.abs(event.clientX - r.left - r.width / 2) >
-                (width * scale) / 2 ||
-            Math.abs(event.clientY - r.top - r.height / 2) >
-                (height * scale) / 2
+            Math.abs(event.clientX - r.left - r.width / 2) > (width * scale) / 2 ||
+            Math.abs(event.clientY - r.top - r.height / 2) > (height * scale) / 2
         );
     };
     const hide = (box) => {
@@ -394,8 +346,7 @@
         box.showModal();
     };
     const ready = () => {
-        for (const root of document.querySelectorAll(".eta-report"))
-            root.classList.add("scripted");
+        for (const root of document.querySelectorAll(".eta-report")) root.classList.add("scripted");
         swooshAll();
         for (const box of boxes()) {
             // The backdrop and the space around the picture close it, as a click
@@ -418,23 +369,14 @@
                 dismiss();
             });
             box.addEventListener("keydown", (event) => {
-                const to = {
-                    ArrowLeft: ".lightbox-prev",
-                    ArrowRight: ".lightbox-next",
-                }[event.key];
+                const to = { ArrowLeft: ".lightbox-prev", ArrowRight: ".lightbox-next" }[event.key];
                 if (to) box.querySelector(to)?.click();
             });
         }
         render();
     };
     document.addEventListener("click", (event) => {
-        if (
-            event.button ||
-            event.metaKey ||
-            event.ctrlKey ||
-            event.shiftKey ||
-            event.altKey
-        )
+        if (event.button || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
             return;
         const link = event.target.closest?.(
             '.eta-report a:is([href^="#/media/"], .lightbox-close)',
@@ -468,12 +410,7 @@
         const stop = () => {
             resize.disconnect();
             removeEventListener("scroll", put);
-            for (const name of [
-                "wheel",
-                "touchstart",
-                "keydown",
-                "pointerdown",
-            ]) {
+            for (const name of ["wheel", "touchstart", "keydown", "pointerdown"]) {
                 removeEventListener(name, stop, true);
             }
         };
@@ -488,11 +425,8 @@
         setTimeout(stop, 10000);
     };
     keepTarget();
-    if (document.readyState === "loading")
-        document.addEventListener("DOMContentLoaded", ready);
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ready);
     else ready();
-    for (const name of ["pointerover", "focusin"])
-        document.addEventListener(name, place);
-    for (const name of ["pointerout", "focusout"])
-        document.addEventListener(name, release);
+    for (const name of ["pointerover", "focusin"]) document.addEventListener(name, place);
+    for (const name of ["pointerout", "focusout"]) document.addEventListener(name, release);
 })();
