@@ -1,7 +1,7 @@
 """Building a list of publications into a site, for every command that builds one.
 
-`all`, `one` and the `drafts` commands in `__main__` all build through `publish`,
-and offer the options it takes spelled the same way.
+`all` and `one` in `__main__`, and the `drafts` commands in `drafts`,
+all build through `publish`, and offer the options it takes spelled the same way.
 """
 
 import glob
