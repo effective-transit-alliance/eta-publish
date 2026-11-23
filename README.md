@@ -805,8 +805,8 @@ and the fragment sizes were measured from real builds.
   is the closest thing to a pure HTML page, and it is close enough.
 - **A code block holds 400 KB (~300,000 characters).**
   The largest publication so far, the SAS West report,
-  comes to 347 KB as `report.html` and 269 KB as `report.min.html`,
-  inside the limit but not by much.
+  comes to 272 KB as `report.min.html`, the copy pasted,
+  inside the limit but not by much; the formatted `report.html` is 423 KB.
   A build warns past 250 KB, and past 400 KB says to split it.
   `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**
