@@ -83,61 +83,12 @@ def test_token_is_the_file_trimmed(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     assert preview.token() == "abc"
 
 
-def write_site(site: Path, *, published: bool = True) -> None:
-    files = [
-        "unpublished/index.html",
-        "unpublished/reports/x/report.html",
-        "unpublished/reports/x/doc.json",
-    ]
-    if published:
-        files += ["published/reports/x/report.html", "published/reports/x/doc.json"]
-    for name in files:
-        path = site / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(name)
-
-
-def files_under(directory: Path) -> set[str]:
-    return {str(p.relative_to(directory)) for p in directory.rglob("*") if p.is_file()}
-
-
-def test_staged_holds_what_is_served_without_doc_json(tmp_path: Path) -> None:
-    site = tmp_path / "site"
-    write_site(site)
-
-    with preview.staged(site) as directory:
-        assert files_under(directory) == {
-            "index.html",
-            "reports/x/report.html",
-            "published/reports/x/report.html",
-        }
-        assert directory.parent == site.parent
-        assert (directory / "index.html").stat().st_ino == (
-            site / "unpublished" / "index.html"
-        ).stat().st_ino
-
-    assert not directory.exists()
-
-
-def test_staged_is_removed_when_the_block_raises(tmp_path: Path) -> None:
-    site = tmp_path / "site"
-    write_site(site)
-
-    seen: list[Path] = []
-    with pytest.raises(ValueError, match="boom"), preview.staged(site) as directory:
-        seen.append(directory)
-        raise ValueError("boom")
-
-    assert seen
-    assert not seen[0].exists()
-
-
-def test_staged_without_a_published_site_has_no_published_directory(tmp_path: Path) -> None:
-    site = tmp_path / "site"
-    write_site(site, published=False)
-
-    with preview.staged(site) as directory:
-        assert not (directory / "published").exists()
+def files_under(directory: Path) -> dict[str, str]:
+    return {
+        p.relative_to(directory).as_posix(): p.read_text(errors="replace")
+        for p in directory.rglob("*")
+        if p.is_file()
+    }
 
 
 class Recorder:
@@ -205,7 +156,7 @@ class Uploads:
     """Stands in for `preview.upload`, recording what it was given."""
 
     def __init__(self) -> None:
-        self.calls: list[tuple[set[str], str, str]] = []
+        self.calls: list[tuple[dict[str, str], str, str]] = []
 
     def __call__(self, directory: Path, branch: str, token: str) -> None:
         self.calls.append((files_under(directory), branch, token))
@@ -229,21 +180,28 @@ def write_drafts_list(path: Path, url: str, hosts: tuple[str, str]) -> None:
     )
 
 
+HOSTS = (f"{preview.PRODUCTION_URL}/published", preview.PRODUCTION_URL)
+"""The drafts site's `[site]`, published then unpublished."""
+
+
 def preview_drafts(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     *,
     url: str | None = "",
     refused: str | None = None,
-    hosts: tuple[str, str] = (f"{preview.PRODUCTION_URL}/published", preview.PRODUCTION_URL),
+    hosts: tuple[str, str] = HOSTS,
     branch: str = "foo",
 ) -> tuple[Result, Uploads]:
-    """`eta-publish drafts preview` in a directory laid out as a checkout with `drafts/`.
+    """`eta-publish drafts preview` in a directory laid out as a checkout with `drafts/`,
+    and a `publications.toml` with nothing on it.
 
     An empty `url` lists nothing, since the command forces the images on
     and a listed publication would try to download them.
     """
     monkeypatch.chdir(tmp_path)
+    # This repository's list, with nothing on it, since the drafts are what these tests are about.
+    write_drafts_list(tmp_path / "publications.toml", "", HOSTS)
     if url is not None:
         write_drafts_list(tmp_path / "drafts" / "publications.toml", url, hosts)
         if refused is None:
@@ -262,16 +220,32 @@ def preview_drafts(
     return result, uploads
 
 
-def test_preview_uploads_the_built_drafts(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_preview_uploads_the_drafts_site(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     result, uploads = preview_drafts(tmp_path, monkeypatch)
 
     assert result.exit_code == 0, result.output
     [(files, branch, token)] = uploads.calls
     assert branch == "foo"
     assert token == "secret"
-    assert {"index.html", "robots.txt"} <= files
+    assert {"index.html", "robots.txt"} <= files.keys()
+    assert "ETA drafts" in files["index.html"]
     assert "secret" not in result.output
-    assert list((tmp_path / "drafts").glob(".site-preview-*")) == []
+    assert list((tmp_path / "drafts").glob(".site-deploy-*")) == []
+
+
+def test_preview_uploads_every_list_laid_out_as_one_site(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The drafts beside this repository's own, each page labeled with its kind."""
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    result, uploads = preview_drafts(tmp_path, monkeypatch, url=str(saved))
+
+    assert result.exit_code == 0, result.output
+    [(files, _, _)] = uploads.calls
+    assert "Draft" in files[f"{SLUG}/index.html"]
+    assert f"{SLUG}/doc.json" not in files
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
 
 
 def test_preview_refused_builds_and_uploads_nothing(
@@ -367,12 +341,12 @@ def test_preview_builds_the_fragments_at_the_branchs_host(
     result, uploads = preview_drafts(tmp_path, monkeypatch, url=str(saved), branch="Fix/API")
 
     assert result.exit_code == 0, result.output
-    built = tmp_path / "drafts" / "site"
-    fragment = (built / UNPUBLISHED_DIR / SLUG / "report.html").read_text()
-    assert "https://fix-api.eta-drafts.pages.dev" in fragment
-    for output in built.rglob("*.html"):
-        assert f"{preview.PRODUCTION_URL}" not in output.read_text(), output
-    assert [branch for _, branch, _ in uploads.calls] == ["Fix/API"]
+    [(files, branch, _)] = uploads.calls
+    assert "https://fix-api.eta-drafts.pages.dev" in files[f"{SLUG}/report.html"]
+    for name, text in files.items():
+        if name.endswith(".html"):
+            assert f"{preview.PRODUCTION_URL}" not in text, name
+    assert branch == "Fix/API"
 
 
 def test_preview_with_a_host_that_is_not_production_builds_and_uploads_nothing(

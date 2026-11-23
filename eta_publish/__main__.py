@@ -8,7 +8,7 @@ Six commands, because there are six things to do:
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
-    eta-publish drafts preview  build the drafts, and upload them as this branch's preview
+    eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
@@ -623,8 +623,8 @@ def drafts_workspace(what: str) -> Generator[Path]:
     """A directory in `drafts/` to build the drafts site in, removed once it is done with.
 
     In `drafts/`, beside `drafts/site/`, so its parts can be links to one another
-    and none of it is in `/tmp`; that it is in a clone of `eta-drafts` is
-    what `eta-drafts`'s `.gitignore` is for.
+    and none of it is in `/tmp`.
+    In a clone of `eta-drafts`, so `git status` there shows it while it is there.
     """
     if not DRAFTS.is_dir():
         refuse(f"no `{DRAFTS}/`, the clone of `eta-drafts` the drafts are built from", what)
@@ -706,53 +706,53 @@ def preview_drafts(
     archive: Archive = True,
     comments: Comments = True,
 ) -> None:
-    """Build the drafts from the working copy, and upload them as this branch's preview.
+    """Build the drafts site from the working copy, and upload it as this branch's preview.
 
-    Built as `all` builds them, from `drafts/publications.toml` into `drafts/site/`,
+    Every publication, the drafts in `drafts/publications.toml` and the ones in `publications.toml`,
+    each labeled with its kind, built and laid out as `drafts site` builds them:
     with the code as it is, uncommitted edits included, and from the live documents,
     since the images cannot be rebuilt from anything saved.
     Then uploaded to `<branch>.eta-drafts.pages.dev`, behind the drafts site's sign-in,
     with nothing committed or pushed.
+    Built in a directory of its own, so `site/` and `drafts/site/` are left as they are.
 
     The preview's pages and fragments link their assets at the preview's own host,
-    `<branch>.eta-drafts.pages.dev`, wherever the list's `[site]` says `eta-drafts.pages.dev`,
-    so the preview shows its own branch's assets and not production's.
+    `<branch>.eta-drafts.pages.dev`, so the preview shows its own branch's assets
+    and not production's, or the public site's.
 
-    Refused on `main`, whose deploy is the drafts site itself.
-    Nothing is uploaded when a draft fails to build.
+    Refused on `main`, whose deploy is the drafts site itself, made from CI.
+    Nothing is uploaded when a publication fails to build.
     """
-    path = DRAFTS / PUBLICATIONS
     # Everything that can refuse, before minutes spent building.
     try:
         branch = preview.branch()
         token = preview.token()
     except preview.Refused as e:
         refuse(str(e))
-    try:
-        listed = load_publications(path)
-        hosts = preview.previewed(load_hosts(path), branch)
-    except (OSError, ValueError, preview.Refused) as e:
-        refuse(str(e))
-    site = publish(
-        listed,
-        DRAFTS / SITE,
-        suggestions,
-        split=False,
-        images=True,
-        comments=comments,
-        archive=archive,
-        listed=listed,
-        whole=True,
-        hosts=hosts,
-    )
-    publication_outcome(site)
-    log = console.for_stream()
-    log.line()
-    with preview.staged(DRAFTS / SITE) as staged:
+    deploy(branch, token, suggestions, archive, comments, what="drafts preview")
+
+
+def deploy(
+    branch: str,
+    token: str,
+    suggestions: Suggestions,
+    archive: bool,
+    comments: bool,
+    *,
+    what: str,
+) -> None:
+    """Build the drafts site for `branch`, and upload it there with `token`, if all of it built."""
+    with drafts_workspace(what) as work:
+        sites = build_drafts_site(
+            work, branch, suggestions, True, archive, comments, offline=False, what=what
+        )
+        publication_outcome(*sites)
+        log = console.for_stream()
+        log.line()
         try:
-            preview.upload(staged, branch, token)
+            preview.upload(work / SITE, branch, token)
         except RuntimeError as e:
-            refuse(str(e))
+            refuse(str(e), what)
 
 
 def refuse(reason: str, what: str = "drafts preview") -> NoReturn:
