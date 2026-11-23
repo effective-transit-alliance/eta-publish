@@ -20,7 +20,7 @@ the others are still built and the exit status still reports it.
 import json
 import re
 import tomllib
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import date
@@ -451,6 +451,62 @@ def label(publication: Publication) -> str:
     ways reads as two publications.
     """
     return publication.name or publication.url
+
+
+def named(publication: Publication, listed: Path | None = None) -> str:
+    """`publication` as a refusal names it: which document, which tab, and which list,
+    if there is more than one list for it to be in.
+
+    The tab and the list in parentheses, so that two of these joined by "and"
+    still read as two publications."""
+    said = [f"tab `{publication.tab}`"] if publication.tab else []
+    if listed is not None:
+        said.append(f"in `{listed}`")
+    return f"`{label(publication)}`" + (f" ({', '.join(said)})" if said else "")
+
+
+def clashes(lists: Iterable[tuple[Path | None, list[Built]]]) -> list[str]:
+    """Every two publications of `lists` that would be at one path, or one inside the other.
+
+    Each list is what built from it, beside the list itself as a refusal names it,
+    or `None` for a build of one list, where saying which list is saying nothing.
+    Laid out together, as one site serves them: every list's `UNPUBLISHED_DIR`
+    at one root, and its `PUBLISHED_DIR` at another. Checking their paths once covers both,
+    since what is published is a copy of what is unpublished, at the same paths.
+    A path in one never meets a path in the other: each is served under its own prefix,
+    and a path starts at its kind, so none is in the other's.
+
+    Inside, too, since a publication's directory is all of what is under its path:
+    `reports/a` and `reports/a/b` would have the second's files in the first's directory.
+
+    Only what built has a path, since the path is the document's `URL:` line,
+    known once the document is fetched, which is part of its build.
+    So this is checked after the builds and before anything is laid out from them:
+    two publications built at one path have both written into one directory,
+    and whichever wrote a file last is what it says.
+    """
+    placed = [(listed, built) for listed, from_list in lists for built in from_list]
+    found = []
+    for i, (listed, built) in enumerate(placed):
+        parts = PurePosixPath(built.path).parts
+        for other_listed, other in placed[i + 1 :]:
+            other_parts = PurePosixPath(other.path).parts
+            shorter = min(len(parts), len(other_parts))
+            if parts[:shorter] != other_parts[:shorter]:
+                continue
+            a = named(built.publication, listed)
+            b = named(other.publication, other_listed)
+            if parts == other_parts:
+                found.append(f"{a} and {b} are both at `/{built.path}`")
+            else:
+                outer, inner = sorted(
+                    (built.path, other.path), key=lambda p: len(PurePosixPath(p).parts)
+                )
+                found.append(
+                    f"{a} at `/{built.path}` and {b} at `/{other.path}`: "
+                    f"`/{inner}` is inside `/{outer}`"
+                )
+    return found
 
 
 def verifier(publication: Publication) -> Callable[[Document], None]:
