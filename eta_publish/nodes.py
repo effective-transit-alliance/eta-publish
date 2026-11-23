@@ -703,6 +703,14 @@ class Document:
     An SVG has no pixel size to read, so it is one this is empty for.
     """
 
+    image_flatness: dict[str, float] = field(default_factory=dict)
+    """Docs object id to the share of the written file's pixels in its 16 most common colors.
+
+    Near 1 for a chart, a few flat colors on a plain background,
+    and well under for a photograph, whose every pixel is a slightly different color.
+    From the same record as `image_shapes`, and empty for an SVG, which has no pixels.
+    """
+
     unpublished: dict[str, str] = field(default_factory=dict)
     """Docs object id to why its SVG could not be had, for a figure published without one.
 
