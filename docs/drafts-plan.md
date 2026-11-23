@@ -77,17 +77,17 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    a list with no entries is fine, and builds nothing.
    With no `drafts/` at all, as in this repository's CI, the drafts are skipped.
 2. **Preview from the working copy.** `eta-publish drafts preview`
-   builds the same way and uploads the result as a preview of the current branch,
+   builds the same way, with all three kinds as [the drafts site shows them](#what-the-drafts-site-shows),
+   and uploads the result as a preview of the current branch,
    behind the same sign-in, with no commit or push.
    Its address is `<alias>.eta-drafts.pages.dev`,
    where the alias is the branch name as Cloudflare writes it:
    lowercased, with anything not a letter or digit turned into `-`.
-   Its pages link within that preview, not to production,
-   wherever the list's `[site]` says `eta-drafts.pages.dev`;
-   a `[site]` at any other host is refused.
-   It uploads `drafts/site/unpublished/` with `published/` inside it
-   and no `doc.json`, through `wrangler pages deploy`:
-   only the drafts so far, since showing all three kinds is step 3.
+   Its pages link within that preview, not to production or the public site;
+   a drafts `[site]` other than `eta-drafts.pages.dev` with `published/` under it is refused.
+   It builds in a directory of its own in `drafts/`, leaving `site/` and `drafts/site/` as they are,
+   and uploads every list's `site/unpublished/` at `/` and `site/published/` under `/published/`,
+   with no `doc.json`, through `wrangler pages deploy`.
    It uses the local Cloudflare token, which has Pages Edit.
    There is no local deploy to `main`'s site: that's only done from CI.
 

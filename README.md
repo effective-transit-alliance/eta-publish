@@ -159,7 +159,7 @@ uv run eta-publish all
 # Leaves `site/` and `drafts/site/` as they are; takes `--offline`.
 uv run eta-publish drafts site out
 
-# Build the drafts in `drafts/`, and upload them as this branch's preview,
+# Build the drafts site as `drafts site` does, and upload it as this branch's preview,
 # at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
 uv run eta-publish drafts preview
 

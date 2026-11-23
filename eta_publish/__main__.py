@@ -8,7 +8,7 @@ Six commands, because there are six things to do:
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
-    eta-publish drafts preview  build the drafts, and upload them as this branch's preview
+    eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
