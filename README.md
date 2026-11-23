@@ -159,8 +159,9 @@ uv run eta-publish all
 # Leaves `site/` and `drafts/site/` as they are; takes `--offline`.
 uv run eta-publish drafts site out
 
-# Build the drafts site as `drafts site` does, and upload it as this branch's preview,
-# at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
+# Build the drafts site as `drafts site` does, and upload it as a preview of this commit,
+# at `<alias>-<commit>.eta-drafts.pages.dev`, or `<alias>-<commit>-dirty` with uncommitted edits,
+# behind the sign-in. Not on `main`. `<alias>.eta-drafts.pages.dev` is CI's, on every push.
 uv run eta-publish drafts preview
 
 # The same, uploaded for `<branch>`, `main` included: what `eta-drafts`'s deploy runs.

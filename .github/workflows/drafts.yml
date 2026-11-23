@@ -1,0 +1,36 @@
+# Deploy the drafts site for every push: `main` to `eta-drafts.pages.dev`,
+# and any other branch to its preview, `<branch>.eta-drafts.pages.dev`.
+#
+# The deploy itself is `eta-drafts`'s workflow, since the drafts are private
+# and the Cloudflare token is that repository's secret (see `docs/drafts-plan.md`).
+# This only starts it, with the branch and the commit pushed,
+# through `DRAFTS_DISPATCH_TOKEN`, which can do nothing but run `eta-drafts`'s workflows.
+name: Drafts
+
+on:
+  push:
+    branches: ["**"]
+
+# Nothing here reads or writes this repository.
+permissions: {}
+
+jobs:
+  dispatch:
+    # A deleted branch has nothing to deploy.
+    if: ${{ !github.event.deleted }}
+    runs-on: ubuntu-latest
+    steps:
+      # The workflow as `eta-drafts`'s `main` has it:
+      # one started this way has to be on the repository's default branch.
+      # Which `eta-drafts` branch the drafts come from is the workflow's to decide.
+      - name: Start `eta-drafts`'s deploy
+        env:
+          GH_TOKEN: ${{ secrets.DRAFTS_DISPATCH_TOKEN }}
+          BRANCH: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+        run: >-
+          gh workflow run deploy.yml
+          --repo effective-transit-alliance/eta-drafts
+          --ref main
+          -f branch="$BRANCH"
+          -f eta-publish="$COMMIT"

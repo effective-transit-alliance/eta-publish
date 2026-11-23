@@ -4,7 +4,9 @@ The drafts site is served by the Pages project `eta-drafts`, behind a sign-in,
 and a preview there is a deployment for a branch other than the production one,
 served at `<branch>.eta-drafts.pages.dev`.
 Each `eta-publish` branch has its preview under its own name,
-the branch of `eta-drafts` it mirrors (see `docs/drafts-plan.md`).
+the branch of `eta-drafts` it mirrors (see `docs/drafts-plan.md`),
+deployed from CI on every push.
+A preview of a working copy is under the branch's name and its commit's, so it is never CI's.
 What is uploaded, and how it is laid out, is `drafts_site.py`'s.
 
 Uploaded with `wrangler pages deploy`, which Cloudflare's Direct Upload guide names
@@ -83,6 +85,33 @@ def branch() -> str:
             " not previewed; preview from another branch"
         )
     return name
+
+
+SHORT_COMMIT = 7
+"""How many hex digits of the commit a local preview's name carries: `git`'s own abbreviation."""
+
+
+def local_name() -> str:
+    """The name a preview of this working copy is uploaded under: `<branch>-<commit>`.
+
+    Not the branch's own name, which CI's preview of the branch has, on every push:
+    a local preview there and CI's would overwrite one another,
+    and the address would no longer say which of the two it is showing.
+    `-dirty` follows when a tracked file has uncommitted edits,
+    since the preview is then of the working copy and not of the commit it names.
+    Untracked files are not counted: a checkout always has some, and the build reads none.
+    """
+    name = branch()
+    commit = _git("rev-parse", f"--short={SHORT_COMMIT}", "HEAD")
+    edited = _git("status", "--porcelain", "--untracked-files=no")
+    return f"{name}-{commit}-dirty" if edited else f"{name}-{commit}"
+
+
+def _git(*args: str) -> str:
+    """What `git` prints in this repository, trimmed."""
+    return subprocess.run(
+        ["git", *args], cwd=ROOT, capture_output=True, text=True, check=True
+    ).stdout.strip()
 
 
 def alias(name: str) -> str:

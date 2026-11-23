@@ -34,13 +34,13 @@ The code, the tests, and the publications built here
   which accepts only runs in the `github-pages` environment.
 - **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
   the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
-  for the push workflow to start `eta-drafts`'s
+  for `.github/workflows/drafts.yml` to start `eta-drafts`'s deploy on every push
   (see [the plan](drafts-plan.md)).
-  No workflow uses it yet.
 
 ### `effective-transit-alliance/eta-drafts` (private)
 
-Will hold drafts that aren't public yet; empty for now.
+Holds drafts that aren't public yet: none so far,
+only an empty `publications.toml` and the deploy workflow, `.github/workflows/deploy.yml`.
 [`drafts-plan.md`](drafts-plan.md) describes what goes in it.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
@@ -136,11 +136,12 @@ Its ID is in `eta-drafts`'s `CLOUDFLARE_ACCOUNT_ID` secret and in every dashboar
 ### Pages project `eta-drafts`
 
 - **Address:** <https://eta-drafts.pages.dev>, with previews at `<alias>.eta-drafts.pages.dev`,
-  the alias being the branch name lowercased, with anything not a letter or digit turned into `-`.
+  the alias being the branch name lowercased, with anything not a letter or digit turned into `-`,
+  and local ones at `<alias>-<commit>.eta-drafts.pages.dev`.
   Pages projects can't be renamed, so neither can these addresses.
-- **Direct upload,** not connected to Git: CI is to build the site and upload it,
+- **Direct upload,** not connected to Git: CI builds the site and uploads it on every push,
   with `eta-publish drafts deploy`,
-  and `eta-publish drafts preview` uploads a branch's preview from a local machine.
+  and `eta-publish drafts preview` uploads a commit's preview from a local machine.
 - **Production branch:** `main`.
 - Nothing deployed to production yet, so after signing in the main site shows "Connection timed out".
   One test preview, of the branch `drafts-preview`, is up and empty.
