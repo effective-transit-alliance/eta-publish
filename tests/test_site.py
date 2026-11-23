@@ -463,19 +463,19 @@ def test_a_whole_site_replaces_the_site_but_keeps_a_publication_that_failed(
         Publication(url=str(good), name="Digging Out of a Very Deep Hole", tab="Draft 2"),
     ]
 
-    with pytest.raises(Exit):
-        publish(
-            publications,
-            root,
-            Suggestions.REJECTED,
-            False,
-            False,
-            False,
-            archive=False,
-            whole=True,
-            hosts=HOSTS,
-        )
+    site = publish(
+        publications,
+        root,
+        Suggestions.REJECTED,
+        False,
+        False,
+        False,
+        archive=False,
+        whole=True,
+        hosts=HOSTS,
+    )
 
+    assert [failed.publication for failed in site.failed] == publications[:1]
     assert (kept / "report.html").read_text() == "the last build of a publication that failed"
     assert not (out / "reports" / "dropped").exists()
     assert (out / SLUG / "report.html").is_file()

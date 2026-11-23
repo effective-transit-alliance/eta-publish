@@ -2,7 +2,8 @@
 
 Four commands, because there are four things to do:
 
-    eta-publish all             every publication in `publications.toml`, into `site/unpublished/`
+    eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
+                                and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
@@ -45,7 +46,9 @@ from .logo import LOGO, write_logo
 from .naming import ASSET_DIR, UNPUBLISHED_DIR
 from .published import write_published
 from .site import (
+    DRAFTS,
     PUBLICATIONS,
+    SITE,
     Failed,
     Hosts,
     Publication,
@@ -132,7 +135,7 @@ def build_all(
         Path,
         Argument(metavar="LIST", help="a `.toml` list of publications"),
     ] = PUBLICATIONS,
-    outdir: Outdir = Path("site"),
+    outdir: Outdir = SITE,
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
     hosted_media: HostedMedia = True,
@@ -152,31 +155,59 @@ def build_all(
     """Build every publication in a list, into a site with an index.
 
     Both defaults name the committed thing,
-    so `eta-publish all` with no arguments rebuilds the site as it ships.
+    so `eta-publish all` with no arguments rebuilds the site as it ships,
+    and the drafts' site too, from a clone of `eta-drafts` in `drafts/`.
     """
-    try:
-        listed = load_publications(publications)
-        hosts = load_hosts(publications)
-    except (OSError, ValueError) as e:
-        # Typer's own wording for a bad argument, because that is what it is.
-        raise BadParameter(str(e), param_hint="LIST") from e
-    publish(
-        listed,
-        outdir,
-        suggestions,
-        split,
-        images,
-        comments,
-        offline,
-        archive,
-        listed=listed,
-        whole=True,
-        into=into,
-        hosted_media=hosted_media,
-        embed_assets=embed_assets,
-        source_brackets=source_brackets,
-        hosts=hosts,
-    )
+    lists = [(publications, outdir)]
+    if into is None and committed(publications, outdir) and (DRAFTS / PUBLICATIONS).exists():
+        lists.append((DRAFTS / PUBLICATIONS, DRAFTS / SITE))
+    # Every list read before anything is built,
+    # so a mistake in the second is not found after minutes spent on the first.
+    loaded = []
+    for path, _ in lists:
+        try:
+            loaded.append((load_publications(path), load_hosts(path)))
+        except (OSError, ValueError) as e:
+            # Typer's own wording for a bad argument, because that is what it is.
+            raise BadParameter(str(e), param_hint="LIST") from e
+    log = console.for_stream()
+    sites = []
+    for (path, site_dir), (listed, hosts) in zip(lists, loaded, strict=True):
+        if len(lists) > 1:
+            # Each list's publications and summary under its name,
+            # since both summaries would otherwise read the same.
+            log.line()
+            console.write(Text(str(path), style="bold"), log)
+        sites.append(
+            publish(
+                listed,
+                site_dir,
+                suggestions,
+                split,
+                images,
+                comments,
+                offline,
+                archive,
+                listed=listed,
+                whole=True,
+                into=into,
+                hosted_media=hosted_media,
+                embed_assets=embed_assets,
+                source_brackets=source_brackets,
+                hosts=hosts,
+            )
+        )
+    publication_outcome(*sites)
+
+
+def committed(publications: Path, outdir: Path) -> bool:
+    """Whether this is the committed list built into the committed site.
+
+    Only then are the drafts built as well:
+    a different list or a different site is a build of that, and of nothing else.
+    By where they are, so `-o site` is the same build as leaving it out.
+    """
+    return publications.resolve() == PUBLICATIONS.resolve() and outdir.resolve() == SITE.resolve()
 
 
 @app.command(name="one")
@@ -193,7 +224,7 @@ def build_one_publication(
         Path,
         Option("-p", "--publications", help="the list a name is looked up in"),
     ] = PUBLICATIONS,
-    outdir: Outdir = Path("site"),
+    outdir: Outdir = SITE,
     suggestions: Suggested = Suggestions.REJECTED,
     split: Split = False,
     hosted_media: HostedMedia = True,
@@ -217,7 +248,7 @@ def build_one_publication(
         hosts = load_hosts(publications)
     except (OSError, ValueError) as e:
         raise BadParameter(str(e), param_hint="DOC") from e
-    publish(
+    site = publish(
         [publication],
         outdir,
         suggestions,
@@ -231,6 +262,7 @@ def build_one_publication(
         source_brackets=source_brackets,
         hosts=hosts,
     )
+    publication_outcome(site)
 
 
 def publish(
@@ -268,6 +300,12 @@ def publish(
 
     Then `published/` is written from what was installed, for the `automated`
     publications in `listed`, the whole list whichever of it was built.
+
+    Ends with the line saying how it went, and leaves the exit status to
+    `publication_outcome`, so a list with a publication that failed
+    does not stop the next being built.
+    Two publications at one path do: the build is refused then and there, with `Exit`,
+    since nothing says which of the two belongs at that path.
     """
     write_logo()
     options = BuildOptions(
@@ -297,7 +335,7 @@ def publish(
             site = write_site(publications, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
         host(site, outdir, listed or [], images, options.published_url)
-    publication_outcome(site)
+    summarize(site)
     return site
 
 
@@ -448,7 +486,7 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
         (built / name).replace(outdir / name)
 
 
-def publication_outcome(site: Site) -> None:
+def summarize(site: Site) -> None:
     """One line saying how the build went.
 
     Where each publication went is on that publication's own heading, said as it was
@@ -469,13 +507,18 @@ def publication_outcome(site: Site) -> None:
         ),
         log,
     )
+
+
+def publication_outcome(*sites: Site) -> None:
+    """What is said once every site is built, and the exit status they add up to."""
     if ANONYMOUS_WARNED.is_set():
         # Last, so it is what is on screen when the build ends.
+        log = console.for_stream()
         log.line()
         console.write(anonymous_warning(), log)
     # Non-zero when anything failed, even though the rest of the site was written,
     # so an unattended run cannot fail quietly.
-    if site.failed:
+    if any(site.failed for site in sites):
         raise Exit(code=1)
 
 
