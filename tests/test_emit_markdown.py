@@ -26,6 +26,7 @@ def out(doc: Document) -> str:
 def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
     """As the page links them; anyone else is credited as plain text."""
     doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    doc.staff = ("Blair Lorenzo", "Khyber Sen")
     out = MarkdownEmitter().emit(doc)
     linked = "[Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)"
     assert f"- Ada Lovelace\n- {linked}" in out

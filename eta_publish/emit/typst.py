@@ -179,7 +179,7 @@ class TypstEmitter(Emitter):
 
     def credited(self, name: str) -> str:
         """One contributor as an element of that array."""
-        href = about_us_url(name)
+        href = about_us_url(name, self.doc.staff)
         return f"[#link({string(href)})[{escape(name)}]]" if href else string(name)
 
     # ---- blocks -----------------------------------------------------

@@ -193,9 +193,9 @@ def link_mark(anchor: str, what: str = "section") -> Tag:
     return tag.a(class_="link-mark", href=f"#{anchor}", aria_label=f"Link to this {what}")
 
 
-def credited(name: str) -> Piece:
-    """A contributor's name, linked to their entry on ETA's staff page if they have one."""
-    href = about_us_url(name)
+def credited(name: str, staff: tuple[str, ...]) -> Piece:
+    """A contributor's name, linked to their entry on ETA's staff page if `staff` lists them."""
+    href = about_us_url(name, staff)
     return tag.a(href=href)[name] if href else name
 
 
@@ -563,7 +563,7 @@ class HtmlEmitter(Emitter):
                 "\n",
                 tag.p[contributors_note(doc)],
                 "\n",
-                tag.ul["\n", lines(tag.li[credited(name)] for name in names), "\n"],
+                tag.ul["\n", lines(tag.li[credited(name, doc.staff)] for name in names), "\n"],
                 "\n",
             ]
         )

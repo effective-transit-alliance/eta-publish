@@ -731,6 +731,10 @@ class Document:
     cards: dict[str, Card] = field(default_factory=dict)
     """Embed URL to what its platform said about it, from `embeds.json`."""
 
+    staff: tuple[str, ...] = ()
+    """The names ETA's staff page lists, from `staff.json`:
+    a contributor among them is linked to their entry there."""
+
     media_files: dict[str, str] = field(default_factory=dict)
     """Embed URL to the file written for it: a thumbnail under `IMAGE_DIR`,
     or the video itself under `VIDEO_DIR` for one in Drive or one copied.

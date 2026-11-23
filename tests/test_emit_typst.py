@@ -88,6 +88,7 @@ def test_a_field_name_cannot_be_typst_code(doc: Document) -> None:
 def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
     """As the page links them; anyone else is credited as plain text."""
     doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    doc.staff = ("Blair Lorenzo", "Khyber Sen")
     out = TypstEmitter(site_url=HOST).emit(doc)
     linked = '[#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]]'
     assert f'  contributors: ("Ada Lovelace", {linked}, ),\n' in out
@@ -97,6 +98,7 @@ def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Docu
 def test_the_pdf_links_a_contributor_on_staff(doc: Document, tmp_path: Path) -> None:
     """The link survives into the PDF, and only for the name on staff."""
     doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    doc.staff = ("Blair Lorenzo", "Khyber Sen")
     original = tmp_path / IMAGE_DIR / "sas-west-036.png"
     original.parent.mkdir()
     original.write_bytes(PNG)

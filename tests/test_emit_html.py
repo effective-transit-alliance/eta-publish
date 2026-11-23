@@ -235,6 +235,7 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
 def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
     """Anyone else is credited as plain text, since there is nowhere to link them to."""
     doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    doc.staff = ("Blair Lorenzo", "Khyber Sen")
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     linked = '<a href="https://www.etany.org/about-us#:~:text=Khyber%20Sen">Khyber Sen</a>'
     assert f"<li>Ada Lovelace</li>\n<li>{linked}</li>" in out

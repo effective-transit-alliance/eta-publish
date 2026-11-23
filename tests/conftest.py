@@ -153,6 +153,25 @@ def _forget_credentials(request: pytest.FixtureRequest, monkeypatch: pytest.Monk
 
 
 @pytest.fixture(autouse=True)
+def _no_staff_page(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A build in a test keeps the staff it was given rather than reading `ABOUT_US`.
+
+    Every build that is not offline reads the page, and most of the tests here
+    build from a saved response without `--offline`, so each would otherwise be
+    a request to the live site, and pass or fail with it. What reading the page
+    does is tested in `test_staff.py`, against a saved copy.
+    """
+    if "network" in request.keywords:
+        return
+    import eta_publish.__main__ as main
+
+    def kept(saved: tuple[str, ...]) -> tuple[str, ...]:
+        return saved
+
+    monkeypatch.setattr(main, "look_up", kept)
+
+
+@pytest.fixture(autouse=True)
 def _fresh_lookup_cache(
     tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
 ) -> None:

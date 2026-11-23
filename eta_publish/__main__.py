@@ -23,6 +23,7 @@ import os
 import shutil
 import signal
 import tempfile
+from dataclasses import replace
 from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
@@ -61,6 +62,7 @@ from .site import (
     saved_for,
     saved_responses,
 )
+from .staff import STAFF_JSON, look_up, read_staff, write_staff
 
 
 class Suggestions(StrEnum):
@@ -346,8 +348,15 @@ def write_site(
     """Build the publications under `root`, reading what the last build left under `read_from`.
 
     Both are output directories, holding `UNPUBLISHED_DIR` and not the publications themselves.
+
+    The staff page is read once here, for every publication, unless offline,
+    and what it lists is saved for the next build: see `staff.STAFF_JSON`.
     """
     outdir = root / UNPUBLISHED_DIR
+    staff = read_staff(read_from / UNPUBLISHED_DIR)
+    if not options.offline:
+        staff = look_up(staff)
+    options = replace(options, staff=staff)
     site = build_site(publications, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
 
     # Before anything is laid out or put in place: two publications at one path
@@ -363,6 +372,7 @@ def write_site(
 
     outdir.mkdir(parents=True, exist_ok=True)
     (outdir / "index.html").write_text(index_page(site))
+    write_staff(outdir, staff)
 
     # Belt to the `noindex` the pages carry, and the weaker half of the pair:
     # a crawler reads `robots.txt` from the root of the host,
@@ -412,7 +422,7 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
     wrote for a publication that failed this time: a site missing a publication beats no
     site at all, and an older copy of it beats a missing one.
     Otherwise each publication built replaces its own directory and nothing else,
-    along with the index and the shared assets every page links.
+    along with the index, the shared assets every page links, and `STAFF_JSON`.
 
     Both are output directories, holding `UNPUBLISHED_DIR`.
     """
@@ -439,7 +449,7 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
     for shared in (ASSET_DIR,):
         shutil.rmtree(outdir / shared, ignore_errors=True)
         (built / shared).rename(outdir / shared)
-    for name in ("index.html", minify.min_name("index.html"), "robots.txt"):
+    for name in ("index.html", minify.min_name("index.html"), "robots.txt", STAFF_JSON):
         (built / name).replace(outdir / name)
 
 
