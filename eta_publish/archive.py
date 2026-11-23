@@ -470,16 +470,18 @@ def read_archive_index(dest: Path, doc: Document) -> None:
     if not index.exists():
         return
     for url, entry in json.loads(index.read_text()).items():
-        recorded = Archived(
-            snapshot=entry.get("snapshot", ""),
-            timestamp=entry.get("timestamp", ""),
-            error=RENAMED.get(entry.get("error", ""), entry.get("error", "")),
-            job=entry.get("job", ""),
-            pending=entry.get("pending", False),
-            said=_reworded(entry.get("said", "")),
-            pages=entry.get("pages", 0),
-            version=entry.get("version", ""),
-            versioned=entry.get("versioned", ""),
+        recorded = _settled(
+            Archived(
+                snapshot=entry.get("snapshot", ""),
+                timestamp=entry.get("timestamp", ""),
+                error=RENAMED.get(entry.get("error", ""), entry.get("error", "")),
+                job=entry.get("job", ""),
+                pending=entry.get("pending", False),
+                said=_reworded(entry.get("said", "")),
+                pages=entry.get("pages", 0),
+                version=entry.get("version", ""),
+                versioned=entry.get("versioned", ""),
+            )
         )
         cited = doc.archives.get(url)
         if cited is None:
@@ -1332,6 +1334,8 @@ def _job(http: requests.Session, headers: dict[str, str], url: str, job: str) ->
             snapshot=f"https://web.archive.org/web/{stamp}/{url}", timestamp=stamp, job=job
         )
     if status == "error":
+        if blocked(str(state.get("message") or "")):
+            return Archived(timestamp=today(), error=BLOCKED, job=job)
         refused = _refused(state)
         if about_the_moment(refused):
             return None
@@ -1386,13 +1390,55 @@ def about_the_moment(refused: str) -> bool:
     return any(later in refused for later in RETRY_LATER)
 
 
+BLOCKED_BY_TARGET = "The target server blocks access to"
+"""How Save Page Now's message starts when the page's own server refused the crawler.
+
+It came with `error:no-request`, which is in `RETRY_LATER`,
+and with `HTTP status=403`: Wikimedia Commons answered so for the
+Harsimus Cove photo's page on every capture asked for, from October to
+November, and each was kept `pending` and asked about again by every build.
+The site refusing the archive is an answer about the page, not the moment,
+so the message decides, whatever the status says.
+"""
+
+BLOCKED = "the site blocks the archive"
+"""What a source whose site refused the crawler is published with.
+
+Recorded for good, like any other refusal about the page, and never asked
+about again: the site said no, and asking every build only spends a request
+on hearing it again. A source somebody thinks the site now lets through is
+asked about again once its entry is removed from `archives.json`.
+"""
+
+
+def blocked(said: str) -> bool:
+    """Whether Save Page Now said the page's server refused the crawler."""
+    return BLOCKED_BY_TARGET in said
+
+
+def _settled(recorded: Archived) -> Archived:
+    """`recorded`, or the final refusal it was, if it was kept `pending` over a block.
+
+    Read through rather than left for the next lookup to repair: the job that
+    heard the block answers `in-progress` once Save Page Now forgets it, so no
+    later lookup would hear it again, and an offline build asks nothing.
+    """
+    if not recorded.pending or not blocked(recorded.said):
+        return recorded
+    return replace(recorded, error=BLOCKED, pending=False, said="")
+
+
 def _failed(refused: str, answer: dict[str, object], job: str = "") -> Archived:
     """The refusal recorded against the source, or `Busy` if it was about the moment.
 
     `Busy` says all the service said, and which job it was about,
     since it is what the build prints when it stops over one:
     `error:too-many-daily-captures` alone does not say the limit is per URL.
+
+    A site that blocks the archive is the page's answer, whatever `refused` is.
     """
+    if blocked(str(answer.get("message") or "")):
+        return Archived(timestamp=today(), error=BLOCKED)
     if about_the_moment(refused):
         said = refused
         if answer.get("message"):
