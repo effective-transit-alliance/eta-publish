@@ -583,6 +583,10 @@ def preview_drafts(
     Then uploaded to `<branch>.eta-drafts.pages.dev`, behind the drafts site's sign-in,
     with nothing committed or pushed.
 
+    The preview's pages and fragments link their assets at the preview's own host,
+    `<branch>.eta-drafts.pages.dev`, wherever the list's `[site]` says `eta-drafts.pages.dev`,
+    so the preview shows its own branch's assets and not production's.
+
     Refused on `main`, whose deploy is the drafts site itself.
     Nothing is uploaded when a draft fails to build.
     """
@@ -595,8 +599,8 @@ def preview_drafts(
         refuse(str(e))
     try:
         listed = load_publications(path)
-        hosts = load_hosts(path)
-    except (OSError, ValueError) as e:
+        hosts = preview.previewed(load_hosts(path), branch)
+    except (OSError, ValueError, preview.Refused) as e:
         refuse(str(e))
     site = publish(
         listed,
