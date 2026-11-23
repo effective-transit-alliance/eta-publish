@@ -17,14 +17,14 @@
 // The `width` and `height` are dropped, since a chart says how big to draw it;
 // the `viewBox`, which is what lets it scale, `svgo` keeps.
 export default {
-  multipass: true,
-  floatPrecision: 2,
-  plugins: [
-    "convertStyleToAttrs",
-    {
-      name: "preset-default",
-      params: { overrides: { convertPathData: { makeArcs: false } } },
-    },
-    "removeDimensions",
-  ],
+    multipass: true,
+    floatPrecision: 2,
+    plugins: [
+        "convertStyleToAttrs",
+        {
+            name: "preset-default",
+            params: { overrides: { convertPathData: { makeArcs: false } } },
+        },
+        "removeDimensions",
+    ],
 };

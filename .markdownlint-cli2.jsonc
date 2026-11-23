@@ -3,29 +3,29 @@
 // so a rule is off below only where what it flags is the output meaning to say it,
 // or where it cannot read what is written.
 {
-  "config": {
-    // A paragraph is one line, as the document has it;
-    // wrapping it would make every edit to the document a diff of the whole paragraph.
-    "MD013": false,
-    // `<sup>` and `<sub>` are the only superscript and subscript GitHub renders.
-    "MD033": false,
-    // The headings are the document's own, levels and all, and the bold
-    // `**Warnings**` and `**Phase: ...**` labels are not meant to be headings.
-    "MD001": false,
-    "MD036": false,
-    "MD041": false,
-    // Several `#` sections in `README.md`, on purpose.
-    "MD025": false,
-    // A warning quotes an excerpt exactly, its spaces included,
-    // and `README.md` shows `style: ` the same way.
-    "MD038": false,
-    // A picture with no alt text is already a build warning, and the fix is in the document.
-    "MD045": false,
-    // Footnotes are not something `markdownlint` reads:
-    // it takes `[^1]: ...` for an unused link definition.
-    "MD053": false,
-    // A bare URL is a build warning, and the fix is linking it in the document.
-    // Back on once no publication has one.
-    "MD034": false
-  }
+    "config": {
+        // A paragraph is one line, as the document has it;
+        // wrapping it would make every edit to the document a diff of the whole paragraph.
+        "MD013": false,
+        // `<sup>` and `<sub>` are the only superscript and subscript GitHub renders.
+        "MD033": false,
+        // The headings are the document's own, levels and all, and the bold
+        // `**Warnings**` and `**Phase: ...**` labels are not meant to be headings.
+        "MD001": false,
+        "MD036": false,
+        "MD041": false,
+        // Several `#` sections in `README.md`, on purpose.
+        "MD025": false,
+        // A warning quotes an excerpt exactly, its spaces included,
+        // and `README.md` shows `style: ` the same way.
+        "MD038": false,
+        // A picture with no alt text is already a build warning, and the fix is in the document.
+        "MD045": false,
+        // Footnotes are not something `markdownlint` reads:
+        // it takes `[^1]: ...` for an unused link definition.
+        "MD053": false,
+        // A bare URL is a build warning, and the fix is linking it in the document.
+        // Back on once no publication has one.
+        "MD034": false
+    }
 }
