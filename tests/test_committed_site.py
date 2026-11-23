@@ -25,6 +25,7 @@ import pytest
 from paths import ROOT, SITE, UNPUBLISHED
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
+from eta_publish.minify import min_name
 from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, path_kind, print_href
 
 
@@ -152,8 +153,13 @@ def test_no_chip_email_reaches_any_output(publication: Path) -> None:
 
 
 def test_the_fragment_fits_in_one_code_block(publication: Path) -> None:
-    """Squarespace allows 400 KB, and the fragment is meant to be pasted whole."""
-    assert (publication / f"{kind(publication)}.html").stat().st_size < CODE_BLOCK_LIMIT
+    """Squarespace allows 400 KB, and the fragment is meant to be pasted whole.
+
+    The one pasted is the `.min` copy, as the build checks it,
+    so how the formatted `report.html` is laid out is no part of this.
+    """
+    pasted = publication / min_name(f"{kind(publication)}.html")
+    assert pasted.stat().st_size < CODE_BLOCK_LIMIT
 
 
 def test_every_figure_is_described(publication: Path) -> None:
