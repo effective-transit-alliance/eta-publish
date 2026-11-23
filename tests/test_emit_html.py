@@ -6,6 +6,7 @@ from html.parser import HTMLParser
 from typing import override
 
 import pytest
+import tinycss2
 from htpy import a
 from paths import FIXTURE_DIR, HOST, named_images
 
@@ -371,29 +372,76 @@ def test_every_linkable_block_carries_a_link_to_itself(out: str) -> None:
         assert anchor in marked, f"nothing links to {anchor}"
 
 
+TIPS = {".eta-report .footnote-tip", ".eta-report .source-tip"}
+"""The two preview boxes, as `publication.css` selects them."""
+
+
+def css_rules(css: str, media: str | None = None) -> list[tuple[set[str], dict[str, str]]]:
+    """Each rule's selectors and declarations, parsed rather than matched as text,
+    so how the stylesheet is laid out does not matter.
+
+    The top-level rules, or with `media`, those inside the `@media` with that query.
+    """
+    rules = tinycss2.parse_stylesheet(css, skip_comments=True, skip_whitespace=True)
+    if media is not None:
+        (block,) = (
+            rule
+            for rule in rules
+            if rule.type == "at-rule"
+            and rule.lower_at_keyword == "media"
+            and " ".join(tinycss2.serialize(rule.prelude).split()) == media
+        )
+        rules = tinycss2.parse_rule_list(block.content, skip_comments=True, skip_whitespace=True)
+    parsed: list[tuple[set[str], dict[str, str]]] = []
+    for rule in rules:
+        if rule.type != "qualified-rule":
+            continue
+        selectors = {" ".join(s.split()) for s in tinycss2.serialize(rule.prelude).split(",")}
+        declarations = {
+            d.lower_name: tinycss2.serialize(d.value).strip()
+            for d in tinycss2.parse_declaration_list(
+                rule.content, skip_comments=True, skip_whitespace=True
+            )
+            if d.type == "declaration"
+        }
+        parsed.append((selectors, declarations))
+    return parsed
+
+
 def test_the_footnote_preview_is_hidden_where_nothing_hovers() -> None:
     """The span is in the markup on every device, so hiding it only inside
     `@media (hover: hover)` left a phone displaying every note inline,
-    in the middle of the sentence it belongs to."""
+    in the middle of the sentence it belongs to.
+
+    Outside every `@media` is what a phone reads: there the boxes are hidden,
+    and nothing there shows one again.
+    """
     from eta_publish.emit.html import PUBLICATION_CSS
 
-    # Everything the hovering devices are told, dropped.
-    # What is left is what a phone reads, and it has to hide the box.
-    without_hover = re.sub(r"@media \(hover: hover\) \{.*?\n\}", "", PUBLICATION_CSS, flags=re.S)
-    assert ".footnote-ref:hover" not in without_hover
-    assert ".eta-report .footnote-tip,\n.eta-report .source-tip { display: none; }" in without_hover
+    rules = css_rules(PUBLICATION_CSS)
+    assert any(selectors >= TIPS and d.get("display") == "none" for selectors, d in rules)
+    for selectors, declarations in rules:
+        if any(s.endswith("-tip") for s in selectors) and "display" in declarations:
+            assert declarations["display"] == "none", selectors
 
 
-def test_the_footnote_preview_is_shown_where_something_does(out: str) -> None:
-    """Hidden by default is only right if hovering still brings it back."""
+def test_the_footnote_preview_is_shown_where_something_does() -> None:
+    """Hidden by default is only right if hovering still brings it back.
+
+    A source's box is shown by the same rule, and built by the script.
+    """
     from eta_publish.emit.html import PUBLICATION_CSS
 
-    hovering = re.search(r"@media \(hover: hover\) \{.*?\n\}", PUBLICATION_CSS, re.S)
-    assert hovering is not None
-    assert ".footnote-ref:hover .footnote-tip" in hovering.group()
-    assert ".footnote-ref:focus-within .footnote-tip," in hovering.group()
-    # A source's box is shown by the same rule, and built by the script.
-    assert ".cited:focus-within .source-tip { display: block; }" in hovering.group()
+    shown = {
+        ".eta-report .footnote-ref:hover .footnote-tip",
+        ".eta-report .footnote-ref:focus-within .footnote-tip",
+        ".eta-report .cited:hover .source-tip",
+        ".eta-report .cited:focus-within .source-tip",
+    }
+    assert any(
+        selectors >= shown and d.get("display") == "block"
+        for selectors, d in css_rules(PUBLICATION_CSS, "(hover: hover)")
+    )
 
 
 def test_an_empty_shown_value_is_still_marked(doc: Document) -> None:
