@@ -1,9 +1,11 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
-Of the code, `main` has only the build setup the drafts deploy shares,
-`.github/actions/build-setup`;
-the rest isn't merged yet.
+Of the code, `main` has only what the drafts share with this repository's own site:
+the build setup, `.github/actions/build-setup`;
+the refusal of two publications at one path;
+and the label on every preview page saying which kind of publication it is.
+The rest isn't merged yet.
 [`accounts.md`](accounts.md) has the accounts and credentials it uses,
 which already exist.
 
@@ -17,7 +19,7 @@ locally and deployed, before and after it lands.
 
 ## The three kinds of publication
 
-| Kind | Label on the drafts site | Where it lives | Public? |
+| Kind | Label on its preview page | Where it lives | Public? |
 | --- | --- | --- | --- |
 | Published by the tool | **Automatically Published** | `eta-publish`, `site/published/` | yes |
 | Published by hand, not yet moved to the tool | **Manually Published** | `eta-publish`, `site/unpublished/` | yes |
@@ -155,8 +157,8 @@ since what they record is the committed text, which needs no images.
 and the drafts from `eta-drafts`, all built by the same code.
 
 - The index lists them in three groups, by kind.
-- Every page has a banner saying which kind it is.
-  The banner is only added for the drafts site, never to the real published output.
+- Every preview page has the label saying which kind it is, as this repository's do.
+  It's never in `report.html`, the Markdown or the PDF.
 
 ## How the deploy is set up
 
@@ -180,6 +182,6 @@ limited to `eta-drafts`.
 
 1. Teach the tool to build drafts from `drafts/`, and the local build (1 above).
 2. `eta-publish drafts preview` (2 above).
-3. The deploy workflow in `eta-drafts`, and the three-kind index and banners.
+3. The deploy workflow in `eta-drafts`, and the three-kind index.
 4. The local `pre-commit` and `post-commit` hooks, and the `pre-push` check in `drafts/`.
 5. The push-time workflow here, filling in missing drafts commits, with branch mirroring.

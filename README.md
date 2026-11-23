@@ -59,7 +59,7 @@ a statement's are `statement.html`, `statement.md`, and so on:
 | `report.min.html` | `report.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/publication.min.css` and `assets/publication.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
-| `index.html` | Standalone page for review, including any warnings |
+| `index.html` | Standalone page for review, including any warnings, labeled with which kind of publication it is |
 | `index.min.html` | `index.html` minified, linking the `.min` stylesheets and script; not committed |
 | `images/` | The doc's inline images, for hosting outside Squarespace |
 | `archives.json` | Where each source the publication cites is archived |
