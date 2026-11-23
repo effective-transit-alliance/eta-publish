@@ -845,13 +845,42 @@ def disagreements(publication: Publication, doc: Document) -> list[str]:
 INDEX_CSS = read("index.css")
 
 
-def _newest_first(built: Built) -> tuple[bool, int]:
+def newest_first(built: Built) -> tuple[bool, int]:
     """Newest first, as a list of publications reads.
 
     An undated publication has not been published yet, so it goes after them, in the list's order.
     """
     published = built.doc.published
     return published is None, -(published or date.min).toordinal()
+
+
+def index_entry(built: Built) -> Piece:
+    """`built` as a line of an index, linking it at its own path."""
+    doc = built.doc
+    meta = [m for m in (doc.dateline, ", ".join(doc.contributors)) if m]
+    warned = f" · {len(doc.warnings)} warning(s)" if doc.warnings else ""
+    # The phase above the title, as the publication itself carries it:
+    # a draft has to say so wherever it is read, and this list is where
+    # someone picks which publication to open.
+    phase = [Markup(phase_markup(doc.phase))] if doc.phase else []
+    # The share card, as a link to the publication shows it everywhere else.
+    # Decorative here: the title beside it is the same words, and a link.
+    thumbnail: list[Piece] = []
+    if doc.card is not None and doc.card.object_id in doc.image_files:
+        src = f"{built.path}/{IMAGE_DIR}/{doc.image_href(doc.card)}"
+        thumbnail.append(
+            tag.a(href=f"{built.path}/", tabindex="-1", aria_hidden="true")[
+                htpy.img(class_="card", src=src, alt="", loading="lazy")
+            ]
+        )
+    return tag.li[
+        *thumbnail,
+        *phase,
+        tag.a(href=f"{built.path}/")[tag.strong[doc.title]],
+        # What a blog post's excerpt or `What's New` says, so the card says the same.
+        tag.div(class_="short")[doc.meta.get("Short", "")],
+        tag.div(class_="meta")[" · ".join(meta), warned],
+    ]
 
 
 def index_page(site: Site) -> str:
@@ -861,35 +890,7 @@ def index_page(site: Site) -> str:
     A publication quietly missing from a list of four is hard to notice;
     a line saying which one failed and why is not.
     """
-    entries: list[Piece] = []
-    for built in sorted(site.built, key=_newest_first):
-        doc = built.doc
-        meta = [m for m in (doc.dateline, ", ".join(doc.contributors)) if m]
-        warned = f" · {len(doc.warnings)} warning(s)" if doc.warnings else ""
-        # The phase above the title, as the publication itself carries it:
-        # a draft has to say so wherever it is read, and this list is where
-        # someone picks which publication to open.
-        phase = [Markup(phase_markup(doc.phase))] if doc.phase else []
-        # The share card, as a link to the publication shows it everywhere else.
-        # Decorative here: the title beside it is the same words, and a link.
-        thumbnail: list[Piece] = []
-        if doc.card is not None and doc.card.object_id in doc.image_files:
-            src = f"{built.path}/{IMAGE_DIR}/{doc.image_href(doc.card)}"
-            thumbnail.append(
-                tag.a(href=f"{built.path}/", tabindex="-1", aria_hidden="true")[
-                    htpy.img(class_="card", src=src, alt="", loading="lazy")
-                ]
-            )
-        entries.append(
-            tag.li[
-                *thumbnail,
-                *phase,
-                tag.a(href=f"{built.path}/")[tag.strong[doc.title]],
-                # What a blog post's excerpt or `What's New` says, so the card says the same.
-                tag.div(class_="short")[doc.meta.get("Short", "")],
-                tag.div(class_="meta")[" · ".join(meta), warned],
-            ]
-        )
+    entries = [index_entry(built) for built in sorted(site.built, key=newest_first)]
     failures = [
         tag.p(class_="failed")[f"{f.publication.name or f.publication.url}: {f.error}"]
         for f in site.failed

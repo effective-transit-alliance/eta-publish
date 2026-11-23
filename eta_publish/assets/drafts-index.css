@@ -1,0 +1,6 @@
+/* The drafts site's index: each kind's group under a heading in the color
+   its pages' label has in `banner.css`, which this is carried after. */
+.kind-heading { display: inline-block; margin: 2.5rem 0 0; padding: .15em .6em;
+                border-radius: .2em; background: var(--kind); color: #fff;
+                font-size: 1.15rem; text-transform: uppercase; letter-spacing: .05em; }
+.kind-says { margin: .4em 0 0; opacity: .75; }
