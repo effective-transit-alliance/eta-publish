@@ -461,10 +461,10 @@ In the November general engineering contractor (GEC) progress report, they [bega
 We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:
 
 - John Ericson
-- Madison Feinberg
+- [Madison Feinberg](<https://www.etany.org/about-us#:~:text=Madison%20Feinberg>)
 - Daniel Fleer
-- Robert Hale
+- [Robert Hale](<https://www.etany.org/about-us#:~:text=Robert%20Hale>)
 - Darius Jankauskas
-- Alon Levy
-- Blair Lorenzo
-- Khyber Sen
+- [Alon Levy](<https://www.etany.org/about-us#:~:text=Alon%20Levy>)
+- [Blair Lorenzo](<https://www.etany.org/about-us#:~:text=Blair%20Lorenzo>)
+- [Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)

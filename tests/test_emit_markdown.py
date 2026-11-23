@@ -23,6 +23,14 @@ def out(doc: Document) -> str:
     return MarkdownEmitter().emit(doc)
 
 
+def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
+    """As the page links them; anyone else is credited as plain text."""
+    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    out = MarkdownEmitter().emit(doc)
+    linked = "[Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)"
+    assert f"- Ada Lovelace\n- {linked}" in out
+
+
 def with_paragraph(text: str) -> Document:
     doc_json: JsonObject = json.loads(json.dumps(FIXTURE))
     doc_json["body"]["content"].append(

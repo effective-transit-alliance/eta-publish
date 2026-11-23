@@ -6,7 +6,7 @@
   subtitle: none,
   phase: "",
   dateline: "",
-  contributors: ("John Ericson", "Madison Feinberg", "Robert Hale", "Darius Jankauskas", "Blair Lorenzo", "William Meehan", "Samuel Santaella", "Khyber Sen", ),
+  contributors: ("John Ericson", [#link("https://www.etany.org/about-us#:~:text=Madison%20Feinberg")[Madison Feinberg]], [#link("https://www.etany.org/about-us#:~:text=Robert%20Hale")[Robert Hale]], "Darius Jankauskas", [#link("https://www.etany.org/about-us#:~:text=Blair%20Lorenzo")[Blair Lorenzo]], [#link("https://www.etany.org/about-us#:~:text=William%20Meehan")[William Meehan]], "Samuel Santaella", [#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]], ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this statement, and without whose hard work it would not be possible:",
   warnings: (
     [dropped a line before the #raw("Header") section: #raw("Deinterlining")],

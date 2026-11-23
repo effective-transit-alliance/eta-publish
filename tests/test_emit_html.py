@@ -225,11 +225,19 @@ def test_tables_scroll_rather_than_overflow(out: str) -> None:
 
 def test_the_contributors_section_lists_the_public_contributors(doc: Document) -> None:
     """Alphabetically by surname, which is how `etany.org` credits them."""
-    doc.meta["Public Contributors"] = "Khyber Sen, Alon Levy"
+    doc.meta["Public Contributors"] = "Grace Hopper, Ada Lovelace"
     doc.meta["Private Contributors"] = "Someone Unnamed"
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
-    assert "<li>Alon Levy</li>\n<li>Khyber Sen</li>" in out
+    assert "<li>Grace Hopper</li>\n<li>Ada Lovelace</li>" in out
     assert "Someone Unnamed" not in out
+
+
+def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
+    """Anyone else is credited as plain text, since there is nowhere to link them to."""
+    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
+    linked = '<a href="https://www.etany.org/about-us#:~:text=Khyber%20Sen">Khyber Sen</a>'
+    assert f"<li>Ada Lovelace</li>\n<li>{linked}</li>" in out
 
 
 def test_the_contributors_section_comes_last(doc: Document) -> None:

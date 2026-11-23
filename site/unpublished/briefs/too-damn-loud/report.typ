@@ -6,7 +6,7 @@
   subtitle: none,
   phase: "",
   dateline: "September 9, 2026",
-  contributors: ("Madison Feinberg", "Elijah Fischer", "Robert Hale", "Darius Jankauskas", "Tim Lazaroff", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
+  contributors: ([#link("https://www.etany.org/about-us#:~:text=Madison%20Feinberg")[Madison Feinberg]], "Elijah Fischer", [#link("https://www.etany.org/about-us#:~:text=Robert%20Hale")[Robert Hale]], "Darius Jankauskas", "Tim Lazaroff", [#link("https://www.etany.org/about-us#:~:text=Alon%20Levy")[Alon Levy]], [#link("https://www.etany.org/about-us#:~:text=Blair%20Lorenzo")[Blair Lorenzo]], [#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]], ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
     [the #raw("Header") section has an unrecognized #raw("Related Document:") line; check it for a typo],

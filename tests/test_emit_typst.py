@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 from paths import FIXTURE_DIR, HOST
+from pypdf import PdfReader
 
 from eta_publish.emit.typst import TypstEmitter, breakable
 from eta_publish.images import write_print_copies
@@ -82,6 +83,36 @@ def test_a_field_name_cannot_be_typst_code(doc: Document) -> None:
     `x:read("/etc/hostname"),y` was a call, not a field, and ran at build time."""
     doc.meta['x:read("/etc/hostname"),y'] = "z"
     assert "read(" not in TypstEmitter(site_url=HOST).emit(doc)
+
+
+def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
+    """As the page links them; anyone else is credited as plain text."""
+    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    out = TypstEmitter(site_url=HOST).emit(doc)
+    linked = '[#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]]'
+    assert f'  contributors: ("Ada Lovelace", {linked}, ),\n' in out
+
+
+@pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")
+def test_the_pdf_links_a_contributor_on_staff(doc: Document, tmp_path: Path) -> None:
+    """The link survives into the PDF, and only for the name on staff."""
+    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
+    original = tmp_path / IMAGE_DIR / "sas-west-036.png"
+    original.parent.mkdir()
+    original.write_bytes(PNG)
+    write_print_copies({"kix.1": original}, tmp_path / PRINT_DIR)
+    source = tmp_path / "report.typ"
+    source.write_text(TypstEmitter(site_url=HOST).emit(doc))
+    install_template(tmp_path)
+
+    uris = [
+        annot["/A"]["/URI"]
+        for page in PdfReader(compile_pdf(source)).pages
+        for annot in (a.get_object() for a in page.get("/Annots", []))
+        if "/A" in annot and "/URI" in annot["/A"]
+    ]
+    assert "https://www.etany.org/about-us#:~:text=Khyber%20Sen" in uris
+    assert not any("Lovelace" in str(uri) for uri in uris)
 
 
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")

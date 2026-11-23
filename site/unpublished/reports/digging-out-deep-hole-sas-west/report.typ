@@ -6,7 +6,7 @@
   subtitle: [Saving Billions on 125th Street],
   phase: "",
   dateline: "August 19, 2026",
-  contributors: ("Madison Feinberg", "Robert Hale", "Darius Jankauskas", "Tim Lazaroff", "Alon Levy", "Blair Lorenzo", "William Meehan", "Khyber Sen", "Franklin Tang", ),
+  contributors: ([#link("https://www.etany.org/about-us#:~:text=Madison%20Feinberg")[Madison Feinberg]], [#link("https://www.etany.org/about-us#:~:text=Robert%20Hale")[Robert Hale]], "Darius Jankauskas", "Tim Lazaroff", [#link("https://www.etany.org/about-us#:~:text=Alon%20Levy")[Alon Levy]], [#link("https://www.etany.org/about-us#:~:text=Blair%20Lorenzo")[Blair Lorenzo]], [#link("https://www.etany.org/about-us#:~:text=William%20Meehan")[William Meehan]], [#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]], "Franklin Tang", ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   warnings: (
     [write #raw("Image Source") as a #raw("Source:") line above the image instead; it takes a URL as well: #raw("https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement")],
