@@ -138,7 +138,8 @@ Its ID is in `eta-drafts`'s `CLOUDFLARE_ACCOUNT_ID` secret and in every dashboar
 - **Address:** <https://eta-drafts.pages.dev>, with previews at `<alias>.eta-drafts.pages.dev`,
   the alias being the branch name lowercased, with anything not a letter or digit turned into `-`.
   Pages projects can't be renamed, so neither can these addresses.
-- **Direct upload,** not connected to Git: CI builds the site and uploads it,
+- **Direct upload,** not connected to Git: CI is to build the site and upload it,
+  with `eta-publish drafts deploy`,
   and `eta-publish drafts preview` uploads a branch's preview from a local machine.
 - **Production branch:** `main`.
 - Nothing deployed to production yet, so after signing in the main site shows "Connection timed out".

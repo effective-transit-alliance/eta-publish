@@ -1,8 +1,12 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
-Of the code, steps 1 and 2 of the order of work below are built:
-`eta-publish all` builds `drafts/`, and `eta-publish drafts preview` previews it.
+Of the code, steps 1 to 3 of the order of work below are built:
+`eta-publish all` builds `drafts/`,
+`eta-publish drafts site` builds the drafts site with all three kinds,
+`eta-publish drafts preview` uploads it as a branch's preview,
+and `eta-publish drafts deploy` uploads it from CI.
+`eta-drafts` has no deploy workflow running `eta-publish drafts deploy` yet.
 So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
@@ -77,17 +81,17 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    a list with no entries is fine, and builds nothing.
    With no `drafts/` at all, as in this repository's CI, the drafts are skipped.
 2. **Preview from the working copy.** `eta-publish drafts preview`
-   builds the same way and uploads the result as a preview of the current branch,
+   builds the same way, with all three kinds as [the drafts site shows them](#what-the-drafts-site-shows),
+   and uploads the result as a preview of the current branch,
    behind the same sign-in, with no commit or push.
    Its address is `<alias>.eta-drafts.pages.dev`,
    where the alias is the branch name as Cloudflare writes it:
    lowercased, with anything not a letter or digit turned into `-`.
-   Its pages link within that preview, not to production,
-   wherever the list's `[site]` says `eta-drafts.pages.dev`;
-   a `[site]` at any other host is refused.
-   It uploads `drafts/site/unpublished/` with `published/` inside it
-   and no `doc.json`, through `wrangler pages deploy`:
-   only the drafts so far, since showing all three kinds is step 3.
+   Its pages link within that preview, not to production or the public site;
+   a drafts `[site]` other than `eta-drafts.pages.dev` with `published/` under it is refused.
+   It builds in a directory of its own in `drafts/`, leaving `site/` and `drafts/site/` as they are,
+   and uploads every list's `site/unpublished/` at `/` and `site/published/` under `/published/`,
+   with no `doc.json`, through `wrangler pages deploy`.
    It uses the local Cloudflare token, which has Pages Edit.
    There is no local deploy to `main`'s site: that's only done from CI.
 
@@ -174,8 +178,9 @@ and the drafts from `eta-drafts`, all built by the same code.
 and runs that commit's `.github/actions/build-setup`,
 so it sets up exactly what that commit's code was written against,
 the same way this repository's Pages workflow does.
-It builds and uploads with `eta-publish drafts deploy`,
-which refuses to run anywhere but GitHub Actions.
+It builds and uploads with `eta-publish drafts deploy --branch <branch>`,
+which refuses to run anywhere but GitHub Actions,
+and reads the Cloudflare token from `$CLOUDFLARE_API_TOKEN`.
 
 It reads the documents as the `eta-publish-ci` service account,
 signing in with Workload Identity Federation rather than a key,

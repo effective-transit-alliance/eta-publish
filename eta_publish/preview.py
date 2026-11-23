@@ -1,10 +1,11 @@
-"""Upload the drafts' site, as built from the working copy, as a preview on Cloudflare Pages.
+"""Upload the drafts site to Cloudflare Pages: a preview from a working copy, or a deploy from CI.
 
-The drafts are served by the Pages project `eta-drafts`, behind a sign-in,
+The drafts site is served by the Pages project `eta-drafts`, behind a sign-in,
 and a preview there is a deployment for a branch other than the production one,
 served at `<branch>.eta-drafts.pages.dev`.
 Each `eta-publish` branch has its preview under its own name,
 the branch of `eta-drafts` it mirrors (see `docs/drafts-plan.md`).
+What is uploaded, and how it is laid out, is `drafts_site.py`'s.
 
 Uploaded with `wrangler pages deploy`, which Cloudflare's Direct Upload guide names
 as the way to upload a folder.
@@ -19,16 +20,10 @@ and for every run of the Pages workflow, which never uploads to Cloudflare.
 """
 
 import os
-import shutil
 import subprocess
-import tempfile
-from collections.abc import Generator
-from contextlib import contextmanager
 from pathlib import Path
 
-from . import console
 from .format import ROOT
-from .naming import PUBLISHED_DIR, UNPUBLISHED_DIR
 from .site import Hosts
 
 PROJECT = "eta-drafts"
@@ -123,18 +118,42 @@ def moved(url: str, name: str) -> str:
     """
     if url != PRODUCTION_URL and not url.startswith(f"{PRODUCTION_URL}/"):
         raise Refused(
-            f"the drafts list's `[site]` has `{url}`, not at `{PRODUCTION_URL}`,"
+            f"`{url}` is not at `{PRODUCTION_URL}`,"
             " so a preview cannot tell where its own assets are served"
         )
     return f"https://{alias(name)}.{PROJECT}.pages.dev{url.removeprefix(PRODUCTION_URL)}"
 
 
 def previewed(hosts: Hosts, name: str) -> Hosts:
-    """The drafts list's `[site]` hosts, each moved from production to branch `name`'s preview."""
+    """`hosts`, each moved from the production site to branch `name`'s preview."""
     return Hosts(
         published=moved(hosts.published, name),
         unpublished=moved(hosts.unpublished, name),
     )
+
+
+CI_TOKEN = "CLOUDFLARE_API_TOKEN"
+"""Where CI has its Cloudflare token:
+`eta-drafts`'s secret of that name (see `docs/accounts.md`)."""
+
+
+def ci_token() -> str:
+    """CI's Cloudflare token, taken out of the environment so only `wrangler` is handed it.
+
+    Taken out because everything the build runs, `typst` and `yt-dlp` and the rest,
+    would otherwise inherit it, and none of them has any use for it.
+    Refused anywhere but GitHub Actions, which sets `$GITHUB_ACTIONS` to `true`,
+    since a deploy from CI is of what is committed, and one from a working copy is a preview.
+    """
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        raise Refused(
+            "this deploys what is committed, so it runs only in GitHub Actions; "
+            "from a working copy, `eta-publish drafts preview` uploads a preview"
+        )
+    value = os.environ.pop(CI_TOKEN, "").strip()
+    if not value:
+        raise Refused(f"`${CI_TOKEN}` is not set; it is `eta-drafts`'s secret of that name")
+    return value
 
 
 def token() -> str:
@@ -146,39 +165,6 @@ def token() -> str:
     if not value:
         raise Refused(f"no Cloudflare token in `{TOKEN}`; `docs/accounts.md` says which one")
     return value
-
-
-@contextmanager
-def staged(site: Path) -> Generator[Path]:
-    """A directory holding what is uploaded from `site`, removed once the upload is done.
-
-    Laid out as the Pages workflow lays out the public site:
-    `unpublished/`, with `published/` inside it under that name,
-    which is where a `[site] published` beside `[site] unpublished` says it is served.
-    Without `doc.json`, which carries the email address behind every person chip,
-    and which nothing served reads.
-
-    Hard links rather than copies, since the images and videos are most of it.
-    Beside `site`, where the build stages too, so they can be links, and not in `/tmp`.
-    """
-    directory = Path(tempfile.mkdtemp(dir=site.parent, prefix=f".{site.name}-preview-"))
-    with console.cleaned_up(lambda: shutil.rmtree(directory, ignore_errors=True)):
-        skip = shutil.ignore_patterns("doc.json")
-        shutil.copytree(
-            site / UNPUBLISHED_DIR,
-            directory,
-            ignore=skip,
-            copy_function=os.link,
-            dirs_exist_ok=True,
-        )
-        if (site / PUBLISHED_DIR).is_dir():
-            shutil.copytree(
-                site / PUBLISHED_DIR,
-                directory / PUBLISHED_DIR,
-                ignore=skip,
-                copy_function=os.link,
-            )
-        yield directory
 
 
 def upload(directory: Path, branch: str, token: str) -> None:

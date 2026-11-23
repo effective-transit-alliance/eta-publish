@@ -1,13 +1,15 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Five commands, because there are five things to do:
+Seven commands, because there are seven things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the list
     eta-publish logo            write the logo charts carry from the logo as drawn
-    eta-publish drafts preview  build the drafts, and upload them as this branch's preview
+    eta-publish drafts site     build the drafts site, every publication labeled with its kind
+    eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
+    eta-publish drafts deploy   the same from CI, for any branch, `main` included
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 

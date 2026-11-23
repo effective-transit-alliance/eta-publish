@@ -153,9 +153,19 @@ and sources with no capture publish saying they have no archive, which is true.
 # Only for this list and this output: not with another list, `-o`, or `--into`.
 uv run eta-publish all
 
-# Build the drafts in `drafts/`, and upload them as this branch's preview,
+# Build the drafts site into `out`, uploading nothing:
+# `publications.toml` and `drafts/publications.toml` laid out as one site,
+# each page labeled with its kind, under an index grouping them by kind.
+# Leaves `site/` and `drafts/site/` as they are; takes `--offline`.
+uv run eta-publish drafts site out
+
+# Build the drafts site as `drafts site` does, and upload it as this branch's preview,
 # at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
 uv run eta-publish drafts preview
+
+# The same, uploaded for `<branch>`, `main` included: what `eta-drafts`'s deploy runs.
+# Only in GitHub Actions, with the token in `$CLOUDFLARE_API_TOKEN`.
+uv run eta-publish drafts deploy --branch <branch>
 
 # Or one document, before it is on the list, somewhere scratch.
 uv run eta-publish one <google-doc-url> -o out
