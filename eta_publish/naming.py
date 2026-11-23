@@ -84,6 +84,46 @@ What the published PDF links a video to: the figure on the live page,
 which shows its warning and captions, rather than the bare file, which shows neither.
 """
 
+ABOUT_US = f"{LIVE_SITE}/about-us"
+"""ETA's staff page, where a contributor on staff is credited with a bio."""
+
+STAFF = frozenset(
+    {
+        "Blair Lorenzo",
+        "Yangbo Du",
+        "Madison Feinberg",
+        "Robert Hale",
+        "Alon Levy",
+        "William Meehan",
+        "Khyber Sen",
+    }
+)
+"""The people `ABOUT_US` has an entry for, which a byline links each of to theirs.
+
+This mirrors the `<h2>` names on that page as of 2026-11-23, exactly as it writes them,
+and must be updated when the page changes:
+a name missing here only goes unlinked,
+but a name here that the page dropped links to a page that never scrolls to it.
+"""
+
+
+def about_us_url(name: str) -> str | None:
+    """Where `ABOUT_US` introduces `name`, or `None` for someone it does not list.
+
+    Matched by the name exactly as the byline shows it, the way the page heads its entry.
+
+    The page gives no entry an `id`, so this links a text fragment:
+    the browser scrolls to the first place the name appears,
+    and each name first appears as its own heading.
+    The fragment's text is percent-encoded, as the text-fragment syntax requires,
+    and `-` too, which `quote` leaves alone and the syntax reads as a delimiter;
+    `quote` with nothing safe already encodes `&` and `,`, the other two.
+    """
+    if name not in STAFF:
+        return None
+    return f"{ABOUT_US}#:~:text={quote(name, safe='').replace('-', '%2D')}"
+
+
 IMAGE_DIR = "images"
 """The directory a build writes images into, relative to the publication.
 

@@ -22,7 +22,14 @@ import re
 from pathlib import PurePosixPath
 from typing import override
 
-from ..naming import ASSET_DIR, IMAGE_DIR, VIDEO_DIR, video_frame_name, warning_poster_name
+from ..naming import (
+    ASSET_DIR,
+    IMAGE_DIR,
+    VIDEO_DIR,
+    about_us_url,
+    video_frame_name,
+    warning_poster_name,
+)
 from ..nodes import (
     Card,
     Document,
@@ -210,13 +217,19 @@ class MarkdownEmitter(Emitter):
         """Credited at the end, as they are on the page.
 
         The front matter above carries `public contributors` as the header writes it,
-        which is the field. This is the credit, in the order it publishes in.
+        which is the field. This is the credit, in the order it publishes in,
+        each name on ETA's staff page linked to its entry there, as the page links it.
         """
         names = doc.contributors
         if not names:
             return ""
-        listed = "\n".join(f"- {name}" for name in names)
+        listed = "\n".join(f"- {self.credited(name)}" for name in names)
         return f"## Contributors\n\n{contributors_note(doc)}\n\n{listed}"
+
+    def credited(self, name: str) -> str:
+        """A contributor's name, linked to their entry on ETA's staff page if they have one."""
+        href = about_us_url(name)
+        return f"[{escape(name)}]({url(href)})" if href else name
 
     def sources(self, doc: Document) -> str:
         """Every source the publication cites, with the archived copy beside it.

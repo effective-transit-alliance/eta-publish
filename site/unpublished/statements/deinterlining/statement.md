@@ -388,10 +388,10 @@ Coney Island is not counted as it will always retain one-seat rides to both Manh
 We wish to acknowledge the following ETA members who contributed to this statement, and without whose hard work it would not be possible:
 
 - John Ericson
-- Madison Feinberg
-- Robert Hale
+- [Madison Feinberg](<https://www.etany.org/about-us#:~:text=Madison%20Feinberg>)
+- [Robert Hale](<https://www.etany.org/about-us#:~:text=Robert%20Hale>)
 - Darius Jankauskas
-- Blair Lorenzo
-- William Meehan
+- [Blair Lorenzo](<https://www.etany.org/about-us#:~:text=Blair%20Lorenzo>)
+- [William Meehan](<https://www.etany.org/about-us#:~:text=William%20Meehan>)
 - Samuel Santaella
-- Khyber Sen
+- [Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)

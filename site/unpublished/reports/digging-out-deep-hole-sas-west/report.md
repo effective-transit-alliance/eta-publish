@@ -821,12 +821,12 @@ See section 5.3 of NFPA 130: [https://link.nfpa.org/free-access/publications/130
 
 We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:
 
-- Madison Feinberg
-- Robert Hale
+- [Madison Feinberg](<https://www.etany.org/about-us#:~:text=Madison%20Feinberg>)
+- [Robert Hale](<https://www.etany.org/about-us#:~:text=Robert%20Hale>)
 - Darius Jankauskas
 - Tim Lazaroff
-- Alon Levy
-- Blair Lorenzo
-- William Meehan
-- Khyber Sen
+- [Alon Levy](<https://www.etany.org/about-us#:~:text=Alon%20Levy>)
+- [Blair Lorenzo](<https://www.etany.org/about-us#:~:text=Blair%20Lorenzo>)
+- [William Meehan](<https://www.etany.org/about-us#:~:text=William%20Meehan>)
+- [Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)
 - Franklin Tang

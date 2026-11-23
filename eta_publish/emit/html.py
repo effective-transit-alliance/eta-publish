@@ -25,6 +25,7 @@ from ..naming import (
     IMAGE_DIR,
     VIDEO_DIR,
     WEB_FORMATS,
+    about_us_url,
     content_anchor,
     has_png,
     has_web_copies,
@@ -190,6 +191,12 @@ def link_mark(anchor: str, what: str = "section") -> Tag:
     so quoting a heading does not copy a character nobody wrote.
     """
     return tag.a(class_="link-mark", href=f"#{anchor}", aria_label=f"Link to this {what}")
+
+
+def credited(name: str) -> Piece:
+    """A contributor's name, linked to their entry on ETA's staff page if they have one."""
+    href = about_us_url(name)
+    return tag.a(href=href)[name] if href else name
 
 
 BANNER_CSS = read("banner.css")
@@ -543,6 +550,8 @@ class HtmlEmitter(Emitter):
         The names come from `Public Contributors:`, in the order the document lists them,
         because the header block is the one place the credits are maintained.
         No `Public Contributors:` means no section at all.
+
+        A name on ETA's staff page links to its entry there, see `about_us_url`.
         """
         names = doc.contributors
         if not names:
@@ -554,7 +563,7 @@ class HtmlEmitter(Emitter):
                 "\n",
                 tag.p[contributors_note(doc)],
                 "\n",
-                tag.ul["\n", lines(tag.li[name] for name in names), "\n"],
+                tag.ul["\n", lines(tag.li[credited(name)] for name in names), "\n"],
                 "\n",
             ]
         )

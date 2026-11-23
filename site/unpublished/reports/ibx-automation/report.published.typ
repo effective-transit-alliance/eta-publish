@@ -6,7 +6,7 @@
   subtitle: none,
   phase: "",
   dateline: "October 21, 2026",
-  contributors: ("John Ericson", "Madison Feinberg", "Daniel Fleer", "Robert Hale", "Darius Jankauskas", "Alon Levy", "Blair Lorenzo", "Khyber Sen", ),
+  contributors: ("John Ericson", [#link("https://www.etany.org/about-us#:~:text=Madison%20Feinberg")[Madison Feinberg]], "Daniel Fleer", [#link("https://www.etany.org/about-us#:~:text=Robert%20Hale")[Robert Hale]], "Darius Jankauskas", [#link("https://www.etany.org/about-us#:~:text=Alon%20Levy")[Alon Levy]], [#link("https://www.etany.org/about-us#:~:text=Blair%20Lorenzo")[Blair Lorenzo]], [#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]], ),
   contributors_note: "We wish to acknowledge the following ETA members who contributed to this report, and without whose hard work it would not be possible:",
   hero: [
 #figure(

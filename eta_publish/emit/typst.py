@@ -23,6 +23,7 @@ from ..naming import (
     IMAGE_DIR,
     PRINT_DIR,
     VIDEO_DIR,
+    about_us_url,
     media_address,
     media_fragment,
     print_href,
@@ -169,8 +170,17 @@ class TypstEmitter(Emitter):
         )
 
     def contributors(self, doc: Document) -> str:
-        """The credited names as a Typst array, so the template can list them."""
-        return "".join(f"{string(name)}, " for name in doc.contributors)
+        """The credited names as a Typst array, so the template can list them.
+
+        A name on ETA's staff page is content linking to its entry there, as the page links it;
+        any other is a plain string, which the template lists the same way.
+        """
+        return "".join(f"{self.credited(name)}, " for name in doc.contributors)
+
+    def credited(self, name: str) -> str:
+        """One contributor as an element of that array."""
+        href = about_us_url(name)
+        return f"[#link({string(href)})[{escape(name)}]]" if href else string(name)
 
     # ---- blocks -----------------------------------------------------
 
