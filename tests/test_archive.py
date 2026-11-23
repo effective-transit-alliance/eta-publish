@@ -172,6 +172,38 @@ def test_a_reason_since_reworded_is_read_as_it_reads_now(tmp_path: Path) -> None
     assert recorded.said == "in-progress (job spn2-a3)"
 
 
+def test_a_block_recorded_as_pending_is_read_as_final(tmp_path: Path) -> None:
+    """The Harsimus Cove photo, kept `pending` over a block, and asked about by
+    every build while its job went on answering `in-progress`."""
+    said = (
+        "error:no-request: The target server blocks access to https://a.example/1. "
+        "(HTTP status=403) (job spn2-a3)"
+    )
+    (tmp_path / "archives.json").write_text(
+        json.dumps(
+            {
+                "https://a.example/1": {
+                    "error": "error:no-request",
+                    "pending": True,
+                    "said": said,
+                    "timestamp": "20261108",
+                    "version": "https://a.example/w/index.php?oldid=1",
+                    "versioned": "20261015",
+                }
+            }
+        )
+    )
+    doc = cites("https://a.example/1")
+    read_archive_index(tmp_path, doc)
+    assert doc.archives["https://a.example/1"] == Archived(
+        timestamp="20261108",
+        error=archive.BLOCKED,
+        version="https://a.example/w/index.php?oldid=1",
+        versioned="20261015",
+    )
+    assert missing(doc) == []
+
+
 def test_a_failed_capture_is_not_tried_again() -> None:
     doc = cites("https://a.example/1", "https://b.example/2")
     doc.archives["https://a.example/1"] = Archived(timestamp="20260101", error="cannot be captured")
@@ -1127,6 +1159,46 @@ def test_a_job_save_page_now_lost_is_not_captured_again_within_the_day(
     lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
     assert session.submitted == 0
     assert (lookup.unanswered, lookup.short) == (True, archive.ASKED_LATELY)
+
+
+BLOCKS = {
+    "status": "error",
+    "status_ext": "error:no-request",
+    "message": "The target server blocks access to https://a.example/1. (HTTP status=403)",
+}
+"""What Save Page Now said of the Harsimus Cove photo's capture, every time it said why."""
+
+
+@pytest.mark.parametrize("when", ["submitted", "polled"])
+def test_a_site_that_blocks_the_archive_is_the_pages_answer(
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch, when: str
+) -> None:
+    """Not `pending`, though it comes as `error:no-request`: the site said no."""
+    _found_nothing(monkeypatch)
+    job = {"job_id": "job-1"}
+    session = Saving([BLOCKS] if when == "submitted" else [job, BLOCKS])
+    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
+    assert not lookup.unanswered
+    assert lookup.archived is not None
+    assert (lookup.archived.error, lookup.archived.pending) == (archive.BLOCKED, False)
+
+
+def test_a_recorded_job_the_site_blocked_is_not_asked_for_again(
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _found_nothing(monkeypatch)
+    archive._remember_job("https://a.example/1", "job-1")
+    session = Saving([BLOCKS])
+    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
+    assert lookup.archived is not None
+    assert (lookup.archived.error, lookup.archived.job) == (archive.BLOCKED, "job-1")
+    assert session.submitted == 0
+
+
+def test_a_source_the_site_blocks_is_not_asked_about_again(keyed: None) -> None:
+    doc = cites("https://a.example/1")
+    doc.archives["https://a.example/1"] = Archived(timestamp="20261108", error=archive.BLOCKED)
+    assert missing(doc) == []
 
 
 def test_a_capture_is_asked_for_again_the_next_day(
