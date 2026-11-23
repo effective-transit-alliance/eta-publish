@@ -1,27 +1,35 @@
 {
-  "files": {
-    // Not the charts: they are downloaded as somebody else made them and published as they are,
-    // so laying them out would change their bytes for nothing,
-    // and a lint rule one of them breaks would stop a build over a file nobody here can edit.
-    // `biome` 2.3 never read an SVG; 2.5 formats and lints them.
-    // Nor the `.min` copies, which a build with `--into` finds left by the last one:
-    // laid out, they would no longer be minified, and minified code breaks every rule.
-    "includes": ["**", "!**/*.svg", "!**/*.min.*"]
-  },
-  "linter": {
-    "rules": {
-      "a11y": {
-        // Every empty link here is a `#` mark with an `aria-label`,
-        // which is its accessible name; this rule's HTML half does not read `aria-label`.
-        "useAnchorContent": "off",
-        // An alt text that says "photo" is the document's to fix, not the build's:
-        // the build warns the author about it instead (`checks.py`),
-        // and drops an opening "A photo" from a caption standing in as alt text.
-        "noRedundantAlt": "off",
-        // Our videos are footage, not speech: what little is said in them
-        // is not what they are there to show.
-        "useMediaCaption": "off"
-      }
+    "files": {
+        // Not the charts: they are downloaded as somebody else made them and published as they are,
+        // so laying them out would change their bytes for nothing,
+        // and a lint rule one of them breaks would stop a build over a file nobody here can edit.
+        // `biome` 2.3 never read an SVG; 2.5 formats and lints them.
+        // Nor the `.min` copies, which a build with `--into` finds left by the last one:
+        // laid out, they would no longer be minified, and minified code breaks every rule.
+        "includes": ["**", "!**/*.svg", "!**/*.min.*"]
+    },
+    "formatter": {
+        // `biome` indents with a tab by default, and wraps at 80;
+        // this repo's code, and what a build writes, are laid out as the Python is:
+        // 4 spaces to an indent, and as wide as `ruff` lets it be.
+        "indentStyle": "space",
+        "indentWidth": 4,
+        "lineWidth": 100
+    },
+    "linter": {
+        "rules": {
+            "a11y": {
+                // Every empty link here is a `#` mark with an `aria-label`,
+                // which is its accessible name; this rule's HTML half does not read `aria-label`.
+                "useAnchorContent": "off",
+                // An alt text that says "photo" is the document's to fix, not the build's:
+                // the build warns the author about it instead (`checks.py`),
+                // and drops an opening "A photo" from a caption standing in as alt text.
+                "noRedundantAlt": "off",
+                // Our videos are footage, not speech: what little is said in them
+                // is not what they are there to show.
+                "useMediaCaption": "off"
+            }
+        }
     }
-  }
 }

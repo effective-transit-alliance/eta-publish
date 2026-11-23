@@ -41,6 +41,20 @@ repos:
         language: system
         types: [markdown]
 
+      # The stylesheets, scripts, and configuration written here.
+      # A build lays out what it writes on its own (`format.py`),
+      # but nothing laid out what it copies from.
+      # Not `site/`, which is a build's, nor the test fixtures,
+      # which are the documents and API responses as they were downloaded.
+      # Through `mise`, at the version `mise.toml` pins, like the build's.
+      - id: biome-format
+        name: biome format
+        entry: mise x -- biome format
+        language: system
+        # By name: `pre-commit` gives a `.jsonc` file no type.
+        files: \.(css|m?js|jsonc?)$
+        exclude: ^(site|tests/fixture)/
+
       # Like the others, from the project's own environment,
       # so it sees exactly the dependencies `uv` installs.
       - id: pyrefly

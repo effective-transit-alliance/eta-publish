@@ -805,8 +805,8 @@ and the fragment sizes were measured from real builds.
   is the closest thing to a pure HTML page, and it is close enough.
 - **A code block holds 400 KB (~300,000 characters).**
   The largest publication so far, the SAS West report,
-  comes to 347 KB as `report.html` and 269 KB as `report.min.html`,
-  inside the limit but not by much.
+  comes to 272 KB as `report.min.html`, the copy pasted,
+  inside the limit but not by much; the formatted `report.html` is 401 KB.
   A build warns past 250 KB, and past 400 KB says to split it.
   `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**
@@ -838,8 +838,10 @@ because the emitted HTML is committed
 and a formatter that changed its mind between versions
 would rewrite every publication without a publication having changed.
 
-`ruff format`, `ruff check`, `ty`, `pyrefly`, and `pytest`
+`ruff format`, `ruff check`, `ty`, `pyrefly`, `biome format`, and `pytest`
 run as pre-commit hooks and again in CI.
+`biome format` lays out the stylesheets, scripts, and configuration in the repo,
+which a build copies from but does not lay out itself.
 The `pytest` hook skips a commit that changes only files no test reads,
 like `docs/` and `README.md`, as `scripts/pytest-unless-unread.sh` lists them,
 and a commit whose tree the tests already passed on in this checkout.

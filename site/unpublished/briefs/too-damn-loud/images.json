@@ -1,16 +1,16 @@
 {
-  "kix.9htcorb8042p": {
-    "file": "img-b17aa21a.png",
-    "flatness": 0.99,
-    "height": 1000,
-    "pixels_sha256": "1729065385dbf08ebed47bb956c2dfd1ec04fe7946e1b6c2dd5362e36b9d702b",
-    "width": 1427
-  },
-  "kix.djm0a1aand4k": {
-    "file": "img-831248b1.jpg",
-    "flatness": 0.02,
-    "height": 787,
-    "pixels_sha256": "57e98efdf3ee42022730217b9e27b73fe628e0edb2f2b8087fbe5148d85b6fa1",
-    "width": 510
-  }
+    "kix.9htcorb8042p": {
+        "file": "img-b17aa21a.png",
+        "flatness": 0.99,
+        "height": 1000,
+        "pixels_sha256": "1729065385dbf08ebed47bb956c2dfd1ec04fe7946e1b6c2dd5362e36b9d702b",
+        "width": 1427
+    },
+    "kix.djm0a1aand4k": {
+        "file": "img-831248b1.jpg",
+        "flatness": 0.02,
+        "height": 787,
+        "pixels_sha256": "57e98efdf3ee42022730217b9e27b73fe628e0edb2f2b8087fbe5148d85b6fa1",
+        "width": 510
+    }
 }

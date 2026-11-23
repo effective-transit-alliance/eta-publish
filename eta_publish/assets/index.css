@@ -1,22 +1,69 @@
-:root { color-scheme: light dark; --fg: #1a1a1a; --bg: #fff; }
-@media (prefers-color-scheme: dark) { :root { --fg: #eaeaea; --bg: #141414; } }
-body { background: var(--bg); color: var(--fg); max-width: 46rem;
-       margin: 0 auto; padding: 3rem 1.25rem 6rem;
-       font: 17px/1.6 system-ui, sans-serif; }
-h1 { font-size: 1.6rem; }
-ul { list-style: none; padding: 0; }
-li { margin: 2em 0; }
-a { color: inherit; }
+:root {
+    color-scheme: light dark;
+    --fg: #1a1a1a;
+    --bg: #fff;
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --fg: #eaeaea;
+        --bg: #141414;
+    }
+}
+body {
+    background: var(--bg);
+    color: var(--fg);
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 6rem;
+    font:
+        17px / 1.6 system-ui,
+        sans-serif;
+}
+h1 {
+    font-size: 1.6rem;
+}
+ul {
+    list-style: none;
+    padding: 0;
+}
+li {
+    margin: 2em 0;
+}
+a {
+    color: inherit;
+}
 /* The share card above its title, as a link to the publication previews it. */
-.card { display: block; width: 100%; max-width: 18rem; height: auto;
-        border-radius: .4em; margin: 0 0 .6em; }
-.short { opacity: .75; font-size: .95rem; }
-.meta { opacity: .6; font-size: .85rem; }
-.failed { border-left: 3px solid #c60; padding: .4em 1em; font-size: .9rem; }
+.card {
+    display: block;
+    width: 100%;
+    max-width: 18rem;
+    height: auto;
+    border-radius: 0.4em;
+    margin: 0 0 0.6em;
+}
+.short {
+    opacity: 0.75;
+    font-size: 0.95rem;
+}
+.meta {
+    opacity: 0.6;
+    font-size: 0.85rem;
+}
+.failed {
+    border-left: 3px solid #c60;
+    padding: 0.4em 1em;
+    font-size: 0.9rem;
+}
 /* As `publication.css` has it, because it says the same thing here: the publication
    behind this link is a draft. Repeated rather than linked, since this page
    carries one inlined stylesheet and nothing else of the publication's. */
-.phase { font-size: 1.05rem; font-weight: bold;
-         color: #fff; background: #c0202a;
-         border-radius: .2em;
-         display: inline-block; padding: .2em .6em; margin: 0 0 .4em; }
+.phase {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #fff;
+    background: #c0202a;
+    border-radius: 0.2em;
+    display: inline-block;
+    padding: 0.2em 0.6em;
+    margin: 0 0 0.4em;
+}

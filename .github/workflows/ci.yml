@@ -43,6 +43,10 @@ jobs:
       - name: markdownlint
         run: pre-commit run markdownlint-cli2 --all-files
 
+      # Through its pre-commit hook too, for which files it formats.
+      - name: biome format
+        run: pre-commit run biome-format --all-files
+
       # The `network` marker is deselected by default (see `pyproject.toml`),
       # so CI never needs Google credentials.
       - name: pytest
