@@ -52,7 +52,6 @@ from .site import (
     Site,
     add_publication,
     build_site,
-    clashes,
     index_page,
     label,
     listed_publication,
@@ -359,15 +358,11 @@ def write_site(
     options = replace(options, staff=staff)
     site = build_site(publications, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
 
-    # Before anything is laid out or put in place: two publications at one path
-    # have both been built into one directory, which is neither of them.
-    # The whole build, not the two publications, since nothing says which one is meant there.
-    found = clashes([(None, site.built)])
-    if found:
-        log = console.for_stream()
-        for clash in found:
-            log.line()
-            console.write(console.failed("two publications at one path", clash), log)
+    # Before anything is laid out or put in place: of two publications at one path,
+    # whichever claimed the path second was refused before it wrote anything, and has said so,
+    # but the first is still no more the one meant there than the second.
+    # So the whole build, not the two publications.
+    if site.clashed:
         raise Exit(code=1)
 
     outdir.mkdir(parents=True, exist_ok=True)
