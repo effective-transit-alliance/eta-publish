@@ -307,7 +307,8 @@ def _sign_in() -> Credentials:
     so a service account is used through `google.auth.default`.
 
     Those are checked first, because a machine that has them has them deliberately:
-    they are set by an environment variable naming a key file, not found by accident.
+    they are set by an environment variable naming a credentials file, not found by accident.
+    In CI, that file is what Workload Identity Federation writes, not a stored key.
     """
     ambient = _ambient_credentials()
     if ambient is not None:
@@ -601,8 +602,8 @@ def fetch(
             # which is a confident nought no retry would catch.
             #
             # Said out loud, because `google.auth.default` finds
-            # `gcloud auth application-default login` as well as a key named by
-            # the environment, so a machine that acquires one would otherwise stop
+            # `gcloud auth application-default login` as well as a credentials file
+            # named by the environment, so a machine that acquires one would otherwise stop
             # counting these silently.
             console.write(
                 console.note(
