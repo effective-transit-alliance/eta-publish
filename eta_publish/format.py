@@ -146,9 +146,6 @@ def tree(root: Path) -> None:
             "--write",
             # HTML formatting is off by default in this version.
             "--html-formatter-enabled=true",
-            # `biome` indents with tabs; the stylesheets and the script in
-            # `assets/` are already written with spaces.
-            "--indent-style=space",
             # Every space in the prose is one somebody typed, so none of them
             # move.
             #

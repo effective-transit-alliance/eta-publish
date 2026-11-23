@@ -8,6 +8,11 @@
     // laid out, they would no longer be minified, and minified code breaks every rule.
     "includes": ["**", "!**/*.svg", "!**/*.min.*"]
   },
+  "formatter": {
+    // `biome` indents with tabs by default;
+    // this repo's code, and what a build writes, indent with spaces.
+    "indentStyle": "space"
+  },
   "linter": {
     "rules": {
       "a11y": {
