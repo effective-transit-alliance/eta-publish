@@ -5,12 +5,13 @@ and that it says no before building or uploading when it should.
 `upload` is replaced where the command is run, and `subprocess.run` where `upload` is.
 """
 
+import json
 import os
 import subprocess
 from pathlib import Path
 
 import pytest
-from test_site import seed_image_index, write_list
+from test_site import FIXTURE, SLUG, seed_image_index
 from typer.testing import CliRunner, Result
 
 import eta_publish.build as build_module
@@ -210,12 +211,32 @@ class Uploads:
         self.calls.append((files_under(directory), branch, token))
 
 
+def write_drafts_list(path: Path, url: str, hosts: tuple[str, str]) -> None:
+    """The drafts' list: a `[site]` at `hosts`, published then unpublished, and `url` if any."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    published, unpublished = hosts
+    path.write_text(
+        f'[site]\npublished = "{published}"\nunpublished = "{unpublished}"\n\n'
+        + (
+            "[[report]]\n"
+            + 'name = "Digging Out of a Very Deep Hole"\n'
+            + 'tab = "Draft 2"\n'
+            + f'url = "{url}"\n'
+            + 'published = "draft"\n'
+            if url
+            else ""
+        )
+    )
+
+
 def preview_drafts(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     *,
     url: str | None = "",
     refused: str | None = None,
+    hosts: tuple[str, str] = (f"{preview.PRODUCTION_URL}/published", preview.PRODUCTION_URL),
+    branch: str = "foo",
 ) -> tuple[Result, Uploads]:
     """`eta-publish drafts preview` in a directory laid out as a checkout with `drafts/`.
 
@@ -224,17 +245,17 @@ def preview_drafts(
     """
     monkeypatch.chdir(tmp_path)
     if url is not None:
-        write_list(tmp_path / "drafts" / "publications.toml", url, listed=bool(url))
+        write_drafts_list(tmp_path / "drafts" / "publications.toml", url, hosts)
         if refused is None:
             seed_image_index(tmp_path / "drafts" / "site" / UNPUBLISHED_DIR)
     uploads = Uploads()
 
-    def branch() -> str:
+    def named() -> str:
         if refused is not None:
             raise preview.Refused(refused)
-        return "foo"
+        return branch
 
-    monkeypatch.setattr(preview, "branch", branch)
+    monkeypatch.setattr(preview, "branch", named)
     monkeypatch.setattr(preview, "token", lambda: "secret")
     monkeypatch.setattr(preview, "upload", uploads)
     result = CliRunner().invoke(app, ["drafts", "preview", "--no-archive", "--no-comments"])
@@ -287,6 +308,95 @@ def test_preview_with_a_failed_draft_uploads_nothing(
 
     assert result.exit_code == 1
     assert uploads.calls == []
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("foo", "foo"),
+        ("Foo", "foo"),
+        ("fix/api", "fix-api"),
+        ("a_b.c", "a-b-c"),
+        ("v1--x", "v1--x"),
+    ],
+)
+def test_alias_lowercases_and_hyphenates_what_is_not_alphanumeric(name: str, expected: str) -> None:
+    assert preview.alias(name) == expected
+
+
+@pytest.mark.parametrize("name", ["/x", "x/", "-x", "é", "a" * 64])
+def test_alias_refuses_what_cloudflare_does_not_say(name: str) -> None:
+    with pytest.raises(preview.Refused):
+        preview.alias(name)
+
+
+def test_alias_allows_the_longest_label() -> None:
+    assert preview.alias("a" * 63) == "a" * 63
+
+
+def test_previewed_moves_production_to_the_branch_with_the_same_paths() -> None:
+    hosts = preview.Hosts(
+        published=f"{preview.PRODUCTION_URL}/published", unpublished=preview.PRODUCTION_URL
+    )
+
+    assert preview.previewed(hosts, "Fix/API") == preview.Hosts(
+        published="https://fix-api.eta-drafts.pages.dev/published",
+        unpublished="https://fix-api.eta-drafts.pages.dev",
+    )
+
+
+@pytest.mark.parametrize(
+    "url",
+    [
+        "https://example.com",
+        "https://eta-drafts.pages.dev.example.com",
+        "https://other.eta-drafts.pages.dev",
+        "https://eta-drafts.pages.devx/published",
+    ],
+)
+def test_previewed_refuses_a_host_that_is_not_production(url: str) -> None:
+    with pytest.raises(preview.Refused, match="not at"):
+        preview.previewed(preview.Hosts(published=url, unpublished=preview.PRODUCTION_URL), "foo")
+
+
+def test_preview_builds_the_fragments_at_the_branchs_host(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "tabTitle": "Draft 2"}))
+    result, uploads = preview_drafts(tmp_path, monkeypatch, url=str(saved), branch="Fix/API")
+
+    assert result.exit_code == 0, result.output
+    built = tmp_path / "drafts" / "site"
+    fragment = (built / UNPUBLISHED_DIR / SLUG / "report.html").read_text()
+    assert "https://fix-api.eta-drafts.pages.dev" in fragment
+    for output in built.rglob("*.html"):
+        assert f"{preview.PRODUCTION_URL}" not in output.read_text(), output
+    assert [branch for _, branch, _ in uploads.calls] == ["Fix/API"]
+
+
+def test_preview_with_a_host_that_is_not_production_builds_and_uploads_nothing(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result, uploads = preview_drafts(
+        tmp_path,
+        monkeypatch,
+        hosts=("https://example.com/published", "https://example.com"),
+    )
+
+    assert result.exit_code == 1
+    assert "https://example.com" in result.output
+    assert uploads.calls == []
+    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / "index.html").exists()
+
+
+def test_preview_leaves_the_committed_drafts_hosts_alone(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result, _ = preview_drafts(tmp_path, monkeypatch, branch="foo")
+
+    assert result.exit_code == 0, result.output
+    assert preview.PRODUCTION_URL in (tmp_path / "drafts" / "publications.toml").read_text()
 
 
 def test_preview_with_a_drafts_directory_but_no_list_says_which_file_is_missing(
