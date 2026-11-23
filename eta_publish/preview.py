@@ -1,4 +1,4 @@
-"""Upload the drafts site, as built from the working copy, as a preview on Cloudflare Pages.
+"""Upload the drafts site to Cloudflare Pages: a preview from a working copy, or a deploy from CI.
 
 The drafts site is served by the Pages project `eta-drafts`, behind a sign-in,
 and a preview there is a deployment for a branch other than the production one,
@@ -130,6 +130,30 @@ def previewed(hosts: Hosts, name: str) -> Hosts:
         published=moved(hosts.published, name),
         unpublished=moved(hosts.unpublished, name),
     )
+
+
+CI_TOKEN = "CLOUDFLARE_API_TOKEN"
+"""Where CI has its Cloudflare token:
+`eta-drafts`'s secret of that name (see `docs/accounts.md`)."""
+
+
+def ci_token() -> str:
+    """CI's Cloudflare token, taken out of the environment so only `wrangler` is handed it.
+
+    Taken out because everything the build runs, `typst` and `yt-dlp` and the rest,
+    would otherwise inherit it, and none of them has any use for it.
+    Refused anywhere but GitHub Actions, which sets `$GITHUB_ACTIONS` to `true`,
+    since a deploy from CI is of what is committed, and one from a working copy is a preview.
+    """
+    if os.environ.get("GITHUB_ACTIONS") != "true":
+        raise Refused(
+            "this deploys what is committed, so it runs only in GitHub Actions; "
+            "from a working copy, `eta-publish drafts preview` uploads a preview"
+        )
+    value = os.environ.pop(CI_TOKEN, "").strip()
+    if not value:
+        raise Refused(f"`${CI_TOKEN}` is not set; it is `eta-drafts`'s secret of that name")
+    return value
 
 
 def token() -> str:

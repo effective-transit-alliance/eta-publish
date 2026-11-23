@@ -1,6 +1,6 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Six commands, because there are six things to do:
+Seven commands, because there are seven things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
@@ -9,6 +9,7 @@ Six commands, because there are six things to do:
     eta-publish logo            write the logo charts carry from the logo as drawn
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
     eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
+    eta-publish drafts deploy   the same from CI, for any branch, `main` included
 
 `all` and `one` write the logo first too, so an edited one is never left behind.
 
@@ -730,6 +731,34 @@ def preview_drafts(
     except preview.Refused as e:
         refuse(str(e))
     deploy(branch, token, suggestions, archive, comments, what="drafts preview")
+
+
+@drafts.command(name="deploy")
+def deploy_drafts(
+    branch: Annotated[
+        str,
+        Option(
+            help="the `eta-drafts` branch being deployed: `main` is the drafts site itself,"
+            " and any other its preview at `<branch>.eta-drafts.pages.dev`"
+        ),
+    ],
+    suggestions: Suggested = Suggestions.REJECTED,
+    archive: Archive = True,
+    comments: Comments = True,
+) -> None:
+    """Build the drafts site and upload it for `--branch`: what `eta-drafts`'s workflow runs.
+
+    As `drafts preview` does, for any branch, `main` included,
+    with the Cloudflare token in `$CLOUDFLARE_API_TOKEN`.
+    Only in GitHub Actions, where what is built is what is committed:
+    from a working copy, a deploy is `drafts preview`.
+    """
+    what = "drafts deploy"
+    try:
+        token = preview.ci_token()
+    except preview.Refused as e:
+        refuse(str(e), what)
+    deploy(branch, token, suggestions, archive, comments, what=what)
 
 
 def deploy(

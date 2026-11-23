@@ -1,8 +1,12 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
-Of the code, steps 1 and 2 of the order of work below are built:
-`eta-publish all` builds `drafts/`, and `eta-publish drafts preview` previews it.
+Of the code, steps 1 to 3 of the order of work below are built:
+`eta-publish all` builds `drafts/`,
+`eta-publish drafts site` builds the drafts site with all three kinds,
+`eta-publish drafts preview` uploads it as a branch's preview,
+and `eta-publish drafts deploy` uploads it from CI.
+`eta-drafts` has no deploy workflow running `eta-publish drafts deploy` yet.
 So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
@@ -174,8 +178,9 @@ and the drafts from `eta-drafts`, all built by the same code.
 and runs that commit's `.github/actions/build-setup`,
 so it sets up exactly what that commit's code was written against,
 the same way this repository's Pages workflow does.
-It builds and uploads with `eta-publish drafts deploy`,
-which refuses to run anywhere but GitHub Actions.
+It builds and uploads with `eta-publish drafts deploy --branch <branch>`,
+which refuses to run anywhere but GitHub Actions,
+and reads the Cloudflare token from `$CLOUDFLARE_API_TOKEN`.
 
 It reads the documents as the `eta-publish-ci` service account,
 signing in with Workload Identity Federation rather than a key,

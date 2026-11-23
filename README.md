@@ -163,6 +163,10 @@ uv run eta-publish drafts site out
 # at `<alias>.eta-drafts.pages.dev`, behind the sign-in. Not on `main`.
 uv run eta-publish drafts preview
 
+# The same, uploaded for `<branch>`, `main` included: what `eta-drafts`'s deploy runs.
+# Only in GitHub Actions, with the token in `$CLOUDFLARE_API_TOKEN`.
+uv run eta-publish drafts deploy --branch <branch>
+
 # Or one document, before it is on the list, somewhere scratch.
 uv run eta-publish one <google-doc-url> -o out
 
