@@ -1,7 +1,9 @@
 # Plan: private drafts in `eta-drafts`
 
 Decided 2026-11-20, and updated 2026-11-21 with what's been decided and set up since.
-Of the code, `main` has only what the drafts share with this repository's own site:
+Of the code, step 1 of the order of work below is built:
+`eta-publish all` builds `drafts/`.
+So is what the drafts share with this repository's own site:
 the build setup, `.github/actions/build-setup`;
 the refusal of two publications at one path;
 and the label on every preview page saying which kind of publication it is.
@@ -69,7 +71,8 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
 
 1. **Build with the working copy.** `uv run eta-publish all` builds `drafts/` too,
    with whatever code is in the working copy, uncommitted edits included.
-   The tool needs to learn to find the drafts' list and output under `drafts/`.
+   The drafts' list is `drafts/publications.toml`, with a `[site]` of its own,
+   and they are built into `drafts/site/`.
    A `drafts/` without its `publications.toml` is an error;
    a list with no entries is fine, and builds nothing.
    With no `drafts/` at all, as in this repository's CI, the drafts are skipped.

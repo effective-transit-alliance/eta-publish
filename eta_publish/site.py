@@ -46,6 +46,13 @@ from .parse import parse
 PUBLICATIONS = Path("publications.toml")
 """Which documents the site is built from, committed beside the code."""
 
+SITE = Path("site")
+"""Where the site is built, committed beside the list."""
+
+DRAFTS = Path("drafts")
+"""A clone of the private `eta-drafts`, laid out as this checkout is:
+its own `PUBLICATIONS`, built into its own `SITE`."""
+
 
 class Published(StrEnum):
     """Whether, and how, a publication is out on Squarespace.

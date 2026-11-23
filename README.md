@@ -148,6 +148,9 @@ and sources with no capture publish saying they have no archive, which is true.
 
 ```sh
 # Every publication in `publications.toml`, into `site/unpublished/`.
+# With a clone of `eta-drafts` in `drafts/` (see `docs/drafts-plan.md`),
+# also `drafts/publications.toml`, into `drafts/site/`.
+# Only for this list and this output: not with another list, `-o`, or `--into`.
 uv run eta-publish all
 
 # Or one document, before it is on the list, somewhere scratch.
