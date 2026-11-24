@@ -17,6 +17,9 @@ token.json
 # see `docs/drafts-plan.md`.
 /drafts/
 
+# Where the `drafts-build` hook builds the drafts, removed once it's done.
+/.drafts-check-*/
+
 # Where `wrangler` caches which Cloudflare account and Pages project it deployed to,
 # written in the checkout it runs from by `eta-publish drafts preview`.
 /.wrangler/
