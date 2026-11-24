@@ -23,7 +23,8 @@
 # no document is called nothing.
 # Neither is anything a URL can supply, and typing them out of Drive by hand
 # is the step that gets them wrong, so `eta-publish add <url>`
-# writes an entry with the names read off the document itself.
+# writes an entry with the names read off the document itself,
+# into the drafts' `drafts/publications.toml` unless `-p publications.toml` says here.
 #
 # `url` is the Docs URL including its `?tab=` id.
 # ETA documents have many tabs, several of them obsolete drafts,

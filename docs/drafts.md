@@ -25,6 +25,10 @@ for `main` and for every branch.
 This repository's publications are all built into `site/unpublished/`,
 and the automatically published ones, the part their live pages need, into `site/published/` too
 (see [the Pages pipeline](../README.md#the-pages-pipeline)).
+A new publication starts as a draft:
+`eta-publish add <url>` writes its entry into `drafts/publications.toml` by default,
+and refuses with no clone of `eta-drafts` there rather than adding it here;
+`-p publications.toml` adds it to this repository's list instead, on purpose.
 A manually published report becomes an automatically published one
 once its publishing is switched to the tool,
 by changing its `published` to `"automated"`, in one commit here.
