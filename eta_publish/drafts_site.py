@@ -1,6 +1,6 @@
 """The drafts site, `eta-drafts.pages.dev`: every publication there is, each labeled with its kind.
 
-`docs/drafts-plan.md` says what it is for: one place to see what a change to this code
+`docs/drafts.md` says what it is for: one place to see what a change to this code
 does to every publication, the drafts in `eta-drafts` and this repository's own alike.
 So it shows all three kinds of publication, built by the same code,
 and every publication's page says which kind it is (see `site.KINDS`).

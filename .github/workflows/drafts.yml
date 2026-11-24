@@ -2,7 +2,7 @@
 # `main` to `eta-drafts.pages.dev`, and any other branch to its preview, `<branch>.eta-drafts.pages.dev`.
 #
 # Both are `eta-drafts`'s sync workflow, since the drafts are private
-# and the Cloudflare token is that repository's secret (see `docs/drafts-plan.md`).
+# and the Cloudflare token is that repository's secret (see `docs/drafts.md`).
 # This only starts it, with the branch pushed,
 # through `DRAFTS_DISPATCH_TOKEN`, which can do nothing but run `eta-drafts`'s workflows.
 # It finds the commits pushed itself, as the ones its branch has no drafts commits for,

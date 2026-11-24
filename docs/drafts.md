@@ -1,41 +1,33 @@
-# Plan: private drafts in `eta-drafts`
+# Private drafts in `eta-drafts`
 
-Decided 2026-11-20, and updated 2026-11-23 with what's been decided and set up since.
-All five steps of the order of work below are built:
-`eta-publish all` builds `drafts/`,
-`eta-publish drafts site` builds the drafts site with all three kinds,
-`eta-publish drafts preview` uploads it as a preview of the current commit,
-and `eta-publish drafts deploy` uploads it from CI,
-where every push to `eta-publish` deploys it for its branch
-(see [how the deploy is set up](#how-the-deploy-is-set-up)).
-Every commit gets its drafts commit, locally in `drafts/` from the hooks in `scripts/drafts-commit.sh`,
-and otherwise from CI on push
-(see [a drafts commit for every code commit](#a-drafts-commit-for-every-code-commit)).
-So is what the drafts share with this repository's own site:
-the build setup, `.github/actions/build-setup`;
-the refusal of two publications at one path;
-and the label on every preview page saying which kind of publication it is.
-[`accounts.md`](accounts.md) has the accounts and credentials it uses,
-which already exist.
-
-## Goal
-
-New publications have to be drafted somewhere private,
+New publications are drafted somewhere private,
 while the code stays open source in this public repository.
 The code changes often, mostly to make new drafts look right once published,
 so every code change has to be easy to see in every draft,
 locally and deployed, before and after it lands.
 
+So the drafts are in a private repository of their own, `eta-drafts`,
+cloned inside this one as `drafts/`.
+`eta-publish all` builds them along with this repository's publications,
+every code commit gets a drafts commit rebuilding them with it,
+and the drafts site, `eta-drafts.pages.dev`, shows every publication, drafts included,
+for `main` and for every branch.
+[`accounts.md`](accounts.md) has the accounts and credentials it uses.
+
 ## The three kinds of publication
 
-| Kind | Label on its preview page | Where it lives | Public? |
+| Kind | Label on its preview page | Listed in | Public? |
 | --- | --- | --- | --- |
-| Published by the tool | **Automatically Published** | `eta-publish`, `site/published/` | yes |
-| Published by hand, not yet moved to the tool | **Manually Published** | `eta-publish`, `site/unpublished/` | yes |
-| Not published anywhere yet | **Draft** | `eta-drafts` | no |
+| Published by the tool | **Automatically Published** | `eta-publish`'s `publications.toml`, with `published = "automated"` | yes |
+| Published by hand, not yet moved to the tool | **Manually Published** | `eta-publish`'s `publications.toml`, with `published = "manual"` | yes |
+| Not published anywhere yet | **Draft** | `eta-drafts`'s `publications.toml` | no |
 
-A manually published report moves from `site/unpublished/` to `site/published/`
-once its publishing is switched to the tool, in one commit here.
+This repository's publications are all built into `site/unpublished/`,
+and the automatically published ones, the part their live pages need, into `site/published/` too
+(see [the Pages pipeline](../README.md#the-pages-pipeline)).
+A manually published report becomes an automatically published one
+once its publishing is switched to the tool,
+by changing its `published` to `"automated"`, in one commit here.
 When a draft is published, it moves from `eta-drafts` into this repository.
 
 The drafts already in this repository's history stay there:
@@ -49,16 +41,12 @@ so a draft at the same path is an error, not a replacement.
 ## Repositories
 
 - **`eta-publish` (public):** the code, the tests, `site/published/`, `site/unpublished/`,
-  and their entries in `publications.toml`. Unchanged apart from what's below.
+  and their entries in `publications.toml`.
 - **`eta-drafts` (private):** the drafts' entries in a `publications.toml` of its own,
   their built output with the saved Google Docs data it's rebuilt from,
   and a submodule `eta-publish`, pinning the `eta-publish` commit that built them.
 
-The pin is a submodule, git's own way to pin another repository,
-rather than a file format of our own, or `uv.lock`:
-`uv lock` fetches the commit it pins from GitHub,
-which fails for a commit not pushed yet,
-and the local hook below pins commits before they're pushed.
+The pin is a submodule, git's own way to pin another repository.
 GitHub shows the pin as a link to that commit,
 and each drafts commit's diff shows the pin moving.
 
@@ -80,11 +68,16 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    with whatever code is in the working copy, uncommitted edits included.
    The drafts' list is `drafts/publications.toml`, with a `[site]` of its own,
    and they are built into `drafts/site/`.
+   Only `eta-publish all` with its default list and output does,
+   not with another list, `-o`, or `--into`.
    A `drafts/` without its `publications.toml` is an error;
    a list with no entries is fine, and builds nothing.
    With no `drafts/` at all, as in this repository's CI, the drafts are skipped.
-2. **Preview from the working copy.** `eta-publish drafts preview`
-   builds the same way, with all three kinds as [the drafts site shows them](#what-the-drafts-site-shows),
+2. **Look at the drafts site.** `eta-publish drafts site <dir>`
+   builds the drafts site, with all three kinds as [the drafts site shows them](#what-the-drafts-site-shows),
+   into `<dir>`, a new or empty directory, uploading nothing.
+3. **Preview from the working copy.** `eta-publish drafts preview`
+   builds the drafts site the same way,
    and uploads the result as a preview of the current commit,
    behind the same sign-in, with no commit or push.
    Its address is `<alias>-<commit>.eta-drafts.pages.dev`,
@@ -92,15 +85,20 @@ which `eta-publish` ignores. It's a separate repository with its own commits.
    where the alias is the branch name as Cloudflare writes it:
    lowercased, with anything not a letter or digit turned into `-`,
    and the commit is its first 7 hex digits.
+   A branch name that isn't ASCII, that would start or end with `-`,
+   or that is longer than 63 characters is refused,
+   since Cloudflare doesn't document what it makes of those.
    Not `<alias>.eta-drafts.pages.dev`, which is CI's preview of the branch, on every push:
    the two would overwrite each other.
    Its pages link within that preview, not to production or the public site;
-   a drafts `[site]` other than `eta-drafts.pages.dev` with `published/` under it is refused.
+   a drafts `[site]` other than `unpublished = "https://eta-drafts.pages.dev"`
+   and `published = "https://eta-drafts.pages.dev/published"` is refused.
    It builds in a directory of its own in `drafts/`, leaving `site/` and `drafts/site/` as they are,
    and uploads every list's `site/unpublished/` at `/` and `site/published/` under `/published/`,
    with no `doc.json`, through `wrangler pages deploy`.
    It uses the local Cloudflare token, which has Pages Edit.
-   There is no local deploy to `main`'s site: that's only done from CI.
+   It's refused on `main`, and off any branch:
+   `main`'s drafts site is only deployed from CI.
 
 ## A drafts commit for every code commit
 
@@ -119,7 +117,7 @@ and its message names the full commit, so a drafts commit can be traced back.
 **Locally, on commit:**
 
 - `pre-commit` builds the drafts with the code being committed,
-  and fails the commit on a build error, as a broken publication here does now.
+  and fails the commit on a build error, as a broken publication here does.
   It builds into a directory of its own, leaving `drafts/` as it is.
 - `post-commit` commits the new pin and the rebuilt drafts in `drafts/`,
   on the branch of the same name, which starts from `main`'s drafts commits the first time.
@@ -132,7 +130,8 @@ and its message names the full commit, so a drafts commit can be traced back.
   and the hook makes new ones, the way the code branch itself was rewritten.
   It drops only drafts commits it made itself, which it can make again,
   and never one on `origin`'s `main`.
-  Anything else in the way, such as a pull, stops it, to be rebased by hand.
+  Anything else in the way, such as a pull, stops it, to be rebased by hand,
+  and so do uncommitted changes in `drafts/`.
 
 Both are `scripts/drafts-commit.sh`, which `pre-commit install` installs as hooks.
 `drafts/` gets its own `pre-commit install` for the `pre-push` check below.
@@ -160,18 +159,19 @@ so `eta-publish` is pushed first.
 A `pre-push` hook in `drafts/` refuses to push a commit
 whose pinned code commit isn't on GitHub yet, and says so.
 
-Pulling new content from the Google Docs stays its own step and its own commit,
-made with whatever code is pinned at the time.
+Pulling new content from the Google Docs is its own step and its own commit in `drafts/`,
+which leaves the pin as it is.
 
 ## Branches mirror
 
 `eta-publish` development happens on branches,
 so each `eta-publish` branch `foo` gets an `eta-drafts` branch `foo`,
 holding the drafts commits for `foo`'s code commits,
-and deployed to `foo.eta-drafts.pages.dev`.
+and deployed to `<alias>.eta-drafts.pages.dev`, with the alias as above.
 `main` goes to `eta-drafts`'s `main`, deployed to `eta-drafts.pages.dev`.
-Once `foo` is merged, its commits get their drafts commits on `main`,
-and `eta-drafts`'s `foo` can be deleted.
+Once `foo` is merged, its commits get their drafts commits on `main`.
+Nothing deletes `eta-drafts`'s `foo`, even once `eta-publish`'s `foo` is deleted:
+that's done by hand.
 
 ## Deploys fetch the documents
 
@@ -193,12 +193,17 @@ since what they record is the committed text, which needs no images.
 ## What the drafts site shows
 
 `eta-drafts.pages.dev`, and every branch preview, shows all three kinds:
-`site/published/` and `site/unpublished/` from the pinned `eta-publish` commit,
-and the drafts from `eta-drafts`, all built by the same code.
+the publications in `eta-publish`'s `publications.toml`
+and the drafts in `eta-drafts`'s, all built by the same code:
+for a deploy, the `eta-publish` commit the drafts commit pins,
+and for a local preview, the working copy.
 
 - The index lists them in three groups, by kind.
 - Every preview page has the label saying which kind it is, as this repository's do.
   It's never in `report.html`, the Markdown or the PDF.
+- Two publications at one path, in one list or across both, are refused,
+  and so are two builds that write different files at one path,
+  such as the shared `assets/`; nothing is uploaded then.
 
 ## How the deploy is set up
 
@@ -221,14 +226,6 @@ signing in with Workload Identity Federation rather than a key,
 which the organization's policy forbids creating.
 Each draft, or its folder, has to be shared with that account as a Viewer.
 
-The token that lets `eta-publish`'s workflow start `eta-drafts`'s exists,
-limited to `eta-drafts`.
+`eta-publish`'s `drafts.yml` starts `eta-drafts`'s `sync.yml`
+with `DRAFTS_DISPATCH_TOKEN`, a token limited to `eta-drafts`.
 [`accounts.md`](accounts.md) has both.
-
-## Order of work
-
-1. Teach the tool to build drafts from `drafts/`, and the local build (1 above).
-2. `eta-publish drafts preview` (2 above).
-3. The deploy workflow in `eta-drafts`, and the three-kind index.
-4. The local `pre-commit` and `post-commit` hooks, and the `pre-push` check in `drafts/`.
-5. The push-time workflow here, filling in missing drafts commits, with branch mirroring.

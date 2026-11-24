@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# The drafts commit for each `eta-publish` commit (see `docs/drafts-plan.md`):
+# The drafts commit for each `eta-publish` commit (see `docs/drafts.md`):
 # a commit in `drafts/`, the clone of `eta-drafts`,
 # that pins the code commit and rebuilds every draft with it from the saved documents.
 #

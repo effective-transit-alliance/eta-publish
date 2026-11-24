@@ -35,7 +35,7 @@ The code, the tests, and the publications built here
 - **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
   the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
   for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push
-  (see [the plan](drafts-plan.md)).
+  (see [`drafts.md`](drafts.md)).
 
 ### `effective-transit-alliance/eta-drafts` (private)
 
@@ -43,13 +43,13 @@ Holds drafts that aren't public yet: none so far,
 only an empty `publications.toml`, the pin of `eta-publish`,
 and the workflows that make the drafts commits and deploy them,
 `.github/workflows/sync.yml` and `.github/workflows/deploy.yml`.
-[`drafts-plan.md`](drafts-plan.md) describes what goes in it.
+[`drafts.md`](drafts.md) describes how the drafts work.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
   (see [Tokens](#tokens)).
 - **Secret `CLOUDFLARE_ACCOUNT_ID`:** the Cloudflare account's ID.
   It's not really a secret (it's in every dashboard URL), but it's kept with the token.
-- **No Google key:** deploys will read the drafts' documents as `eta-publish-ci`
+- **No Google key:** deploys read the drafts' documents as `eta-publish-ci`
   by signing in with Workload Identity Federation,
   through the `eta-drafts` provider (see [Google](#google)),
   so there's no secret to set.
