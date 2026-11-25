@@ -2,7 +2,7 @@
     const GAP = 8;
     // Long enough to cross the gap into the box, short enough that a box left
     // behind is gone before the reader wonders why it is still there.
-    const HOLD = 200;
+    const HOLD = 100;
     // About how long a phone waits before calling a touch a long press.
     const PRESS = 500;
     const closing = new WeakMap();
