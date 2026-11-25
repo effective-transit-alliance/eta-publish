@@ -51,7 +51,9 @@ from .nodes import (
     Table,
     Text,
     Vector,
+    archive_today_original,
     document_url,
+    is_archive_today,
     plain_text,
     unwrap_snapshot,
 )
@@ -966,11 +968,38 @@ class Parser:
         """
         if url is None:
             return None
+        if is_archive_today(url):
+            return self._archive_today(url)
         original, archived = unwrap_snapshot(url)
         if archived is not None:
             # Keyed by the document, which is what was captured: one PDF cited
             # at fifteen of its pages is one entry in the record.
             self.doc.archives.setdefault(document_url(original), archived)
+        return original
+
+    def _archive_today(self, url: str) -> str:
+        """An archive.today capture, cited as the page it captured where the link says which.
+
+        That page is then archived on the Wayback Machine, as any source is,
+        which dates its captures where archive.today's short links don't.
+        A short link is cited as it is, as its own archived copy, undated.
+        Either way it's warned about, so the document can cite the page itself.
+        """
+        original = archive_today_original(url)
+        if original is None:
+            self.doc.warn(
+                "{} is an archive.today link, which is undated; "
+                "link the page itself instead, archived on {}",
+                Shown(url),
+                Shown("web.archive.org"),
+            )
+            return url
+        self.doc.warn(
+            "{} is an archive.today link; link the page itself, {}, instead, archived on {}",
+            Shown(url),
+            Shown(original),
+            Shown("web.archive.org"),
+        )
         return original
 
     def _rich_link(self, chip: JsonObject) -> Text:

@@ -41,7 +41,16 @@ from requests.adapters import HTTPAdapter
 from . import PACKAGE_NAME, repository
 from .checks import plural
 from .console import Rows
-from .nodes import UNREWRITTEN, Archived, Document, Shown, cited_page, document_url, wayback_url
+from .nodes import (
+    UNREWRITTEN,
+    Archived,
+    Document,
+    Shown,
+    cited_page,
+    document_url,
+    is_archive_today,
+    wayback_url,
+)
 
 ARCHIVES_JSON = "archives.json"
 
@@ -880,6 +889,11 @@ def _archive(
     anonymous: bool = False,
 ) -> Lookup:
     """One source: the capture it already has, or a new one, or why neither."""
+    if is_archive_today(url):
+        # Already a capture, though not the Wayback Machine's, and one that
+        # can't be asked about: it is its own archived copy, with no date,
+        # and the document is warned about it as it is parsed.
+        return Lookup(Archived(snapshot=url), already=True)
     try:
         item = _item(url)
         if item is not None:

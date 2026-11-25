@@ -94,7 +94,12 @@ class Archived:
         publication read it, and 14 digits is not an answer anyone reads.
         Whatever does not parse as a date is shown as it is, which is the same
         choice `dateline` makes and for the same reason.
+
+        `undated` where there is no timestamp at all, as for an archive.today short link,
+        which says nothing of when it was taken: an empty link would be no way to it.
         """
+        if not self.timestamp:
+            return "undated"
         return _long_date(self.timestamp[:8], month="%b")
 
     @property
@@ -1211,6 +1216,53 @@ def unwrap_snapshot(href: str) -> tuple[str, Archived | None]:
     # Of the document rather than of the page of it named here, because that is
     # what a capture is, and `Document.archived` puts the fragment back.
     return url, Archived(snapshot=wayback_url(stamp, document_url(url)), timestamp=stamp)
+
+
+ARCHIVE_TODAY_HOSTS = frozenset(
+    {
+        "archive.today",
+        "archive.is",
+        "archive.ph",
+        "archive.li",
+        "archive.vn",
+        "archive.md",
+        "archive.fo",
+    }
+)
+"""The names archive.today goes by, all one archive.
+
+Its captures are not the Wayback Machine's, and it can't be asked about them:
+it times out on every connection from here and refuses automated clients,
+so a short link like `archive.is/TVQXL` can't be turned back into the page it captured.
+Nor does it say when a short link's capture was taken,
+which every source archived on the Wayback Machine publishes beside it.
+"""
+
+
+def is_archive_today(href: str) -> bool:
+    """Whether `href` is a link to an archive.today capture, by any of its names."""
+    host = urlsplit(href).hostname or ""
+    return host.removeprefix("www.") in ARCHIVE_TODAY_HOSTS
+
+
+def archive_today_original(href: str) -> str | None:
+    """The page an archive.today link is a capture of, where the link spells it out.
+
+    The long form does: `archive.ph/20230101120000/https://example.com/page`,
+    `archive.ph/newest/https://...`, and the like, with the page after whatever comes first.
+    A short link, `archive.is/TVQXL`, names only the capture, so it's `None`.
+
+    Taken as written, as `_capture` takes a Wayback URL's page,
+    since it isn't escaped where it sits inside the link.
+    """
+    if not is_archive_today(href):
+        return None
+    after_host = href.partition("//")[2].partition("/")[2]
+    for scheme in ("https://", "http://"):
+        at = after_host.find(scheme)
+        if at >= 0:
+            return after_host[at:]
+    return None
 
 
 PDF_PAGE = "page="

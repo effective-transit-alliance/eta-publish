@@ -31,6 +31,8 @@ from eta_publish.nodes import (
     Image,
     Paragraph,
     Text,
+    archive_today_original,
+    is_archive_today,
     unwrap_snapshot,
 )
 
@@ -544,6 +546,38 @@ def test_an_identifier_nothing_holds_is_not_recorded() -> None:
     doc = cites("https://archive.org/details/nothing-is-here")
     archive.capture(doc, session=Item({}))
     assert doc.archives == {}
+
+
+def test_an_archive_today_link_is_its_own_archived_copy_undated() -> None:
+    """Already a capture, and one nothing can be asked about,
+    so the Wayback Machine isn't asked to capture it again."""
+    doc = cites("https://archive.is/TVQXL")
+    session = Item({})
+    assert archive.capture(doc, session=session) == (1, 0)
+    archived = doc.archives["https://archive.is/TVQXL"]
+    assert archived == Archived(snapshot="https://archive.is/TVQXL")
+    assert archived.date == "undated"
+    assert session.wayback_asked == 0
+
+
+def test_archive_today_goes_by_several_names() -> None:
+    for url in ("https://archive.today/x", "https://www.archive.ph/x", "http://archive.md/x"):
+        assert is_archive_today(url)
+    assert not is_archive_today("https://archive.org/details/x")
+    assert not is_archive_today("https://notarchive.is/x")
+
+
+def test_an_archive_today_link_names_its_page_only_in_its_long_form() -> None:
+    assert (
+        archive_today_original("https://archive.ph/20230101120000/https://example.com/a")
+        == "https://example.com/a"
+    )
+    assert (
+        archive_today_original("https://archive.ph/newest/http://example.com/a")
+        == "http://example.com/a"
+    )
+    assert archive_today_original("https://archive.is/TVQXL") is None
+    assert archive_today_original("https://example.com/https://other.example/") is None
 
 
 def test_an_archive_org_url_that_is_not_an_item_is_an_ordinary_source() -> None:
