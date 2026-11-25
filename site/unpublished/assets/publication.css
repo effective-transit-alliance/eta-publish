@@ -80,6 +80,14 @@
     text-decoration: underline 1px solid currentColor;
     text-decoration-skip-ink: auto;
 }
+/* A URL written out, in the text, as a link's text, or as a value a warning
+   shows, is one word with no spaces in it, wider than a phone: unbroken, it
+   widens the whole page, so the phone zooms out to fit it, and every jump to a
+   footnote, a source, or back lands off to one side. Broken only where a word
+   would otherwise overflow its line, so text that fits is set as it was. */
+.eta-report {
+    overflow-wrap: break-word;
+}
 /* Everything with an id carries a link to itself. The `#` is written by the
    stylesheet rather than by the emitter, so that it is not part of the text:
    selecting a heading to quote it should not pick up a stray character.
