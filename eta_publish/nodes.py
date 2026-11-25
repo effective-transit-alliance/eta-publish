@@ -123,6 +123,12 @@ class Text:
     underline: bool = False
     strike: bool = False
     """Struck through, as Docs draws it, so a page shows what the document does."""
+    color: str | None = None
+    """The color the doc sets the text in, as `#rrggbb`, or `None` for the page's own.
+
+    Never on a link, which is colored as the site colors its links,
+    and never black, which is the page's own color on a light page
+    and would be unreadable on a dark one."""
     sup: bool = False
     sub: bool = False
     href: str | None = None

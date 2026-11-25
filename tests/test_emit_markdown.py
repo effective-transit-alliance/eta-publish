@@ -232,3 +232,8 @@ def test_spaces_after_a_sentence_collapse_so_it_splits() -> None:
 def test_struck_text_is_struck_through() -> None:
     """As Docs draws it, so the archive shows what the document does."""
     assert MarkdownEmitter().text(Text(text="cut this", strike=True)) == "~~cut this~~"
+
+
+def test_colored_text_keeps_its_color() -> None:
+    written = MarkdownEmitter().text(Text(text="note", color="#ff9900"))
+    assert written == '<span style="color: #ff9900">note</span>'

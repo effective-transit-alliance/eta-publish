@@ -168,3 +168,8 @@ def test_struck_text_is_struck_through() -> None:
     """As Docs draws it, so the PDF shows what the document does."""
     struck = Text(text="cut this", strike=True)
     assert TypstEmitter(site_url=HOST).text(struck) == "#strike[cut this]"
+
+
+def test_colored_text_keeps_its_color() -> None:
+    colored = Text(text="note", color="#ff9900")
+    assert TypstEmitter(site_url=HOST).text(colored) == '#text(fill: rgb("#ff9900"))[note]'

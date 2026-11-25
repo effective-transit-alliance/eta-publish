@@ -418,3 +418,31 @@ def test_struck_text_is_read_as_struck() -> None:
     [run] = parser.inlines(paragraph)
     assert isinstance(run, Text)
     assert run.strike
+
+
+def _colored(style: JsonObject) -> Text:
+    parser = Parser(FIXTURE)
+    [run] = parser.inlines({"elements": [{"textRun": {"content": "note", "textStyle": style}}]})
+    assert isinstance(run, Text)
+    return run
+
+
+def test_colored_text_keeps_its_color() -> None:
+    orange = {"foregroundColor": {"color": {"rgbColor": {"red": 1, "green": 0.6}}}}
+    assert _colored(orange).color == "#ff9900"
+
+
+def test_black_and_near_black_text_takes_the_pages_color() -> None:
+    """Black on a light page, and readable on a dark one."""
+    assert _colored({"foregroundColor": {"color": {"rgbColor": {}}}}).color is None
+    near = {"foregroundColor": {"color": {"rgbColor": {"green": 0.02, "blue": 0.09}}}}
+    assert _colored(near).color is None
+
+
+def test_a_link_is_colored_as_the_site_colors_links() -> None:
+    """Docs colors every link its own blue, which is not the writer choosing a color."""
+    style = {
+        "foregroundColor": {"color": {"rgbColor": {"red": 0.07, "green": 0.33, "blue": 0.8}}},
+        "link": {"url": "https://example.com/"},
+    }
+    assert _colored(style).color is None
