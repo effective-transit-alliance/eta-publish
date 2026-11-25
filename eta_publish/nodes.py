@@ -20,6 +20,70 @@ from string import ascii_letters
 from typing import override
 from urllib.parse import urlsplit
 
+# ---- where in the document -----------------------------------------
+
+
+def utf16_length(text: str) -> int:
+    """How long `text` is in UTF-16 code units, which is how Docs counts.
+
+    Python counts code points, and the two differ for every character outside
+    the Basic Multilingual Plane, an emoji say, which is one code point and two units.
+    An index into a paragraph computed the Python way lands one unit short
+    for every such character before it.
+    """
+    return len(text.encode("utf-16-le")) // 2
+
+
+@dataclass(frozen=True)
+class Location:
+    """A stretch of the document, as Docs' own `Range` names one.
+
+    In UTF-16 code units, as Docs counts, and in the coordinates of the response
+    the build parsed. That response is read with open suggestions left out
+    (`PREVIEW_WITHOUT_SUGGESTIONS`), so wherever one is open the live document's
+    indices after it differ, by the length of each suggested insertion before
+    that point: whatever writes to the document at one of these has to map it
+    onto the live document first.
+
+    An empty one, `start == end`, is a point between two characters,
+    where something would be inserted.
+    """
+
+    tab_id: str
+    """The tab, or empty for a document with no tabs, which the API reads as its first."""
+
+    segment_id: str | None
+    """The footnote this is in, by its id, or `None` for the body."""
+
+    start: int
+    end: int
+
+    @property
+    def empty(self) -> bool:
+        """Whether this is a point rather than a stretch."""
+        return self.start == self.end
+
+    def part(self, text: str, start: int, end: int) -> Location:
+        """Where `text[start:end]` is, for this the location of exactly `text`.
+
+        `start` and `end` count code points, as Python indexes `text`.
+        A smart chip is one unit of the document whatever it shows,
+        a person's name or a date, so a location that is not as long as its text
+        is a chip, and any part of the text is in the whole of it.
+        """
+        if self.end - self.start != utf16_length(text):
+            return self
+        return replace(
+            self,
+            start=self.start + utf16_length(text[:start]),
+            end=self.start + utf16_length(text[:end]),
+        )
+
+    def through(self, last: Location) -> Location:
+        """From the start of this to the end of `last`."""
+        return replace(self, end=last.end)
+
+
 # ---- inline content ------------------------------------------------
 
 
