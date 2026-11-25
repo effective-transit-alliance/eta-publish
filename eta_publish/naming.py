@@ -61,6 +61,18 @@ def partial_name(stem: str, part: int | None = None) -> str:
     return f"{stem}{piece}.{PARTIAL}.html"
 
 
+SQUARESPACE = "squarespace"
+"""What names the page that shows a publication as etany.org does, as `report.squarespace.html`:
+the fragment in the page Squarespace serves it in, beside `report.html`, which is a page of our own.
+In the place `partial` takes in a fragment's name, since it says what form the publication is in,
+and so before `.min`, as every name has it last."""
+
+
+def squarespace_name(stem: str) -> str:
+    """The Squarespace page written for the outputs named `stem`: `report.squarespace.html`."""
+    return f"{stem}.{SQUARESPACE}.html"
+
+
 KIND_DIRS = {"reports": Kind.REPORT, "statements": Kind.STATEMENT}
 """The first directory of a `URL:` path, and the kind of publication it says a document is."""
 

@@ -33,6 +33,7 @@ from eta_publish.naming import (
     partial_name,
     path_kind,
     print_href,
+    squarespace_name,
 )
 
 
@@ -213,3 +214,10 @@ def test_the_directory_serves_the_page_by_a_link_to_it(publication: Path) -> Non
     index = publication / "index.html"
     assert index.is_symlink()
     assert index.readlink() == Path(f"{kind(publication)}.html")
+
+
+def test_the_squarespace_page_has_a_min_copy(publication: Path) -> None:
+    """`report.squarespace.min.html` beside `report.squarespace.html`, wherever that is written."""
+    page = publication / squarespace_name(kind(publication))
+    if page.exists():
+        assert (publication / min_name(page.name)).is_file()

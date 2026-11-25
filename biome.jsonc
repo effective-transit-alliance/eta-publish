@@ -6,7 +6,12 @@
         // `biome` 2.3 never read an SVG; 2.5 formats and lints them.
         // Nor the `.min` copies, which a build with `--into` finds left by the last one:
         // laid out, they would no longer be minified, and minified code breaks every rule.
-        "includes": ["**", "!**/*.svg", "!**/*.min.*"]
+        // Nor a publication as etany.org shows it, `report.squarespace.html`,
+        // which is mostly Squarespace's own page copied as it is, and nobody here can fix a rule it breaks.
+        // Laid out, the fragment in it would sit twenty elements deep in Squarespace's,
+        // and its prose would wrap at a few words a line;
+        // as emitted, it is a block a line, and `report.partial.html` is the copy laid out to read.
+        "includes": ["**", "!**/*.svg", "!**/*.min.*", "!**/*.squarespace.html"]
     },
     "formatter": {
         // `biome` indents with a tab by default, and wraps at 80;

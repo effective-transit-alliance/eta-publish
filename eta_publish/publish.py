@@ -25,7 +25,7 @@ from .build import (
     check_code_block_size,
 )
 from .logo import write_logo
-from .naming import ASSET_DIR, PARTIAL, UNPUBLISHED_DIR, partial_name
+from .naming import ASSET_DIR, PARTIAL, UNPUBLISHED_DIR, partial_name, squarespace_name
 from .published import write_published
 from .site import (
     Failed,
@@ -273,6 +273,14 @@ def write_site(
                 published = page.name.split(".")[1] == UNWARNED
                 url = options.published_url if published else options.unpublished_url
                 minify.page(page, f"{url}/{ASSET_DIR}")
+        # `report.squarespace.html`, on the preview host only, linking what its fragment does.
+        squarespace = outdir / built.path / squarespace_name(kind)
+        if squarespace.exists():
+            minify.page(
+                squarespace,
+                f"{options.unpublished_url}/{ASSET_DIR}",
+                linked=() if options.embed_assets else minify.FRAGMENT_ASSETS,
+            )
 
     for built in site.built:
         index_links(outdir / built.path, publication_kind(built.doc))

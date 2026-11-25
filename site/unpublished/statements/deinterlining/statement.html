@@ -37,14 +37,15 @@
 .kind-banner a {
     color: inherit;
 }
-/* The Google Doc, in the upper left: on its own line on a phone,
-   where beside the kind it would wrap into the middle of what the kind says,
+/* The Google Doc and the Squarespace preview, in the upper left:
+   on their own line on a phone,
+   where beside the kind they would wrap into the middle of what the kind says,
    and ahead of the kind on a wider screen. */
-.kind-doc {
+.kind-links {
     display: block;
 }
 @media (min-width: 40rem) {
-    .kind-doc {
+    .kind-links {
         display: inline;
         margin-right: 1.5em;
     }
@@ -66,10 +67,16 @@
 }
 </style>
 <div class="kind-banner kind-manually-published" role="note"
-    ><a
-        class="kind-doc"
-        href="https://docs.google.com/document/d/1GB5qDuIjDB-Od7kmpmIgTtVDT7pCH5m02WVQ3aG_kRM/edit?tab=t.0"
-        >Google Doc</a
+    ><span class="kind-links"
+        ><a
+            class="kind-doc"
+            href="https://docs.google.com/document/d/1GB5qDuIjDB-Od7kmpmIgTtVDT7pCH5m02WVQ3aG_kRM/edit?tab=t.0"
+            >Google Doc</a
+        >
+        ·
+        <a class="kind-squarespace" href="statement.squarespace.min.html"
+            >Squarespace Preview</a
+        ></span
     > <strong class="kind-label">Manually Published</strong>
     <a href="https://www.etany.org/statements/deinterlining">live</a> on
     <a href="https://www.etany.org">etany.org</a></div
