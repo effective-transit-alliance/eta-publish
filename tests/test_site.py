@@ -30,6 +30,7 @@ from eta_publish.build import (
     write_image_index,
 )
 from eta_publish.docs_json import JsonObject
+from eta_publish.emit.html import banner_markup
 from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
@@ -49,6 +50,7 @@ from eta_publish.site import (
     check_kind,
     clashes,
     index_page,
+    kind_banner,
     listed_publication,
     load_hosts,
     load_publications,
@@ -1838,3 +1840,30 @@ def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
 def test_the_committed_list_publishes_under_its_preview_for_now() -> None:
     """Until it has a host of its own: one Pages site, `site/published/` under `/published/`."""
     assert HOSTS.published == f"{HOSTS.unpublished}/published"
+
+
+DOC_URL = "https://docs.google.com/document/d/abc/edit?tab=t.0"
+
+
+def test_a_preview_banner_links_the_google_doc_it_is_built_from(doc: Document) -> None:
+    """Spelled as `canonical` spells it, whatever was copied from the address bar."""
+    publication = Publication(
+        url="https://docs.google.com/document/d/abc/edit?pli=1&tab=t.0#heading=h.x"
+    )
+    banner = kind_banner(publication, doc)
+    assert banner.doc == DOC_URL
+    assert f'<a class="kind-doc" href="{DOC_URL}">Google Doc</a>' in banner_markup(banner)
+
+
+def test_a_banner_links_the_doc_ahead_of_the_kind(doc: Document) -> None:
+    """In the banner's upper left, before the kind and what it says."""
+    publication = Publication(url=DOC_URL, published=Published.AUTOMATED)
+    shown = banner_markup(kind_banner(publication, doc))
+    assert shown.index("Google Doc") < shown.index("Automatically Published")
+
+
+def test_a_banner_links_no_doc_for_a_saved_response(doc: Document, tmp_path: Path) -> None:
+    """A path on the disk the build ran on, which no reader's browser can open."""
+    banner = kind_banner(Publication(url=str(tmp_path / "doc.json")), doc)
+    assert banner.doc == ""
+    assert 'class="kind-doc"' not in banner_markup(banner)

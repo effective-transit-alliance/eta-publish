@@ -88,15 +88,19 @@ KINDS: dict[Published, tuple[str, str]] = {
 
 
 def kind_banner(publication: Publication, doc: Document) -> Banner:
-    """The banner on `publication`'s preview page, linking the live page if it has one.
+    """The banner on `publication`'s preview page, linking the live page if it has one,
+    and the Google Doc it is built from.
 
     Live at the document's own `URL:` on ETA's site, which is where both live kinds are.
+    The document as `canonical` spells it, at its tab,
+    unless the entry names a bare id or a saved response, which no browser opens.
     """
     label, says = KINDS[publication.published]
     live = ""
     if publication.published is not Published.DRAFT and doc.slug:
         live = f"{LIVE_SITE}{doc.slug}"
-    return Banner(label=label, says=says, live=live)
+    source = canonical(publication.url) if "docs.google.com" in publication.url else ""
+    return Banner(label=label, says=says, live=live, doc=source)
 
 
 @dataclass(frozen=True)
