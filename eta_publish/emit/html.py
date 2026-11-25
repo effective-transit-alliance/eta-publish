@@ -232,21 +232,27 @@ def kind_class(label: str) -> str:
 
 
 def banner_markup(banner: Banner) -> str:
-    """`banner` as the strip at the top of a page, with the stylesheet it needs."""
-    links: list[Piece] = []
-    if banner.live:
-        links = [" ", tag.a(href=banner.live)["The live page."]]
+    """`banner` as the strip at the top of a page, with the stylesheet it needs.
+
+    The Google Doc first, in the banner's upper left, where a reviewer looks first,
+    on a line of its own on a phone, where beside the kind it would wrap into the sentence.
+    """
+    doc: list[Piece] = []
     if banner.doc:
-        links += [" ", tag.a(href=banner.doc)["The Google Doc."]]
+        doc = [tag.a(class_="kind-doc", href=banner.doc)["Google Doc"], " "]
+    live: list[Piece] = []
+    if banner.live:
+        live = [" ", tag.a(href=banner.live)["The live page."]]
     return markup(
         [
             tag.style[Markup(f"\n{BANNER_CSS}")],
             "\n",
             tag.div(class_=f"kind-banner {kind_class(banner.label)}", role="note")[
+                *doc,
                 tag.strong(class_="kind-label")[banner.label],
                 " ",
                 banner.says,
-                *links,
+                *live,
             ],
         ]
     )

@@ -1852,17 +1852,18 @@ def test_a_preview_banner_links_the_google_doc_it_is_built_from(doc: Document) -
     )
     banner = kind_banner(publication, doc)
     assert banner.doc == DOC_URL
-    assert f'<a href="{DOC_URL.replace("&", "&amp;")}">The Google Doc.</a>' in banner_markup(banner)
+    assert f'<a class="kind-doc" href="{DOC_URL}">Google Doc</a>' in banner_markup(banner)
 
 
-def test_a_live_publications_banner_links_the_live_page_and_then_the_doc(doc: Document) -> None:
+def test_a_banner_links_the_doc_ahead_of_the_kind(doc: Document) -> None:
+    """In the banner's upper left, before the kind and what it says."""
     publication = Publication(url=DOC_URL, published=Published.AUTOMATED)
     shown = banner_markup(kind_banner(publication, doc))
-    assert shown.index("The live page.") < shown.index("The Google Doc.")
+    assert shown.index("Google Doc") < shown.index("Automatically Published")
 
 
 def test_a_banner_links_no_doc_for_a_saved_response(doc: Document, tmp_path: Path) -> None:
     """A path on the disk the build ran on, which no reader's browser can open."""
     banner = kind_banner(Publication(url=str(tmp_path / "doc.json")), doc)
     assert banner.doc == ""
-    assert "Google Doc" not in banner_markup(banner)
+    assert 'class="kind-doc"' not in banner_markup(banner)
