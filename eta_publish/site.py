@@ -74,20 +74,24 @@ class Published(StrEnum):
     """Not out yet."""
 
 
-KINDS: dict[Published, tuple[str, str]] = {
-    Published.DRAFT: ("Draft", "Not published anywhere yet."),
+KINDS: dict[Published, tuple[str, Piece]] = {
+    Published.DRAFT: ("Draft", "not published yet"),
     Published.AUTOMATED: (
         "Automatically Published",
-        "Live on etany.org, published with eta-publish.",
+        [
+            "live on ",
+            tag.a(href=LIVE_SITE)["etany.org"],
+            " using ",
+            tag.a(href=REPOSITORY)[tag.code["eta-publish"]],
+        ],
     ),
-    Published.MANUAL: (
-        "Manually Published",
-        "Live on etany.org, published there by hand, not yet with eta-publish.",
-    ),
+    Published.MANUAL: ("Manually Published", ["live on ", tag.a(href=LIVE_SITE)["etany.org"]]),
 }
 """What a preview page calls each kind of publication,
-and what the drafts site's index says each one is, above its list of them.
-A preview page's banner says it of the one publication, linking where it is, in `kind_says`."""
+and what the drafts site's index says each one is, above its list of them,
+as the banner says it, less what only one publication has to link:
+its live page, and the file it is pasted from.
+A preview page's banner says it of the one publication, linking those too, in `kind_says`."""
 
 
 def kind_says(publication: Publication, doc: Document) -> Piece:
