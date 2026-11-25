@@ -30,6 +30,7 @@ from .nodes import (
     addressed,
     cited_page,
     document_url,
+    is_address,
     plain_text,
 )
 from .parse import (
@@ -102,9 +103,10 @@ def check(doc: Document) -> None:
 
 
 def _check_contributors(doc: Document) -> None:
-    """Two contributors with no comma between them, which reads as one person.
+    """Two contributors with no comma between them, which reads as one person,
+    and a contributor credited by address alone.
 
-    Only detectable where an address was written beside a name,
+    The first is only detectable where an address was written beside a name,
     because the address is what says the name before it has ended.
     Two bare names run together are two words, and nothing here can tell
     those from a double-barrelled surname.
@@ -116,6 +118,17 @@ def _check_contributors(doc: Document) -> None:
                 "the {} line reads {} as one contributor; a comma is missing after the address",
                 Shown("Public Contributors:"),
                 Shown(entry.strip()),
+            )
+    # Docs gives an unresolved chip its address as its name too,
+    # so the chip alone publishes the address where the byline wants a name.
+    for name in doc.contributors:
+        if is_address(name):
+            doc.warn(
+                "the {} line credits {} by address, as a person chip Docs couldn't name; "
+                "type their name before the chip, as {}",
+                Shown("Public Contributors:"),
+                Shown(name),
+                Shown(f"Name ({name})"),
             )
 
 

@@ -1084,7 +1084,7 @@ def addressed(entry: str) -> tuple[str, str] | None:
     name, bracket, rest = entry.partition("(")
     while bracket:
         address, closed, after = rest.partition(")")
-        if closed and _is_address(address.strip()):
+        if closed and is_address(address.strip()):
             return name.strip(), after.strip()
         # Brackets holding something else, `(chair)` and the like,
         # are part of the name: kept, and scanned past
@@ -1095,8 +1095,8 @@ def addressed(entry: str) -> tuple[str, str] | None:
     return None
 
 
-def _is_address(address: str) -> bool:
-    """Whether a bracketed run is the address Docs writes for an unresolved chip."""
+def is_address(address: str) -> bool:
+    """Whether a run is the address Docs writes for an unresolved chip, bracketed or not."""
     local, at, domain = address.partition("@")
     return bool(at and local and domain) and not any(c.isspace() for c in address)
 
