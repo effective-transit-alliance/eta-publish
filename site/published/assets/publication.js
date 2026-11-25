@@ -10,6 +10,8 @@
     // rather than of the reference that owns it.
     const home = new WeakMap();
     const built = new WeakMap();
+    // The box that is open, so that opening another can close it: one at a time.
+    let open = null;
     // A citation's box is built the first time it is wanted, out of the entry it
     // already points at, rather than emitted beside every link. The publication cites
     // 113 sources and a copy of each one's address next to each of its citations
@@ -76,6 +78,12 @@
         show(tip);
     };
     const show = (tip) => {
+        // One box at a time: the reader has moved on from the last one,
+        // and while it waits out `HOLD` it would be drawn over this one.
+        if (open && open !== tip) {
+            close(open);
+        }
+        open = tip;
         const from = tip.parentElement;
         const ref = from.getBoundingClientRect();
         // Moved out to the publication for as long as it is open, because a box is only
@@ -124,6 +132,11 @@
         );
     };
     const close = (tip) => {
+        clearTimeout(closing.get(tip));
+        if (tip === open) {
+            open = null;
+        }
+        if (tip === held) held = null;
         tip.style.cssText = "";
         home.get(tip)?.append(tip);
     };
