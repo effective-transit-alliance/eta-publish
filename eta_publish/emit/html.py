@@ -221,6 +221,9 @@ class Banner:
     live: str = ""
     """Where the live page is, for a kind that has one."""
 
+    doc: str = ""
+    """The Google Doc the page is built from, for a reviewer to comment on or fix what they read."""
+
 
 def kind_class(label: str) -> str:
     """The class `banner.css` colors the kind called `label` by:
@@ -230,9 +233,11 @@ def kind_class(label: str) -> str:
 
 def banner_markup(banner: Banner) -> str:
     """`banner` as the strip at the top of a page, with the stylesheet it needs."""
-    live: list[Piece] = []
+    links: list[Piece] = []
     if banner.live:
-        live = [" ", tag.a(href=banner.live)["The live page."]]
+        links = [" ", tag.a(href=banner.live)["The live page."]]
+    if banner.doc:
+        links += [" ", tag.a(href=banner.doc)["The Google Doc."]]
     return markup(
         [
             tag.style[Markup(f"\n{BANNER_CSS}")],
@@ -241,7 +246,7 @@ def banner_markup(banner: Banner) -> str:
                 tag.strong(class_="kind-label")[banner.label],
                 " ",
                 banner.says,
-                *live,
+                *links,
             ],
         ]
     )
