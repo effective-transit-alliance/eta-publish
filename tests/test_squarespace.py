@@ -13,9 +13,12 @@ from eta_publish.naming import LIVE_SITE, squarespace_name
 from eta_publish.nodes import Document
 from eta_publish.parse import parse
 from eta_publish.squarespace import (
+    FONTS,
     ITEM_CLASSES,
     PUBLICATION,
+    SCRIPT_SETUP,
     SHELL,
+    SITE_SCRIPT,
     STYLESHEETS,
     mark_current,
     squarespace_page,
@@ -124,6 +127,26 @@ def test_the_page_is_styled_by_the_live_sites_stylesheets() -> None:
         if tag == "link" and attrs.get("rel") == "stylesheet"
     ]
     assert linked == list(STYLESHEETS)
+
+
+def test_the_header_runs_on_the_live_sites_script() -> None:
+    """Which hides it on the way down and opens the phone's menu,
+    after what it reads from a page is set: the script once, deferred, and the setup before it."""
+    page = squarespace_page(FRAGMENT, "Title", IBX)
+    scripts = [attrs for tag, attrs, _ in Elements(page).found if tag == "script"]
+    linked = [attrs for attrs in scripts if attrs.get("src") == SITE_SCRIPT]
+    assert linked == [{"defer": None, "src": SITE_SCRIPT}]
+    assert page.count(SCRIPT_SETUP.strip()) == 1
+    assert page.index(SCRIPT_SETUP.strip()) < page.index(SITE_SCRIPT)
+    for setting in ('"tweak-fixed-header": "true"', '"tweak-fixed-header-style": "Scroll Back"'):
+        assert setting in SCRIPT_SETUP
+
+
+def test_the_fonts_a_live_page_declares_inline_are_declared_before_the_stylesheets() -> None:
+    page = squarespace_page(FRAGMENT, "Title", IBX)
+    assert FONTS.startswith("<style data-sqsp-font-ids=")
+    assert page.count(FONTS) == 1
+    assert page.index(FONTS) < page.index(STYLESHEETS[0])
 
 
 def test_the_title_is_as_squarespace_gives_it() -> None:

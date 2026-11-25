@@ -19,8 +19,17 @@ root-relative links name `https://www.etany.org`, and scheme-relative ones `http
 the `<body>` has no `id` or class naming that page's collection,
 and the desktop grid has one row rather than the 590 the editor gave that publication,
 so a publication of any length fills it as it is.
-The site's own script, which opens the menu on a phone, is not linked,
-so the header is what it is before anything is clicked.
+
+The site's own script, which a live page links at the end of its `<body>`,
+is linked in the `<head>` here, with the stylesheets, and like them where Squarespace serves it,
+so the header behaves as etany.org's does:
+it hides as the reader scrolls down and comes back as they scroll up,
+and on a phone, its menu opens.
+What the script reads from a page before it runs, a live page sets,
+and `assets/squarespace.js` sets here, as that file says.
+Poppins, which the site sets its buttons in, like the one in the phone's menu,
+a live page declares in its `<head>` rather than in a stylesheet,
+so that is copied as it is, in `assets/squarespace-fonts.html`.
 """
 
 from dataclasses import dataclass, field
@@ -51,6 +60,17 @@ STYLESHEETS = (
 """What a live page links to style itself, in the order it links them:
 the Embed block's, the site's, the template's, the site's Custom CSS, and its font.
 Not the Typekit fonts the template loads, which the Custom CSS overrides everywhere."""
+
+SITE_SCRIPT = "https://static1.squarespace.com/static/vta/5c5a519771c10ba3470d8101/scripts/site-bundle.4c177f2548c0ae761c916578d1ab1ff8.js"
+"""The site's own script, as a live page links it:
+what hides the header on the way down, shows it on the way back up, and opens the phone's menu."""
+
+SCRIPT_SETUP = read("squarespace.js")
+"""What the site's script reads from a page before it runs, set before it."""
+
+FONTS = read("squarespace-fonts.html").strip()
+"""The `<style>` a live page declares Poppins in, the site's font for buttons, copied as it is,
+on 2026-11-25."""
 
 FAVICON = "https://images.squarespace-cdn.com/content/v1/6172f286c4e030728d09f143/a643aa12-98e2-4680-a9d2-d25975375c0a/favicon.ico"
 """The site's icon, as its pages link it."""
@@ -222,7 +242,11 @@ def squarespace_page(fragment: str, title: str, page_url: str) -> str:
         # `&mdash;`, as Squarespace writes it.
         f"<title>{escape(title)} &mdash; {escape(SITE_NAME)}</title>",
         f'<link rel="icon" type="image/x-icon" href="{escape(FAVICON)}">',
+        # Before the stylesheets, where a live page has it.
+        FONTS,
         *(f'<link rel="stylesheet" href="{escape(href)}">' for href in STYLESHEETS),
+        f"<script>\n{SCRIPT_SETUP.strip()}\n</script>",
+        f'<script defer src="{escape(SITE_SCRIPT)}"></script>',
     ]
     body = mark_current(SHELL, page_url).replace(PUBLICATION, fragment.strip())
     return "\n".join(
