@@ -197,6 +197,28 @@ def test_missing_lists_every_commit_with_no_drafts_commit_oldest_first(code: Pat
     assert run(code, "missing", "main").stdout.split() == [third]
 
 
+def test_missing_counts_both_sides_of_a_merge(code: Path) -> None:
+    """Each side of a merge is pinned in turn, and neither pin has the other in its history,
+    so going by the last pin alone lists the other side again, forever."""
+    git(code, "switch", "--quiet", "-c", "side")
+    # A file of its own, so the merge has nothing to resolve.
+    (code / "side").write_text("on side")
+    git(code, "add", "side")
+    git(code, "commit", "-m", "on side")
+    side = git(code, "rev-parse", "HEAD")
+    git(code, "switch", "--quiet", "main")
+    on_main = commit_code(code, "on main")
+    for pinned in (on_main, side):
+        git(code, "checkout", "--quiet", "--detach", pinned)
+        assert run(code, "commit").returncode == 0
+    git(code, "switch", "--quiet", "main")
+    git(code, "merge", "--quiet", "--no-ff", "-m", "merge side", "side")
+    merge = git(code, "rev-parse", "HEAD")
+    result = run(code, "missing", "main")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.split() == [merge]
+
+
 def test_check_builds_without_touching_the_drafts(code: Path) -> None:
     commit_code(code, "code 2")
     result = run(code, "check")
