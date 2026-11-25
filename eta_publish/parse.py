@@ -1024,6 +1024,7 @@ class Parser:
                 bold=bool(style.get("bold")),
                 italic=bool(style.get("italic")),
                 underline=bool(style.get("underline")) and "link" not in style,
+                strike=bool(style.get("strikethrough")),
                 sup=offset == "SUPERSCRIPT",
                 sub=offset == "SUBSCRIPT",
                 href=self._href(style.get("link", {}).get("url")),
