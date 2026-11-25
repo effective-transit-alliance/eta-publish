@@ -231,5 +231,6 @@ which the organization's policy forbids creating.
 Each draft, or its folder, has to be shared with that account as a Viewer.
 
 `eta-publish`'s `drafts.yml` starts `eta-drafts`'s `sync.yml`
-with `DRAFTS_DISPATCH_TOKEN`, a token limited to `eta-drafts`.
-[`accounts.md`](accounts.md) has both.
+with a token from the GitHub App `eta-drafts-ci-dispatch`,
+which can only run `eta-drafts`'s workflows.
+[`accounts.md`](accounts.md) has the service account and the App.
