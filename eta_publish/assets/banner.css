@@ -1,12 +1,14 @@
 /* Which kind of publication a preview page is: a band across the top
-   of the window, in the kind's own color, with its text in line with the page's.
+   of the window, in the kind's own color, its text across the window's width too,
+   as the masthead's under it is, rather than held to the body's column,
+   at the body's own `1.25rem` from each edge.
    No margin under it, since what is under it is the masthead's band.
-   The margins and padding are `page.css`'s `body` turned inside out:
+   The margin is `page.css`'s `body` turned inside out:
    `50%` is half the body's width, and `50vw` half the window's. */
 .kind-banner {
     --kind: #555;
     margin: -3rem calc(50% - 50vw) 0;
-    padding: 0.7rem calc(50vw - 50%);
+    padding: 0.7rem 1.25rem;
     background: var(--kind);
     color: #fff;
     font:
@@ -17,12 +19,8 @@
     color: inherit;
 }
 /* The Google Doc, in the upper left: on its own line on a phone,
-   ahead of the kind on a wider screen, where the page's column starts at the window's left,
-   and once the column is narrower than the window, out in the window's own left corner,
-   at the body's `1.25rem` from its edge, where the column leaves room for it. */
-.kind-banner {
-    position: relative;
-}
+   where beside the kind it would wrap into the middle of what the kind says,
+   and ahead of the kind on a wider screen. */
 .kind-doc {
     display: block;
 }
@@ -30,12 +28,6 @@
     .kind-doc {
         display: inline;
         margin-right: 1.5em;
-    }
-}
-@media (min-width: 64rem) {
-    .kind-doc {
-        position: absolute;
-        left: 1.25rem;
     }
 }
 .kind-label {

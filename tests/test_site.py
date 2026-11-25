@@ -1867,3 +1867,33 @@ def test_a_banner_links_no_doc_for_a_saved_response(doc: Document, tmp_path: Pat
     banner = kind_banner(Publication(url=str(tmp_path / "doc.json")), doc)
     assert banner.doc == ""
     assert 'class="kind-doc"' not in banner_markup(banner)
+
+
+def says(published: Published, doc: Document) -> str:
+    """What the banner says a publication of the kind `published` is, as HTML."""
+    return banner_markup(kind_banner(Publication(url=DOC_URL, published=published), doc))
+
+
+def test_a_drafts_banner_says_it_is_not_published_yet(doc: Document) -> None:
+    shown = says(Published.DRAFT, doc)
+    assert "not published yet</div>" in shown
+    assert "etany.org" not in shown
+
+
+def test_a_manual_publications_banner_links_its_live_page_and_the_site(doc: Document) -> None:
+    assert (
+        f'<a href="https://www.etany.org/{SLUG}">live</a> on '
+        '<a href="https://www.etany.org">etany.org</a></div>'
+    ) in says(Published.MANUAL, doc)
+
+
+def test_an_automated_publications_banner_credits_the_file_pasted_live(doc: Document) -> None:
+    """The copy without the warnings, served as `report.min.html` and beside the preview
+    as `report.published.min.html`, which is what it is called there."""
+    assert (
+        f'<a href="https://www.etany.org/{SLUG}">live</a> on '
+        '<a href="https://www.etany.org">etany.org</a> using '
+        '<a href="https://github.com/effective-transit-alliance/eta-publish"><code>eta-publish</code></a>'
+        "&#39;s "
+        '<a href="report.published.min.html"><code>report.published.min.html</code></a></div>'
+    ) in says(Published.AUTOMATED, doc)

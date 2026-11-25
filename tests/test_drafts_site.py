@@ -126,6 +126,20 @@ def test_the_index_says_when_a_kind_has_none() -> None:
     assert page.count("None yet.") == 2
 
 
+def test_the_index_says_each_kind_as_its_pages_banners_do() -> None:
+    """Less what only one publication has to link: its live page, and the file pasted live."""
+    page = drafts_site.index_page([Site(built=[built(Published.DRAFT, "reports/d")])])
+
+    etany = '<a href="https://www.etany.org">etany.org</a>'
+    repository = "https://github.com/effective-transit-alliance/eta-publish"
+    assert '<p class="kind-says">not published yet</p>' in page
+    assert f'<p class="kind-says">live on {etany}</p>' in page
+    assert (
+        f'<p class="kind-says">live on {etany} using '
+        f'<a href="{repository}"><code>eta-publish</code></a></p>'
+    ) in page
+
+
 def test_the_hosts_are_production_on_main_and_the_preview_elsewhere() -> None:
     assert drafts_site.hosts("main") == Hosts(
         published=f"{PRODUCTION_URL}/published", unpublished=PRODUCTION_URL
