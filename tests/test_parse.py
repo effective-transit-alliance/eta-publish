@@ -374,3 +374,35 @@ def test_a_subtitle_finishing_a_headline_that_ends_in_a_colon_is_part_of_the_tit
     assert doc.title == "Digging Out of a Very Deep Hole: Saving Billions on 125th Street"
     assert doc.subtitle_ends_title
     assert doc.subtitle
+
+
+# ---- an archive.today capture ---------------------------------------
+
+
+def _linked(url: str) -> tuple[Parser, list[Inline]]:
+    parser = Parser(FIXTURE)
+    paragraph = {
+        "elements": [{"textRun": {"content": "cited", "textStyle": {"link": {"url": url}}}}]
+    }
+    return parser, parser.inlines(paragraph)
+
+
+def test_an_archive_today_link_naming_its_page_is_that_page() -> None:
+    """Which the Wayback Machine then archives, dated, as it does any source."""
+    parser, inlines = _linked("https://archive.ph/20230101120000/https://example.com/page?a=1")
+    linked = [i for i in inlines if isinstance(i, Text) and i.href]
+    assert linked[0].href == "https://example.com/page?a=1"
+    warned = [str(w) for w in parser.doc.warnings]
+    assert len(warned) == 1
+    assert "`https://example.com/page?a=1`" in warned[0]
+    assert "`web.archive.org`" in warned[0]
+
+
+def test_an_archive_today_short_link_is_kept_and_warned_about() -> None:
+    """Nothing in it says which page it captured, or when."""
+    parser, inlines = _linked("https://archive.is/TVQXL")
+    linked = [i for i in inlines if isinstance(i, Text) and i.href]
+    assert linked[0].href == "https://archive.is/TVQXL"
+    warned = [str(w) for w in parser.doc.warnings]
+    assert len(warned) == 1
+    assert "undated" in warned[0]
