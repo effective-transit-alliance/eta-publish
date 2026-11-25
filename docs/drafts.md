@@ -234,3 +234,83 @@ Each draft, or its folder, has to be shared with that account as a Viewer.
 with a token from the GitHub App `eta-drafts-ci-dispatch`,
 which can only run `eta-drafts`'s workflows.
 [`accounts.md`](accounts.md) has the service account and the App.
+
+## What `eta-publish`'s commits show
+
+The drafts commits and the deploys are made in `eta-drafts`, which is private,
+so its runs say how they're going on the `eta-publish` commits they're for,
+as two commit statuses, shown with the checks on each commit and pull request:
+
+- **`eta-drafts / sync`:** pending on the commit pushed, from `drafts.yml`,
+  or failure if it couldn't start the sync, and error if its run was cancelled before starting it.
+  Every sync run sets it pending again on each code commit still with no drafts commit, linking the run,
+  then success on the one it made the drafts commit for, once pushed,
+  or on the branch's last commit if none was missing,
+  and failure on that one if the run fails.
+  A refused push leaves it pending, for the next run to make again.
+- **`eta-drafts / deploy`:** on the `eta-publish` commit a deploy pins,
+  pending once the sync starts the deploy, and again once the deploy starts, linking the run,
+  then success linking the site deployed, failure if it fails,
+  and error if a newer deploy of the branch replaces it.
+  A deploy started by a push to `eta-drafts` sets it too.
+
+`drafts.yml` sets its statuses with its own run's token.
+`eta-drafts`'s runs can't, since theirs are for `eta-drafts` alone,
+so they set theirs with a token from the GitHub App `eta-drafts-ci-status`,
+which can only set commit statuses, and only on `eta-publish`.
+[`accounts.md`](accounts.md#github-apps) has both Apps.
+
+### Nothing is left pending
+
+A run's own steps set statuses only on the commits it knows of,
+so every sync and deploy run ends with a `sweep` job, whatever happened before it,
+which settles what's still pending on the branch's commits.
+It's `eta-drafts`'s `.github/workflows/sweep.yml`, running `scripts/sweep-statuses.sh`,
+both read from the commit of the workflow calling it, `eta-drafts`'s `main` for a dispatched run,
+not from the branch the run builds, which can be older.
+When a sync or deploy run ends with anything but success,
+`eta-drafts`'s `reconcile.yml` sweeps again for it,
+for when its own `sweep` never ran or didn't finish, as with a lost runner.
+It knows the run's branch from its title, `Sync <branch>` or `Deploy <branch>`.
+
+The sweep goes through the branch's commits,
+from its last back along first parents to the first commit with a final `eta-drafts / deploy` and nothing pending,
+then every commit in the last one's history but not in that one's.
+That commit is where an earlier sweep settled everything before it,
+so this relies on every earlier sweep of the branch having run,
+`main`'s and any other branch's alike.
+It also takes the deploy's pin, and the commits the sync run set pending, in case a force-push has dropped them since.
+Of each status still pending, by the run it links and that run's branch,
+since a commit can be on more than one branch:
+
+- **`eta-drafts / sync`:** success once the commit has its drafts commit.
+  Still with none, it's left to the run it links while that's going,
+  set pending on this run if this run started the next one,
+  left to a sync run of that branch that's going or waiting,
+  and otherwise failure or error: nothing is left to make it.
+  On a commit no longer on the branch: error, if it's this branch's run.
+- **`eta-drafts / deploy`:** left to the run it links while that's going.
+  On the commit this deploy pinned: failure or error if the deploy didn't succeed.
+  On any other commit: error, replaced by a newer deploy,
+  once this run deployed or started one and no other deploy of that branch is going or waiting.
+  With none going, waiting, or done: error.
+
+The commits a force-push drops from a branch, or its deletion, are on none of its runs' sweeps after.
+So `drafts.yml` compares the branch before the push with after it, or with `main` once deleted,
+and sets error on each dropped commit's status still pending from this branch's runs,
+leaving the ones from another branch's runs, which still have the commit, to that branch's sweeps.
+It reads which branch an `eta-drafts` run was for with a token from `eta-drafts-ci-dispatch`, asking only to read.
+
+What can still leave a status pending:
+
+- **A run that's never swept:** if a run's `sweep` doesn't finish and `reconcile.yml` never runs for it either,
+  as in an Actions outage, or fails itself,
+  what it left pending stays so until the branch's next run sweeps it,
+  unless a commit behind it has been settled since, where sweeps stop.
+- **`drafts.yml`'s own jobs:** nothing reruns its `dropped` job,
+  so if that job doesn't finish, what it would have settled stays pending.
+  If its `settle` job doesn't run, the pushed commit's status stays pending until the branch's next sync.
+- **A run re-run by hand** from the Actions page:
+  it keeps its first attempt's link and inputs,
+  and the sweep takes a branch's runs to come in the order `drafts.yml` starts them,
+  which a re-run of an older one breaks.

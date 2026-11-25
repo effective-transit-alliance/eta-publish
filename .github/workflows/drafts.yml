@@ -7,13 +7,16 @@
 # with a token from the App `eta-drafts-ci-dispatch`, which can do nothing but run `eta-drafts`'s workflows.
 # It finds the commits pushed itself, as the ones its branch has no drafts commits for,
 # so a run that never starts, or is replaced by a newer one, leaves none of them out.
+#
+# The pushed commit shows the sync as the commit status `eta-drafts / sync`, set pending here,
+# which `eta-drafts`'s runs then carry on, along with `eta-drafts / deploy`.
 name: Drafts
 
 on:
   push:
     branches: ["**"]
 
-# Nothing here reads or writes this repository.
+# Nothing here reads or writes this repository, beyond its commit statuses.
 permissions: {}
 
 jobs:
@@ -21,7 +24,24 @@ jobs:
     # A deleted branch has nothing to deploy.
     if: ${{ !github.event.deleted }}
     runs-on: ubuntu-latest
+    permissions:
+      # To set the pushed commit's `eta-drafts / sync` status.
+      statuses: write
+    env:
+      STATUS: repos/${{ github.repository }}/statuses/${{ github.sha }}
+      RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
     steps:
+      # Before the sync is started, so its own statuses come after this one.
+      - name: Set the sync pending
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh api --silent "$STATUS"
+          -f context='eta-drafts / sync'
+          -f state=pending
+          -f target_url="$RUN"
+          -f description="Waiting for eta-drafts' sync to start"
+
       # Its client ID and key are this repository's (see `docs/accounts.md`).
       - name: Get a token for `eta-drafts`'s workflows
         id: dispatch-token
@@ -44,3 +64,102 @@ jobs:
           --repo effective-transit-alliance/eta-drafts
           --ref main
           -f branch="$BRANCH"
+
+  # Or the commit would show the sync pending, with none started to finish it.
+  # A job of its own, so it runs even when the one above never finished, as with a lost runner.
+  settle:
+    needs: dispatch
+    if: ${{ !github.event.deleted && (failure() || cancelled()) }}
+    runs-on: ubuntu-latest
+    permissions:
+      # To read and set the pushed commit's `eta-drafts / sync` status.
+      statuses: write
+    steps:
+      - name: Set the sync failed, unless it started
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESULT: ${{ needs.dispatch.result }}
+        run: |
+          current="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/status?per_page=100" \
+            --jq '.statuses[] | select(.context == "eta-drafts / sync") | [.state, .target_url] | @tsv')"
+          if [[ $current != "pending"$'\t'"$RUN" ]]; then
+            echo "the sync took it over already: $current"
+            exit 0
+          fi
+          if [[ $RESULT == cancelled ]]; then
+            state=error
+            description="Cancelled before starting eta-drafts' sync"
+          else
+            state=failure
+            description="Couldn't start eta-drafts' sync"
+          fi
+          gh api --silent "repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" -f context='eta-drafts / sync' \
+            -f state="$state" -f target_url="$RUN" -f description="$description"
+
+  # The commits a force-push or a deletion drops from the branch are swept by none of its runs after,
+  # which sweep only what's on it (see `docs/drafts.md`).
+  # So the statuses this branch's runs left pending on them are settled here,
+  # and left to another branch's runs if they're theirs, which still have the commit.
+  dropped:
+    if: ${{ (github.event.forced || github.event.deleted) && !github.event.created }}
+    runs-on: ubuntu-latest
+    permissions:
+      # To compare the branch before the push with after it.
+      contents: read
+      # To read which branch a run of `drafts.yml` was for.
+      actions: read
+      # To read and set the dropped commits' statuses.
+      statuses: write
+    steps:
+      # To read which branch a run of `eta-drafts`'s was for, from its title.
+      - name: Get a token for `eta-drafts`'s runs
+        id: drafts-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.DRAFTS_CI_DISPATCH_CLIENT_ID }}
+          private-key: ${{ secrets.DRAFTS_CI_DISPATCH_APP_KEY }}
+          owner: effective-transit-alliance
+          repositories: eta-drafts
+          permission-actions: read
+
+      - name: Settle the statuses left pending on the commits dropped
+        env:
+          GH_TOKEN: ${{ github.token }}
+          DRAFTS_TOKEN: ${{ steps.drafts-token.outputs.token }}
+          RUN: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BRANCH: ${{ github.ref_name }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.event.after }}
+          DELETED: ${{ github.event.deleted }}
+        run: |
+          if [[ $DELETED == true ]]; then
+            base=main
+            why="Dropped from the branch, which was deleted"
+          else
+            base="$AFTER"
+            why="Dropped from the branch by a force-push"
+          fi
+          # What `before` has and `base` doesn't.
+          dropped="$(gh api --paginate "repos/$GITHUB_REPOSITORY/compare/$base...$BEFORE?per_page=100" --jq '.commits[].sha')"
+          publish_runs="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/"
+          drafts_runs="$GITHUB_SERVER_URL/effective-transit-alliance/eta-drafts/actions/runs/"
+          for commit in $dropped; do
+            pending="$(gh api "repos/$GITHUB_REPOSITORY/commits/$commit/status?per_page=100" \
+              --jq '.statuses[] | select((.context | startswith("eta-drafts / ")) and .state == "pending") | [.context, .target_url] | @tsv')"
+            while IFS=$'\t' read -r -u 3 context link; do
+              if [[ $link == "$publish_runs"* ]]; then
+                branch="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/${link#"$publish_runs"}" --jq .head_branch)"
+              elif [[ $link == "$drafts_runs"* ]]; then
+                title="$(GH_TOKEN="$DRAFTS_TOKEN" gh api "repos/effective-transit-alliance/eta-drafts/actions/runs/${link#"$drafts_runs"}" --jq .display_title)"
+                branch="${title#* }"
+              else
+                continue
+              fi
+              if [[ $branch == "$BRANCH" ]]; then
+                echo "${commit:0:7} $context: $why"
+                gh api --silent "repos/$GITHUB_REPOSITORY/statuses/$commit" -f context="$context" \
+                  -f state=error -f target_url="$RUN" -f description="$why"
+              fi
+            done 3<<<"$pending"
+          done

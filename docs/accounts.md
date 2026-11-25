@@ -34,7 +34,8 @@ The code, the tests, and the publications built here
   which accepts only runs in the `github-pages` environment.
 - **Variable `DRAFTS_CI_DISPATCH_CLIENT_ID` and secret `DRAFTS_CI_DISPATCH_APP_KEY`,** on the repository:
   the client ID and private key of the App `eta-drafts-ci-dispatch` (see [GitHub Apps](#github-apps)),
-  for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push
+  for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push,
+  and to read which branch `eta-drafts`'s runs were for, on the commits a force-push drops
   (see [`drafts.md`](drafts.md)).
 
 ### `effective-transit-alliance/eta-drafts` (private)
@@ -42,7 +43,8 @@ The code, the tests, and the publications built here
 Holds drafts that aren't public yet: none so far,
 only an empty `publications.toml`, the pin of `eta-publish`,
 and the workflows that make the drafts commits and deploy them,
-`.github/workflows/sync.yml` and `.github/workflows/deploy.yml`.
+`.github/workflows/sync.yml` and `.github/workflows/deploy.yml`,
+with `.github/workflows/sweep.yml` and `.github/workflows/reconcile.yml` settling the commit statuses they leave.
 [`drafts.md`](drafts.md) describes how the drafts work.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
@@ -53,6 +55,10 @@ and the workflows that make the drafts commits and deploy them,
   by signing in with Workload Identity Federation,
   through the `eta-drafts` provider (see [Google](#google)),
   so there's no secret to set.
+- **Variable `DRAFTS_CI_STATUS_CLIENT_ID` and secret `DRAFTS_CI_STATUS_APP_KEY`:**
+  the client ID and private key of the App `eta-drafts-ci-status` (see [GitHub Apps](#github-apps)),
+  for `sync.yml`, `deploy.yml`, and `sweep.yml` to show how they're going on `eta-publish`'s commits,
+  as commit statuses (see [`drafts.md`](drafts.md#what-eta-publishs-commits-show)).
 
 ### GitHub Apps
 
@@ -65,7 +71,8 @@ The token lasts an hour at most, and is revoked when the job ends.
 
 | App | Installed on | Permissions | Used by | Client ID and key |
 | --- | --- | --- | --- | --- |
-| `eta-drafts-ci-dispatch` | `eta-drafts` | Actions: Read and write | `eta-publish`'s `drafts.yml`, to start `eta-drafts`'s sync | variable `DRAFTS_CI_DISPATCH_CLIENT_ID` and secret `DRAFTS_CI_DISPATCH_APP_KEY` in `eta-publish` |
+| `eta-drafts-ci-dispatch` | `eta-drafts` | Actions: Read and write | `eta-publish`'s `drafts.yml`, to start `eta-drafts`'s sync, and to read which branch its runs were for | variable `DRAFTS_CI_DISPATCH_CLIENT_ID` and secret `DRAFTS_CI_DISPATCH_APP_KEY` in `eta-publish` |
+| `eta-drafts-ci-status` | `eta-publish` | Commit statuses: Read and write | `eta-drafts`'s `sync.yml`, `deploy.yml`, and `sweep.yml`, to read and set commit statuses on `eta-publish`'s commits | variable `DRAFTS_CI_STATUS_CLIENT_ID` and secret `DRAFTS_CI_STATUS_APP_KEY` in `eta-drafts` |
 
 Every App can also read its repositories' metadata (Metadata: Read), as GitHub requires.
 The client ID isn't a secret, so it's a variable, shown in the repository's settings.
@@ -230,6 +237,8 @@ each file readable only by its owner (`chmod 600`).
 | `cloudflare-ci-token` | Cloudflare account token `eta-drafts GitHub Actions` |
 | `github-app-eta-drafts-ci-dispatch.pem` | private key of the GitHub App `eta-drafts-ci-dispatch` |
 | `github-app-eta-drafts-ci-dispatch.json` | that App's ID, client ID, owner, and permissions |
+| `github-app-eta-drafts-ci-status.pem` | private key of the GitHub App `eta-drafts-ci-status` |
+| `github-app-eta-drafts-ci-status.json` | that App's ID, client ID, owner, and permissions |
 
 To save a new token without it appearing on screen or in shell history,
 and without overwriting a file that's already there:
