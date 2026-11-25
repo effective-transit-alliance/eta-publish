@@ -32,9 +32,10 @@ The code, the tests, and the publications built here
   by signing in with Workload Identity Federation,
   through the `eta-publish` provider (see [Google](#google)),
   which accepts only runs in the `github-pages` environment.
-- **Secret `DRAFTS_DISPATCH_TOKEN`,** on the repository:
-  the GitHub token `eta-publish triggers eta-drafts` (see [Tokens](#tokens)),
-  for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push
+- **Variable `DRAFTS_CI_DISPATCH_CLIENT_ID` and secret `DRAFTS_CI_DISPATCH_APP_KEY`,** on the repository:
+  the client ID and private key of the App `eta-drafts-ci-dispatch` (see [GitHub Apps](#github-apps)),
+  for `.github/workflows/drafts.yml` to start `eta-drafts`'s sync on every push,
+  and to read which branch `eta-drafts`'s runs were for, on the commits a force-push drops
   (see [`drafts.md`](drafts.md)).
 
 ### `effective-transit-alliance/eta-drafts` (private)
@@ -42,7 +43,8 @@ The code, the tests, and the publications built here
 Holds drafts that aren't public yet: none so far,
 only an empty `publications.toml`, the pin of `eta-publish`,
 and the workflows that make the drafts commits and deploy them,
-`.github/workflows/sync.yml` and `.github/workflows/deploy.yml`.
+`.github/workflows/sync.yml` and `.github/workflows/deploy.yml`,
+with `.github/workflows/sweep.yml` and `.github/workflows/reconcile.yml` settling the commit statuses they leave.
 [`drafts.md`](drafts.md) describes how the drafts work.
 
 - **Secret `CLOUDFLARE_API_TOKEN`:** the Cloudflare token `eta-drafts GitHub Actions`
@@ -53,6 +55,36 @@ and the workflows that make the drafts commits and deploy them,
   by signing in with Workload Identity Federation,
   through the `eta-drafts` provider (see [Google](#google)),
   so there's no secret to set.
+- **Variable `DRAFTS_CI_STATUS_CLIENT_ID` and secret `DRAFTS_CI_STATUS_APP_KEY`:**
+  the client ID and private key of the App `eta-drafts-ci-status` (see [GitHub Apps](#github-apps)),
+  for `sync.yml`, `deploy.yml`, and `sweep.yml` to show how they're going on `eta-publish`'s commits,
+  as commit statuses (see [`drafts.md`](drafts.md#what-eta-publishs-commits-show)).
+
+### GitHub Apps
+
+A workflow in one repository acts on the other through a GitHub App,
+owned by the organization and installed on that other repository only.
+The workflow makes a token from the App's client ID and private key
+with `actions/create-github-app-token`,
+asking for just the permission it uses, on just that repository.
+The token lasts an hour at most, and is revoked when the job ends.
+
+| App | Installed on | Permissions | Used by | Client ID and key |
+| --- | --- | --- | --- | --- |
+| `eta-drafts-ci-dispatch` | `eta-drafts` | Actions: Read and write | `eta-publish`'s `drafts.yml`, to start `eta-drafts`'s sync, and to read which branch its runs were for | variable `DRAFTS_CI_DISPATCH_CLIENT_ID` and secret `DRAFTS_CI_DISPATCH_APP_KEY` in `eta-publish` |
+| `eta-drafts-ci-status` | `eta-publish` | Commit statuses: Read and write | `eta-drafts`'s `sync.yml`, `deploy.yml`, and `sweep.yml`, to read and set commit statuses on `eta-publish`'s commits | variable `DRAFTS_CI_STATUS_CLIENT_ID` and secret `DRAFTS_CI_STATUS_APP_KEY` in `eta-drafts` |
+
+Every App can also read its repositories' metadata (Metadata: Read), as GitHub requires.
+The client ID isn't a secret, so it's a variable, shown in the repository's settings.
+The private key doesn't expire.
+A copy of each App's key is in `~/.config/eta-publish/` (see [Local files](#local-files)),
+for making a new token, or setting the secret again.
+
+- **Manage them:** <https://github.com/organizations/effective-transit-alliance/settings/apps>,
+  where each App's page has its permissions, client ID, and private keys.
+  A new key is made there, and an old one deleted once its secret is replaced.
+- **Installations:** <https://github.com/organizations/effective-transit-alliance/settings/installations>,
+  where each App's repositories are chosen.
 
 ## Google
 
@@ -166,13 +198,12 @@ Without that, a custom domain would be public even with the `pages.dev` addresse
 
 ## Tokens
 
-All three tokens have no expiration: they work until deleted.
+Both tokens have no expiration: they work until deleted.
 
 | Token | Kind | Permissions | Used by | Where it is |
 | --- | --- | --- | --- | --- |
 | `eta-drafts setup (claude)` | user token, owned by `khybersen@etany.org` | Account: Cloudflare Pages Edit; Access: Apps and Policies Edit; Access: Organizations, Identity Providers, and Groups Edit | setting up and changing Cloudflare from a local machine, by Claude Code, and the uploads of `eta-publish drafts preview` | `~/.config/eta-publish/cloudflare-token` |
 | `eta-drafts GitHub Actions` | account token | Cloudflare Pages Edit, entire account | deploying the drafts site from CI | `~/.config/eta-publish/cloudflare-ci-token`, and `CLOUDFLARE_API_TOKEN` in `eta-drafts` |
-| `eta-publish triggers eta-drafts` | GitHub fine-grained personal access token, Khyber's, for `effective-transit-alliance` | Actions: Read and write, on `eta-drafts` only | `eta-publish`'s push workflow, to start `eta-drafts`'s | `~/.config/eta-publish/github-drafts-dispatch-token`, and `DRAFTS_DISPATCH_TOKEN` in `eta-publish` |
 
 - **Why two Cloudflare tokens:** the setup token can change who may view drafts and how they sign in.
   Keeping it off CI means a leak from CI can only touch Pages.
@@ -181,8 +212,7 @@ All three tokens have no expiration: they work until deleted.
 - **Not included:** changing the account itself (its name, members, billing),
   which needs Account Settings permission. Do that in the dashboard.
 - **Manage them:** Cloudflare user tokens at <https://dash.cloudflare.com/profile/api-tokens>,
-  account tokens under **Manage account → Account API tokens**,
-  and the GitHub token at <https://github.com/settings/personal-access-tokens>.
+  and account tokens under **Manage account → Account API tokens**.
   A token's permissions can be changed there without making a new one.
 - **Check one works,** without printing it:
 
@@ -192,14 +222,6 @@ All three tokens have no expiration: they work until deleted.
   ```
 
   An account token is checked at `/accounts/<account id>/tokens/verify` instead.
-  The GitHub token can read `eta-drafts`'s workflows but not its code:
-
-  ```sh
-  GH_TOKEN=$(cat ~/.config/eta-publish/github-drafts-dispatch-token) \
-    gh api repos/effective-transit-alliance/eta-drafts/actions/workflows --jq .total_count
-  ```
-
-  Whether it can start one is only testable once `eta-drafts` has a workflow.
 
 ## Local files
 
@@ -213,7 +235,10 @@ each file readable only by its owner (`chmod 600`).
 | `cloudflare-google-oauth.json` | Google web OAuth client, for Cloudflare's Google sign-in |
 | `cloudflare-token` | Cloudflare user token `eta-drafts setup (claude)` |
 | `cloudflare-ci-token` | Cloudflare account token `eta-drafts GitHub Actions` |
-| `github-drafts-dispatch-token` | GitHub token `eta-publish triggers eta-drafts` |
+| `github-app-eta-drafts-ci-dispatch.pem` | private key of the GitHub App `eta-drafts-ci-dispatch` |
+| `github-app-eta-drafts-ci-dispatch.json` | that App's ID, client ID, owner, and permissions |
+| `github-app-eta-drafts-ci-status.pem` | private key of the GitHub App `eta-drafts-ci-status` |
+| `github-app-eta-drafts-ci-status.json` | that App's ID, client ID, owner, and permissions |
 
 To save a new token without it appearing on screen or in shell history,
 and without overwriting a file that's already there:
