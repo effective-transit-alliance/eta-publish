@@ -36,10 +36,11 @@ from rich.console import Console
 from . import console
 from .archive import Stopped
 from .assets import read
-from .build import DOC_JSON, BuildOptions, build_one, has_its_images, load, media_base
+from .build import DOC_JSON, UNWARNED, BuildOptions, build_one, has_its_images, load, media_base
 from .emit.html import Banner, Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
-from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, LIVE_SITE, Kind, path_kind
+from .minify import min_name
+from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, LIVE_SITE, REPOSITORY, Kind, path_kind
 from .nodes import Document, Shown
 from .parse import parse
 
@@ -84,23 +85,47 @@ KINDS: dict[Published, tuple[str, str]] = {
         "Live on etany.org, published there by hand, not yet with eta-publish.",
     ),
 }
-"""What a preview page calls each kind of publication, and what it says each one is."""
+"""What a preview page calls each kind of publication,
+and what the drafts site's index says each one is, above its list of them.
+A preview page's banner says it of the one publication, linking where it is, in `kind_says`."""
+
+
+def kind_says(publication: Publication, doc: Document) -> Piece:
+    """What the banner on `publication`'s preview page says its kind is.
+
+    Lowercase and unpunctuated, as a note after the kind rather than a sentence of its own.
+    A live one is live on ETA's site, `live` linking its page there,
+    at the document's own `URL:`, which is where both live kinds are.
+    An `automated` one is also credited to the file it is pasted from:
+    the copy `site/published/` serves as `report.min.html`, without the warnings,
+    which beside the preview is `report.published.min.html`, linked and named as that:
+    the preview's own `report.min.html` beside it is the copy with the warnings.
+    """
+    if publication.published is Published.DRAFT:
+        return "not published yet"
+    live: Piece = tag.a(href=f"{LIVE_SITE}{doc.slug}")["live"] if doc.slug else "live"
+    on = [live, " on ", tag.a(href=LIVE_SITE)["etany.org"]]
+    if publication.published is Published.MANUAL:
+        return on
+    pasted = min_name(f"{publication_kind(doc)}.{UNWARNED}.html")
+    return [
+        *on,
+        " using ",
+        tag.a(href=REPOSITORY)[tag.code["eta-publish"]],
+        "'s ",
+        tag.a(href=pasted)[tag.code[pasted]],
+    ]
 
 
 def kind_banner(publication: Publication, doc: Document) -> Banner:
-    """The banner on `publication`'s preview page, linking the live page if it has one,
-    and the Google Doc it is built from.
+    """The banner on `publication`'s preview page: its kind, what that is, and its Google Doc.
 
-    Live at the document's own `URL:` on ETA's site, which is where both live kinds are.
     The document as `canonical` spells it, at its tab,
     unless the entry names a bare id or a saved response, which no browser opens.
     """
-    label, says = KINDS[publication.published]
-    live = ""
-    if publication.published is not Published.DRAFT and doc.slug:
-        live = f"{LIVE_SITE}{doc.slug}"
+    label, _ = KINDS[publication.published]
     source = canonical(publication.url) if "docs.google.com" in publication.url else ""
-    return Banner(label=label, says=says, live=live, doc=source)
+    return Banner(label=label, says=kind_says(publication, doc), doc=source)
 
 
 @dataclass(frozen=True)

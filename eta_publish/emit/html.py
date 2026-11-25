@@ -215,11 +215,8 @@ class Banner:
     label: str
     """The kind: `Automatically Published`, for one."""
 
-    says: str
-    """What that kind is, in a sentence."""
-
-    live: str = ""
-    """Where the live page is, for a kind that has one."""
+    says: Piece
+    """What that kind is, in a sentence, linking where a live publication is live."""
 
     doc: str = ""
     """The Google Doc the page is built from, for a reviewer to comment on or fix what they read."""
@@ -240,9 +237,6 @@ def banner_markup(banner: Banner) -> str:
     doc: list[Piece] = []
     if banner.doc:
         doc = [tag.a(class_="kind-doc", href=banner.doc)["Google Doc"], " "]
-    live: list[Piece] = []
-    if banner.live:
-        live = [" ", tag.a(href=banner.live)["The live page."]]
     return markup(
         [
             tag.style[Markup(f"\n{BANNER_CSS}")],
@@ -252,7 +246,6 @@ def banner_markup(banner: Banner) -> str:
                 tag.strong(class_="kind-label")[banner.label],
                 " ",
                 banner.says,
-                *live,
             ],
         ]
     )

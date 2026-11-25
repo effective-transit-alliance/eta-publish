@@ -84,6 +84,10 @@ What the published PDF links a video to: the figure on the live page,
 which shows its warning and captions, rather than the bare file, which shows neither.
 """
 
+REPOSITORY = "https://github.com/effective-transit-alliance/eta-publish"
+"""This project's code, as `pyproject.toml`'s `Repository` names it,
+which a preview page's banner credits with an `automated` publication's live page."""
+
 ABOUT_US = f"{LIVE_SITE}/about-us"
 """ETA's staff page, where a contributor on staff is credited with a bio."""
 
