@@ -196,6 +196,11 @@ class Text:
     sup: bool = False
     sub: bool = False
     href: str | None = None
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the run is in the document, or `None` where the response did not say.
+
+    Exactly this run's text, so a part of it is `location.part`,
+    or, for a smart chip, the one unit the chip is."""
 
 
 @dataclass(frozen=True)
@@ -220,6 +225,7 @@ class FootnoteRef:
 
     footnote_id: str
     number: int
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass(frozen=True)
@@ -310,6 +316,8 @@ class Image:
     source_uri: str | None = None
     crop: Crop = field(default_factory=lambda: Crop())
     vector: Vector | None = None
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the image is in the document: the one unit an inline object is."""
 
     live_uri: str = ""
     """Where the picture's own file is kept, when that is somewhere we keep things:
@@ -335,12 +343,69 @@ def plain_text(content: list[Inline]) -> str:
     return "".join(i.text for i in content if isinstance(i, Text))
 
 
+def sliced(run: Text, start: int, end: int | None = None) -> Text:
+    """`run` with only `run.text[start:end]` left, and its location moved to match."""
+    stop = len(run.text) if end is None else end
+    location = run.location
+    if location is not None:
+        location = location.part(run.text, start, stop)
+    return replace(run, text=run.text[start:stop], location=location)
+
+
+def locate(content: list[Inline], start: int, end: int) -> Location | None:
+    """Where `plain_text(content)[start:end]` is in the document.
+
+    `None` where a run it touches has no location, or where it would run
+    from one segment of the document into another.
+    """
+    runs: list[tuple[int, Text]] = []
+    offset = 0
+    for node in content:
+        if isinstance(node, Text) and node.text:
+            runs.append((offset, node))
+            offset += len(node.text)
+    if not runs or not 0 <= start <= end <= offset:
+        return None
+    # The run a stretch starts in, and the one it ends in. Where the stretch
+    # touches a boundary between two, it starts in the later and ends in the earlier.
+    first = next(
+        ((at, run) for at, run in runs if start < at + len(run.text)),
+        runs[-1],
+    )
+    last = next(((at, run) for at, run in runs if end <= at + len(run.text)), runs[-1])
+    if end == start:
+        last = first
+    if first[1].location is None or last[1].location is None:
+        return None
+    opened = first[1].location.part(first[1].text, start - first[0], start - first[0])
+    closed = last[1].location.part(last[1].text, end - last[0], end - last[0])
+    if (opened.tab_id, opened.segment_id) != (closed.tab_id, closed.segment_id):
+        return None
+    if end == start:
+        if opened.empty:
+            return opened
+        # A point beside a chip, which has no inside to put it in.
+        at_end = start - first[0] == len(first[1].text)
+        point = opened.end if at_end else opened.start
+        return replace(opened, start=point, end=point)
+    return replace(opened, end=closed.end)
+
+
+def span(content: list[Inline]) -> Location | None:
+    """Where the text of `content` is in the document, from its first character to its last."""
+    return locate(content, 0, len(plain_text(content)))
+
+
 # ---- block content -------------------------------------------------
 
 
 @dataclass
 class Paragraph:
     content: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the paragraph is in the document, its closing newline included.
+
+    Every block and list item has one, `None` where the response did not say."""
 
 
 @dataclass
@@ -353,6 +418,7 @@ class Heading:
     when an unrelated section is added elsewhere."""
 
     content: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 class ListKind(Enum):
@@ -364,12 +430,14 @@ class ListKind(Enum):
 class ListItem:
     content: list[Inline] = field(default_factory=list)
     children: list[ListItem] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
 class List:
     kind: ListKind
     items: list[ListItem] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -386,6 +454,8 @@ class Figure:
     source: list[Inline] = field(default_factory=list)
     caption: list[Inline] = field(default_factory=list)
     credit: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The image's own paragraph; the lines around it carry their own runs' locations."""
 
 
 @dataclass
@@ -394,6 +464,8 @@ class Table:
     """Rows of cells; each cell holds blocks."""
 
     header: bool = False
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The whole table; the blocks in each cell carry their own."""
 
 
 class Platform(Enum):
@@ -457,6 +529,12 @@ class Embed:
 
     credit: list[Inline] = field(default_factory=list)
     """The `Credit:` line under it, as a figure has, or empty where there is none."""
+
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Its `Video:` line's paragraph."""
+
+    label: Location | None = field(default=None, compare=False, repr=False)
+    """Where its `Video:` line's label is, `Video` or `Video (Copy)`, colon left out."""
 
     @property
     def uncaptioned(self) -> bool:
@@ -531,6 +609,8 @@ class Footnote:
     footnote_id: str
     number: int
     content: list[Block] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The footnote's whole segment, whose `segment_id` is `footnote_id`."""
 
 
 SLOT = "{}"
@@ -728,6 +808,10 @@ class Document:
 
     Zero where the fetch could not read them, which is not the same as none:
     the count is carried over from the last build that could."""
+
+    tab_id: str = ""
+    """The id of the tab this was read from, as every `Location` in it names it,
+    or empty for a document with no tabs."""
 
     tab_title: str = ""
     """What the tab this was read from is called.

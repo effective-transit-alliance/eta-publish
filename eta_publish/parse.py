@@ -45,6 +45,7 @@ from .nodes import (
     Listed,
     ListItem,
     ListKind,
+    Location,
     Paragraph,
     Platform,
     Shown,
@@ -55,6 +56,7 @@ from .nodes import (
     document_url,
     is_archive_today,
     plain_text,
+    sliced,
     unwrap_snapshot,
 )
 
@@ -276,8 +278,8 @@ def after_label(line: list[Inline]) -> list[Inline]:
     """What follows a label's colon, as the runs it was written in."""
     for i, node in enumerate(line):
         if isinstance(node, Text) and ":" in node.text:
-            rest = node.text.partition(":")[2]
-            return ([replace(node, text=rest)] if rest else []) + line[i + 1 :]
+            rest = sliced(node, node.text.index(":") + 1)
+            return ([rest] if rest.text else []) + line[i + 1 :]
     return []
 
 
@@ -809,7 +811,7 @@ def strip_leading_space(blocks: list[Block]) -> list[Block]:
             break
         first = block.content[0]
         if isinstance(first, Text):
-            block.content[0] = replace(first, text=first.text.lstrip())
+            block.content[0] = sliced(first, len(first.text) - len(first.text.lstrip()))
         break
     return blocks
 
@@ -849,6 +851,9 @@ def has_image(para: JsonObject) -> bool:
 class Parser:
     def __init__(self, doc_json: JsonObject) -> None:
         self.json = doc_json
+        self.tab_id = str(doc_json.get("tabId", ""))
+        self.segment: str | None = None
+        """The footnote being read, or `None` while the body is."""
         self.inline_objects: JsonObject = doc_json.get("inlineObjects", {})
         self.lists: JsonObject = doc_json.get("lists", {})
         self.footnote_defs: JsonObject = doc_json.get("footnotes", {})
@@ -860,25 +865,42 @@ class Parser:
         self._has_social_card = False
         """Whether a `Social Title Card:` field had its picture under it."""
 
+    def location(self, element: JsonObject) -> Location | None:
+        """Where a structural or inline element of the response is, if it says.
+
+        Docs leaves out an index that is 0, as it leaves out every zero,
+        so a footnote's first element has an end and no start.
+        A response with no indices at all is one written by hand, for a test.
+        """
+        if "endIndex" not in element:
+            return None
+        return Location(
+            tab_id=self.tab_id,
+            segment_id=self.segment,
+            start=int(element.get("startIndex", 0)),
+            end=int(element["endIndex"]),
+        )
+
     # ---- inline ------------------------------------------------------
 
     def inlines(self, para: JsonObject) -> list[Inline]:
         out: list[Inline] = []
         for el in para.get("elements", []):
+            where = self.location(el)
             if "textRun" in el:
-                out.extend(self._text_run(el["textRun"]))
+                out.extend(self._text_run(el["textRun"], where))
             elif "footnoteReference" in el:
-                out.append(self._footnote_ref(el["footnoteReference"]))
+                out.append(self._footnote_ref(el["footnoteReference"], where))
             elif "inlineObjectElement" in el:
-                image = self._image(el["inlineObjectElement"])
+                image = self._image(el["inlineObjectElement"], where)
                 if image is not None:
                     out.append(image)
             elif "person" in el:
-                out.append(self._person(el["person"]))
+                out.append(self._person(el["person"], where))
             elif "dateElement" in el:
-                out.append(self._date(el["dateElement"]))
+                out.append(self._date(el["dateElement"], where))
             elif "richLink" in el:
-                out.append(self._rich_link(el["richLink"]))
+                out.append(self._rich_link(el["richLink"], where))
             elif not (IGNORED_ELEMENTS & el.keys()):
                 kinds = sorted(k for k in el if k not in ("startIndex", "endIndex"))
                 self.doc.warn("unhandled document element {}, dropped", Shown(", ".join(kinds)))
@@ -959,7 +981,7 @@ class Parser:
         flush()
         return out
 
-    def _person(self, chip: JsonObject) -> Text:
+    def _person(self, chip: JsonObject, where: Location | None = None) -> Text:
         """A person smart chip renders as the person's name.
 
         The chip also carries their email address:
@@ -967,14 +989,14 @@ class Parser:
         the publication says, so it is not emitted.
         """
         props = chip.get("personProperties", {})
-        return Text(text=props.get("name") or props.get("email", ""))
+        return Text(text=props.get("name") or props.get("email", ""), location=where)
 
-    def _date(self, chip: JsonObject) -> Text:
+    def _date(self, chip: JsonObject, where: Location | None = None) -> Text:
         """A date smart chip renders the way the document shows it."""
         text = date_text(chip)
         if not text:
             self.doc.warn("a date chip carries no timestamp; dropped")
-        return Text(text=text)
+        return Text(text=text, location=where)
 
     def _href(self, url: str | None) -> str | None:
         """A link as the tree holds it: the page it is of, not the capture of it.
@@ -1021,14 +1043,15 @@ class Parser:
         )
         return original
 
-    def _rich_link(self, chip: JsonObject) -> Text:
+    def _rich_link(self, chip: JsonObject, where: Location | None = None) -> Text:
         """A linked Drive file, which is how `Source:` lines name an asset."""
         props = chip.get("richLinkProperties", {})
-        return Text(text=props.get("title", ""), href=self._href(props.get("uri")))
+        return Text(text=props.get("title", ""), href=self._href(props.get("uri")), location=where)
 
-    def _text_run(self, run: JsonObject) -> list[Inline]:
+    def _text_run(self, run: JsonObject, where: Location | None = None) -> list[Inline]:
         """One run, split at any soft line breaks it contains."""
-        text = run.get("content", "")
+        content = run.get("content", "")
+        text = content
         # A trailing newline is paragraph structure, not content.
         if text.endswith("\n"):
             text = text[:-1]
@@ -1037,7 +1060,7 @@ class Parser:
         style = run.get("textStyle", {})
         offset = style.get("baselineOffset")
 
-        def styled(part: str) -> Text:
+        def styled(part: str, at: int) -> Text:
             return Text(
                 text=part,
                 bold=bool(style.get("bold")),
@@ -1048,25 +1071,28 @@ class Parser:
                 sup=offset == "SUPERSCRIPT",
                 sub=offset == "SUBSCRIPT",
                 href=self._href(style.get("link", {}).get("url")),
+                location=None if where is None else where.part(content, at, at + len(part)),
             )
 
         out: list[Inline] = []
+        at = 0
         for n, part in enumerate(text.split(SOFT_BREAK)):
             if n:
                 out.append(LineBreak())
             if part:
-                out.append(styled(part))
+                out.append(styled(part, at))
+            at += len(part) + len(SOFT_BREAK)
         return out
 
-    def _footnote_ref(self, ref: JsonObject) -> FootnoteRef:
+    def _footnote_ref(self, ref: JsonObject, where: Location | None = None) -> FootnoteRef:
         fid = ref["footnoteId"]
         # Numbered in document order,
         # so a reference and its definition cannot disagree the way hand-written ones did.
         if fid not in self._footnote_numbers:
             self._footnote_numbers[fid] = len(self._footnote_numbers) + 1
-        return FootnoteRef(footnote_id=fid, number=self._footnote_numbers[fid])
+        return FootnoteRef(footnote_id=fid, number=self._footnote_numbers[fid], location=where)
 
-    def _image(self, ioe: JsonObject) -> Image | None:
+    def _image(self, ioe: JsonObject, where: Location | None = None) -> Image | None:
         object_id = ioe.get("inlineObjectId", "")
         embedded = (
             self.inline_objects.get(object_id, {})
@@ -1092,6 +1118,7 @@ class Parser:
             alt=embedded.get("description") or embedded.get("title") or "",
             source_uri=uri,
             crop=crop,
+            location=where,
         )
 
     # Where a Drive link keeps the file id, in either shape Docs produces.
@@ -1204,10 +1231,15 @@ class Parser:
                     # Docs permits an indented item with no item above it.
                     siblings.append(ListItem())
                 stack.append(siblings[-1].children)
-            stack[-1].append(ListItem(content=self.inlines(para)))
+            stack[-1].append(
+                ListItem(content=self.inlines(para), location=self.location(content[i]))
+            )
             i += 1
 
-        return List(kind=self._list_kind(list_id, 0), items=root), i
+        first = self.location(content[start])
+        last = self.location(content[i - 1])
+        where = None if first is None or last is None else first.through(last)
+        return List(kind=self._list_kind(list_id, 0), items=root, location=where), i
 
     # ---- blocks ------------------------------------------------------
 
@@ -1237,7 +1269,7 @@ class Parser:
             if "table" in item:
                 drop_pending()
                 caption_slot = 0
-                out.append(self.table(item["table"]))
+                out.append(self.table(item["table"], self.location(item)))
                 i += 1
                 continue
 
@@ -1289,6 +1321,7 @@ class Parser:
                         level=HEADING_LEVELS[style],
                         anchor=self.anchors.allocate(text),
                         content=self.inlines(para),
+                        location=self.location(item),
                     )
                 )
                 continue
@@ -1330,8 +1363,9 @@ class Parser:
                         Shown("Video:"),
                         Shown(text[:80]),
                     )
-                    out.append(Paragraph(content=unmarked(inlines)))
+                    out.append(Paragraph(content=unmarked(inlines), location=self.location(item)))
                     continue
+                embed.location = self.location(item)
                 embed.copy = is_copied_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
                 embed.name = video_title(
@@ -1345,7 +1379,11 @@ class Parser:
             # An inline object that isn't a picture, such as a drawing, was already warned about
             # and dropped from `inlines`, so the paragraph is prose.
             if any(isinstance(i, Image) for i in inlines):
-                figure = Figure(image=self._only_image(inlines), source=pending_source or [])
+                figure = Figure(
+                    image=self._only_image(inlines),
+                    source=pending_source or [],
+                    location=self.location(item),
+                )
                 self._claim_name(figure, pending_source or [])
                 out.append(figure)
                 pending_source = None
@@ -1419,7 +1457,7 @@ class Parser:
                     continue
 
             caption_slot = 0
-            out.append(Paragraph(content=inlines))
+            out.append(Paragraph(content=inlines, location=self.location(item)))
 
         drop_pending()
         for block in out:
@@ -1507,12 +1545,13 @@ class Parser:
             )
         return images[0]
 
-    def table(self, table: JsonObject) -> Table:
+    def table(self, table: JsonObject, where: Location | None = None) -> Table:
         return Table(
             rows=[
                 [self.blocks(cell.get("content", [])) for cell in row.get("tableCells", [])]
                 for row in table.get("tableRows", [])
-            ]
+            ],
+            location=where,
         )
 
     # ---- document ----------------------------------------------------
@@ -1564,7 +1603,7 @@ class Parser:
             for el in para.get("elements", []):
                 if "inlineObjectElement" not in el:
                     continue
-                image = self._image(el["inlineObjectElement"])
+                image = self._image(el["inlineObjectElement"], self.location(el))
                 if image is not None:
                     return image
         return None
@@ -1703,7 +1742,7 @@ class Parser:
         """Take the picture in `para` as the share card."""
         for el in para.get("elements", []):
             if "inlineObjectElement" in el:
-                image = self._image(el["inlineObjectElement"])
+                image = self._image(el["inlineObjectElement"], self.location(el))
                 if image is not None:
                     self.doc.card = image
                     self._has_social_card = True
@@ -1870,23 +1909,31 @@ class Parser:
             if fid not in self._footnote_numbers:
                 self.doc.warn("footnote {} is defined but never referenced; omitted", Shown(fid))
         return [
-            Footnote(
-                footnote_id=fid,
-                number=number,
-                content=strip_leading_space(
-                    self.blocks(self.footnote_defs.get(fid, {}).get("content", []))
-                ),
-            )
+            self._footnote(fid, number)
             for number, fid in sorted(
                 (number, fid) for fid, number in self._footnote_numbers.items()
             )
         ]
+
+    def _footnote(self, fid: str, number: int) -> Footnote:
+        """One footnote, read as the segment of the document it is."""
+        content: list[JsonObject] = self.footnote_defs.get(fid, {}).get("content", [])
+        self.segment = fid
+        try:
+            blocks = strip_leading_space(self.blocks(content))
+            first = self.location(content[0]) if content else None
+            last = self.location(content[-1]) if content else None
+        finally:
+            self.segment = None
+        where = None if first is None or last is None else first.through(last)
+        return Footnote(footnote_id=fid, number=number, content=blocks, location=where)
 
     def parse(self) -> Document:
         content: list[JsonObject] = self.json.get("body", {}).get("content", [])
         content = self.front_matter(content)
         self.doc.title = self.title(content)
         self.doc.file_title = self.json.get("title", "")
+        self.doc.tab_id = self.tab_id
         self.doc.tab_title = self.json.get("tabTitle", "")
         read_review(self.doc, self.json)
 
