@@ -167,6 +167,7 @@ class TypstEmitter(Emitter):
             text=escape,
             quote=lambda q: f"#quote(block: true)[{q}]",
             bullets=lambda items: "#list(" + "".join(f"[{i}], " for i in items) + ")",
+            link=lambda u: f"#link({string(u)})[#raw({string(u)})]",
         )
 
     def contributors(self, doc: Document) -> str:

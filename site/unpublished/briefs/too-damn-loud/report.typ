@@ -18,7 +18,7 @@
     [2 images are unnamed, so each publishes under a hash; give each a #raw("Source:") line naming its file:#list([#raw("img-831248b1")], [#raw("img-b17aa21a"): PNG SVG], )],
     [24 suggestions still open on this tab; the build publishes the document without them, as it reads today],
     [2 comment threads still open on this tab],
-    [3 links show their URL as their text; give each words in the doc:#list([#raw("https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393")], [#raw("https://www.amny.com/news/mta-nyc-subway-ads-and-money/")], [#raw("https://sbahn.berlin/fahren/bauen-stoerung/")], )],
+    [3 links show their URL as their text; give each words in the doc:#list([#link("https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393")[#raw("https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393")]], [#link("https://www.amny.com/news/mta-nyc-subway-ads-and-money/")[#raw("https://www.amny.com/news/mta-nyc-subway-ads-and-money/")]], [#link("https://sbahn.berlin/fahren/bauen-stoerung/")[#raw("https://sbahn.berlin/fahren/bauen-stoerung/")]], )],
     [the #raw("Header") section has no #raw("SME/Liaison:") line],
     [the #raw("Header") section has no #raw("Goals:") line],
     [the #raw("Header") section has no #raw("Audience:") line],

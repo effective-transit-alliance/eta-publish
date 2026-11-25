@@ -16,9 +16,9 @@ September 9, 2026
 - 24 suggestions still open on this tab; the build publishes the document without them, as it reads today
 - 2 comment threads still open on this tab
 - 3 links show their URL as their text; give each words in the doc:
-  - `https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393`
-  - `https://www.amny.com/news/mta-nyc-subway-ads-and-money/`
-  - `https://sbahn.berlin/fahren/bauen-stoerung/`
+  - [`https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393`](<https://www.sciencedirect.com/science/article/abs/pii/S0966692316302393>)
+  - [`https://www.amny.com/news/mta-nyc-subway-ads-and-money/`](<https://www.amny.com/news/mta-nyc-subway-ads-and-money/>)
+  - [`https://sbahn.berlin/fahren/bauen-stoerung/`](<https://sbahn.berlin/fahren/bauen-stoerung/>)
 - the `Header` section has no `SME/Liaison:` line
 - the `Header` section has no `Goals:` line
 - the `Header` section has no `Audience:` line

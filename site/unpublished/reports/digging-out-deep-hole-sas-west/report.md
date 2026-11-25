@@ -4,19 +4,19 @@ August 19, 2026
 
 **Warnings**
 
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://mmbiz.qpic.cn/mmbiz_jpg/R3QIfMDE0S8gZDEZoDp8r03hqSf32rQ8sC8poo18ZicPdd2e3RCMhCgKibrXHdwWEibmd29jWrRWxpgE8hf25f9FA/`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://mmbiz.qpic.cn/mmbiz_png/ZHDc6XLp5hBdZC053hhqPT42S3vG38tCIgluQfqJmxdOIARqrQMFiaFWFeX6MNEhx8mibVnB36mrTicQicNA5Jzh0Q/`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://upload.wikimedia.org/wikipedia/commons/d/d9/W125irtjeh.JPG`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://upload.wikimedia.org/wikipedia/commons/2/27/72nd_Street_IRT_Broadway_013.JPG`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://ars.els-cdn.com/content/image/1-s2.0-S2214509525014135-gr2_lrg.jpg`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://storage.ghost.io/c/19/31/1931222a-d1c5-42ac-8932-2ee3ac1f8927/content/images/old-theurbanist-org/wp-content/uploads/2026/01/nyc-mta-116th-station-design.png`
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement`](<https://www.flickr.com/photo_download.gne?id=8475914281&secret=4efa092c06&size=o&source=photoPageEngagement>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://mmbiz.qpic.cn/mmbiz_jpg/R3QIfMDE0S8gZDEZoDp8r03hqSf32rQ8sC8poo18ZicPdd2e3RCMhCgKibrXHdwWEibmd29jWrRWxpgE8hf25f9FA/`](<https://mmbiz.qpic.cn/mmbiz_jpg/R3QIfMDE0S8gZDEZoDp8r03hqSf32rQ8sC8poo18ZicPdd2e3RCMhCgKibrXHdwWEibmd29jWrRWxpgE8hf25f9FA/>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://mmbiz.qpic.cn/mmbiz_png/ZHDc6XLp5hBdZC053hhqPT42S3vG38tCIgluQfqJmxdOIARqrQMFiaFWFeX6MNEhx8mibVnB36mrTicQicNA5Jzh0Q/`](<https://mmbiz.qpic.cn/mmbiz_png/ZHDc6XLp5hBdZC053hhqPT42S3vG38tCIgluQfqJmxdOIARqrQMFiaFWFeX6MNEhx8mibVnB36mrTicQicNA5Jzh0Q/>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://upload.wikimedia.org/wikipedia/commons/d/d9/W125irtjeh.JPG`](<https://upload.wikimedia.org/wikipedia/commons/d/d9/W125irtjeh.JPG>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://upload.wikimedia.org/wikipedia/commons/2/27/72nd_Street_IRT_Broadway_013.JPG`](<https://upload.wikimedia.org/wikipedia/commons/2/27/72nd_Street_IRT_Broadway_013.JPG>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://ars.els-cdn.com/content/image/1-s2.0-S2214509525014135-gr2_lrg.jpg`](<https://ars.els-cdn.com/content/image/1-s2.0-S2214509525014135-gr2_lrg.jpg>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://storage.ghost.io/c/19/31/1931222a-d1c5-42ac-8932-2ee3ac1f8927/content/images/old-theurbanist-org/wp-content/uploads/2026/01/nyc-mta-116th-station-design.png`](<https://storage.ghost.io/c/19/31/1931222a-d1c5-42ac-8932-2ee3ac1f8927/content/images/old-theurbanist-org/wp-content/uploads/2026/01/nyc-mta-116th-station-design.png>)
 - unfinished text in the document: `SVG: TODO`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://www.theurbanist.org/content/images/2026/03/image-9.png`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://www.metro4milano.it/wordpress/wp-content/uploads/2016/09/galleria-tratta-centrale.jpg`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://www.flickr.com/photo_download.gne?id=4490800374&secret=db20eed4be&size=o&source=photoPageEngagement`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://pedestrianobservations.com/wp-content/uploads/2025/06/1000024411.jpg`
-- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: `https://londonreconnections.com/content/images/2026/01/diagram-station-edouard-montpetit-REM.png`
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://www.theurbanist.org/content/images/2026/03/image-9.png`](<https://www.theurbanist.org/content/images/2026/03/image-9.png>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://www.metro4milano.it/wordpress/wp-content/uploads/2016/09/galleria-tratta-centrale.jpg`](<https://www.metro4milano.it/wordpress/wp-content/uploads/2016/09/galleria-tratta-centrale.jpg>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://www.flickr.com/photo_download.gne?id=4490800374&secret=db20eed4be&size=o&source=photoPageEngagement`](<https://www.flickr.com/photo_download.gne?id=4490800374&secret=db20eed4be&size=o&source=photoPageEngagement>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://pedestrianobservations.com/wp-content/uploads/2025/06/1000024411.jpg`](<https://pedestrianobservations.com/wp-content/uploads/2025/06/1000024411.jpg>)
+- write `Image Source` as a `Source:` line above the image instead; it takes a URL as well: [`https://londonreconnections.com/content/images/2026/01/diagram-station-edouard-montpetit-REM.png`](<https://londonreconnections.com/content/images/2026/01/diagram-station-edouard-montpetit-REM.png>)
 - 9 images are unnamed, so each publishes under a hash; give each a `Source:` line naming its file:
   - `img-6fb0f9c4`: Composite image of the MTA’s SAS West St Nicholas Av station diagram a...
   - `img-4b8ff8de`: One of the two massive caverns blasted out of bedrock 140 ft below Gra...
@@ -30,7 +30,7 @@ August 19, 2026
 - 7 suggestions still open on this tab; the build publishes the document without them, as it reads today
 - 2 comment threads still open on this tab
 - 1 link shows its URL as its text; give it words in the doc:
-  - `https://link.nfpa.org/free-access/publications/130/2026`
+  - [`https://link.nfpa.org/free-access/publications/130/2026`](<https://link.nfpa.org/free-access/publications/130/2026>)
 - the `Header` section has no `SME/Liaison:` line
 - the `Header` section has no `Goals:` line
 - the `Header` section has no `Audience:` line
