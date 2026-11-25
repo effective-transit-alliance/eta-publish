@@ -631,6 +631,7 @@ class HtmlEmitter(Emitter):
                 quote=lambda q: markup(tag.blockquote[Markup(q)]),
                 bullets=lambda items: markup(tag.ul[[tag.li[Markup(i)] for i in items]]),
                 marked=lambda before, mark, after: markup(tag.code[before, tag.mark[mark], after]),
+                link=lambda u: markup(tag.a(href=u)[tag.code[u]]),
             )
         )
 

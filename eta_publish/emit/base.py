@@ -32,6 +32,7 @@ from ..nodes import (
     Span,
     Table,
     Text,
+    is_source,
 )
 
 
@@ -44,6 +45,7 @@ def warning_markup(
     quote: Callable[[str], str] | None = None,
     bullets: Callable[[list[str]], str] | None = None,
     marked: Callable[[str, str, str], str] | None = None,
+    link: Callable[[str], str] | None = None,
 ) -> str:
     """`notice` rendered: its shown values, its quoted and listed lines, the rest as `text`.
 
@@ -58,25 +60,36 @@ def warning_markup(
     at: an emitter that can draw a highlight takes the three pieces and draws
     one, and an emitter that cannot gets the value whole, with the middle dot
     standing in for what it cannot show.
+
+    `link` is for a shown value that is a URL and nothing else, such as a source
+    that could not be archived: an emitter that can link one makes it a link to itself,
+    so the page is a click away rather than a copy and a paste.
     """
     out: list[str] = []
     for part in notice.parts:
         match part:
             case Shown(value):
-                out.append(code(value))
+                out.append(_shown(value, code, link))
             case Cut(value):
                 out.append(cut(value))
             case Highlighted():
                 out.append(_highlighted(part, code, marked))
             case Quoted(spans):
-                rendered = _spans(spans, code, cut, text, marked)
+                rendered = _spans(spans, code, cut, text, marked, link)
                 out.append(quote(rendered) if quote is not None else rendered)
             case Listed(items):
-                lines = [_spans(item, code, cut, text, marked) for item in items]
+                lines = [_spans(item, code, cut, text, marked, link) for item in items]
                 out.append(bullets(lines) if bullets is not None else "".join(lines))
             case _:
                 out.append(text(part))
     return "".join(out)
+
+
+def _shown(value: str, code: Callable[[str], str], link: Callable[[str], str] | None) -> str:
+    """One shown value, linked where it is a URL and the emitter can link one."""
+    if link is not None and is_source(value) and not any(c.isspace() for c in value):
+        return link(value)
+    return code(value)
 
 
 def _highlighted(
@@ -96,13 +109,14 @@ def _spans(
     cut: Callable[[str], str],
     text: Callable[[str], str],
     marked: Callable[[str, str, str], str] | None = None,
+    link: Callable[[str], str] | None = None,
 ) -> str:
     """The spans of one line, which hold no lines of their own."""
     out = []
     for span in spans:
         match span:
             case Shown(value):
-                out.append(code(value))
+                out.append(_shown(value, code, link))
             case Cut(value):
                 out.append(cut(value))
             case Highlighted():

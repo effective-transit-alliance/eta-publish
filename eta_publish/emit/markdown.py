@@ -207,6 +207,7 @@ class MarkdownEmitter(Emitter):
             text=escape,
             quote=lambda q: f"\n> {q}",
             bullets=lambda items: "".join(f"\n- {item}" for item in items),
+            link=lambda u: f"[{fence(u)}]({url(u)})",
         )
 
     def dateline(self, doc: Document) -> str:
