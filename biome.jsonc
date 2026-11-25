@@ -23,6 +23,11 @@
     },
     "linter": {
         "rules": {
+            "style": {
+                // A body without braces is one line away from a second statement
+                // that looks as if it were inside the `if`, `for`, `while`, or `else`, but is not.
+                "useBlockStatements": "error"
+            },
             "a11y": {
                 // Every empty link here is a `#` mark with an `aria-label`,
                 // which is its accessible name; this rule's HTML half does not read `aria-label`.
