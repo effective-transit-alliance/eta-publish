@@ -49,7 +49,9 @@ def assets(directory: Path) -> list[Path]:
         [
             bun(),
             str(SCRIPT),
-            str(directory),
+            # Where it runs, rather than `directory` again, which a relative one
+            # would name from inside itself.
+            ".",
             *PAGE_ASSETS,
         ],
         directory,
