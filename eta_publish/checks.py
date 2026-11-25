@@ -29,12 +29,15 @@ from .nodes import (
     Shown,
     Span,
     Text,
+    Underline,
     Where,
     addressed,
     cited_page,
     document_url,
     is_address,
+    locate,
     plain_text,
+    span,
 )
 from .parse import (
     CREDIT_LABEL,
@@ -224,12 +227,14 @@ def _check_stray_fields(doc: Document) -> None:
                     Shown(f"{field}:"),
                     Shown("Header"),
                     Shown(text),
+                    marks=[span(line)],
                 )
             else:
                 doc.warn(
                     "{} reads as a field and is not one: {}",
                     Shown(f"{field}:"),
                     Shown(text),
+                    marks=[span(line)],
                 )
 
 
@@ -254,13 +259,17 @@ def check_described(doc: Document) -> None:
             doc.warn(
                 "the image {} has no alt text and no caption; add a description to it in the doc",
                 Shown(figure.image.filename),
+                marks=[figure.image.location],
             )
         elif word := _ANNOUNCING.search(figure.image.alt):
+            # A comment, though the code could say the alt text without the word:
+            # nothing here edits an image's alt text, and the sentence left may need rewording.
             doc.warn(
                 "the alt text of image {} says {}, which a screen reader already says;"
                 " give the image alt text without it in the doc (right-click, Alt text)",
                 Shown(figure.image.filename),
                 Shown(word.group()),
+                marks=[figure.image.location],
             )
 
 
@@ -303,6 +312,7 @@ def check_charts(doc: Document) -> None:
             " link the chart's SVG on one under it, so the SVG publishes instead of the raster",
             Shown(image.filename),
             Shown("SVG:"),
+            marks=[image.location],
         )
 
 
@@ -316,26 +326,42 @@ def _check_figures(doc: Document) -> None:
         if not isinstance(block, Figure):
             continue
         named = Shown(block.image.filename)
+        here = block.image.location
         if not block.caption:
-            doc.warn("the image {} has no caption", named)
+            doc.warn("the image {} has no caption", named, marks=[here])
         if block.credit:
             continue
         # A label is read only where it is underlined, so an unmarked `Credit:`
         # is the caption when it is the only line under the image, and a
         # paragraph of prose after it otherwise. Either way the image publishes
         # uncredited, with its credit printed under it as something else.
-        if starts_with_label(block.caption, CREDIT_LABEL) or (
-            isinstance(after, Paragraph) and starts_with_label(after.content, CREDIT_LABEL)
-        ):
+        credit = (
+            block.caption
+            if starts_with_label(block.caption, CREDIT_LABEL)
+            else after.content
+            if isinstance(after, Paragraph) and starts_with_label(after.content, CREDIT_LABEL)
+            else None
+        )
+        if credit is not None:
             doc.warn(
                 "the image {} has a {} line under it that is not read as its credit, "
                 "because {} is not underlined; underline it in the doc",
                 named,
                 Shown("Credit:"),
                 Shown("Credit"),
+                marks=[_underlined_label(credit)],
             )
         else:
-            doc.warn("the image {} has no {} line", named, Shown("Credit:"))
+            doc.warn("the image {} has no {} line", named, Shown("Credit:"), marks=[here])
+
+
+def _underlined_label(line: list[Inline]) -> Mark | None:
+    """A `Label:` line's label underlined, which is what makes it one."""
+    text = plain_text(line)
+    start = len(text) - len(text.lstrip())
+    end = start + len(text[start : text.index(":", start)].rstrip())
+    where = locate(line, start, end)
+    return None if where is None else Mark(where, fix=(Underline(where, underline=True),))
 
 
 def _check_named(doc: Document) -> None:

@@ -358,7 +358,10 @@ class TypstEmitter(Emitter):
         """Typst places and numbers footnotes itself, so the body goes here."""
         note = next((f for f in self.doc.footnotes if f.number == node.number), None)
         if note is None:
-            self.doc.warn(f"footnote {node.number} has no definition; omitted from the PDF")
+            self.doc.warn(
+                f"footnote {node.number} has no definition; omitted from the PDF",
+                marks=[node.location],
+            )
             return ""
         body = " ".join(self.blocks(note.content).split())
         return f"#footnote[{body}]"

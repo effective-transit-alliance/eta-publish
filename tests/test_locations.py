@@ -6,7 +6,9 @@ so every test here with an emoji in it is one the two would disagree on.
 
 from eta_publish.checks import check
 from eta_publish.docs_json import JsonObject
+from eta_publish.embeds import check_embeds
 from eta_publish.nodes import (
+    Card,
     Category,
     Document,
     Figure,
@@ -502,3 +504,53 @@ def test_a_missing_comma_after_an_address_is_put_in() -> None:
     check(doc)
     # `Public Contributors: Ana 🚇 (ana@x.org)` from 8 is 38 units.
     assert _edits(doc, "a comma is missing") == [("replace", 47, 47, ",")]
+
+
+# ---- what the checks warn about, and where -------------------------
+
+
+def _picture(start: int) -> JsonObject:
+    return {
+        "startIndex": start,
+        "endIndex": start + 2,
+        "paragraph": {
+            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+            "elements": [
+                {
+                    "startIndex": start,
+                    "endIndex": start + 1,
+                    "inlineObjectElement": {"inlineObjectId": "i"},
+                },
+                _run("\n", start + 1),
+            ],
+        },
+    }
+
+
+def _with_picture(document: JsonObject) -> JsonObject:
+    properties: JsonObject = {}
+    document["inlineObjects"] = {
+        "i": {"inlineObjectProperties": {"embeddedObject": {"imageProperties": properties}}}
+    }
+    return document
+
+
+def test_a_credit_label_left_plain_is_underlined() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    caption = _para(12, "🚇 A train.\n")
+    credit = _para(_end(caption), " Credit : MTA\n")
+    doc = parse(_with_picture(_doc(title, _picture(10), caption, credit)))
+    check(doc)
+    # `Credit`, after the caption's 12 units and the space, before the space and colon.
+    assert _edits(doc, "not read as its credit") == [("underline", 25, 31, True)]
+
+
+def test_a_video_line_is_made_a_copy() -> None:
+    title = _para(1, "Headline 🚇\n", style="TITLE")
+    url = "https://www.youtube.com/watch?v=abc"
+    video = _para(13, ("Video", UNDERLINED), ": ", ("clip", {"link": {"url": url}}), "\n")
+    captions = _para(_end(video), ("Captions", UNDERLINED), ": 0:01-0:02 Hi\n")
+    doc = parse(_doc(title, video, captions))
+    doc.cards[url] = Card(text="clip")
+    check_embeds(doc)
+    assert _edits(doc, "add `Copy`") == [("replace", 18, 18, " (Copy)")]

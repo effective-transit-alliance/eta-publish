@@ -208,6 +208,7 @@ def download(
                 "paste the current file into the document so its editors see it too",
                 Shown(image.filename),
                 Shown(image.live_uri),
+                marks=[image.location],
             )
         if live_failure:
             doc.warn(
@@ -594,7 +595,11 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
         with Pillow.open(io.BytesIO(data)) as opened:
             box = image.crop.box(opened.width, opened.height)
             if box[2] <= box[0] or box[3] <= box[1]:
-                doc.warn("image {} crops to nothing; left uncropped", Shown(image.object_id))
+                doc.warn(
+                    "image {} crops to nothing; left uncropped",
+                    Shown(image.object_id),
+                    marks=[image.location],
+                )
                 return data
             trimmed = opened.crop(box)
             buffer = io.BytesIO()

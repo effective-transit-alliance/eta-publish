@@ -1484,6 +1484,9 @@ class Parser:
                     out.append(Paragraph(content=unmarked(inlines), location=self.location(item)))
                     continue
                 embed.location = self.location(item)
+                note = labelled(inlines)
+                embed.label = locate(inlines, note.label_at, note.label_at + len(note.label))
+                embed.modifiers = note.modifiers
                 embed.copy = is_copied_video_note(inlines)
                 embed.title = video_title(after_label(inlines))
                 embed.name = video_title(

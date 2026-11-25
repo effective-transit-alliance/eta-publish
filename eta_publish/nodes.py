@@ -534,7 +534,13 @@ class Embed:
     """Its `Video:` line's paragraph."""
 
     label: Location | None = field(default=None, compare=False, repr=False)
-    """Where its `Video:` line's label is, `Video` or `Video (Copy)`, colon left out."""
+    """Where its `Video:` line's label is: the word `Video`, without its modifiers."""
+
+    modifiers: tuple[str, ...] = field(default=(), compare=False, repr=False)
+    """What its `Video:` line's label is modified by, as written: `Copy` of `Video (Copy):`.
+
+    Kept with `label`, for saying where on the line a modifier goes,
+    and compared as `label` is: `copy` is what the build reads of them."""
 
     @property
     def uncaptioned(self) -> bool:
