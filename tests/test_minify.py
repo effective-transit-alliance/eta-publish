@@ -74,6 +74,20 @@ def test_the_assets_are_minified_with_maps_of_what_they_came_from(tmp_path: Path
         assert sourcemap["sourcesContent"] == [source]
 
 
+def test_the_assets_are_found_in_a_relative_directory(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """As the drafts hook's `--into .drafts-check-*/site` gives it:
+    the script runs inside the directory, so it can't be handed the same relative path."""
+    assets = tmp_path / "site" / "assets"
+    assets.mkdir(parents=True)
+    for name in minify.PAGE_ASSETS:
+        (assets / name).write_text("p {\n  margin: 0;\n}\n" if name.endswith(".css") else "1;\n")
+    monkeypatch.chdir(tmp_path)
+    written = minify.assets(Path("site/assets"))
+    assert all((tmp_path / path).exists() for path in written)
+
+
 def test_a_minified_copy_is_told_apart_from_its_original() -> None:
     """What a glob for `report.part*.html` also finds."""
     assert minify.is_min("report.part01.min.html")
