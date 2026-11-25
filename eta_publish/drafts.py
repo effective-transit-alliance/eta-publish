@@ -46,7 +46,8 @@ from .site import (
 )
 
 drafts = Typer(
-    help="The drafts in `drafts/`, a clone of the private `eta-drafts`; see `docs/drafts.md`."
+    help="The drafts in `drafts/`, a clone of the private `eta-drafts`; see `docs/drafts.md`.",
+    no_args_is_help=True,
 )
 
 
@@ -59,7 +60,7 @@ Branch = Annotated[
 ]
 
 
-@drafts.command()
+@drafts.command(no_args_is_help=True)
 def site(
     directory: Annotated[
         Path,

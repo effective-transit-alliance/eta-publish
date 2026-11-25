@@ -58,7 +58,11 @@ from .site import (
     load_publications,
 )
 
-app = Typer(context_settings={"help_option_names": ["-h", "--help"]}, help=__doc__)
+# With nothing to do, each prints its help rather than that something is missing:
+# a command group has no action of its own, and nor does a command missing a required argument.
+app = Typer(
+    context_settings={"help_option_names": ["-h", "--help"]}, help=__doc__, no_args_is_help=True
+)
 app.add_typer(drafts, name="drafts")
 
 
@@ -150,7 +154,7 @@ def committed(publications: Path, outdir: Path) -> bool:
     return publications.resolve() == PUBLICATIONS.resolve() and outdir.resolve() == SITE.resolve()
 
 
-@app.command(name="one")
+@app.command(name="one", no_args_is_help=True)
 def build_one_publication(
     doc: Annotated[
         str,
@@ -205,7 +209,7 @@ def build_one_publication(
     publication_outcome(site)
 
 
-@app.command()
+@app.command(no_args_is_help=True)
 def add(
     url: Annotated[
         str,
