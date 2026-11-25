@@ -147,10 +147,22 @@ dropping ${#dropped[@]} drafts commits for code commits no longer in its history
 }
 
 # The code commits in `HEAD`'s history with no drafts commit on `drafts/`'s branch, oldest first.
+#
+# Every pin on the branch counts, not just its last one:
+# after a merge, the commits from each side of it are pinned one after the other,
+# and neither side's pin has the other side in its history.
+# Only pins in `HEAD`'s history count, as `base_for`'s do.
 missing() {
+    local commit
     local pin
-    pin="$(pin_of HEAD)"
-    git rev-list --reverse --topo-order "$pin..HEAD"
+    local pins=()
+    while read -r commit; do
+        pin="$(pin_of "$commit")"
+        if [[ -n $pin ]] && in_history "$pin" HEAD; then
+            pins+=("$pin")
+        fi
+    done < <(dgit rev-list HEAD)
+    git rev-list --reverse --topo-order HEAD --not "${pins[@]}"
 }
 
 # The drafts, rebuilt from the saved documents with the code checked out, into `$1`
