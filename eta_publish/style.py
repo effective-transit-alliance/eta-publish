@@ -715,10 +715,14 @@ def _check_units(doc: Document, text: str) -> None:
 
     The house's own, unlike the station names: the MTA writes `125 St` on its
     signs, and how a publication abbreviates a kilogram is nothing to do with it.
+
+    A hyphenated one, `600-foot`, is left to `_check_hyphenated_units`,
+    which says the whole of what to write, `600 ft`:
+    said here too, it would be `600-ft`, which that warning says is wrong.
     """
     for start, end, amount, gap, unit in _measurements(text):
         symbol = UNITS.get(unit)
-        if symbol is None or unit in TIME_UNITS or _defines(text, end, symbol):
+        if gap == "-" or symbol is None or unit in TIME_UNITS or _defines(text, end, symbol):
             continue
         _warn(
             doc,
@@ -738,8 +742,8 @@ def _check_hyphenated_units(doc: Document, text: str) -> None:
     rather than the ones that happened not to be describing anything.
 
     What it says to write is the whole measurement, `600 ft`,
-    spelled out unit and all. A unit spelled out is the other warning's to
-    make, and this one says it too rather than leaving somebody to write
+    spelled out unit and all. A unit spelled out is otherwise the other warning's to
+    make, but here it's this one's alone, rather than leaving somebody to write
     `600 foot` and be told about it on the next build.
     """
     for start, end, amount, gap, unit in _measurements(text):
