@@ -62,6 +62,7 @@ a statement's are `statement.html`, `statement.md`, and so on:
 | `report.html` | Standalone page for review, including any warnings, labeled with which kind of publication it is |
 | `report.min.html` | `report.html` minified, linking the `.min` stylesheets and script; not committed |
 | `report.squarespace.html` | Standalone page showing the publication as etany.org does: what is pasted, without the warnings, in the Embed block of a copy of a live page, with the site's header and footer, under the stylesheets Squarespace serves; not committed |
+| `report.squarespace.min.html` | `report.squarespace.html` minified, linking the `.min` stylesheet and script its fragment links; not committed |
 | `index.html` / `index.min.html` | Links to `report.html` and `report.min.html`, so the directory serves the page at its own URL |
 | `images/` | The doc's inline images, for hosting outside Squarespace |
 | `archives.json` | Where each source the publication cites is archived |
