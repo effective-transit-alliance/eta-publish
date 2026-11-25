@@ -30,6 +30,9 @@ and `assets/squarespace.js` sets here, as that file says.
 Poppins, which the site sets its buttons in, like the one in the phone's menu,
 a live page declares in its `<head>` rather than in a stylesheet,
 so that is copied as it is, in `assets/squarespace-fonts.html`.
+
+Each copy goes stale as Squarespace or the site changes,
+so a build that is not offline reads the live page to say where: see `squarespace_check`.
 """
 
 from dataclasses import dataclass, field
