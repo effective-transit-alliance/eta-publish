@@ -384,6 +384,78 @@ def test_add_says_which_tabs_there_are_when_the_url_names_none(
     assert len(load_publications(path)) == 1
 
 
+PUBLIC_LIST = '[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "manual"\n'
+"""A public `publications.toml` that a draft added elsewhere leaves as it is."""
+
+
+def add(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *args: str,
+    drafts_dir: bool = True,
+    drafts_listed: bool = True,
+) -> Result:
+    """`eta-publish add` of a saved document, in a checkout with or without `drafts/` in it."""
+    from typer.testing import CliRunner
+
+    from eta_publish.__main__ import app
+
+    monkeypatch.chdir(tmp_path)
+    saved = tmp_path / "doc.json"
+    saved.write_text(json.dumps({**FIXTURE, "title": "IBX Automation", "tabTitle": "Live version"}))
+    (tmp_path / "publications.toml").write_text(PUBLIC_LIST)
+    if drafts_dir:
+        (tmp_path / "drafts").mkdir()
+    if drafts_listed:
+        (tmp_path / "drafts" / "publications.toml").write_text(
+            f'[site]\npublished = "{HOSTS.published}"\nunpublished = "{HOSTS.unpublished}"\n'
+        )
+    return CliRunner().invoke(app, ["add", str(saved), *args])
+
+
+def test_add_adds_a_draft_to_the_drafts_list(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A draft added by mistake stays private, and one added to `publications.toml` does not."""
+    result = add(tmp_path, monkeypatch)
+
+    assert result.exit_code == 0, result.output
+    [added] = load_publications(tmp_path / "drafts" / "publications.toml")
+    assert added.name == "IBX Automation"
+    assert added.published is Published.DRAFT
+    assert (tmp_path / "publications.toml").read_text() == PUBLIC_LIST
+    assert "drafts/publications.toml: added" in result.stderr
+
+
+@pytest.mark.parametrize("drafts_dir", [False, True])
+def test_add_without_the_drafts_list_adds_nowhere(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, drafts_dir: bool
+) -> None:
+    """Never the public list instead, which is the mistake the default is there to avoid,
+    and the refusal says both ways to go on: clone the drafts, or name the public list."""
+    result = add(tmp_path, monkeypatch, drafts_dir=drafts_dir, drafts_listed=False)
+
+    assert result.exit_code != 0
+    assert "clone `eta-drafts` as `drafts/`" in result.output
+    assert "`-p publications.toml`" in result.output
+    assert (tmp_path / "publications.toml").read_text() == PUBLIC_LIST
+    assert not (tmp_path / "drafts" / "publications.toml").exists()
+
+
+def test_add_to_the_public_list_is_asked_for_by_name(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """`-p publications.toml` adds there as `add` always did, `drafts/` or not."""
+    result = add(
+        tmp_path, monkeypatch, "-p", "publications.toml", drafts_dir=False, drafts_listed=False
+    )
+
+    assert result.exit_code == 0, result.output
+    added = load_publications(tmp_path / "publications.toml")[-1]
+    assert added.name == "IBX Automation"
+    assert added.published is Published.DRAFT
+
+
 def test_a_title_with_a_quotation_mark_stays_one_string(tmp_path: Path) -> None:
     saved = tmp_path / "doc.json"
     saved.write_text(

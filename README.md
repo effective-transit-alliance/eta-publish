@@ -174,8 +174,11 @@ uv run eta-publish one <google-doc-url> -o out
 # Or a different list.
 uv run eta-publish all drafts.toml -o preview
 
-# Add a document to the list, named as the document names itself.
+# Add a document to `drafts/publications.toml` as a draft, named as the document names itself.
 uv run eta-publish add <google-doc-url>
+
+# Or to the public list, `publications.toml`, on purpose.
+uv run eta-publish add <google-doc-url> -p publications.toml
 
 # Write `eta_publish/assets/logo.svg` from `logo.src.svg`, after editing the logo.
 # Every build does this first anyway.
@@ -224,8 +227,9 @@ Flags worth knowing:
 
 ## Adding a publication
 
-Adding the next publication is an entry in `publications.toml` and nothing else,
-which `eta-publish add <url>` writes:
+Adding the next publication is an entry in a list and nothing else,
+which `eta-publish add <url>` writes,
+into the drafts' list, `drafts/publications.toml`, in the clone of `eta-drafts`:
 
 ```toml
 [[report]]
@@ -252,6 +256,15 @@ and a build refuses the publication when the two disagree, as it does a wrong `n
 `add` reads it off that line.
 A `/briefs/` path is built as a report, with a warning:
 a brief is a short report, not a kind of its own.
+
+`add` writes to the drafts' list unless told otherwise,
+because the two mistakes are not alike:
+a draft added there by mistake stays private,
+while one added to `publications.toml` is public once pushed,
+on the Pages site and in this repository's history even once it is taken off again.
+With no `drafts/`, or no `drafts/publications.toml` in it, `add` refuses,
+rather than adding to the public list instead;
+`-p publications.toml` adds there, on purpose.
 
 `published` is whether the publication is out on Squarespace, and how:
 `automated` when the live page is the pasted `report.html`,

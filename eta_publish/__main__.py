@@ -5,7 +5,7 @@ Seven commands, because there are seven things to do:
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
-    eta-publish add <url>       write that document's entry into the list
+    eta-publish add <url>       write that document's entry into the drafts' list
     eta-publish logo            write the logo charts carry from the logo as drawn
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
     eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
@@ -213,14 +213,35 @@ def add(
     ],
     publications: Annotated[
         Path,
-        Option("-p", "--publications", help="the list to append to"),
-    ] = PUBLICATIONS,
+        Option(
+            "-p",
+            "--publications",
+            help="the list to append to; `publications.toml` for the public one",
+        ),
+    ] = DRAFTS / PUBLICATIONS,
 ) -> None:
-    """Append a document to `publications.toml`, named as the document names itself.
+    """Append a document to the drafts' list, `drafts/publications.toml`, as a draft.
 
     `name` and `tab` have to be right, and copying two titles out of Drive by hand
     is the step that gets them wrong, so they are read off the document rather than typed.
+
+    The drafts' list by default, because the two mistakes are not alike:
+    a draft added there by mistake stays private,
+    while one added to `publications.toml` is public once pushed,
+    on the Pages site and in this repository's history even once it is taken off again.
+    So with no clone of `eta-drafts` in `drafts/` it is refused, not added to the public list:
+    `-p publications.toml` is how to add there, on purpose.
     """
+    if publications.resolve() == (DRAFTS / PUBLICATIONS).resolve() and not publications.exists():
+        if DRAFTS.is_dir():
+            missing = f"`{DRAFTS}/` is there but `{publications}` is not"
+        else:
+            missing = f"no `{DRAFTS}/`"
+        raise BadParameter(
+            f"{missing}: clone `eta-drafts` as `{DRAFTS}/`, "
+            f"or pass `-p {PUBLICATIONS}` to add it to the public list",
+            param_hint="'-p' / '--publications'",
+        )
     try:
         added = add_publication(url, publications)
     except (OSError, ValueError, LookupError, RuntimeError) as e:
@@ -231,7 +252,7 @@ def add(
         # answer to a URL pasted without its `?tab=` id.
         raise BadParameter(str(e), param_hint="URL") from e
     # On stderr, like everything else these commands say.
-    # What `add` produces is the line it wrote into `publications.toml`;
+    # What `add` produces is the line it wrote into the list;
     # saying that it wrote it is commentary on having done so,
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
