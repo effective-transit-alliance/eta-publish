@@ -52,5 +52,9 @@ token.json
 /site/**/*.min.*
 /tests/fixture/**/*.min.*
 
+# Each publication as etany.org shows it, which every build makes
+# from the committed fragment and the committed `eta_publish/assets/squarespace.html`.
+/site/**/*.squarespace.html
+
 # The npm packages `bun install` installs from `bun.lock`.
 /node_modules/

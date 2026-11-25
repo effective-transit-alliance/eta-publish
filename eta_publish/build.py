@@ -62,6 +62,7 @@ from .naming import (
     VIDEO_DIR,
     WEB_DIR,
     partial_name,
+    squarespace_name,
     video_frame_name,
     warning_poster_name,
 )
@@ -79,6 +80,7 @@ lazy from .images import (
 )
 lazy from .pdf import TypstMissing, compile_pdf, install_template
 lazy from .site import check_kind, publication_kind, publication_path
+lazy from .squarespace import squarespace_page
 
 
 @dataclass(frozen=True)
@@ -740,7 +742,8 @@ def emit(
     and `url` is where it serves this publication, for `og:url`.
     `page_url` is the live page, for the PDF to link its videos' figures on.
     A `stem` that is more than the kind, `report.published`,
-    writes only the files `site/published/` takes, so not `report.html`, which is the preview.
+    writes only the files `site/published/` takes, so not `report.html`, which is the preview,
+    nor `report.squarespace.html`, the preview as etany.org shows it.
     `banner` goes on `report.html` and nowhere else:
     the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
@@ -773,6 +776,19 @@ def emit(
         )
     )
     written[page.name] = page
+    # `report.squarespace.html`: the fragment as it is pasted, so with no warnings,
+    # which are for whoever reviews a build, in the page Squarespace shows it in.
+    squarespace = outdir / squarespace_name(stem)
+    squarespace.write_text(
+        squarespace_page(
+            fragment_emitter(images, linked, pdf, source_brackets, site_url=site_url).emit(
+                replace(doc, warnings=[])
+            ),
+            doc.title,
+            f"{LIVE_SITE}{doc.slug}",
+        )
+    )
+    written[squarespace.name] = squarespace
     return _emit_each(doc, outdir, emitters, written)
 
 
