@@ -221,6 +221,10 @@ class Banner:
     doc: str = ""
     """The Google Doc the page is built from, for a reviewer to comment on or fix what they read."""
 
+    squarespace: str = ""
+    """The page beside this one showing the publication as etany.org would,
+    `report.squarespace.min.html`, relative to it."""
+
 
 def kind_class(label: str) -> str:
     """The class `banner.css` colors the kind called `label` by:
@@ -231,12 +235,22 @@ def kind_class(label: str) -> str:
 def banner_markup(banner: Banner) -> str:
     """`banner` as the strip at the top of a page, with the stylesheet it needs.
 
-    The Google Doc first, in the banner's upper left, where a reviewer looks first,
-    on a line of its own on a phone, where beside the kind it would wrap into the sentence.
+    The Google Doc and the Squarespace preview first, in the banner's upper left,
+    where a reviewer looks first, on a line of their own on a phone,
+    where beside the kind they would wrap into the sentence.
     """
-    doc: list[Piece] = []
+    links: list[Piece] = []
     if banner.doc:
-        doc = [tag.a(class_="kind-doc", href=banner.doc)["Google Doc"], " "]
+        links.append(tag.a(class_="kind-doc", href=banner.doc)["Google Doc"])
+    if banner.squarespace:
+        if links:
+            links.append(" \N{MIDDLE DOT} ")
+        links.append(
+            tag.a(class_="kind-squarespace", href=banner.squarespace)["Squarespace Preview"]
+        )
+    doc: list[Piece] = []
+    if links:
+        doc = [tag.span(class_="kind-links")[*links], " "]
     return markup(
         [
             tag.style[Markup(f"\n{BANNER_CSS}")],

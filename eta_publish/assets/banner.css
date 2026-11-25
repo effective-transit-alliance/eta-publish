@@ -18,14 +18,15 @@
 .kind-banner a {
     color: inherit;
 }
-/* The Google Doc, in the upper left: on its own line on a phone,
-   where beside the kind it would wrap into the middle of what the kind says,
+/* The Google Doc and the Squarespace preview, in the upper left:
+   on their own line on a phone,
+   where beside the kind they would wrap into the middle of what the kind says,
    and ahead of the kind on a wider screen. */
-.kind-doc {
+.kind-links {
     display: block;
 }
 @media (min-width: 40rem) {
-    .kind-doc {
+    .kind-links {
         display: inline;
         margin-right: 1.5em;
     }

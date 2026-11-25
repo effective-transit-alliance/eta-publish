@@ -1869,6 +1869,19 @@ def test_a_banner_links_no_doc_for_a_saved_response(doc: Document, tmp_path: Pat
     assert 'class="kind-doc"' not in banner_markup(banner)
 
 
+@pytest.mark.parametrize("published", list(Published))
+def test_every_banner_links_the_minified_squarespace_preview(
+    published: Published, doc: Document
+) -> None:
+    """Beside the page, relative to it, after the Google Doc and before the kind."""
+    publication = Publication(url=DOC_URL, published=published)
+    shown = banner_markup(kind_banner(publication, doc))
+    name = f"{publication_kind(doc)}.squarespace.min.html"
+    assert f'<a class="kind-squarespace" href="{name}">Squarespace Preview</a>' in shown
+    assert shown.index("Google Doc") < shown.index("Squarespace Preview")
+    assert shown.index("Squarespace Preview") < shown.index('class="kind-label"')
+
+
 def says(published: Published, doc: Document) -> str:
     """What the banner says a publication of the kind `published` is, as HTML."""
     return banner_markup(kind_banner(Publication(url=DOC_URL, published=published), doc))

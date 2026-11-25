@@ -50,6 +50,7 @@ from .naming import (
     Kind,
     partial_name,
     path_kind,
+    squarespace_name,
 )
 from .nodes import Document, Shown
 from .parse import parse
@@ -132,14 +133,18 @@ def kind_says(publication: Publication, doc: Document) -> Piece:
 
 
 def kind_banner(publication: Publication, doc: Document) -> Banner:
-    """The banner on `publication`'s preview page: its kind, what that is, and its Google Doc.
+    """The banner on `publication`'s preview page: its kind, what that is, its Google Doc,
+    and the page showing it as etany.org would, minified, as the copy to look at.
 
     The document as `canonical` spells it, at its tab,
     unless the entry names a bare id or a saved response, which no browser opens.
     """
     label, _ = KINDS[publication.published]
     source = canonical(publication.url) if "docs.google.com" in publication.url else ""
-    return Banner(label=label, says=kind_says(publication, doc), doc=source)
+    squarespace = min_name(squarespace_name(publication_kind(doc)))
+    return Banner(
+        label=label, says=kind_says(publication, doc), doc=source, squarespace=squarespace
+    )
 
 
 @dataclass(frozen=True)
