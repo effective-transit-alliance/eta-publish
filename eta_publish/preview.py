@@ -4,7 +4,7 @@ The drafts site is served by the Pages project `eta-drafts`, behind a sign-in,
 and a preview there is a deployment for a branch other than the production one,
 served at `<branch>.eta-drafts.pages.dev`.
 Each `eta-publish` branch has its preview under its own name,
-the branch of `eta-drafts` it mirrors (see `docs/drafts-plan.md`),
+the branch of `eta-drafts` it mirrors (see `docs/drafts.md`),
 deployed from CI on every push.
 A preview of a working copy is under the branch's name and its commit's, so it is never CI's.
 What is uploaded, and how it is laid out, is `drafts_site.py`'s.

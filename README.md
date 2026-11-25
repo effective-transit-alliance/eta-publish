@@ -148,7 +148,7 @@ and sources with no capture publish saying they have no archive, which is true.
 
 ```sh
 # Every publication in `publications.toml`, into `site/unpublished/`.
-# With a clone of `eta-drafts` in `drafts/` (see `docs/drafts-plan.md`),
+# With a clone of `eta-drafts` in `drafts/` (see `docs/drafts.md`),
 # also `drafts/publications.toml`, into `drafts/site/`.
 # Only for this list and this output: not with another list, `-o`, or `--into`.
 uv run eta-publish all
@@ -849,7 +849,7 @@ because the emitted HTML is committed
 and a formatter that changed its mind between versions
 would rewrite every publication without a publication having changed.
 
-With a clone of `eta-drafts` in `drafts/` (see `docs/drafts-plan.md`),
+With a clone of `eta-drafts` in `drafts/` (see `docs/drafts.md`),
 the hooks also build the drafts with the code being committed,
 and make each commit's drafts commit in `drafts/`, on the branch of the same name.
 Run `pre-commit install` in `drafts/` too,

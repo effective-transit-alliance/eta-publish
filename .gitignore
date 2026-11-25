@@ -14,7 +14,7 @@ token.json
 /out*/
 
 # A clone of the private `eta-drafts`, a repository of its own:
-# see `docs/drafts-plan.md`.
+# see `docs/drafts.md`.
 /drafts/
 
 # Where the `drafts-build` hook builds the drafts, removed once it's done.

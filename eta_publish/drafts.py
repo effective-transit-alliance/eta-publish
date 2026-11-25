@@ -4,7 +4,7 @@
     eta-publish drafts preview  build the drafts site, and upload it as a preview of this commit
     eta-publish drafts deploy   the same from CI, for any branch, `main` included
 
-See `docs/drafts-plan.md`.
+See `docs/drafts.md`.
 """
 
 import os
@@ -46,7 +46,7 @@ from .site import (
 )
 
 drafts = Typer(
-    help="The drafts in `drafts/`, a clone of the private `eta-drafts`; see `docs/drafts-plan.md`."
+    help="The drafts in `drafts/`, a clone of the private `eta-drafts`; see `docs/drafts.md`."
 )
 
 

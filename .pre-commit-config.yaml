@@ -76,7 +76,7 @@ repos:
       # The drafts in `drafts/`, built with the code being committed,
       # so a change that breaks one is refused, as one that breaks a publication here is.
       # Into a directory of its own, leaving `drafts/` as it is;
-      # nothing at all with no `drafts/`, as in CI. See `docs/drafts-plan.md`.
+      # nothing at all with no `drafts/`, as in CI. See `docs/drafts.md`.
       - id: drafts-build
         name: the drafts build with the code being committed
         entry: scripts/drafts-commit.sh check
@@ -85,7 +85,7 @@ repos:
         always_run: true
 
       # The drafts commit for the commit just made, on the branch of the same name in `drafts/`:
-      # it pins that commit, and rebuilds the drafts with it (see `docs/drafts-plan.md`).
+      # it pins that commit, and rebuilds the drafts with it (see `docs/drafts.md`).
       # After the commit, so it can pin it;
       # `pre-commit` sets aside what isn't committed first, as for a commit check.
       - id: drafts-commit

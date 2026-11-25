@@ -4,7 +4,7 @@
 # One place for both workflows that build: this repository's Pages workflow,
 # and `eta-drafts`'s deploy, which runs it from the `eta-publish` commit it pins,
 # so a drafts deploy sets up exactly what that commit's code was written against
-# (see `docs/drafts-plan.md`).
+# (see `docs/drafts.md`).
 name: Set up a build
 description: Install what building the publications needs, and sign in to Google.
 
