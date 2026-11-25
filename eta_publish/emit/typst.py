@@ -343,6 +343,8 @@ class TypstEmitter(Emitter):
             out = f"#underline[{out}]"
         if node.strike:
             out = f"#strike[{out}]"
+        if node.color:
+            out = f"#text(fill: rgb({string(node.color)}))[{out}]"
         if node.href:
             out = f"#link({string(node.href)})[{out}]{self.source_ref(node.href)}"
         return out

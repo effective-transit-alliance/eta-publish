@@ -58,6 +58,25 @@ from .nodes import (
     unwrap_snapshot,
 )
 
+NEAR_BLACK = 0.1
+"""How dark every channel of a color can be and it still be black: the page's own text color.
+
+Docs writes black as no channels at all, and text pasted in from elsewhere
+brings near-blacks, like a contributor line in Too Damn Loud, which are black to a reader
+and would be unreadable on a dark page if they were set as written."""
+
+
+def text_color(style: JsonObject) -> str | None:
+    """The color a run's style sets it in, as `#rrggbb`, or `None` for black or none at all."""
+    rgb = style.get("foregroundColor", {}).get("color", {}).get("rgbColor")
+    if not isinstance(rgb, dict):
+        return None
+    channels = [float(rgb.get(name, 0)) for name in ("red", "green", "blue")]
+    if all(channel <= NEAR_BLACK for channel in channels):
+        return None
+    return "#" + "".join(f"{round(channel * 255):02x}" for channel in channels)
+
+
 HEADING_LEVELS = {
     "HEADING_1": 2,
     "HEADING_2": 3,
@@ -1025,6 +1044,7 @@ class Parser:
                 italic=bool(style.get("italic")),
                 underline=bool(style.get("underline")) and "link" not in style,
                 strike=bool(style.get("strikethrough")),
+                color=None if "link" in style else text_color(style),
                 sup=offset == "SUPERSCRIPT",
                 sub=offset == "SUBSCRIPT",
                 href=self._href(style.get("link", {}).get("url")),

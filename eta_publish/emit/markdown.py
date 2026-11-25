@@ -456,6 +456,8 @@ class MarkdownEmitter(Emitter):
             out = f"{mark}{out}{mark}"
         if node.strike:
             out = f"~~{out}~~"
+        if node.color:
+            out = f'<span style="color: {node.color}">{out}</span>'
         if node.href:
             out = f"[{out}]({url(node.href)}){self.source_ref(node.href)}"
         return f"{lead}{out}{rest}"

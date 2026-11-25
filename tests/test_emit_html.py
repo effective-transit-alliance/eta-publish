@@ -641,3 +641,8 @@ def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str)
 def test_struck_text_is_struck_through() -> None:
     """As Docs draws it, so the page shows what the document does."""
     assert HtmlEmitter(site_url=HOST).text(Text(text="cut this", strike=True)) == "<s>cut this</s>"
+
+
+def test_colored_text_keeps_its_color() -> None:
+    colored = Text(text="note", color="#ff9900")
+    assert HtmlEmitter(site_url=HOST).text(colored) == '<span style="color: #ff9900">note</span>'
