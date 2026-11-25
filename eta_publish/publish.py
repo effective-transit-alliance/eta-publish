@@ -39,6 +39,7 @@ from .site import (
     saved_for,
     saved_responses,
 )
+from .squarespace_check import check_copy
 from .staff import STAFF_JSON, look_up, read_staff, write_staff
 
 
@@ -225,11 +226,14 @@ def write_site(
 
     The staff page is read once here, for every publication, unless offline,
     and what it lists is saved for the next build: see `staff.STAFF_JSON`.
+    So is the page `report.squarespace.html` copies, to warn where the copy is out of date:
+    see `squarespace_check`.
     """
     outdir = root / UNPUBLISHED_DIR
     staff = read_staff(read_from / UNPUBLISHED_DIR)
     if not options.offline:
         staff = look_up(staff)
+        check_copy()
     options = replace(options, staff=staff)
     site = build_site(publications, outdir, options, read_from=read_from / UNPUBLISHED_DIR)
 

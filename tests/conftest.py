@@ -172,6 +172,23 @@ def _no_staff_page(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPat
 
 
 @pytest.fixture(autouse=True)
+def _no_squarespace_page(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A build in a test does not check `report.squarespace.html`'s copy against etany.org.
+
+    For the reason `_no_staff_page` gives: every build that is not offline reads the live page.
+    What the check says is tested in `test_squarespace_check.py`, against pages made there.
+    """
+    if "network" in request.keywords:
+        return
+    from eta_publish import publish
+
+    def unchecked() -> None:
+        pass
+
+    monkeypatch.setattr(publish, "check_copy", unchecked)
+
+
+@pytest.fixture(autouse=True)
 def _fresh_lookup_cache(
     tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
 ) -> None:
