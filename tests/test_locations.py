@@ -6,13 +6,18 @@ so every test here with an emoji in it is one the two would disagree on.
 
 from eta_publish.docs_json import JsonObject
 from eta_publish.nodes import (
+    Category,
+    Document,
     Figure,
     FootnoteRef,
     Heading,
     Inline,
     List,
     Location,
+    Mark,
     Paragraph,
+    Replace,
+    Shown,
     Table,
     Text,
     locate,
@@ -282,3 +287,21 @@ def test_locate_spans_runs_and_points_between_them() -> None:
     assert locate(runs, 0, 5) is None
     assert span(runs) == Location(TAB, None, 1, 5)
     assert span([Text("x")]) is None
+
+
+# ---- marks ---------------------------------------------------------
+
+
+def test_what_a_warning_becomes_is_what_its_marks_say() -> None:
+    doc = Document()
+    here = Location(TAB, None, 3, 7)
+    doc.warn("nowhere")
+    doc.warn("somewhere {}", Shown("x"), marks=[here, None])
+    doc.warn("fixable", marks=[Mark(here, fix=(Replace(here, ""),))])
+    reported, commented, suggested = doc.warnings
+    assert reported.marks == ()
+    assert reported.categories == {Category.REPORT}
+    assert commented.marks == (Mark(here),)
+    assert commented.categories == {Category.COMMENT}
+    assert str(commented) == "somewhere `x`"
+    assert suggested.categories == {Category.SUGGESTION}

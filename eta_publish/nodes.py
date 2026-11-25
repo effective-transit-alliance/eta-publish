@@ -11,7 +11,7 @@ It carries what ETA publications use, not what a Google Doc can express.
 Anything the parser cannot place here becomes a warning rather than a silent drop.
 """
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from enum import Enum
@@ -743,9 +743,93 @@ class Notice:
 
     parts: tuple[Part, ...]
 
+    marks: tuple[Mark, ...] = ()
+    """Where in the document the warning is about, one mark to a place.
+
+    None for a warning about no place in it: a download that failed,
+    a tool missing from this machine, the editing still open on the tab."""
+
     @override
     def __str__(self) -> str:
         return "".join(_written(part) for part in self.parts)
+
+    @property
+    def categories(self) -> frozenset[Category]:
+        """What the warning can become in the document, by what its marks say.
+
+        `REPORT` alone for one with no marks, which is only ever reported."""
+        if not self.marks:
+            return frozenset({Category.REPORT})
+        return frozenset(mark.category for mark in self.marks)
+
+
+@dataclass(frozen=True)
+class Replace:
+    """`text` in place of what is at `location`.
+
+    An insertion where `location` is a point, and a deletion where `text` is empty."""
+
+    location: Location
+    text: str
+
+
+@dataclass(frozen=True)
+class Underline:
+    """The text at `location` underlined, or not."""
+
+    location: Location
+    underline: bool
+
+
+@dataclass(frozen=True)
+class Link:
+    """The text at `location` linked to `url`."""
+
+    location: Location
+    url: str
+
+
+@dataclass(frozen=True)
+class ParagraphStyle:
+    """The paragraph at `location` set in the named style Docs calls `style`: `NORMAL_TEXT`."""
+
+    location: Location
+    style: str
+
+
+type Edit = Replace | Underline | Link | ParagraphStyle
+"""One change to the document, as a fix is made of."""
+
+
+class Category(Enum):
+    """What a warning's mark can become in the document. Never stored: a mark says."""
+
+    SUGGESTION = "suggestion"
+    """A suggested edit: the code knows what the document should say instead."""
+
+    COMMENT = "comment"
+    """A comment on the place: what to write there is a person's to decide."""
+
+    REPORT = "report"
+    """Only reported, by a warning about no place in the document."""
+
+
+@dataclass(frozen=True)
+class Mark:
+    """One place a warning is about, and what to change there if the code knows."""
+
+    location: Location
+
+    fix: tuple[Edit, ...] = ()
+    """The edits that fix it, or none where only a person can."""
+
+    text: tuple[Span, ...] = ()
+    """What to say about this place, for a warning listing many:
+    the line its list gives this one. Empty where the warning's own words are it."""
+
+    @property
+    def category(self) -> Category:
+        return Category.SUGGESTION if self.fix else Category.COMMENT
 
 
 def _written(part: Part) -> str:
@@ -1188,14 +1272,23 @@ class Document:
             return None
         return size[0] / size[1]
 
-    def warn(self, template: str, *values: Part) -> None:
+    def warn(
+        self, template: str, *values: Part, marks: Iterable[Mark | Location | None] = ()
+    ) -> None:
         """Warn, with `{}` in `template` wherever a value goes.
 
         The template is written here and the values come from the document,
         which is why they are handed over separately rather than formatted in:
         a value is never read as markup, whatever it happens to contain.
+
+        `marks` are the places in the document it is about. A bare `Location`
+        is a mark with no fix, and `None` is a place the response did not say
+        where it is, which is left out.
         """
-        self.warnings.append(Notice(filled(template, values)))
+        placed = tuple(
+            Mark(mark) if isinstance(mark, Location) else mark for mark in marks if mark is not None
+        )
+        self.warnings.append(Notice(filled(template, values), placed))
 
 
 # What a Docs date chip can render, most likely first.
