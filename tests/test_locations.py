@@ -12,14 +12,17 @@ from eta_publish.nodes import (
     FootnoteRef,
     Heading,
     Inline,
+    Link,
     List,
     Location,
     Mark,
     Paragraph,
+    ParagraphStyle,
     Replace,
     Shown,
     Table,
     Text,
+    Underline,
     locate,
     sliced,
     span,
@@ -75,12 +78,18 @@ def _run(text: str, start: int, **style: object) -> JsonObject:
     }
 
 
-def _para(start: int, *runs: str, style: str = "NORMAL_TEXT") -> JsonObject:
-    """A paragraph of plain runs, with the indices Docs would give them, from `start`."""
+def _para(
+    start: int, *runs: str | tuple[str, JsonObject], style: str = "NORMAL_TEXT"
+) -> JsonObject:
+    """A paragraph of runs, with the indices Docs would give them, from `start`.
+
+    Each a string of plain text, or the text and its style."""
     elements: list[JsonObject] = []
     at = start
-    for text in runs:
-        elements.append(_run(text, at))
+    for run in runs:
+        plain: JsonObject = {}
+        text, styled = (run, plain) if isinstance(run, str) else run
+        elements.append(_run(text, at, **styled))
         at += utf16_length(text)
     return {
         "startIndex": start,
@@ -305,3 +314,125 @@ def test_what_a_warning_becomes_is_what_its_marks_say() -> None:
     assert commented.categories == {Category.COMMENT}
     assert str(commented) == "somewhere `x`"
     assert suggested.categories == {Category.SUGGESTION}
+
+
+# ---- what the parser warns about, and where ------------------------
+
+UNDERLINED: JsonObject = {"underline": True}
+
+
+def _edits(doc: Document, words: str) -> list[tuple[str, int, int, object]]:
+    """The fix of the one warning saying `words`, as each edit's kind, place, and new value."""
+    (notice,) = [w for w in doc.warnings if words in str(w)]
+    (mark,) = notice.marks
+    out: list[tuple[str, int, int, object]] = []
+    for edit in mark.fix:
+        match edit:
+            case Replace(location, text):
+                out.append(("replace", location.start, location.end, text))
+            case Underline(location, underline):
+                out.append(("underline", location.start, location.end, underline))
+            case Link(location, url):
+                out.append(("link", location.start, location.end, url))
+            case ParagraphStyle(location, style):
+                out.append(("style", location.start, location.end, style))
+    return out
+
+
+def test_a_stray_shift_enter_is_deleted() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    body = _para(_end(title), "🚇 words\v\n")
+    doc = parse(_doc(title, body))
+    # `🚇 words` is 8 units from 10, so the break is the 18th.
+    assert _edits(doc, "stray") == [("replace", 18, 19, "")]
+
+
+def test_shift_enter_between_lines_becomes_enter_and_extra_ones_go() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    body = _para(_end(title), "\vone\v", "\vtwo 🚇\v\n")
+    doc = parse(_doc(title, body))
+    assert _edits(doc, "give each line its own") == [
+        ("replace", 10, 11, ""),
+        ("replace", 14, 15, "\n"),
+        ("replace", 15, 16, ""),
+        ("replace", 22, 23, ""),
+    ]
+
+
+def test_a_caption_label_is_deleted_with_its_space() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    picture = {
+        "startIndex": 10,
+        "endIndex": 12,
+        "paragraph": {
+            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+            "elements": [
+                {"startIndex": 10, "endIndex": 11, "inlineObjectElement": {"inlineObjectId": "i"}},
+                _run("\n", 11),
+            ],
+        },
+    }
+    caption = _para(12, " Caption:  🚇 A train.\n")
+    document = _doc(title, picture, caption)
+    properties: JsonObject = {}
+    document["inlineObjects"] = {
+        "i": {"inlineObjectProperties": {"embeddedObject": {"imageProperties": properties}}}
+    }
+    doc = parse(document)
+    assert _edits(doc, "starts with `Caption:`") == [("replace", 13, 23, "")]
+
+
+def test_a_picture_styled_as_a_heading_is_set_to_normal_text() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    picture = {
+        "startIndex": 10,
+        "endIndex": 12,
+        "paragraph": {
+            "paragraphStyle": {"namedStyleType": "HEADING_2"},
+            "elements": [
+                {"startIndex": 10, "endIndex": 11, "inlineObjectElement": {"inlineObjectId": "i"}},
+                _run("\n", 11),
+            ],
+        },
+    }
+    document = _doc(title, picture)
+    properties: JsonObject = {}
+    document["inlineObjects"] = {
+        "i": {"inlineObjectProperties": {"embeddedObject": {"imageProperties": properties}}}
+    }
+    doc = parse(document)
+    assert _edits(doc, "styled as a `Heading`") == [("style", 10, 12, "NORMAL_TEXT")]
+
+
+def test_an_archive_today_link_is_pointed_at_the_page_it_captured() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    capture = "https://archive.ph/2024.01.01-000000/https://example.org/page"
+    body = _para(_end(title), "See ", ("the 🚇 page", {"link": {"url": capture}}), ".\n")
+    doc = parse(_doc(title, body))
+    assert _edits(doc, "archive.today link;") == [
+        ("link", 14, 25, "https://example.org/page"),
+    ]
+
+
+def test_a_label_s_underline_is_taken_off_its_value() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    picture = {
+        "startIndex": 10,
+        "endIndex": 12,
+        "paragraph": {
+            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+            "elements": [
+                {"startIndex": 10, "endIndex": 11, "inlineObjectElement": {"inlineObjectId": "i"}},
+                _run("\n", 11),
+            ],
+        },
+    }
+    credit = _para(12, ("Credit: 🚇 MT", UNDERLINED), "A\n")
+    document = _doc(title, picture, credit)
+    properties: JsonObject = {}
+    document["inlineObjects"] = {
+        "i": {"inlineObjectProperties": {"embeddedObject": {"imageProperties": properties}}}
+    }
+    doc = parse(document)
+    # From after the colon, 19 units on, to the end of the underlined run.
+    assert _edits(doc, "runs past it") == [("underline", 19, 25, False)]

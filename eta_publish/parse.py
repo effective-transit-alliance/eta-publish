@@ -33,6 +33,7 @@ from .nodes import (
     Crop,
     Cue,
     Document,
+    Edit,
     Embed,
     Figure,
     Footnote,
@@ -41,22 +42,29 @@ from .nodes import (
     Image,
     Inline,
     LineBreak,
+    Link,
     List,
     Listed,
     ListItem,
     ListKind,
     Location,
+    Mark,
     Paragraph,
+    ParagraphStyle,
     Platform,
+    Replace,
     Shown,
     Table,
     Text,
+    Underline,
     Vector,
     archive_today_original,
     document_url,
     is_archive_today,
+    locate,
     plain_text,
     sliced,
+    span,
     unwrap_snapshot,
 )
 
@@ -375,8 +383,9 @@ def _seconds(t: str) -> int:
     return total + int(number or 0)
 
 
-def bold_brackets(inlines: list[Inline]) -> list[str]:
-    """Every `[...]` in `inlines` whose text is bold, brackets included.
+def bracketed(inlines: list[Inline]) -> list[tuple[int, int]]:
+    """Where every `[...]` in `inlines` whose text is bold is, brackets included,
+    as offsets into the line's plain text.
 
     A bold note in brackets is a placeholder for whoever comes back to it,
     as unfinished as a `TODO`. Whether the brackets themselves are bold does not matter;
@@ -386,7 +395,8 @@ def bold_brackets(inlines: list[Inline]) -> list[str]:
     characters: list[tuple[str, bool]] = [
         (character, run.bold) for run in inlines if isinstance(run, Text) for character in run.text
     ]
-    found: list[str] = []
+    # Where each is in the line's plain text, which is what `characters` spells.
+    found: list[tuple[int, int]] = []
     opened: int | None = None
     for i, (character, _) in enumerate(characters):
         if character == "[":
@@ -396,7 +406,7 @@ def bold_brackets(inlines: list[Inline]) -> list[str]:
             if any(not c.isspace() for c, _ in inside) and all(
                 bold or c.isspace() for c, bold in inside
             ):
-                found.append("".join(c for c, _ in characters[opened : i + 1]))
+                found.append((opened, i + 1))
             opened = None
     return found
 
@@ -479,6 +489,14 @@ class Labelled:
     so a label underlined and a value underlined with it is the one
     mistake this convention invites. The line is still the label it looks like;
     the underline is what needs fixing, and the warning says so."""
+
+    label_at: int
+    """Where in the line's plain text the label starts, as written:
+    `label` and then its modifiers, up to `mark_at`."""
+
+    mark_at: int
+    """Where in the line's plain text the mark is, or its length where there is none.
+    What follows the mark, `value` and the space before it, starts after this."""
 
     def modified_by(self) -> frozenset[str]:
         """The modifiers, casefolded, since they are matched like figure notes."""
@@ -563,6 +581,8 @@ def labelled(content: list[Inline]) -> Labelled:
         underlined=_every(label, lambda m: m.underlined),
         linked=_every(label, lambda m: m.linked),
         bled=any(m.underlined and not m.linked for m in rest if not m.character.isspace()),
+        label_at=start + len(_text(label)) - len(_text(label).lstrip()),
+        mark_at=start + (len(head) if end is None else end),
     )
 
 
@@ -881,6 +901,24 @@ class Parser:
             end=int(element["endIndex"]),
         )
 
+    def paragraph_location(self, para: JsonObject) -> Location | None:
+        """Where a paragraph is, from its elements, for where only the paragraph is at hand."""
+        elements: list[JsonObject] = para.get("elements", [])
+        if not elements:
+            return None
+        first = self.location(elements[0])
+        last = self.location(elements[-1])
+        return None if first is None or last is None else first.through(last)
+
+    def tab_start(self) -> Location | None:
+        """The tab's first paragraph, for a warning about the whole tab.
+
+        A stretch rather than the point at its start, so a comment has something to hang on."""
+        for item in self.json.get("body", {}).get("content", []):
+            if "paragraph" in item:
+                return self.location(item)
+        return None
+
     # ---- inline ------------------------------------------------------
 
     def inlines(self, para: JsonObject) -> list[Inline]:
@@ -903,7 +941,11 @@ class Parser:
                 out.append(self._rich_link(el["richLink"], where))
             elif not (IGNORED_ELEMENTS & el.keys()):
                 kinds = sorted(k for k in el if k not in ("startIndex", "endIndex"))
-                self.doc.warn("unhandled document element {}, dropped", Shown(", ".join(kinds)))
+                self.doc.warn(
+                    "unhandled document element {}, dropped",
+                    Shown(", ".join(kinds)),
+                    marks=[where],
+                )
         self._soft_breaks(para)
         # A soft break at either end is spacing rather than part of what the paragraph says,
         # and renders as a stray line break with nothing on one side of it.
@@ -931,6 +973,7 @@ class Parser:
             return
         lines = [line.strip() for line in text.strip().split(SOFT_BREAK)]
         written = [line for line in lines if line]
+        marks = [self._unbroken(para)]
         if len(written) < 2:
             # Nothing on one side of it, so it is blank space rather than a break
             # between two things, and it is dropped rather than published.
@@ -939,6 +982,7 @@ class Parser:
                 "it is dropped, and a paragraph's spacing belongs in its style: {}",
                 Shown("Shift+Enter"),
                 Shown(_clipped(written[0]) if written else ""),
+                marks=marks,
             )
             return
         self.doc.warn(
@@ -947,7 +991,43 @@ class Parser:
             Shown("Shift+Enter"),
             Shown("Enter"),
             Listed(*((Shown(_clipped(line)),) for line in written)),
+            marks=marks,
         )
+
+    def _unbroken(self, para: JsonObject) -> Mark | None:
+        """The paragraph, with its Shift+Enters made what they stand in for.
+
+        One after a line with something on it, and before another, is a paragraph
+        break, and is replaced with one; any other, at either end or after another,
+        is blank space, and is deleted, as the paragraph's spacing belongs in its style.
+        No fix where a run has no indices, since then not every break can be found.
+        """
+        where = self.paragraph_location(para)
+        if where is None:
+            return None
+        breaks: list[Location] = []
+        lines: list[str] = [""]
+        for el in para.get("elements", []):
+            # Text runs only, as the warning reads the lines.
+            content: str = el.get("textRun", {}).get("content", "")
+            if SOFT_BREAK not in content:
+                lines[-1] += content
+                continue
+            run = self.location(el)
+            if run is None:
+                return Mark(where)
+            for i, character in enumerate(content):
+                if character == SOFT_BREAK:
+                    breaks.append(run.part(content, i, i + 1))
+                    lines.append("")
+                else:
+                    lines[-1] += character
+        fix: list[Edit] = []
+        for n, location in enumerate(breaks):
+            # Something on the line before it, and on some line after.
+            between = bool(lines[n].strip()) and any(line.strip() for line in lines[n + 1 :])
+            fix.append(Replace(location, "\n" if between else ""))
+        return Mark(where, fix=tuple(fix))
 
     def cross_references(self, content: list[Inline]) -> list[Inline]:
         """Turn italicized section names into links to those sections.
@@ -995,10 +1075,12 @@ class Parser:
         """A date smart chip renders the way the document shows it."""
         text = date_text(chip)
         if not text:
-            self.doc.warn("a date chip carries no timestamp; dropped")
+            self.doc.warn("a date chip carries no timestamp; dropped", marks=[where])
         return Text(text=text, location=where)
 
-    def _href(self, url: str | None) -> str | None:
+    def _href(
+        self, url: str | None, where: Location | None = None, chip: bool = False
+    ) -> str | None:
         """A link as the tree holds it: the page it is of, not the capture of it.
 
         A `web.archive.org` URL typed into the document is a source already
@@ -1010,7 +1092,7 @@ class Parser:
         if url is None:
             return None
         if is_archive_today(url):
-            return self._archive_today(url)
+            return self._archive_today(url, where, chip)
         original, archived = unwrap_snapshot(url)
         if archived is not None:
             # Keyed by the document, which is what was captured: one PDF cited
@@ -1018,13 +1100,15 @@ class Parser:
             self.doc.archives.setdefault(document_url(original), archived)
         return original
 
-    def _archive_today(self, url: str) -> str:
+    def _archive_today(self, url: str, where: Location | None, chip: bool) -> str:
         """An archive.today capture, cited as the page it captured where the link says which.
 
         That page is then archived on the Wayback Machine, as any source is,
         which dates its captures where archive.today's short links don't.
         A short link is cited as it is, as its own archived copy, undated.
         Either way it's warned about, so the document can cite the page itself.
+        Where the link says which page, linking it is the fix, except on a chip,
+        which links the file it is a chip of and cannot be pointed elsewhere.
         """
         original = archive_today_original(url)
         if original is None:
@@ -1033,20 +1117,27 @@ class Parser:
                 "link the page itself instead, archived on {}",
                 Shown(url),
                 Shown("web.archive.org"),
+                marks=[where],
             )
             return url
+        relinked = None if where is None or chip else Mark(where, fix=(Link(where, original),))
         self.doc.warn(
             "{} is an archive.today link; link the page itself, {}, instead, archived on {}",
             Shown(url),
             Shown(original),
             Shown("web.archive.org"),
+            marks=[relinked or where],
         )
         return original
 
     def _rich_link(self, chip: JsonObject, where: Location | None = None) -> Text:
         """A linked Drive file, which is how `Source:` lines name an asset."""
         props = chip.get("richLinkProperties", {})
-        return Text(text=props.get("title", ""), href=self._href(props.get("uri")), location=where)
+        return Text(
+            text=props.get("title", ""),
+            href=self._href(props.get("uri"), where, chip=True),
+            location=where,
+        )
 
     def _text_run(self, run: JsonObject, where: Location | None = None) -> list[Inline]:
         """One run, split at any soft line breaks it contains."""
@@ -1061,6 +1152,7 @@ class Parser:
         offset = style.get("baselineOffset")
 
         def styled(part: str, at: int) -> Text:
+            located = None if where is None else where.part(content, at, at + len(part))
             return Text(
                 text=part,
                 bold=bool(style.get("bold")),
@@ -1070,8 +1162,8 @@ class Parser:
                 color=None if "link" in style else text_color(style),
                 sup=offset == "SUPERSCRIPT",
                 sub=offset == "SUBSCRIPT",
-                href=self._href(style.get("link", {}).get("url")),
-                location=None if where is None else where.part(content, at, at + len(part)),
+                href=self._href(style.get("link", {}).get("url"), located),
+                location=located,
             )
 
         out: list[Inline] = []
@@ -1104,6 +1196,7 @@ class Parser:
                 "inline object {} is not a picture (a drawing or chart, perhaps), "
                 "so it is missing from every output; replace it with an image",
                 Shown(object_id),
+                marks=[where],
             )
             return None
         image_props = embedded["imageProperties"]
@@ -1111,7 +1204,7 @@ class Parser:
         # a saved response has none, since they expire and are dropped rather
         # than committed, and everything but the download still works.
         uri = image_props.get("contentUri")
-        crop = self._crop(object_id, image_props.get("cropProperties", {}))
+        crop = self._crop(object_id, image_props.get("cropProperties", {}), where)
         return Image(
             object_id=object_id,
             filename=image_filename(object_id, crop_key=crop.key),
@@ -1152,6 +1245,7 @@ class Parser:
                     "the {} line links {}, which is not an SVG; the raster is used",
                     Shown("SVG:"),
                     Shown(title or uri),
+                    marks=[self.location(el)],
                 )
                 return None
             if not uri:
@@ -1174,7 +1268,7 @@ class Parser:
             )
         return None
 
-    def _crop(self, object_id: str, props: JsonObject) -> Crop:
+    def _crop(self, object_id: str, props: JsonObject, where: Location | None = None) -> Crop:
         """How much of the image the document trims from each side.
 
         Docs stores tiny negative offsets for an edge that is not trimmed,
@@ -1184,6 +1278,7 @@ class Parser:
             self.doc.warn(
                 "image {} is rotated in the document; the rotation is not applied",
                 Shown(object_id),
+                marks=[where],
             )
 
         def side(name: str) -> float:
@@ -1246,6 +1341,8 @@ class Parser:
     def blocks(self, content: list[JsonObject]) -> list[Block]:
         out: list[Block] = []
         pending_source: list[Inline] | None = None
+        # Where the paragraph `pending_source` was read from is.
+        pending_where: Location | None = None
         # 1 while the paragraph directly after a figure is still unclaimed.
         caption_slot = 0
         # The embed whose `Captions:` the indented lines that follow belong to.
@@ -1259,6 +1356,7 @@ class Parser:
                     "{} line not followed by an image, dropped: {}",
                     Shown("Source:"),
                     Shown(text[:80]),
+                    marks=[pending_where],
                 )
                 pending_source = None
 
@@ -1297,7 +1395,9 @@ class Parser:
             if captioning is not None and captioning.captions is not None:
                 if indented(para):
                     lines = split_lines(self.inlines(para))
-                    captioning.captions += self._cues(plain_text(line) for line in lines)
+                    captioning.captions += self._cues(
+                        (plain_text(line), span(line)) for line in lines
+                    )
                     continue
                 captioning = None
 
@@ -1305,11 +1405,17 @@ class Parser:
                 # An image inserted while a heading style was still active.
                 # Treating it as a heading yields an empty one
                 # whose anchor is a published URL, and buries the image inside it.
+                where = self.location(item)
                 self.doc.warn(
                     "an image is styled as a {}; treating it as a figure. "
                     "Set that paragraph to {} in the doc.",
                     Shown("Heading"),
                     Shown("Normal text"),
+                    marks=[
+                        None
+                        if where is None
+                        else Mark(where, fix=(ParagraphStyle(where, "NORMAL_TEXT"),))
+                    ],
                 )
                 style = "NORMAL_TEXT"
 
@@ -1327,14 +1433,23 @@ class Parser:
                 continue
 
             if unfinished(text):
-                self.doc.warn("unfinished text in the document: {}", Shown(text[:80]))
+                self.doc.warn(
+                    "unfinished text in the document: {}",
+                    Shown(text[:80]),
+                    marks=[self.location(item)],
+                )
 
             # Read once, here: what a line is depends on how it is styled,
             # and parsing a paragraph twice says everything it has to say twice.
             inlines = self.inlines(para)
 
-            for placeholder in bold_brackets(inlines):
-                self.doc.warn("unfinished text in the document: {}", Shown(placeholder[:80]))
+            written = plain_text(inlines)
+            for start, end in bracketed(inlines):
+                self.doc.warn(
+                    "unfinished text in the document: {}",
+                    Shown(written[start:end][:80]),
+                    marks=[locate(inlines, start, end)],
+                )
 
             if is_source_note(inlines) or is_asset_note(inlines):
                 self._check_label(inlines)
@@ -1350,6 +1465,7 @@ class Parser:
                     continue
                 drop_pending()
                 pending_source = unmarked(inlines)
+                pending_where = self.location(item)
                 caption_slot = 0
                 continue
 
@@ -1362,6 +1478,7 @@ class Parser:
                         "an X or Bluesky post, or a video in Drive; publishing it as text: {}",
                         Shown("Video:"),
                         Shown(text[:80]),
+                        marks=[self.location(item)],
                     )
                     out.append(Paragraph(content=unmarked(inlines), location=self.location(item)))
                     continue
@@ -1380,7 +1497,7 @@ class Parser:
             # and dropped from `inlines`, so the paragraph is prose.
             if any(isinstance(i, Image) for i in inlines):
                 figure = Figure(
-                    image=self._only_image(inlines),
+                    image=self._only_image(inlines, self.location(item)),
                     source=pending_source or [],
                     location=self.location(item),
                 )
@@ -1404,6 +1521,7 @@ class Parser:
                         "a {} line has to say what it warns of, as in {}; ignoring it",
                         Shown("Warning:"),
                         Shown("Warning: Graphic Content"),
+                        marks=[self.location(item)],
                     )
                     continue
                 last.warning = unmarked(inlines)
@@ -1414,7 +1532,9 @@ class Parser:
                 # up to the first that is not.
                 self._check_label(inlines)
                 lines = split_lines(inlines)
-                written = [labelled(lines[0]).value] + [plain_text(line) for line in lines[1:]]
+                written = [(labelled(lines[0]).value, span(lines[0]))] + [
+                    (plain_text(line), span(line)) for line in lines[1:]
+                ]
                 last.captions = (last.captions or []) + self._cues(written)
                 captioning = last
                 continue
@@ -1449,6 +1569,7 @@ class Parser:
                                 "as part of it; take it out in the doc",
                                 Shown(last.image.filename),
                                 Shown("Caption:"),
+                                marks=[_without_label(line)],
                             )
                         last.caption = line
                         caption_slot = 0
@@ -1486,6 +1607,7 @@ class Parser:
                 Shown("Image Source"),
                 Shown("Source:"),
                 Shown(source_href(source) or plain_text(source).strip()[:80]),
+                marks=[span(source)],
             )
         name = source_name(source)
         if name:
@@ -1532,16 +1654,20 @@ class Parser:
             )
         figure.image = replace(figure.image, vector=vector)
 
-    def _only_image(self, inlines: list[Inline]) -> Image:
+    def _only_image(self, inlines: list[Inline], where: Location | None = None) -> Image:
         images = [i for i in inlines if isinstance(i, Image)]
         if len(images) > 1:
+            # Each of the others, which is what is left out.
             self.doc.warn(
-                f"{len(images)} images share one paragraph; only the first becomes a figure"
+                f"{len(images)} images share one paragraph; only the first becomes a figure",
+                marks=[image.location for image in images[1:]],
             )
         prose = plain_text(inlines).strip()
         if prose:
             self.doc.warn(
-                "text sharing a paragraph with an image was dropped: {}", Shown(prose[:80])
+                "text sharing a paragraph with an image was dropped: {}",
+                Shown(prose[:80]),
+                marks=[where],
             )
         return images[0]
 
@@ -1638,6 +1764,7 @@ class Parser:
                 Shown("URL:"),
                 Shown("SEO Description:"),
                 Shown("Social Title Card:"),
+                marks=[self.tab_start()],
             )
             return content
 
@@ -1651,6 +1778,7 @@ class Parser:
                     "dropped a line before the {} section: {}",
                     Shown("Header"),
                     Shown(text[:80]),
+                    marks=[self.location(item)],
                 )
 
         end = start + 1
@@ -1730,6 +1858,7 @@ class Parser:
                 Shown("URL:"),
                 Shown("SEO Description:"),
                 Shown("Social Title Card:"),
+                marks=[self.location(content[start])],
             )
         return [content[i] for i in pictures if i < end] + content[end:]
 
@@ -1751,10 +1880,12 @@ class Parser:
                     self._source_names.setdefault(image.object_id, name)
                     return
 
-    def _cues(self, lines: Iterable[str]) -> list[Cue]:
-        """The captions `lines` write, warning about each line that is not one."""
+    def _cues(self, lines: Iterable[tuple[str, Location | None]]) -> list[Cue]:
+        """The captions `lines` write, warning about each line that is not one.
+
+        Each line with where it is, for the warning."""
         cues: list[Cue] = []
-        for line in lines:
+        for line, where in lines:
             if not line.strip():
                 continue
             found = cue(line)
@@ -1764,11 +1895,13 @@ class Parser:
                     "leaving it out: {}",
                     Shown("0:04\u20130:04.7 Jesus"),
                     Shown(_clipped(line.strip())),
+                    marks=[where],
                 )
             elif found.end <= found.start:
                 self.doc.warn(
                     "a caption ends before it starts; leaving it out: {}",
                     Shown(_clipped(line.strip())),
+                    marks=[where],
                 )
             else:
                 cues.append(found)
@@ -1786,12 +1919,15 @@ class Parser:
         publishes a graphic video with no warning at all.
         """
         note = labelled(line)
+        text = plain_text(line)
         for modifier in note.unknown_modifiers():
+            at = text.find(modifier, note.label_at, note.mark_at)
             self.doc.warn(
                 "{} is not a modifier {} takes; ignoring it: {}",
                 Shown(modifier),
                 Shown(f"{note.label}:"),
-                Shown(_clipped(plain_text(line).strip())),
+                Shown(_clipped(text.strip())),
+                marks=[locate(line, at, at + len(modifier)) if at >= 0 else span(line)],
             )
 
     def _bleed(self, line: list[Inline]) -> None:
@@ -1809,6 +1945,7 @@ class Parser:
                 "the underline on {} runs past it into the value; underline the name only: {}",
                 Shown(f"{note.label}:"),
                 Shown(_clipped(plain_text(line).strip())),
+                marks=[_unbled(line, note)],
             )
 
     def _meta_line(self, key: str, value: str) -> str:
@@ -1886,6 +2023,7 @@ class Parser:
             Shown("Title"),
             Shown(filename),
             Shown("Title"),
+            marks=[self.tab_start()],
         )
         if self.doc.meta.get("Title"):
             # Said separately, because it is a different thing to fix:
@@ -1907,7 +2045,11 @@ class Parser:
         """
         for fid in self.footnote_defs:
             if fid not in self._footnote_numbers:
-                self.doc.warn("footnote {} is defined but never referenced; omitted", Shown(fid))
+                self.doc.warn(
+                    "footnote {} is defined but never referenced; omitted",
+                    Shown(fid),
+                    marks=[self._segment_location(fid)],
+                )
         return [
             self._footnote(fid, number)
             for number, fid in sorted(
@@ -1915,18 +2057,33 @@ class Parser:
             )
         ]
 
+    def _segment_location(self, fid: str) -> Location | None:
+        """Where the whole of a footnote is, in its own segment."""
+        content: list[JsonObject] = self.footnote_defs.get(fid, {}).get("content", [])
+        if not content:
+            return None
+        self.segment = fid
+        try:
+            first = self.location(content[0])
+            last = self.location(content[-1])
+        finally:
+            self.segment = None
+        return None if first is None or last is None else first.through(last)
+
     def _footnote(self, fid: str, number: int) -> Footnote:
         """One footnote, read as the segment of the document it is."""
         content: list[JsonObject] = self.footnote_defs.get(fid, {}).get("content", [])
         self.segment = fid
         try:
             blocks = strip_leading_space(self.blocks(content))
-            first = self.location(content[0]) if content else None
-            last = self.location(content[-1]) if content else None
         finally:
             self.segment = None
-        where = None if first is None or last is None else first.through(last)
-        return Footnote(footnote_id=fid, number=number, content=blocks, location=where)
+        return Footnote(
+            footnote_id=fid,
+            number=number,
+            content=blocks,
+            location=self._segment_location(fid),
+        )
 
     def parse(self) -> Document:
         content: list[JsonObject] = self.json.get("body", {}).get("content", [])
@@ -2014,6 +2171,38 @@ class Parser:
             self.doc.card = replace(
                 card, filename=names[card.object_id], named=not names_nothing(claimed)
             )
+
+
+def _without_label(line: list[Inline]) -> Mark | None:
+    """A caption's `Caption:` label deleted, with the space after it."""
+    text = plain_text(line)
+    start = len(text) - len(text.lstrip())
+    end = text.index(":", start) + 1
+    while end < len(text) and text[end].isspace():
+        end += 1
+    where = locate(line, start, end)
+    return None if where is None else Mark(where, fix=(Replace(where, ""),))
+
+
+def _unbled(line: list[Inline], note: Labelled) -> Mark | None:
+    """A label's line with the underline taken off its value, wherever it ran on into it."""
+    value = locate(line, note.mark_at + 1, len(plain_text(line)))
+    if value is None:
+        return None
+    fix: list[Edit] = []
+    at = 0
+    for node in line:
+        if not isinstance(node, Text):
+            continue
+        start = max(at, note.mark_at + 1)
+        end = at + len(node.text)
+        at = end
+        if node.underline and start < end:
+            where = locate(line, start, end)
+            if where is None:
+                return Mark(value)
+            fix.append(Underline(where, underline=False))
+    return Mark(value, fix=tuple(fix))
 
 
 def read_review(doc: Document, document: JsonObject) -> None:
