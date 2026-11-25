@@ -1,7 +1,8 @@
 """The `.min` copies of what a build wrote: smaller to paste and to serve, and drawn the same.
 
-`report.min.html` is `report.html` minified, linking `publication.min.css` and `publication.min.js`
-where `report.html` links `publication.css` and `publication.js`.
+`report.partial.min.html` is `report.partial.html` minified,
+linking `publication.min.css` and `publication.min.js`
+where `report.partial.html` links `publication.css` and `publication.js`.
 It is the one to paste into a Squarespace code block: a fifth to a quarter smaller,
 which is that much further under the code block's limit and that much less for the editor to save.
 
@@ -22,17 +23,18 @@ from .format import bun, pinned
 SCRIPT = Path(__file__).with_name("minify.mjs")
 
 FRAGMENT_ASSETS = ("publication.css", "publication.js")
-"""What `report.html` links, and so what `report.min.html` links the `.min` copies of."""
+"""What `report.partial.html` links,
+and so what `report.partial.min.html` links the `.min` copies of."""
 
 PAGE_ASSETS = ("page.css", *FRAGMENT_ASSETS)
-"""What a publication's `index.html` links."""
+"""What a publication's page, `report.html`, links."""
 
 MIN_ASSETS = ("publication.min.css", "publication.min.js")
-"""What `report.min.html` links, each with its source map beside it as `<name>.map`."""
+"""What `report.partial.min.html` links, each with its source map beside it as `<name>.map`."""
 
 
 def min_name(name: str) -> str:
-    """`report.min.html` for `report.html`, and the same for any file name."""
+    """`report.partial.min.html` for `report.partial.html`, and the same for any file name."""
     stem, dot, suffix = name.rpartition(".")
     return f"{stem}.min{dot}{suffix}"
 

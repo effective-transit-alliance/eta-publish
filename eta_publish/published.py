@@ -1,10 +1,12 @@
 """`site/published/`: what the live Squarespace pages need hosted, and nothing else.
 
-A publication that goes out as its `report.html` is that fragment pasted into one code block,
+A publication that goes out as its `report.partial.html`
+is that fragment pasted into one code block,
 and the fragment links its pictures, its videos, its PDF, and the shared stylesheet and script
 at the site's URL, since Squarespace has no way to be handed a directory of them.
 Those files have to be served for as long as the page is up,
-so they are what this directory holds, beside the fragment itself and `report.md`.
+so they are what this directory holds, beside the fragment itself and `report.md`,
+though not `report.html`, the preview's page, which nothing live links.
 
 Nothing a page built by hand needs, since it references nothing of ours,
 and nothing of a draft, which is not out.
@@ -24,16 +26,20 @@ from urllib.parse import unquote
 
 from .build import UNWARNED, link_or_copy
 from .minify import MIN_ASSETS, is_min, min_name
-from .naming import ASSET_DIR, PUBLISHED_DIR, UNPUBLISHED_DIR, Kind, path_kind
+from .naming import (
+    ASSET_DIR,
+    PARTIAL,
+    PUBLISHED_DIR,
+    UNPUBLISHED_DIR,
+    Kind,
+    partial_name,
+    path_kind,
+)
 from .site import Publication, Published, saved_for, saved_responses
 
-PUBLISHED_SUFFIXES = (".html", ".md")
-"""What every live publication carries whatever it links, as `report.html` and `report.md`
-or `statement.html` and `statement.md`."""
-
-SPLIT_SUFFIX = ".part*.html"
-"""The pieces a `--split` build writes beside `report.html`, for a page pasted in several,
-as `report.part01.html` and on."""
+SPLIT_SUFFIX = f".part*.{PARTIAL}.html"
+"""The pieces a `--split` build writes beside `report.partial.html`, for a page pasted in several,
+as `report.part01.partial.html` and on."""
 
 _ATTRIBUTE = re.compile(r'\s(src|href|poster|srcset)="([^"]*)"')
 
@@ -133,9 +139,10 @@ def write_published(
         path = directory.relative_to(unpublished).as_posix()
         # A directory a build wrote is under a kind's path, or it would not have built.
         kind = path_kind(path) or Kind.REPORT
-        pages = [directory / f"{kind}.html", *sorted(directory.glob(f"{kind}{SPLIT_SUFFIX}"))]
+        pages = [directory / partial_name(kind), *sorted(directory.glob(f"{kind}{SPLIT_SUFFIX}"))]
         pages = [page for page in pages if UNWARNED not in page.name and not is_min(page.name)]
-        files = {f"{path}/{kind}{suffix}" for suffix in PUBLISHED_SUFFIXES}
+        # What every live publication carries, whatever it links.
+        files = {f"{path}/{partial_name(kind)}", f"{path}/{kind}.md"}
         for page in pages:
             files.add(f"{path}/{page.name}")
             if published_copy(page).is_file():
@@ -160,7 +167,7 @@ def write_published(
         if complete and missing:
             listed = ", ".join(f"`{name}`" for name in missing)
             problems.append(
-                (publication, f"its `{kind}.html` links files it does not have: {listed}")
+                (publication, f"its `{partial_name(kind)}` links files it does not have: {listed}")
             )
     published = root / PUBLISHED_DIR
     shutil.rmtree(published, ignore_errors=True)

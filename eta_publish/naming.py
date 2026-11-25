@@ -36,12 +36,29 @@ class Kind(StrEnum):
 
     A report is the longer piece, researched;
     a statement is the shorter one, usually answering something, and out much quicker.
-    The value is what its outputs are named, `report.html` or `statement.html`,
+    The value is what its outputs are named, `report.html` or `statement.html` and the rest,
     and what its entries in `publications.toml` are called, `[[report]]` or `[[statement]]`.
     """
 
     REPORT = "report"
     STATEMENT = "statement"
+
+
+PARTIAL = "partial"
+"""What names the fragment of a page rather than a page, as `report.partial.html`:
+the `div` pasted into a Squarespace code block, with no `<head>` of its own,
+beside `report.html`, `report.md`, and `report.pdf`, which are each the whole publication."""
+
+
+def partial_name(stem: str, part: int | None = None) -> str:
+    """The fragment written for the outputs named `stem`, or one of its `--split` pieces.
+
+    `report.partial.html`, `report.part01.partial.html`, and `report.published.partial.html`:
+    what the content is first, the publication's copy and which piece of it,
+    then what form it is in, so `.min` comes last, as `report.partial.min.html`.
+    """
+    piece = "" if part is None else f".part{part:02d}"
+    return f"{stem}{piece}.{PARTIAL}.html"
 
 
 KIND_DIRS = {"reports": Kind.REPORT, "statements": Kind.STATEMENT}

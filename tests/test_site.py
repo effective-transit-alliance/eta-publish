@@ -505,7 +505,7 @@ def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
     )
     assert [f.publication.name for f in site.failed] == ["gone"]
     assert [b.publication.name for b in site.built] == ["Digging Out of a Very Deep Hole"]
-    assert (tmp_path / "site" / site.built[0].path / "index.html").exists()
+    assert (tmp_path / "site" / site.built[0].path / "report.html").exists()
 
 
 def test_a_whole_site_replaces_the_site_but_keeps_a_publication_that_failed(
@@ -886,10 +886,10 @@ def test_the_fragment_links_its_images_where_the_site_serves_them(
         published_url=HOSTS.published,
     )
     site = build_site([Publication(url=str(saved))], out, options)
-    fragment = (out / site.built[0].path / "report.html").read_text()
+    fragment = (out / site.built[0].path / "report.partial.html").read_text()
     assert src in fragment
     # The page is served beside its images either way.
-    assert 'src="images/' in (out / site.built[0].path / "index.html").read_text()
+    assert 'src="images/' in (out / site.built[0].path / "report.html").read_text()
 
 
 def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
@@ -1888,12 +1888,13 @@ def test_a_manual_publications_banner_links_its_live_page_and_the_site(doc: Docu
 
 
 def test_an_automated_publications_banner_credits_the_file_pasted_live(doc: Document) -> None:
-    """The copy without the warnings, served as `report.min.html` and beside the preview
-    as `report.published.min.html`, which is what it is called there."""
+    """The copy without the warnings, served as `report.partial.min.html` and beside the preview
+    as `report.published.partial.min.html`, which is what it is called there."""
     assert (
         f'<a href="https://www.etany.org/{SLUG}">live</a> on '
         '<a href="https://www.etany.org">etany.org</a> using '
         '<a href="https://github.com/effective-transit-alliance/eta-publish"><code>eta-publish</code></a>'
         "&#39;s "
-        '<a href="report.published.min.html"><code>report.published.min.html</code></a></div>'
+        '<a href="report.published.partial.min.html">'
+        "<code>report.published.partial.min.html</code></a></div>"
     ) in says(Published.AUTOMATED, doc)

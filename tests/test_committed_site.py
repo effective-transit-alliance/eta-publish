@@ -26,7 +26,14 @@ from paths import ROOT, SITE, UNPUBLISHED
 
 from eta_publish.emit.html import CODE_BLOCK_LIMIT
 from eta_publish.minify import min_name
-from eta_publish.naming import IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, path_kind, print_href
+from eta_publish.naming import (
+    IMAGE_DIR,
+    PRINT_DIR,
+    UNPUBLISHED_DIR,
+    partial_name,
+    path_kind,
+    print_href,
+)
 
 
 def kind(publication: Path) -> str:
@@ -116,7 +123,7 @@ def without_warnings(html: str) -> str:
 
 
 def test_ids_are_unique_and_every_link_resolves(publication: Path) -> None:
-    for name in (f"{kind(publication)}.html", "index.html"):
+    for name in (partial_name(kind(publication)), f"{kind(publication)}.html"):
         html = (publication / name).read_text()
         ids = re.findall(r'id="([^"]+)"', html)
         assert len(ids) == len(set(ids)), name
@@ -137,7 +144,7 @@ def test_no_editorial_note_reaches_a_published_output(publication: Path) -> None
     typst = (publication / f"{kind(publication)}.typ").read_text()
     # Everything after the `#show: publication.with(...)` call, which is the publication itself.
     typst_body = re.split(r"^\)$", typst, maxsplit=1, flags=re.MULTILINE)[-1]
-    html_body = without_warnings((publication / f"{kind(publication)}.html").read_text())
+    html_body = without_warnings((publication / partial_name(kind(publication))).read_text())
     for emitted in (html_body, typst_body):
         for note in ("Source:", "Image Source", "SVG:"):
             assert note not in emitted, note
@@ -146,7 +153,8 @@ def test_no_editorial_note_reaches_a_published_output(publication: Path) -> None
 def test_no_chip_email_reaches_any_output(publication: Path) -> None:
     """A person chip carries an email beside the name, and the address is not the publication's."""
     emails = set(re.findall(r"[\w.+-]+@[\w-]+\.[\w.]+", (publication / "doc.json").read_text()))
-    for name in ("index.html", *(f"{kind(publication)}{s}" for s in (".html", ".md", ".typ"))):
+    stem = kind(publication)
+    for name in (partial_name(stem), *(f"{stem}{s}" for s in (".html", ".md", ".typ"))):
         emitted = (publication / name).read_text()
         for email in emails:
             assert email not in emitted, f"{name}: {email}"
@@ -156,9 +164,9 @@ def test_the_fragment_fits_in_one_code_block(publication: Path) -> None:
     """Squarespace allows 400 KB, and the fragment is meant to be pasted whole.
 
     The one pasted is the `.min` copy, as the build checks it,
-    so how the formatted `report.html` is laid out is no part of this.
+    so how the formatted `report.partial.html` is laid out is no part of this.
     """
-    pasted = publication / min_name(f"{kind(publication)}.html")
+    pasted = publication / min_name(partial_name(kind(publication)))
     assert pasted.stat().st_size < CODE_BLOCK_LIMIT
 
 
@@ -198,3 +206,10 @@ def test_the_pdf_is_built(publication_with_images: Path) -> None:
     pdf = publication_with_images / f"{kind(publication_with_images)}.pdf"
     assert pdf.is_file()
     assert pdf.read_bytes().startswith(b"%PDF")
+
+
+def test_the_directory_serves_the_page_by_a_link_to_it(publication: Path) -> None:
+    """`index.html` is `report.html` under the name a directory is served by, and not a copy."""
+    index = publication / "index.html"
+    assert index.is_symlink()
+    assert index.readlink() == Path(f"{kind(publication)}.html")

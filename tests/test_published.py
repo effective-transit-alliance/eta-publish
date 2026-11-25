@@ -70,9 +70,9 @@ def built(root: Path, path: str, doc_id: str, html: str) -> None:
     (directory / "doc.json").write_text(f'{{"documentId": "{doc_id}", "tabId": "t"}}')
     kind = path_kind(path)
     for stem in (f"{kind}", f"{kind}.published"):
-        (directory / f"{stem}.html").write_text(html)
+        (directory / f"{stem}.partial.html").write_text(html)
         (directory / f"{stem}.md").write_text("# r\n")
-    (directory / "index.html").write_text("the preview")
+    (directory / "report.html").write_text("the preview")
 
 
 def entry(doc_id: str, published: Published) -> Publication:
@@ -105,7 +105,7 @@ def test_only_an_automated_publication_is_hosted_and_only_what_it_links(tmp_path
 
     assert write_published(tmp_path, publications, complete=True, site_url=HOST) == []
     assert files(tmp_path) == {
-        "reports/a/report.html",
+        "reports/a/report.partial.html",
         "reports/a/report.md",
         "reports/a/images/a.jpg",
     }
@@ -114,7 +114,7 @@ def test_only_an_automated_publication_is_hosted_and_only_what_it_links(tmp_path
 def test_a_statement_publishes_as_a_statement(tmp_path: Path) -> None:
     built(tmp_path, "statements/s", "s", "")
     write_published(tmp_path, [entry("s", Published.AUTOMATED)], complete=True, site_url=HOST)
-    assert files(tmp_path) == {"statements/s/statement.html", "statements/s/statement.md"}
+    assert files(tmp_path) == {"statements/s/statement.partial.html", "statements/s/statement.md"}
 
 
 def test_a_live_page_linking_a_missing_file_is_a_problem(tmp_path: Path) -> None:
@@ -137,7 +137,7 @@ def test_a_publication_no_longer_automated_is_no_longer_hosted(tmp_path: Path) -
 
 def test_a_split_page_hosts_its_pieces_and_what_they_link(tmp_path: Path) -> None:
     built(tmp_path, "reports/a", "a", "")
-    for name in ("report.part01.html", "report.published.part01.html"):
+    for name in ("report.part01.partial.html", "report.published.part01.partial.html"):
         piece = tmp_path / UNPUBLISHED_DIR / "reports/a" / name
         piece.write_text(f'<img src="{HOST}/reports/a/images/a.jpg">')
     (tmp_path / UNPUBLISHED_DIR / "reports/a/images").mkdir()
@@ -146,7 +146,7 @@ def test_a_split_page_hosts_its_pieces_and_what_they_link(tmp_path: Path) -> Non
         write_published(tmp_path, [entry("a", Published.AUTOMATED)], complete=True, site_url=HOST)
         == []
     )
-    assert "reports/a/report.part01.html" in files(tmp_path)
+    assert "reports/a/report.part01.partial.html" in files(tmp_path)
     assert "reports/a/images/a.jpg" in files(tmp_path)
 
 
@@ -154,11 +154,11 @@ def test_a_publication_with_warnings_publishes_its_copies_without_them(tmp_path:
     """Warnings are for reviewing a build; a published page, its Markdown and its PDF carry none."""
     built(tmp_path, "reports/a", "a", "")
     directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
-    (directory / "report.html").write_text('<div class="warnings">Warnings</div>')
+    (directory / "report.partial.html").write_text('<div class="warnings">Warnings</div>')
     (directory / "report.published.md").write_text("clean")
     (directory / "report.pdf").write_bytes(b"warned")
     (directory / "report.published.pdf").write_bytes(b"clean")
-    (directory / "report.published.html").write_text(
+    (directory / "report.published.partial.html").write_text(
         f'<p>clean</p><a href="{HOST}/reports/a/report.pdf">PDF</a>'
     )
     assert (
@@ -166,7 +166,7 @@ def test_a_publication_with_warnings_publishes_its_copies_without_them(tmp_path:
         == []
     )
     published = tmp_path / PUBLISHED_DIR / "reports/a"
-    assert (published / "report.html").read_text().startswith("<p>clean</p>")
+    assert (published / "report.partial.html").read_text().startswith("<p>clean</p>")
     assert (published / "report.md").read_text() == "clean"
     assert (published / "report.pdf").read_bytes() == b"clean"
     assert not list(published.glob("report.published.*"))
@@ -184,8 +184,8 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
     """Named rather than read off it: its links are unquoted, and a map is linked from its file."""
     built(tmp_path, "reports/a", "a", "")
     directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
-    (directory / "report.min.html").write_text("the preview's")
-    (directory / "report.published.min.html").write_text("the live page's")
+    (directory / "report.partial.min.html").write_text("the preview's")
+    (directory / "report.published.partial.min.html").write_text("the live page's")
     assets = tmp_path / UNPUBLISHED_DIR / "assets"
     assets.mkdir()
     for name in ("publication.min.css", "publication.min.js"):
@@ -197,15 +197,15 @@ def test_a_minified_page_is_hosted_with_the_minified_assets_and_their_maps(
         == []
     )
     assert files(tmp_path) == {
-        "reports/a/report.html",
+        "reports/a/report.partial.html",
         "reports/a/report.md",
-        "reports/a/report.min.html",
+        "reports/a/report.partial.min.html",
         "assets/publication.min.css",
         "assets/publication.min.css.map",
         "assets/publication.min.js",
         "assets/publication.min.js.map",
     }
-    published = tmp_path / PUBLISHED_DIR / "reports/a/report.min.html"
+    published = tmp_path / PUBLISHED_DIR / "reports/a/report.partial.min.html"
     assert published.read_text() == "the live page's"
 
 
@@ -213,10 +213,10 @@ def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> N
     """Each piece's own, published copy and not the preview's, and not itself as a piece."""
     built(tmp_path, "reports/a", "a", "")
     directory = tmp_path / UNPUBLISHED_DIR / "reports/a"
-    for name in ("report.part01.html", "report.published.part01.html"):
+    for name in ("report.part01.partial.html", "report.published.part01.partial.html"):
         (directory / name).write_text("")
-    (directory / "report.part01.min.html").write_text("the preview's")
-    (directory / "report.published.part01.min.html").write_text("the live page's")
+    (directory / "report.part01.partial.min.html").write_text("the preview's")
+    (directory / "report.published.part01.partial.min.html").write_text("the live page's")
     assets = tmp_path / UNPUBLISHED_DIR / "assets"
     assets.mkdir()
     for name in ("publication.min.css", "publication.min.js"):
@@ -228,8 +228,8 @@ def test_a_split_page_hosts_the_minified_copy_of_each_piece(tmp_path: Path) -> N
         == []
     )
     hosted = files(tmp_path)
-    assert "reports/a/report.part01.min.html" in hosted
+    assert "reports/a/report.part01.partial.min.html" in hosted
     assert "reports/a/report.part01.min.min.html" not in hosted
     assert "assets/publication.min.js.map" in hosted
-    published = tmp_path / PUBLISHED_DIR / "reports/a/report.part01.min.html"
+    published = tmp_path / PUBLISHED_DIR / "reports/a/report.part01.partial.min.html"
     assert published.read_text() == "the live page's"
