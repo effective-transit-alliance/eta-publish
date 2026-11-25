@@ -526,6 +526,7 @@ def check_kind(doc: Document) -> None:
             "it is built as a report",
             Shown("URL:"),
             Shown(f"/{BRIEFS}/"),
+            marks=[doc.header_line("URL")],
         )
 
 

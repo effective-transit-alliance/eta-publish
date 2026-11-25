@@ -19,10 +19,13 @@ from .nodes import (
     Cut,
     Document,
     Figure,
+    HeaderLine,
     Inline,
     Listed,
+    Mark,
     Paragraph,
     Quoted,
+    Replace,
     Shown,
     Span,
     Text,
@@ -82,23 +85,41 @@ def check(doc: Document) -> None:
 
     for field in REQUIRED_FIELDS:
         if field not in doc.meta:
-            doc.warn("the {} section has no {} line", Shown("Header"), Shown(f"{field}:"))
+            doc.warn(
+                "the {} section has no {} line",
+                Shown("Header"),
+                Shown(f"{field}:"),
+                marks=[doc.header],
+            )
         elif field not in MAY_BE_EMPTY and not doc.meta[field].strip():
-            doc.warn("the {} section leaves {} empty", Shown("Header"), Shown(f"{field}:"))
+            doc.warn(
+                "the {} section leaves {} empty",
+                Shown("Header"),
+                Shown(f"{field}:"),
+                marks=[doc.header_line(field)],
+            )
 
         if unfinished(doc.meta.get(field, "")):
             # The header is consumed before the body walk that flags these,
             # so `Short: TODO` would otherwise reach the page unremarked.
-            doc.warn("{} is still marked unfinished", Shown(f"{field}:"))
+            doc.warn(
+                "{} is still marked unfinished",
+                Shown(f"{field}:"),
+                marks=[doc.header_line(field)],
+            )
 
     seo = doc.meta.get("SEO Description", "")
     if len(seo) > SEO_LIMIT:
         # The whole description, with the part that will not survive struck
         # through: which words are lost is the thing to fix.
+        # Marked from where it is cut, which only a person can say how to shorten.
+        written = doc.header_lines.get("SEO Description")
+        cut = None if written is None else written.find(seo, SEO_LIMIT)
         doc.warn(
             f"{{}} is {len(seo)} characters, over the {SEO_LIMIT} a search result shows:{{}}",
             Shown("SEO Description:"),
             Quoted(seo[:SEO_LIMIT], Cut(seo[SEO_LIMIT:])),
+            marks=[cut or doc.header_line("SEO Description")],
         )
 
 
@@ -111,6 +132,7 @@ def _check_contributors(doc: Document) -> None:
     Two bare names run together are two words, and nothing here can tell
     those from a double-barrelled surname.
     """
+    written = doc.header_lines.get("Public Contributors")
     for entry in doc.meta.get("Public Contributors", "").split(","):
         found = addressed(entry)
         if found is not None and found[1]:
@@ -118,6 +140,7 @@ def _check_contributors(doc: Document) -> None:
                 "the {} line reads {} as one contributor; a comma is missing after the address",
                 Shown("Public Contributors:"),
                 Shown(entry.strip()),
+                marks=[None if written is None else _comma(written, entry.strip(), found[1])],
             )
     # Docs gives an unresolved chip its address as its name too,
     # so the chip alone publishes the address where the byline wants a name.
@@ -129,7 +152,20 @@ def _check_contributors(doc: Document) -> None:
                 Shown("Public Contributors:"),
                 Shown(name),
                 Shown(f"Name ({name})"),
+                # The chip, which is all of the address there is.
+                marks=[None if written is None else written.find(name)],
             )
+
+
+def _comma(written: HeaderLine, entry: str, after: str) -> Mark | None:
+    """The comma `entry` is missing, put after the bracket closing its address.
+
+    `after` is what follows that bracket, the second contributor, at the end of `entry`."""
+    closed = entry.rfind(")", 0, len(entry) - len(after))
+    point = written.find(entry, closed + 1, closed + 1)
+    if point is None:
+        return None
+    return Mark(written.find(entry) or point, fix=(Replace(point, ","),))
 
 
 SAYS_NOTHING_ABOUT_FIELDS = frozenset({Where.HEADING, Where.FOOTNOTE})

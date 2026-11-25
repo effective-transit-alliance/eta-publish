@@ -38,6 +38,7 @@ from .nodes import (
     Figure,
     Footnote,
     FootnoteRef,
+    HeaderLine,
     Heading,
     Image,
     Inline,
@@ -1769,6 +1770,7 @@ class Parser:
             return content
 
         self.doc.has_header = True
+        self.doc.header = self.location(content[start])
 
         for item in content[:start]:
             para = item.get("paragraph")
@@ -1841,9 +1843,13 @@ class Parser:
                     # and every field after it, over a value that merely wrapped.
                     wrapped = plain_text(line).strip()
                     self.doc.meta[key] = f"{self.doc.meta[key]} {wrapped}".strip()
+                    written = self.doc.header_lines[key]
+                    self.doc.header_lines[key] = replace(
+                        written, lines=(*written.lines, tuple(line))
+                    )
                     continue
                 self._check_label(line)
-                key = self._meta_line(*field)
+                key = self._meta_line(*field, line)
             if key == SOCIAL_CARD and has_image(para):
                 # The picture a Shift+Enter under the field rather than a paragraph.
                 self._social_card(para)
@@ -1948,14 +1954,18 @@ class Parser:
                 marks=[_unbled(line, note)],
             )
 
-    def _meta_line(self, key: str, value: str) -> str:
+    def _meta_line(self, key: str, value: str, line: list[Inline]) -> str:
         """Record one `Key: value` header line, and answer which key it set."""
         value = value.strip()
+        note = labelled(line)
+        named = locate(line, note.label_at, note.label_at + len(note.label))
+        written = HeaderLine(lines=(tuple(line),), key=named)
         if key in RETIRED_FIELDS:
             self.doc.warn(
                 "the {} line is no longer used; rename it {}",
                 Shown(f"{key}:"),
                 Shown("Short:"),
+                marks=[None if named is None else Mark(named, fix=(Replace(named, "Short"),))],
             )
         elif key not in KNOWN_FIELDS:
             # A field nothing reads is a field nobody notices is missing.
@@ -1966,6 +1976,7 @@ class Parser:
                 "the {} section has an unrecognized {} line; check it for a typo",
                 Shown("Header"),
                 Shown(f"{key}:"),
+                marks=[named],
             )
         if key in self.doc.meta:
             # The later line wins, and says so: a corrected line pasted
@@ -1977,8 +1988,10 @@ class Parser:
                 Shown(f"{key}:"),
                 Shown(value),
                 Shown(self.doc.meta[key]),
+                marks=[self.doc.header_lines[key].location, written.location],
             )
         self.doc.meta[key] = value
+        self.doc.header_lines[key] = written
         return key
 
     def _header_index(self, content: list[JsonObject]) -> int | None:
@@ -2034,6 +2047,7 @@ class Parser:
                 Shown("Header"),
                 Shown(f"Title: {self.doc.meta['Title']}"),
                 Shown("Title"),
+                marks=[self.doc.header_lines["Title"].location],
             )
         return filename
 
@@ -2125,6 +2139,7 @@ class Parser:
             self.doc.warn(
                 "the {} line has no picture under it; paste the card itself on the next line",
                 Shown(f"{SOCIAL_CARD}:"),
+                marks=[self.doc.header_lines[SOCIAL_CARD].location],
             )
         if self.doc.card is None:
             self.doc.card = self.card(above)

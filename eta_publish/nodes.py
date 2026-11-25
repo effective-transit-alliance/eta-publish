@@ -604,6 +604,42 @@ Block = Paragraph | Heading | List | Figure | Table | Embed
 # ---- document ------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class HeaderLine:
+    """One `Key: value` line of the `Header` section, as written, for saying where it is.
+
+    `meta` holds what the line says, and this where: the two are kept apart
+    because `meta` is read everywhere as the strings it is.
+    """
+
+    lines: tuple[tuple[Inline, ...], ...]
+    """The line, then each it wraps onto: a line naming no field continues the value above."""
+
+    key: Location | None = None
+    """Where the key is, without its colon."""
+
+    @property
+    def location(self) -> Location | None:
+        """The whole of it, from the key to the end of the last line it wraps onto."""
+        first = span(list(self.lines[0]))
+        last = span(list(self.lines[-1]))
+        if first is None or last is None:
+            return None
+        return first.through(last)
+
+    def find(self, text: str, start: int = 0, end: int | None = None) -> Location | None:
+        """Where `text[start:end]` is, for `text` written on one of its lines.
+
+        `None` where it is on none of them, which a value wrapped onto two is:
+        what `meta` holds of it is the two joined with a space."""
+        for line in self.lines:
+            at = plain_text(list(line)).find(text)
+            if at >= 0:
+                stop = len(text) if end is None else end
+                return locate(list(line), at + start, at + stop)
+        return None
+
+
 @dataclass
 class Footnote:
     footnote_id: str
@@ -915,6 +951,13 @@ class Document:
     a missing section is usually one whose heading is styled as body text,
     where an empty one is a section nobody filled in."""
 
+    header: Location | None = None
+    """Where the `Header` section's heading is, where it has one."""
+
+    header_lines: dict[str, HeaderLine] = field(default_factory=dict)
+    """Where each of `meta`'s lines is, by the same keys:
+    the line a key's value was read from, which is the later of two with one key."""
+
     blocks: list[Block] = field(default_factory=list)
     footnotes: list[Footnote] = field(default_factory=list)
     warnings: list[Notice] = field(default_factory=list)
@@ -1006,6 +1049,11 @@ class Document:
     """Embed URL to the captions its copied video came with, under `VIDEO_DIR`.
 
     Recorded in `embeds.json`, so an offline build writes the same `<track>`."""
+
+    def header_line(self, key: str) -> Location | None:
+        """Where the `Header` section's `key:` line is, where it has one."""
+        written = self.header_lines.get(key)
+        return None if written is None else written.location
 
     @property
     def embeds(self) -> list[Embed]:

@@ -4,6 +4,7 @@ Docs counts in UTF-16 code units and Python in code points,
 so every test here with an emoji in it is one the two would disagree on.
 """
 
+from eta_publish.checks import check
 from eta_publish.docs_json import JsonObject
 from eta_publish.nodes import (
     Category,
@@ -436,3 +437,68 @@ def test_a_label_s_underline_is_taken_off_its_value() -> None:
     doc = parse(document)
     # From after the colon, 19 units on, to the end of the underlined run.
     assert _edits(doc, "runs past it") == [("underline", 19, 25, False)]
+
+
+# ---- the `Header` section ------------------------------------------
+
+
+def _field(start: int, key: str, value: str) -> JsonObject:
+    return _para(start, (key, UNDERLINED), f": {value}\n")
+
+
+def _header(*lines: tuple[str, str]) -> list[JsonObject]:
+    """A `Header` heading at 1 and a field paragraph for each of `lines` after it."""
+    content = [_para(1, "Header\n", style="HEADING_1")]
+    for key, value in lines:
+        content.append(_field(_end(content[-1]), key, value))
+    content.append(_para(_end(content[-1]), "Headline\n", style="TITLE"))
+    # Something under the headline, which `check` needs to be there.
+    content.append(_para(_end(content[-1]), "Body.\n"))
+    return content
+
+
+def test_each_header_line_is_where_it_was_written() -> None:
+    doc = parse(_doc(*_header(("Short", "🚇 Trains."), ("URL", "/reports/x"))))
+    assert doc.header == Location(TAB, None, 1, 8)
+    short = doc.header_lines["Short"]
+    assert short.key == Location(TAB, None, 8, 13)
+    # The line, newline left out: `Short: 🚇 Trains.` is 17 units.
+    assert short.location == Location(TAB, None, 8, 25)
+    assert doc.header_line("URL") == Location(TAB, None, 26, 41)
+    assert short.find("Trains", 1, 3) == Location(TAB, None, 19, 21)
+    assert doc.meta == {"Short": "🚇 Trains.", "URL": "/reports/x"}
+
+
+def test_a_wrapped_header_line_runs_onto_the_next() -> None:
+    content = [
+        _para(1, "Header\n", style="HEADING_1"),
+        _para(8, ("Short", UNDERLINED), ": one\vtwo\n"),
+        _para(23, "Headline\n", style="TITLE"),
+    ]
+    doc = parse(_doc(*content))
+    assert doc.meta["Short"] == "one two"
+    # To the end of `two`, after the vertical tab at 18.
+    assert doc.header_line("Short") == Location(TAB, None, 8, 22)
+    assert doc.header_lines["Short"].find("two") == Location(TAB, None, 19, 22)
+
+
+def test_a_retired_field_is_renamed() -> None:
+    doc = parse(_doc(*_header(("Excerpt", "🚇"))))
+    assert _edits(doc, "no longer used") == [("replace", 8, 15, "Short")]
+
+
+def test_a_repeated_field_marks_both_lines() -> None:
+    doc = parse(_doc(*_header(("Short", "one"), ("Short", "two"))))
+    (notice,) = [w for w in doc.warnings if "more than one" in str(w)]
+    assert [mark.location for mark in notice.marks] == [
+        Location(TAB, None, 8, 18),
+        Location(TAB, None, 19, 29),
+    ]
+    assert doc.header_line("Short") == Location(TAB, None, 19, 29)
+
+
+def test_a_missing_comma_after_an_address_is_put_in() -> None:
+    doc = parse(_doc(*_header(("Public Contributors", "Ana 🚇 (ana@x.org) Bo Li, Cy"))))
+    check(doc)
+    # `Public Contributors: Ana 🚇 (ana@x.org)` from 8 is 38 units.
+    assert _edits(doc, "a comma is missing") == [("replace", 47, 47, ",")]
