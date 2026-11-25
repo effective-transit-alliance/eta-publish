@@ -406,3 +406,15 @@ def test_an_archive_today_short_link_is_kept_and_warned_about() -> None:
     warned = [str(w) for w in parser.doc.warnings]
     assert len(warned) == 1
     assert "undated" in warned[0]
+
+
+def test_struck_text_is_read_as_struck() -> None:
+    parser = Parser(FIXTURE)
+    paragraph = {
+        "elements": [
+            {"textRun": {"content": "[This gets into STOPS]", "textStyle": {"strikethrough": True}}}
+        ]
+    }
+    [run] = parser.inlines(paragraph)
+    assert isinstance(run, Text)
+    assert run.strike

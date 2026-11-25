@@ -636,3 +636,8 @@ def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str)
     assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in PUBLICATION_CSS
     shown = HtmlEmitter(inline_css=False, source_brackets=True, site_url=HOST).emit(doc)
     assert '<div class="eta-report">' in shown
+
+
+def test_struck_text_is_struck_through() -> None:
+    """As Docs draws it, so the page shows what the document does."""
+    assert HtmlEmitter(site_url=HOST).text(Text(text="cut this", strike=True)) == "<s>cut this</s>"

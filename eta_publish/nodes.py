@@ -121,6 +121,8 @@ class Text:
     bold: bool = False
     italic: bool = False
     underline: bool = False
+    strike: bool = False
+    """Struck through, as Docs draws it, so a page shows what the document does."""
     sup: bool = False
     sub: bool = False
     href: str | None = None

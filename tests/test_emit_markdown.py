@@ -227,3 +227,8 @@ def test_an_image_destination_is_bracketed_only_when_it_has_to_be() -> None:
 def test_spaces_after_a_sentence_collapse_so_it_splits() -> None:
     paragraph = Paragraph([Text(text="One sentence.  Another one.")])
     assert MarkdownEmitter().paragraph(paragraph) == "One sentence.\nAnother one."
+
+
+def test_struck_text_is_struck_through() -> None:
+    """As Docs draws it, so the archive shows what the document does."""
+    assert MarkdownEmitter().text(Text(text="cut this", strike=True)) == "~~cut this~~"

@@ -12,7 +12,7 @@ from pypdf import PdfReader
 from eta_publish.emit.typst import TypstEmitter, breakable
 from eta_publish.images import write_print_copies
 from eta_publish.naming import IMAGE_DIR, PRINT_DIR
-from eta_publish.nodes import Document
+from eta_publish.nodes import Document, Text
 from eta_publish.parse import parse
 from eta_publish.pdf import compile_pdf, install_template
 
@@ -162,3 +162,9 @@ def test_a_long_query_string_can_break_without_a_slash() -> None:
         "#box[oecd.org/vis?]#box[a=]#box[1&]#box[b=]#box[A]#box[%2BB]"
     )
     assert breakable("oecd.org/vis") == "oecd.org/vis"
+
+
+def test_struck_text_is_struck_through() -> None:
+    """As Docs draws it, so the PDF shows what the document does."""
+    struck = Text(text="cut this", strike=True)
+    assert TypstEmitter(site_url=HOST).text(struck) == "#strike[cut this]"

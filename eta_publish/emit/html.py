@@ -1386,6 +1386,8 @@ class HtmlEmitter(Emitter):
             out = tag.em[out]
         if node.underline:
             out = tag.u[out]
+        if node.strike:
+            out = tag.s[out]
         if node.href:
             link = self.link(node.href)[out]
             ref = self.source_ref(node.href)

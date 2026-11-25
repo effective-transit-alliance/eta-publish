@@ -453,6 +453,8 @@ class MarkdownEmitter(Emitter):
             touches = (not lead and word_char(before)) or (not rest and word_char(after))
             mark = "*" if touches or "_" in core else "_"
             out = f"{mark}{out}{mark}"
+        if node.strike:
+            out = f"~~{out}~~"
         if node.href:
             out = f"[{out}]({url(node.href)}){self.source_ref(node.href)}"
         return f"{lead}{out}{rest}"
