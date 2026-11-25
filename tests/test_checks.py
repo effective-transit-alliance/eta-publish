@@ -237,6 +237,16 @@ def test_a_missing_comma_after_an_address_is_warned_about(doc: Document) -> None
     assert any("a comma is missing after the address" in w for w in map(str, doc.warnings))
 
 
+def test_a_contributor_credited_by_address_alone_is_warned_about(doc: Document) -> None:
+    """Docs names an unresolved person chip by its address,
+    so with no name typed beside it, the byline would publish the address."""
+    doc.meta["Public Contributors"] = "Alon Levy, someone@example.org"
+    check(doc)
+    found = [w for w in map(str, doc.warnings) if "by address" in w]
+    assert len(found) == 1
+    assert "someone@example.org" in found[0]
+
+
 def test_names_without_addresses_are_left_alone(doc: Document) -> None:
     """Two bare names run together are two words,
     and nothing here can tell those from a double-barrelled surname."""
