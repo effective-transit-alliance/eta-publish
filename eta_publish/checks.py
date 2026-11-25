@@ -21,7 +21,9 @@ from .nodes import (
     Figure,
     HeaderLine,
     Inline,
+    Link,
     Listed,
+    Location,
     Mark,
     Paragraph,
     Quoted,
@@ -383,13 +385,18 @@ def _check_named(doc: Document) -> None:
     # One to a line, each with what the publication says the picture is:
     # the difficulty of fixing these is working out which picture
     # `img-6fb0f9c4` is.
-    listed = Listed(*((Shown(block.image.filename), _describe(block)) for block in unnamed))
+    items = [(Shown(block.image.filename), _describe(block)) for block in unnamed]
     are = "is" if len(unnamed) == 1 else "are"
     doc.warn(
         f"{plural(len(unnamed), 'image')} {are} unnamed, so each publishes under a "
         f"hash; give each a {{}} line naming its file:{{}}",
         Shown("Source:"),
-        listed,
+        Listed(*items),
+        marks=[
+            Mark(block.image.location, text=item)
+            for block, item in zip(unnamed, items, strict=True)
+            if block.image.location is not None
+        ],
     )
 
 
@@ -426,13 +433,47 @@ def _check_tracked(doc: Document) -> None:
     ]
     if not tracked:
         return
-    listed = Listed(*((Shown(_tag(source)), " on ", Shown(source)) for source in tracked))
+    items = [(Shown(_tag(source)), " on ", Shown(source)) for source in tracked]
     carry = "carries" if len(tracked) == 1 else "carry"
+    # A mark on each link to each, with the link written without the tag as its fix.
+    # An embed's link is its `Video:` line's, and only marked.
+    links = _links(doc)
+    marks: list[Mark] = []
+    for source, item in zip(tracked, items, strict=True):
+        for runs, where in links.get(source, []):
+            written = runs[0].written_href or source
+            untagged = Link(where, _untagged(written))
+            marks.append(Mark(where, fix=(untagged,), text=item))
+        marks += [Mark(where, text=item) for where in _embedded(doc, source)]
     doc.warn(
         f"{plural(len(tracked), 'source')} still {carry} the tag it was copied with; "
         f"take it off the link in the doc:{{}}",
-        listed,
+        Listed(*items),
+        marks=marks,
     )
+
+
+def _links(doc: Document) -> dict[str, list[tuple[list[Text], Location]]]:
+    """Every link in what the publication cites, by where it points, with where it is.
+
+    A link split across runs by a change of style is one link, as `_check_url_text` reads it.
+    A figure's `Source:` line is left out, as `Document.sources` leaves it out.
+    """
+    found: dict[str, list[tuple[list[Text], Location]]] = {}
+    for runs, where in doc.text_runs():
+        if where is Where.SOURCE:
+            continue
+        for href, linked in groupby(runs, key=_href):
+            texts = [run for run in linked if isinstance(run, Text)]
+            located = span(list(texts))
+            if href and located is not None:
+                found.setdefault(href, []).append((texts, located))
+    return found
+
+
+def _embedded(doc: Document, url: str) -> list[Location]:
+    """Where each embed of `url` is."""
+    return [embed.location for embed in doc.embeds if embed.url == url and embed.location]
 
 
 def check_pages(doc: Document) -> None:
@@ -449,23 +490,30 @@ def check_pages(doc: Document) -> None:
     One warning for all of them, like `_check_named`.
     """
     wrong: list[tuple[Span, ...]] = []
+    links = _links(doc)
+    marks: list[Mark] = []
     for source in doc.sources:
         page = cited_page(source)
         if page is None:
             continue
         if not page.isdigit() or int(page) < 1:
-            wrong.append((Shown(source), " names no page"))
-            continue
-        found = doc.archives.get(document_url(source))
-        pages = found.pages if found is not None else 0
-        if pages and int(page) > pages:
-            wrong.append((Shown(source), f" cites page {page} of {plural(pages, 'page')}"))
+            item: tuple[Span, ...] = (Shown(source), " names no page")
+        else:
+            found = doc.archives.get(document_url(source))
+            pages = found.pages if found is not None else 0
+            if not pages or int(page) <= pages:
+                continue
+            item = (Shown(source), f" cites page {page} of {plural(pages, 'page')}")
+        wrong.append(item)
+        marks += [Mark(where, text=item) for _, where in links.get(source, [])]
+        marks += [Mark(where, text=item) for where in _embedded(doc, source)]
     if not wrong:
         return
     cites = "cites" if len(wrong) == 1 else "cite"
     doc.warn(
         f"{plural(len(wrong), 'PDF citation')} {cites} a page the PDF does not have:{{}}",
         Listed(*wrong),
+        marks=marks,
     )
 
 
@@ -491,13 +539,19 @@ def _check_bare_urls(doc: Document) -> None:
     One warning for all of them, like `_check_tracked`.
     """
     bare: list[str] = []
+    marks: list[Mark] = []
     for runs, _ in doc.text_runs():
-        stretch: list[str] = []
+        stretch: list[Inline] = []
         for run in [*runs, None]:
             if isinstance(run, Text) and not run.href:
-                stretch.append(run.text)
+                stretch.append(run)
                 continue
-            bare.extend(_bare("".join(stretch)))
+            # Each linked to itself where it is, which is what the warning asks for.
+            for start, url in _bare(plain_text(stretch)):
+                bare.append(url)
+                where = locate(stretch, start, start + len(url))
+                if where is not None:
+                    marks.append(Mark(where, fix=(Link(where, url),), text=(Shown(url),)))
             stretch = []
     if not bare:
         return
@@ -506,6 +560,7 @@ def _check_bare_urls(doc: Document) -> None:
         f"{plural(len(bare), 'URL')} typed out but not linked; "
         f"link {'it' if len(bare) == 1 else 'each'} in the doc:{{}}",
         listed,
+        marks=marks,
     )
 
 
@@ -525,13 +580,18 @@ def _check_url_text(doc: Document) -> None:
     One warning for all of them, like `_check_tracked`.
     """
     shown: list[str] = []
+    marks: list[Mark] = []
     for runs, _ in doc.text_runs():
         for href, linked in groupby(runs, key=_href):
             if not href:
                 continue
-            text = "".join(run.text for run in linked if isinstance(run, Text)).strip()
+            texts: list[Inline] = [run for run in linked if isinstance(run, Text)]
+            text = plain_text(texts).strip()
             if URL_TEXT.match(text):
                 shown.append(text)
+                where = span(texts)
+                if where is not None:
+                    marks.append(Mark(where, text=(Shown(text),)))
     if not shown:
         return
     listed = Listed(*((Shown(text),) for text in shown))
@@ -540,6 +600,7 @@ def _check_url_text(doc: Document) -> None:
         f"{plural(len(shown), 'link')} {'shows its' if one else 'show their'} URL as "
         f"{'its' if one else 'their'} text; give {'it' if one else 'each'} words in the doc:{{}}",
         listed,
+        marks=marks,
     )
 
 
@@ -547,18 +608,29 @@ def _href(run: Inline) -> str | None:
     return run.href if isinstance(run, Text) else None
 
 
-def _bare(text: str) -> list[str]:
-    """The URLs in `text`, without the punctuation of the sentence around them.
+def _bare(text: str) -> list[tuple[int, str]]:
+    """The URLs in `text`, without the punctuation of the sentence around them,
+    each with where in `text` it starts.
 
     A `)` is the URL's own while it closes a `(` inside it, as the DOIs' do.
     """
-    found: list[str] = []
+    found: list[tuple[int, str]] = []
     for match in BARE_URL.finditer(text):
         url = match.group().rstrip(TRAILING)
         while url.endswith(")") and url.count(")") > url.count("("):
             url = url[:-1].rstrip(TRAILING)
-        found.append(url)
+        found.append((match.start(), url))
     return found
+
+
+def _untagged(url: str) -> str:
+    """`url` without the tracking parameters `_tag` names, and otherwise as it is."""
+    base, question, rest = url.partition("?")
+    if not question:
+        return url
+    query, hash_, fragment = rest.partition("#")
+    kept = [part for part in query.split("&") if not any(part.startswith(t) for t in TRACKING)]
+    return f"{base}{'?' if kept else ''}{'&'.join(kept)}{hash_}{fragment}"
 
 
 def _tag(source: str) -> str:

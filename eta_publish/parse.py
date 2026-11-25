@@ -1152,8 +1152,11 @@ class Parser:
         style = run.get("textStyle", {})
         offset = style.get("baselineOffset")
 
+        written = style.get("link", {}).get("url")
+
         def styled(part: str, at: int) -> Text:
             located = None if where is None else where.part(content, at, at + len(part))
+            href = self._href(written, located)
             return Text(
                 text=part,
                 bold=bool(style.get("bold")),
@@ -1163,7 +1166,8 @@ class Parser:
                 color=None if "link" in style else text_color(style),
                 sup=offset == "SUPERSCRIPT",
                 sub=offset == "SUBSCRIPT",
-                href=self._href(style.get("link", {}).get("url"), located),
+                href=href,
+                written_href=None if href == written else written,
                 location=located,
             )
 

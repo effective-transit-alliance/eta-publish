@@ -196,6 +196,9 @@ class Text:
     sup: bool = False
     sub: bool = False
     href: str | None = None
+    written_href: str | None = field(default=None, compare=False, repr=False)
+    """The link as the document writes it, where that is not `href`:
+    an archived copy, of which `href` is the page. For changing the link in the document."""
     location: Location | None = field(default=None, compare=False, repr=False)
     """Where the run is in the document, or `None` where the response did not say.
 

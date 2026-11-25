@@ -554,3 +554,99 @@ def test_a_video_line_is_made_a_copy() -> None:
     doc.cards[url] = Card(text="clip")
     check_embeds(doc)
     assert _edits(doc, "add `Copy`") == [("replace", 18, 18, " (Copy)")]
+
+
+# ---- warnings listing many places ----------------------------------
+
+
+def test_a_tracking_tag_is_taken_off_each_link() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    tagged = "https://example.org/a?id=1&utm_source=chatgpt.com#top"
+    linked: JsonObject = {"link": {"url": tagged}}
+    bold: JsonObject = {"link": {"url": tagged}, "bold": True}
+    body = _para(10, "🚇 ", ("the ", linked), ("page", bold), ", and ", ("again", linked), ".\n")
+    doc = parse(_doc(title, body))
+    check(doc)
+    (notice,) = [w for w in doc.warnings if "copied with" in str(w)]
+    untagged = "https://example.org/a?id=1#top"
+    assert [(m.location.start, m.location.end, m.fix, m.text) for m in notice.marks] == [
+        (
+            13,
+            21,
+            (Link(Location(TAB, None, 13, 21), untagged),),
+            (Shown("utm_source=chatgpt.com"), " on ", Shown(tagged)),
+        ),
+        (
+            27,
+            32,
+            (Link(Location(TAB, None, 27, 32), untagged),),
+            (Shown("utm_source=chatgpt.com"), " on ", Shown(tagged)),
+        ),
+    ]
+
+
+def test_an_archived_link_keeps_its_archive_when_its_tag_comes_off() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    page = "https://example.org/a?utm_medium=x"
+    archived = f"https://web.archive.org/web/20240101000000/{page}"
+    body = _para(10, ("cited", {"link": {"url": archived}}), ".\n")
+    doc = parse(_doc(title, body))
+    check(doc)
+    (notice,) = [w for w in doc.warnings if "copied with" in str(w)]
+    (mark,) = notice.marks
+    assert mark.fix == (
+        Link(
+            Location(TAB, None, 10, 15),
+            "https://web.archive.org/web/20240101000000/https://example.org/a",
+        ),
+    )
+
+
+def test_each_bare_url_is_linked_where_it_is_typed() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    body = _para(
+        10,
+        "See 🚇 https://doi.org/10.3141/",
+        "1735-13. Or ",
+        ("this", {"link": {"url": "https://x.org"}}),
+        " http://a.b/c\n",
+    )
+    doc = parse(_doc(title, body))
+    check(doc)
+    (notice,) = [w for w in doc.warnings if "typed out" in str(w)]
+    assert [(m.fix, m.text) for m in notice.marks] == [
+        (
+            (Link(Location(TAB, None, 17, 48), "https://doi.org/10.3141/1735-13"),),
+            (Shown("https://doi.org/10.3141/1735-13"),),
+        ),
+        (
+            (Link(Location(TAB, None, 58, 70), "http://a.b/c"),),
+            (Shown("http://a.b/c"),),
+        ),
+    ]
+
+
+def test_each_unnamed_image_and_url_shown_as_text_is_marked_with_its_own_line() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    caption = _para(12, "A train.\n")
+    url = "https://x.org/page"
+    body = _para(_end(caption), ("🚇 " + url, {"link": {"url": url}}), "\n")
+    doc = parse(_with_picture(_doc(title, _picture(10), caption, body)))
+    check(doc)
+    (unnamed,) = [w for w in doc.warnings if "unnamed" in str(w)]
+    filename = doc.figures[0].image.filename
+    assert unnamed.marks == (
+        Mark(Location(TAB, None, 10, 11), text=(Shown(filename), ": A train.")),
+    )
+    # Not a URL as text: it opens with the emoji, so nothing is marked for it.
+    assert not [w for w in doc.warnings if "as its text" in str(w)]
+
+
+def test_a_link_showing_its_url_is_marked() -> None:
+    title = _para(1, "Headline\n", style="TITLE")
+    url = "https://x.org/page"
+    body = _para(10, "🚇 ", (url, {"link": {"url": url}}), "\n")
+    doc = parse(_doc(title, body))
+    check(doc)
+    (notice,) = [w for w in doc.warnings if "as its text" in str(w)]
+    assert notice.marks == (Mark(Location(TAB, None, 13, 31), text=(Shown(url),)),)
