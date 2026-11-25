@@ -376,14 +376,15 @@ def test_a_measurement_is_not_hyphenated_into_what_it_describes() -> None:
     ]
 
 
-def test_the_hyphen_and_the_spelling_are_two_warnings() -> None:
-    """Two mistakes in one measurement, said separately.
-    The hyphen one says the whole of what to write rather than leaving
+def test_the_hyphen_and_the_spelling_are_one_warning() -> None:
+    """Two mistakes in one measurement, said once, as the whole of what to write.
+    Said separately, the spelling's warning would say `600-ft`,
+    which the hyphen's says is wrong; and only one of them would leave
     somebody to write `600 foot` and be told about it on the next build."""
     found = warnings(written("The capacity of a 600-foot train."))
-    assert len(found) == 2
-    assert "`600-foot` should be `600-ft`" in found[0]
-    assert "`600-foot` should be `600 ft`, with no hyphen" in found[1]
+    assert found == [
+        "style: `600-foot` should be `600 ft`, with no hyphen: `The capacity of a 600-foot train.`"
+    ]
 
 
 def test_an_ordinary_hyphenated_phrase_is_not_a_measurement() -> None:
