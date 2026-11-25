@@ -40,7 +40,17 @@ from .build import DOC_JSON, UNWARNED, BuildOptions, build_one, has_its_images, 
 from .emit.html import Banner, Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
 from .minify import min_name
-from .naming import ASSET_DIR, BRIEFS, IMAGE_DIR, KIND_DIRS, LIVE_SITE, REPOSITORY, Kind, path_kind
+from .naming import (
+    ASSET_DIR,
+    BRIEFS,
+    IMAGE_DIR,
+    KIND_DIRS,
+    LIVE_SITE,
+    REPOSITORY,
+    Kind,
+    partial_name,
+    path_kind,
+)
 from .nodes import Document, Shown
 from .parse import parse
 
@@ -60,12 +70,12 @@ class Published(StrEnum):
 
     Not a yes or no, because "out" is two different things here.
     A page built by hand in Squarespace references nothing this project hosts,
-    and one pasted from `report.html` references every picture, video, and stylesheet
+    and one pasted from `report.partial.html` references every picture, video, and stylesheet
     it was built with, so only the second needs any of them served.
     """
 
     AUTOMATED = "automated"
-    """Live, and the live page is this publication's `report.html`."""
+    """Live, and the live page is this publication's `report.partial.html`."""
 
     MANUAL = "manual"
     """Live, as a page built by hand in Squarespace."""
@@ -101,9 +111,9 @@ def kind_says(publication: Publication, doc: Document) -> Piece:
     A live one is live on ETA's site, `live` linking its page there,
     at the document's own `URL:`, which is where both live kinds are.
     An `automated` one is also credited to the file it is pasted from:
-    the copy `site/published/` serves as `report.min.html`, without the warnings,
-    which beside the preview is `report.published.min.html`, linked and named as that:
-    the preview's own `report.min.html` beside it is the copy with the warnings.
+    the copy `site/published/` serves as `report.partial.min.html`, without the warnings,
+    which beside the preview is `report.published.partial.min.html`, linked and named as that:
+    the preview's own `report.partial.min.html` beside it is the copy with the warnings.
     """
     if publication.published is Published.DRAFT:
         return "not published yet"
@@ -111,7 +121,7 @@ def kind_says(publication: Publication, doc: Document) -> Piece:
     on = [live, " on ", tag.a(href=LIVE_SITE)["etany.org"]]
     if publication.published is Published.MANUAL:
         return on
-    pasted = min_name(f"{publication_kind(doc)}.{UNWARNED}.html")
+    pasted = min_name(partial_name(f"{publication_kind(doc)}.{UNWARNED}"))
     return [
         *on,
         " using ",

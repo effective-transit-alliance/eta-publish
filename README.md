@@ -55,12 +55,13 @@ a statement's are `statement.html`, `statement.md`, and so on:
 
 | Output | Purpose |
 | --- | --- |
-| `report.html` | One fragment to paste into a single Squarespace code block, linking its images and videos on GitHub Pages (`--no-hosted-media` links them relative to itself) |
-| `report.min.html` | `report.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/publication.min.css` and `assets/publication.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
+| `report.partial.html` | One fragment to paste into a single Squarespace code block, linking its images and videos on GitHub Pages (`--no-hosted-media` links them relative to itself) |
+| `report.partial.min.html` | `report.partial.html` minified, a fifth to a quarter smaller, and the one to paste: it links `assets/publication.min.css` and `assets/publication.min.js`, which have source maps. Made by every build, locally and on GitHub Pages, and not committed |
 | `report.md` | Human-readable, diffable archive committed to git |
 | `report.typ` / `report.pdf` | [Typst](https://typst.app/) source, and the compiled PDF |
-| `index.html` | Standalone page for review, including any warnings, labeled with which kind of publication it is |
-| `index.min.html` | `index.html` minified, linking the `.min` stylesheets and script; not committed |
+| `report.html` | Standalone page for review, including any warnings, labeled with which kind of publication it is |
+| `report.min.html` | `report.html` minified, linking the `.min` stylesheets and script; not committed |
+| `index.html` / `index.min.html` | Links to `report.html` and `report.min.html`, so the directory serves the page at its own URL |
 | `images/` | The doc's inline images, for hosting outside Squarespace |
 | `archives.json` | Where each source the publication cites is archived |
 
@@ -267,7 +268,7 @@ rather than adding to the public list instead;
 `-p publications.toml` adds there, on purpose.
 
 `published` is whether the publication is out on Squarespace, and how:
-`automated` when the live page is the pasted `report.html`,
+`automated` when the live page is the pasted `report.partial.html`,
 `manual` when it is a page built by hand,
 and `draft` until it is out.
 It is required, and `add` writes `draft`.
@@ -286,8 +287,8 @@ so `/reports/digging-out-deep-hole-sas-west` in the header
 becomes `<unpublished>/reports/digging-out-deep-hole-sas-west/`,
 where `<unpublished>` is `publications.toml`'s `[site] unpublished`,
 which every list has to name: there is no default host,
-serving `index.html` there
-alongside `report.html`, `report.pdf`, and its images.
+serving `report.html` there, through its link `index.html`,
+alongside `report.partial.html`, `report.pdf`, and its images.
 The site's front page lists them,
 with each publication's date, byline, and warning count,
 and names any publication that failed to build.
@@ -829,8 +830,8 @@ and the fragment sizes were measured from real builds.
   is the closest thing to a pure HTML page, and it is close enough.
 - **A code block holds 400 KB (~300,000 characters).**
   The largest publication so far, the SAS West report,
-  comes to 272 KB as `report.min.html`, the copy pasted,
-  inside the limit but not by much; the formatted `report.html` is 401 KB.
+  comes to 272 KB as `report.partial.min.html`, the copy pasted,
+  inside the limit but not by much; the formatted `report.partial.html` is 401 KB.
   A build warns past 250 KB, and past 400 KB says to split it.
   `--split` cuts at `h2` boundaries for a publication that does not fit.
 - **There is no file upload API.**
@@ -907,9 +908,9 @@ It is what GitHub Pages serves.
 
 `site/published/` is the part of it a live page needs:
 for each `published = "automated"` publication,
-its `report.html` and any `--split` pieces, its `report.md`,
-its `report.min.html` with the `.min` assets and their source maps,
-and every file that `report.html` links on the site,
+its `report.partial.html` and any `--split` pieces, its `report.md`,
+its `report.partial.min.html` with the `.min` assets and their source maps,
+and every file that `report.partial.html` links on the site,
 at the same paths, so either directory serves the same URLs.
 It is written from `site/unpublished/` after every build,
 so a publication that failed to build keeps hosting its last copy,
@@ -950,7 +951,7 @@ Regenerate with `uv run pytest --regenerate-snapshots`.
 
 Every publication in `publications.toml` builds from its real document,
 and the committed `site/` is what those builds write.
-IBX Automation is live on Squarespace as its pasted `report.html`;
+IBX Automation is live on Squarespace as its pasted `report.partial.html`;
 the others are still pages built by hand there.
 
 # TODO

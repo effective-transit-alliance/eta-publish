@@ -61,6 +61,7 @@ from .naming import (
     PRINT_DIR,
     VIDEO_DIR,
     WEB_DIR,
+    partial_name,
     video_frame_name,
     warning_poster_name,
 )
@@ -118,7 +119,7 @@ class BuildOptions:
     `publications.toml`'s `[site] published`."""
 
     embed_assets: bool = False
-    """Whether `report.html` carries its stylesheet and script rather than linking them.
+    """Whether `report.partial.html` carries its stylesheet and script rather than linking them.
 
     Linked by default, at `published_url`,
     so a fragment is 28 KB smaller and every publication shares one copy.
@@ -134,7 +135,7 @@ class BuildOptions:
     """
 
     hosted_media: bool = True
-    """Whether `report.html` links its images and videos where the site serves them.
+    """Whether `report.partial.html` links its images and videos where the site serves them.
 
     The fragment is pasted into Squarespace, which has no way to upload a
     folder of images and names each one it is given by a hash nobody can
@@ -156,7 +157,7 @@ class BuildOptions:
     banners: bool = False
     """Whether each preview page says which kind of publication it is.
 
-    Only the preview, `index.html`:
+    Only the preview, `report.html`:
     the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
 
@@ -292,8 +293,8 @@ def fragment_emitter(
     *,
     site_url: str,
 ) -> HtmlEmitter:
-    """The emitter for `report.html`: linking its stylesheet and script at `linked`, if given,
-    and carrying them otherwise."""
+    """The emitter for `report.partial.html`:
+    linking its stylesheet and script at `linked`, if given, and carrying them otherwise."""
     return HtmlEmitter(
         image_base=image_base,
         inline_css=not linked,
@@ -322,7 +323,7 @@ def write_split(
     pieces = [emitter.join(emitter.wrapped(group)) for group in emitter.groups(doc)]
     written = []
     for n, piece in enumerate(pieces, start=1):
-        dest = outdir / f"{stem}.part{n:02d}.html"
+        dest = outdir / partial_name(stem, n)
         dest.write_text(piece)
         written.append(dest)
     return written
@@ -697,7 +698,7 @@ def asset_base(path: str) -> str:
 
 UNWARNED = "published"
 """What names a live publication's outputs as `site/published/` takes them,
-as `report.published.html`: linking the published host, and without the warnings."""
+as `report.published.partial.html`: linking the published host, and without the warnings."""
 
 
 def pdf_name(stem: str) -> str:
@@ -733,30 +734,32 @@ def emit(
     """Run each emitter,
     reporting the ones not yet implemented rather than failing the whole build for them.
 
-    `pdf` is where `report.html` links the PDF: the site's copy, since the fragment
-    is pasted into Squarespace, which does not serve it. `index.html` links its neighbor.
+    `pdf` is where `report.partial.html` links the PDF: the site's copy, since the fragment
+    is pasted into Squarespace, which does not serve it. `report.html` links its neighbor.
     `cards` is where the site serves the images, for the share card's absolute URL,
     and `url` is where it serves this publication, for `og:url`.
     `page_url` is the live page, for the PDF to link its videos' figures on.
     A `stem` that is more than the kind, `report.published`,
-    writes only the files `site/published/` takes, so not `index.html`, which is the preview.
-    `banner` goes on `index.html` and nowhere else:
+    writes only the files `site/published/` takes, so not `report.html`, which is the preview.
+    `banner` goes on `report.html` and nowhere else:
     the fragment, the Markdown, and the PDF are what is pasted and passed around.
     """
     outdir.mkdir(parents=True, exist_ok=True)
     emitters = {
-        f"{stem}.html": fragment_emitter(images, linked, pdf, source_brackets, site_url=site_url),
+        partial_name(stem): fragment_emitter(
+            images, linked, pdf, source_brackets, site_url=site_url
+        ),
         f"{stem}.md": MarkdownEmitter(),
         f"{stem}.typ": TypstEmitter(site_url=site_url, page_url=page_url),
     }
     written: dict[str, Path] = {}
     if "." in stem:
         return _emit_each(doc, outdir, emitters, written)
-    # `index.html`, so a publication directory is a page at its own URL:
-    # `/reports/<slug>/` serves the publication rather than a listing of files.
-    # `report.html` or `statement.html` beside it is the fragment,
-    # a piece of a page rather than one.
-    page = outdir / "index.html"
+    # `report.html` or `statement.html`, the whole publication as a page,
+    # as `report.md` and `report.pdf` are in theirs;
+    # `report.partial.html` beside it is the fragment, a piece of a page rather than one.
+    # `index.html` is linked to it once the site is laid out, by `publish.index_links`.
+    page = outdir / f"{stem}.html"
     page.write_text(
         publication_page(
             doc,

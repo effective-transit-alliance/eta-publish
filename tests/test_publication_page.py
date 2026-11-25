@@ -1,4 +1,4 @@
-"""The publication as a page: `index.html`, which is what the site serves."""
+"""The publication as a page: `report.html`, which is what the site serves at its directory."""
 
 import json
 import re
@@ -57,13 +57,13 @@ def test_page_images_resolve_next_to_the_page(doc: Document, tmp_path: Path) -> 
     (images / "sas-west-036.png").write_bytes(b"not really a png")
 
     emit(doc, tmp_path, site_url=HOST)
-    page = (tmp_path / "index.html").read_text()
+    page = (tmp_path / "report.html").read_text()
 
     found = sources(page)
     assert found
     for src in found:
         assert not src.startswith("http")
-        assert (tmp_path / src).exists(), f"{src} does not resolve next to index.html"
+        assert (tmp_path / src).exists(), f"{src} does not resolve next to report.html"
 
 
 def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Path) -> None:
@@ -73,7 +73,7 @@ def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Pa
     which is not something a build decides."""
     (tmp_path / "images").mkdir()
     emit(doc, tmp_path, site_url=HOST)
-    fragment = (tmp_path / "report.html").read_text()
+    fragment = (tmp_path / "report.partial.html").read_text()
     assert sources(fragment)[0] == "images/sas-west-036.png"
 
 

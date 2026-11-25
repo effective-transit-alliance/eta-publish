@@ -204,7 +204,7 @@ and for a local preview, the working copy.
 
 - The index lists them in three groups, by kind.
 - Every preview page has the label saying which kind it is, as this repository's do.
-  It's never in `report.html`, the Markdown or the PDF.
+  It's never in `report.partial.html`, the Markdown, or the PDF.
 - Two publications at one path, in one list or across both, are refused,
   and so are two builds that write different files at one path,
   such as the shared `assets/`; nothing is uploaded then.

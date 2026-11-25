@@ -1551,12 +1551,12 @@ def publication_page(
     site_url: str,
 ) -> str:
     """The whole publication as a page,
-    which is what a build writes as `index.html` and what the site serves.
+    which is what a build writes as `report.html`, and what the site serves at its directory.
 
     `banner` is which kind of publication it is, above everything else on it.
 
     Not the fragment with a wrapper bolted on:
-    `report.html` is a `div` to paste into a Squarespace code block,
+    `report.partial.html` is a `div` to paste into a Squarespace code block,
     which inherits the site's typography and has nowhere to put a warning.
 
     `card_base` is where the site serves the images, as a URL:

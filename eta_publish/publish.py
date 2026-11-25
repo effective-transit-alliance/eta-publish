@@ -25,7 +25,7 @@ from .build import (
     check_code_block_size,
 )
 from .logo import write_logo
-from .naming import ASSET_DIR, UNPUBLISHED_DIR
+from .naming import ASSET_DIR, PARTIAL, UNPUBLISHED_DIR, partial_name
 from .published import write_published
 from .site import (
     Failed,
@@ -79,13 +79,13 @@ Offline = Annotated[
 EmbedAssets = Annotated[
     bool,
     Option(
-        help="carry the stylesheet and script in `report.html` rather than linking the site's,"
-        " for a fragment to paste before the site is pushed"
+        help="carry the stylesheet and script in `report.partial.html`"
+        " rather than linking the site's, for a fragment to paste before the site is pushed"
     ),
 ]
 HostedMedia = Annotated[
     bool,
-    Option(help="link `report.html`'s images and videos where the site serves them"),
+    Option(help="link `report.partial.html`'s images and videos where the site serves them"),
 ]
 SourceBrackets = Annotated[
     bool,
@@ -261,28 +261,52 @@ def write_site(
     if site.built:
         minify.assets(outdir / ASSET_DIR)
     for built in site.built:
+        kind = publication_kind(built.doc)
         minify.page(
-            outdir / built.path / "index.html", asset_base(built.path), linked=minify.PAGE_ASSETS
+            outdir / built.path / f"{kind}.html", asset_base(built.path), linked=minify.PAGE_ASSETS
         )
-        # `report.html` or `statement.html`, its `--split` pieces, and the published copy of each.
+        # `report.partial.html` or `statement.partial.html`, its `--split` pieces,
+        # and the published copy of each.
         # Not a fragment carrying its stylesheet and script, which links no `.min` ones.
         if not options.embed_assets:
-            for page in sorted((outdir / built.path).glob(f"{publication_kind(built.doc)}*.html")):
-                if minify.is_min(page.name):
-                    continue
+            for page in sorted((outdir / built.path).glob(f"{kind}*.{PARTIAL}.html")):
                 published = page.name.split(".")[1] == UNWARNED
                 url = options.published_url if published else options.unpublished_url
                 minify.page(page, f"{url}/{ASSET_DIR}")
 
+    for built in site.built:
+        index_links(outdir / built.path, publication_kind(built.doc))
+
     # The one to paste, and so the one whose size matters.
     for built in site.built:
-        publication = outdir / built.path / f"{publication_kind(built.doc)}.html"
+        publication = outdir / built.path / partial_name(publication_kind(built.doc))
         pasted = publication.with_name(minify.min_name(publication.name))
         if pasted.exists():
             check_code_block_size(built.doc, pasted)
         elif publication.exists():
             check_code_block_size(built.doc, publication)
     return site
+
+
+def index_links(directory: Path, kind: str) -> None:
+    """Link `index.html` in a publication's `directory` to its page, `report.html`,
+    and `index.min.html` to `report.min.html`, if it has one.
+
+    So the directory is a page at its own URL, `/reports/<slug>/`, as the site serves it,
+    while the page is named for what it is beside `report.md` and `report.pdf`.
+    A link rather than a copy, so the two cannot differ;
+    relative, so it holds wherever the tree is moved.
+    Both uploads follow it, GitHub Pages' artifact with `tar --dereference`
+    and `wrangler pages deploy`, so each serves `index.html` as the page.
+
+    After the formatting and the minifying, which would otherwise each read the page twice.
+    """
+    for name in ("index.html", minify.min_name("index.html")):
+        target = name.replace("index", kind, 1)
+        link = directory / name
+        link.unlink(missing_ok=True)
+        if (directory / target).is_file():
+            link.symlink_to(target)
 
 
 def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
@@ -303,7 +327,8 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
                 continue
             kept = built / previous.relative_to(outdir)
             if not kept.exists():
-                shutil.copytree(previous, kept)
+                # `index.html` stays a link to `report.html`, rather than a second copy of it.
+                shutil.copytree(previous, kept, symlinks=True)
         old = outdir.with_name(f"{built.name}-old")
         outdir.rename(old)
         built.rename(outdir)
