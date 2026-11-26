@@ -867,7 +867,9 @@ would rewrite every publication without a publication having changed.
 
 With a clone of `eta-drafts` in `drafts/` (see `docs/drafts.md`),
 the hooks also build the drafts with the code being committed,
-and make each commit's drafts commit in `drafts/`, on the branch of the same name.
+and `scripts/drafts-commit.sh head` makes the drafts commit for the commit just made,
+in `drafts/`, on the branch of the same name.
+CI makes every drafts commit on push, so that is only for having it sooner.
 Run `pre-commit install` in `drafts/` too,
 for its check that what it pushes pins code already on GitHub.
 

@@ -59,7 +59,7 @@ Locally, `drafts/` is already inside the `eta-publish` checkout,
 so checking it out would nest a second copy of `eta-publish` inside the first.
 `.gitmodules` sets `update = none` for it, with a comment saying why,
 so `git clone --recurse-submodules` and `git submodule update --init` skip it.
-The hook records the pin without a checkout,
+`scripts/drafts-commit.sh` records the pin without a checkout,
 with `git update-index --cacheinfo 160000,<commit>,eta-publish`,
 and the deploy reads it with `git rev-parse HEAD:eta-publish`.
 
@@ -118,12 +118,14 @@ Its subject names the code commit,
 e.g. `` `eta-publish` ff67c5d: Keep the logo's curves as curves ``,
 and its message names the full commit, so a drafts commit can be traced back.
 
-**Locally, on commit:**
+**Locally, on commit:** `pre-commit` builds the drafts with the code being committed,
+and fails the commit on a build error, as a broken publication here does.
+It builds into a directory of its own, leaving `drafts/` as it is.
 
-- `pre-commit` builds the drafts with the code being committed,
-  and fails the commit on a build error, as a broken publication here does.
-  It builds into a directory of its own, leaving `drafts/` as it is.
-- `post-commit` commits the new pin and the rebuilt drafts in `drafts/`,
+**Locally, on request:** `scripts/drafts-commit.sh head`
+makes the drafts commit for the code commit just made, `HEAD`.
+
+- It commits the new pin and the rebuilt drafts in `drafts/`,
   on the branch of the same name, which starts from `main`'s drafts commits the first time.
   The rebuild is offline and with no images, as CI's is,
   so the same code commit builds the same files on both.
@@ -131,13 +133,13 @@ and its message names the full commit, so a drafts commit can be traced back.
   as with `git commit <path>`, or when commits before it have no drafts commits yet,
   since only the code checked out can be built with.
 - After an amend or a rebase, the drafts commits for the commits rewritten are dropped,
-  and the hook makes new ones, the way the code branch itself was rewritten.
+  and it makes new ones, the way the code branch itself was rewritten.
   It drops only drafts commits it made itself, which it can make again,
   and never one on `origin`'s `main`.
   Anything else in the way, such as a pull, stops it, to be rebased by hand,
   and so do uncommitted changes in `drafts/`.
 
-Both are `scripts/drafts-commit.sh`, which `pre-commit install` installs as hooks.
+Both are modes of `scripts/drafts-commit.sh`, and only the build check is a hook.
 `drafts/` gets its own `pre-commit install` for the `pre-push` check below.
 
 **On push, in CI:** `.github/workflows/drafts.yml` here starts `eta-drafts`'s `sync.yml` with the branch.
@@ -149,8 +151,8 @@ and once there are none left, the deploy.
 Runs for a branch go one at a time, none cancelled once running,
 and each finds the commits afresh, so a run GitHub replaces while it waits leaves none out.
 This covers commits made where there's no `drafts/`, such as GitHub's web editor,
-and the ones the local hook leaves to CI.
-A rewritten code branch gets its drafts commits made again, as the local hook does after a rebase,
+and the ones `scripts/drafts-commit.sh head` leaves to CI.
+A rewritten code branch gets its drafts commits made again, as `scripts/drafts-commit.sh head` does after a rebase,
 and the drafts branch is pushed only over what the run fetched, so a push made meanwhile is never lost.
 
 If both make one for the same code commit, the two are identical,

@@ -5,12 +5,12 @@
 # that pins the code commit and rebuilds every draft with it from the saved documents.
 #
 #   scripts/drafts-commit.sh check           build the drafts with the code being committed
-#   scripts/drafts-commit.sh post-commit     make the drafts commit for the commit just made
+#   scripts/drafts-commit.sh head            make the drafts commit for the commit just made, `HEAD`
 #   scripts/drafts-commit.sh missing BRANCH  put `drafts/` on BRANCH, and list the code commits
 #                                            from `HEAD`'s history it has no drafts commit for
 #   scripts/drafts-commit.sh commit          make the drafts commit for `HEAD`, as it is checked out
 #
-# `check` and `post-commit` are the `pre-commit` and `post-commit` hooks;
+# `check` is the `pre-commit` hook, and `head` is run by hand to make the drafts commit locally;
 # `missing` and `commit` are what `eta-drafts`'s sync workflow runs.
 # Each runs from the top of an `eta-publish` checkout, with `eta-drafts` cloned in it as `drafts/`.
 
@@ -236,7 +236,7 @@ case "${1:-}" in
         trap 'rm -rf "$work"' EXIT
         build "$work/site"
         ;;
-    post-commit)
+    head)
         if ! [[ -d $drafts ]]; then
             exit 0
         fi
@@ -244,9 +244,8 @@ case "${1:-}" in
             say "\`HEAD\` is on no branch, so there's no drafts branch to commit to"
             exit 0
         fi
-        # `pre-commit` sets aside what isn't committed before running a hook,
-        # so the working copy is the code just committed,
-        # unless the index had more than the commit, as with `git commit <path>`.
+        # The working copy has to be the code just committed to build with it,
+        # which it isn't with uncommitted changes, as after `git commit <path>`.
         if ! git diff --quiet HEAD; then
             say "the working copy isn't the code committed, so the drafts commit is left to CI, made on push"
             exit 0
@@ -277,6 +276,6 @@ so they're left to CI, made on push"
         commit
         ;;
     *)
-        fail "usage: $0 check | post-commit | missing BRANCH | commit"
+        fail "usage: $0 check | head | missing BRANCH | commit"
         ;;
 esac
