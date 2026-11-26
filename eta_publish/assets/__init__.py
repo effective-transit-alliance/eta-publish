@@ -21,3 +21,8 @@ def read(name: str) -> str:
     and a cache would be a thing to invalidate for no time saved.
     """
     return resources.files(__name__).joinpath(name).read_text(encoding="utf-8")
+
+
+def read_bytes(name: str) -> bytes:
+    """The asset called `name`, verbatim, for one that is not text: a font."""
+    return resources.files(__name__).joinpath(name).read_bytes()

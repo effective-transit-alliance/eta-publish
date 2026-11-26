@@ -84,8 +84,10 @@ def test_the_committed_site_is_what_an_offline_build_writes(
     problems = [f"no longer written: site/{path}" for path in sorted(expected - actual)]
     problems += [f"written and not committed: site/{path}" for path in sorted(actual - expected)]
     for path in sorted(expected & actual):
-        theirs = (SITE / path).read_text() if (SITE / path).exists() else ""
-        ours = (built_site / path).read_text()
+        # Bytes, since a font is not text; `replace` only so that one that differs
+        # is reported rather than failing the report of it.
+        theirs = (SITE / path).read_bytes().decode(errors="replace")
+        ours = (built_site / path).read_bytes().decode(errors="replace")
         if theirs != ours:
             diff = difflib.unified_diff(
                 theirs.splitlines(keepends=True),

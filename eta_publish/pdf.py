@@ -7,6 +7,7 @@ rather than failing everything for the sake of one output.
 
 import shutil
 import subprocess
+from importlib import resources
 from pathlib import Path
 
 from .assets import read
@@ -47,12 +48,24 @@ def compile_pdf(source: Path, dest: Path | None = None) -> Path:
         # the values they are rather than spelled into a string.
         raise TypstMissing("typst")
     dest = dest or source.with_suffix(".pdf")
-    result = subprocess.run(
-        [typst, "compile", "--root", str(source.parent), str(source), str(dest)],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
+    # The typeface ships with the package, so the PDF is set in it on a machine
+    # that has never installed it.
+    with resources.as_file(resources.files("eta_publish.assets") / "fonts") as fonts:
+        result = subprocess.run(
+            [
+                typst,
+                "compile",
+                "--root",
+                str(source.parent),
+                "--font-path",
+                str(fonts),
+                str(source),
+                str(dest),
+            ],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
     if result.returncode != 0:
         raise RuntimeError(f"typst compile failed:\n{result.stderr.strip()}")
     return dest

@@ -68,7 +68,7 @@
       counter(page).display("1")
     },
   )
-  set text(font: ("Libertinus Serif", "Linux Libertine", "Georgia"), size: 11pt, lang: "en")
+  set text(font: ("Yaldevi", "Libertinus Serif", "Georgia"), size: 11pt, lang: "en")
   set par(justify: true, leading: 0.65em, spacing: 1.2em)
   show link: set text(fill: rgb("#1a4d7a"))
 

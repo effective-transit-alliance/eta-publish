@@ -69,7 +69,7 @@ from .naming import (
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
-lazy from .assets import read
+lazy from .assets import read, read_bytes
 lazy from .fetch import fetch
 lazy from .images import (
     download,
@@ -604,6 +604,10 @@ SHARED_ASSETS = (
     "logo.svg",
 )
 
+SHARED_FONTS = ("fonts/Yaldevi.woff2", "fonts/OFL.txt")
+"""The typeface `page.css` sets the page in, and the license it is under,
+which asks that a copy of the font travel with it."""
+
 
 def write_assets(siteroot: Path, doc: Document) -> list[Path]:
     """The one copy of what every publication page links.
@@ -617,6 +621,11 @@ def write_assets(siteroot: Path, doc: Document) -> list[Path]:
     for name in SHARED_ASSETS:
         path = dest / name
         path.write_text(read(name))
+        written.append(path)
+    for name in SHARED_FONTS:
+        path = dest / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(read_bytes(name))
         written.append(path)
     written += write_posters(doc, dest)
     return written

@@ -1,3 +1,12 @@
+/* The typeface etany.org sets its text in, served from the build's own
+   `assets/fonts/` rather than from a font host, as the stylesheets are.
+   One file holds every weight from 200 to 700. */
+@font-face {
+    font-family: Yaldevi;
+    src: url("fonts/Yaldevi.woff2") format("woff2");
+    font-weight: 200 700;
+    font-display: swap;
+}
 :root {
     color-scheme: light dark;
     --fg: #1a1a1a;
@@ -21,9 +30,15 @@ body {
     margin: 0 auto;
     padding: 3rem 1.25rem 6rem;
     font:
-        17px / 1.65 Georgia,
-        "Times New Roman",
+        300 17px / 1.65 Yaldevi,
+        Georgia,
         serif;
+}
+/* Light type is what the site's text is set in; what is bold in it is a
+   weight of its own, not the one step above the text that `bolder` would take. */
+strong,
+b {
+    font-weight: 700;
 }
 /* The masthead's band starts at the top of the window, as the site's starts
    under its own header, unless something is above it:
@@ -35,7 +50,7 @@ h1,
 h2,
 h3,
 h4 {
-    font-family: system-ui, sans-serif;
+    font-family: Yaldevi, Georgia, serif;
     line-height: 1.25;
 }
 h1 {
