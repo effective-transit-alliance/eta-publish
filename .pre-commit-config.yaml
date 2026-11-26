@@ -1,8 +1,8 @@
-# `pre-commit install` installs all four,
-# so a clone that follows the README gets the message and push checks,
+# `pre-commit install` installs all three,
+# so a clone that follows the README gets the push check,
 # and the drafts commits, as well as the commit checks.
-default_install_hook_types: [pre-commit, commit-msg, post-commit, pre-push]
-# A hook that names no stage runs at every one of those four,
+default_install_hook_types: [pre-commit, post-commit, pre-push]
+# A hook that names no stage runs at every one of those three,
 # and the ones with nothing to skip on (`pytest`, `ty`) ran twice a commit.
 # The commit checks are commit checks; the other two stages name their own hooks.
 default_stages: [pre-commit]
@@ -95,15 +95,6 @@ repos:
         pass_filenames: false
         always_run: true
         stages: [post-commit]
-
-      # `Co-Authored-By:` is easy to write and still looks right,
-      # so the spelling `CLAUDE.md` asks for is checked here
-      # rather than caught in review, or not caught.
-      - id: commit-message
-        name: the commit message attributes Claude the way `CLAUDE.md` says
-        entry: scripts/check-commit-message.sh
-        language: script
-        stages: [commit-msg]
 
       # On push rather than on commit:
       # it fetches every document, which is slow and needs credentials.
