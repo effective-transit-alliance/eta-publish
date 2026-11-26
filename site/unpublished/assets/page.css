@@ -25,16 +25,27 @@
 html {
     overflow-x: clip;
 }
+/* The column etany.org sets its text in, measured on its IBX Automation report:
+   from the 768px where its layout stops stacking, 62.4% of the window,
+   up to the 1196px it reaches at a 1915px one, and on a narrower window,
+   the window less a gutter of 6vw each side. The `width` is the column,
+   so the padding is only above and below it. */
 body {
     background: var(--bg);
     color: var(--fg);
-    max-width: 46rem;
+    width: calc(100% - 2 * max(1.25rem, 6vw));
+    max-width: 74.75rem;
     margin: 0 auto;
-    padding: 3rem 1.25rem 6rem;
+    padding: 3rem 0 6rem;
     font:
         300 1rem / 1.8 Yaldevi,
         Georgia,
         serif;
+}
+@media (min-width: 48rem) {
+    body {
+        width: 62.4%;
+    }
 }
 /* Light type is what the site's text is set in; what is bold in it is a
    weight of its own, not the one step above the text that `bolder` would take. */

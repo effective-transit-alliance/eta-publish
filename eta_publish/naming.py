@@ -191,8 +191,9 @@ WEB_DIR = "web"
 """Where under `IMAGE_DIR` the copies a page shows are written.
 
 `images/` keeps each picture as the document holds it, which is what a reader
-who taps one opens. A photo pasted as a PNG is 5 MB there, and a column
-nothing shows wider than 46rem is 1,472 pixels at twice the density of a
+who taps one opens. A photo pasted as a PNG is 5 MB there, and a figure,
+which nothing shows wider than its aspect ratio times 34rem, is at most
+about 1,500 pixels for the usual landscape photo at twice the density of a
 desktop screen, so what a page shows is a copy at no more than `WEB_WIDTHS`,
 as AVIF and WebP: on these publications a tenth of the bytes, or less.
 """
