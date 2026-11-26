@@ -110,9 +110,9 @@ def drafts_log(repo: Path, ref: str = "HEAD") -> list[str]:
     return log
 
 
-def test_post_commit_pins_the_commit_and_rebuilds_with_it(code: Path) -> None:
+def test_head_pins_the_commit_and_rebuilds_with_it(code: Path) -> None:
     second = commit_code(code, "code 2")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert result.returncode == 0, result.stderr
     drafts = code / "drafts"
     assert git(drafts, "rev-parse", "HEAD:eta-publish") == second
@@ -125,17 +125,17 @@ def test_post_commit_pins_the_commit_and_rebuilds_with_it(code: Path) -> None:
 
 def test_each_commit_gets_its_own(code: Path) -> None:
     second = commit_code(code, "code 2")
-    run(code, "post-commit")
+    run(code, "head")
     third = commit_code(code, "code 3")
-    run(code, "post-commit")
+    run(code, "head")
     assert [line.split()[0] for line in drafts_log(code)][:2] == [third, second]
 
 
 def test_an_amend_replaces_the_drafts_commit(code: Path) -> None:
     commit_code(code, "code 2")
-    run(code, "post-commit")
+    run(code, "head")
     amended = commit_code(code, "code 2, amended", "--amend")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert result.returncode == 0, result.stderr
     assert "dropping 1" in result.stderr
     log = drafts_log(code)
@@ -147,7 +147,7 @@ def test_an_amend_replaces_the_drafts_commit(code: Path) -> None:
 def test_a_code_branch_gets_a_drafts_branch_of_its_own(code: Path) -> None:
     git(code, "switch", "-c", "foo")
     on_foo = commit_code(code, "on foo")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert result.returncode == 0, result.stderr
     drafts = code / "drafts"
     assert git(drafts, "branch", "--show-current") == "foo"
@@ -158,7 +158,7 @@ def test_a_code_branch_gets_a_drafts_branch_of_its_own(code: Path) -> None:
 def test_a_commit_after_a_gap_is_left_to_ci(code: Path) -> None:
     commit_code(code, "code 2")
     commit_code(code, "code 3")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert result.returncode == 0, result.stderr
     assert "left to CI" in result.stderr
     assert drafts_log(code)[0].endswith("Pin `eta-publish`")
@@ -167,19 +167,19 @@ def test_a_commit_after_a_gap_is_left_to_ci(code: Path) -> None:
 def test_uncommitted_code_is_not_built(code: Path) -> None:
     commit_code(code, "code 2")
     (code / "code").write_text("not committed")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert "left to CI" in result.stderr
     assert drafts_log(code)[0].endswith("Pin `eta-publish`")
 
 
 def test_a_commit_made_by_hand_is_never_dropped(code: Path) -> None:
     commit_code(code, "code 2")
-    run(code, "post-commit")
+    run(code, "head")
     drafts = code / "drafts"
     (drafts / "publications.toml").write_text("# pulled\n")
     git(drafts, "commit", "-am", "Pull the drafts")
     commit_code(code, "code 2, amended", "--amend")
-    result = run(code, "post-commit")
+    result = run(code, "head")
     assert result.returncode == 1
     assert "Pull the drafts" in result.stderr
     assert git(drafts, "log", "-1", "--format=%s") == "Pull the drafts"

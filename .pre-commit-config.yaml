@@ -1,10 +1,10 @@
-# `pre-commit install` installs all three,
-# so a clone that follows the README gets the push check,
-# and the drafts commits, as well as the commit checks.
-default_install_hook_types: [pre-commit, post-commit, pre-push]
-# A hook that names no stage runs at every one of those three,
+# `pre-commit install` installs both,
+# so a clone that follows the README gets the push check
+# as well as the commit checks.
+default_install_hook_types: [pre-commit, pre-push]
+# A hook that names no stage runs at both of those,
 # and the ones with nothing to skip on (`pytest`, `ty`) ran twice a commit.
-# The commit checks are commit checks; the other two stages name their own hooks.
+# The commit checks are commit checks; the other stage names its own hooks.
 default_stages: [pre-commit]
 
 repos:
@@ -83,18 +83,6 @@ repos:
         language: script
         pass_filenames: false
         always_run: true
-
-      # The drafts commit for the commit just made, on the branch of the same name in `drafts/`:
-      # it pins that commit, and rebuilds the drafts with it (see `docs/drafts.md`).
-      # After the commit, so it can pin it;
-      # `pre-commit` sets aside what isn't committed first, as for a commit check.
-      - id: drafts-commit
-        name: the drafts commit for this commit, in `drafts/`
-        entry: scripts/drafts-commit.sh post-commit
-        language: script
-        pass_filenames: false
-        always_run: true
-        stages: [post-commit]
 
       # On push rather than on commit:
       # it fetches every document, which is slow and needs credentials.
