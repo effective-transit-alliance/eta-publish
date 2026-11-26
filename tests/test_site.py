@@ -14,7 +14,7 @@ from pathlib import Path
 from threading import Barrier
 
 import pytest
-from paths import FIXTURE_DIR, HOST, HOSTS
+from paths import FIXTURE_DIR, HOST, HOSTS, named_images
 from PIL import Image as Pillow
 from test_conventions import build, field, image, para
 from typer import Exit
@@ -30,7 +30,7 @@ from eta_publish.build import (
     write_image_index,
 )
 from eta_publish.docs_json import JsonObject
-from eta_publish.emit.html import banner_markup
+from eta_publish.emit.html import banner_markup, publication_page
 from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
@@ -1911,3 +1911,32 @@ def test_an_automated_publications_banner_credits_the_file_pasted_live(doc: Docu
         '<a href="report.published.partial.min.html">'
         "<code>report.published.partial.min.html</code></a></div>"
     ) in says(Published.AUTOMATED, doc)
+
+
+def test_a_banner_carries_the_phase_after_what_it_says(doc: Document) -> None:
+    """One strip, not the banner with a second one under it."""
+    banner = kind_banner(Publication(url=DOC_URL, published=Published.DRAFT), doc)
+    shown = banner_markup(banner, "Compositing")
+    assert (
+        '<span class="kind-phase"><span class="phase-label">Phase: </span>Compositing</span></div>'
+    ) in shown
+    assert shown.index("not published yet") < shown.index("Phase: ")
+    doc.meta["Phase"] = "Compositing"
+    named_images(doc)
+    page = publication_page(doc, banner=banner, site_url=HOST)
+    assert 'class="kind-phase"' in page
+    assert '<p class="phase">' not in page
+    assert page.count("Phase: ") == 1
+
+
+def test_a_page_without_a_banner_keeps_the_phase_strip(doc: Document) -> None:
+    doc.meta["Phase"] = "Compositing"
+    named_images(doc)
+    page = publication_page(doc, site_url=HOST)
+    assert '<p class="phase"><span class="phase-label">Phase: </span>Compositing</p>' in page
+    assert '<span class="kind-phase"' not in page
+
+
+def test_a_banner_without_a_phase_adds_nothing(doc: Document) -> None:
+    banner = kind_banner(Publication(url=DOC_URL, published=Published.DRAFT), doc)
+    assert '<span class="kind-phase"' not in banner_markup(banner)
