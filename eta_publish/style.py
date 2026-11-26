@@ -14,9 +14,10 @@ rather than quietly making the publications agree.
 
 import re
 from collections.abc import Iterator
+from dataclasses import dataclass, field
 
 from .check_names import Check
-from .nodes import SPACE, Document, Highlighted, Shown, plain_text
+from .nodes import SPACE, Document, Highlighted, Inline, Shown, plain_text
 
 CONTEXT = 30
 """How much of the line to show on either side of what is being warned about.
@@ -60,8 +61,24 @@ def _warn(doc: Document, check: Check, template: str, *values: Shown | Highlight
     doc.warn(check, PREFIX + template, *values)
 
 
-def _prose(doc: Document) -> Iterator[str]:
-    """Every run of the document's own words, as one string each.
+@dataclass(frozen=True)
+class Prose:
+    """One run of the document's own words: what it says, and the inlines it is read from.
+
+    Every check reads `text` and says where in it a finding is,
+    and the inlines are how that is mapped back to where it is in the document.
+    """
+
+    text: str
+    inlines: list[Inline] = field(default_factory=list)
+    """What `text` is read from, or none where it is not from the document."""
+
+    at: int = 0
+    """Where `text` starts in `plain_text(inlines)`."""
+
+
+def _prose(doc: Document) -> Iterator[Prose]:
+    """Every run of the document's own words, as one `Prose` each.
 
     Footnotes included. They carry the publication's own prose as often as they
     carry a citation, and a citation copied from where it was published is
@@ -74,15 +91,17 @@ def _prose(doc: Document) -> Iterator[str]:
     and it is the piece that publishes as what a search result shows.
     The subtitle is taken out of the blocks the same way, so it is read here too.
     """
-    yield from doc.meta.values()
-    yield plain_text(doc.subtitle)
+    for value in doc.meta.values():
+        yield Prose(value)
+    yield Prose(plain_text(doc.subtitle), doc.subtitle)
     for run, _ in doc.text_runs():
-        yield plain_text(run)
+        yield Prose(plain_text(run), run)
 
 
 def style(doc: Document) -> None:
     """Warn about every line written against the house style."""
-    for text in _prose(doc):
+    for prose in _prose(doc):
+        text = prose.text
         _check_spacing(doc, text)
         _check_dash_spacing(doc, text)
         _check_ranges(doc, text)

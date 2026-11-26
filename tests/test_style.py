@@ -8,9 +8,11 @@ says what the writer is told about the mistakes and nothing about the rest.
 
 from pathlib import Path
 
-from docs_json import build, cites, drafted, footnote, para, rich, warned
+from docs_json import HEADER, build, cites, drafted, footnote, link, para, rich, warned
 
 from eta_publish.docs_json import JsonObject
+from eta_publish.nodes import Inline, Text
+from eta_publish.style import _prose
 
 
 def paragraphs(*texts: str) -> list[JsonObject]:
@@ -263,4 +265,28 @@ def test_units_money_and_measurements(tmp_path: Path) -> None:
         "style: `80 kph` should be `80 km/h`: `It runs at 80 kph today.`",
         "style: `80 kilometers per hour` should be `80 km/h`: `It runs at 80 "
         "kilometers per hour today.`",
+    ]
+
+
+def runs(inlines: list[Inline]) -> list[str]:
+    """The text of each run, to say which runs a piece of prose is read from."""
+    return [i.text for i in inlines if isinstance(i, Text)]
+
+
+def test_each_run_of_prose_comes_with_the_inlines_it_is_read_from(tmp_path: Path) -> None:
+    """So a finding's offset in the text can be mapped to where it is in the document."""
+    body = [
+        para("Cheaper, faster.", "SUBTITLE"),
+        rich("It is ", ("deep", {"bold": True}), cites("fn.deep"), "."),
+        rich("See ", ("the report", link("https://example.org/report")), " for more."),
+    ]
+    footnotes = {"fn.deep": footnote("Cited, ", ("in full", {"italic": True}), ".")}
+    site, _ = build(tmp_path, drafted(body, footnotes=footnotes))
+    doc = site.built[0].doc
+    # Past the header's values, which have no inlines yet.
+    assert [(p.text, runs(p.inlines)) for p in _prose(doc)][len(HEADER) :] == [
+        ("Cheaper, faster.", ["Cheaper, faster."]),
+        ("It is deep.", ["It is ", "deep", "."]),
+        ("See the report for more.", ["See ", "the report", " for more."]),
+        ("Cited, in full.", ["Cited, ", "in full", "."]),
     ]
