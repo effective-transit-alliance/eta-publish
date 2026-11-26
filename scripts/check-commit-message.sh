@@ -91,20 +91,24 @@ end the message with
     exit 0
 fi
 
-if (($(grep -c '' <<<"$claude_trailers") > 1)); then
-    fail "the commit message has more than one \`Co-authored-by:\` trailer for Claude; \
-keep exactly one:
-    $example"
+# One trailer per model that worked on the commit, so a model named twice is a slip.
+duplicate="$(sort <<<"$claude_trailers" | uniq -d | head -n 1)"
+readonly duplicate
+if [[ -n $duplicate ]]; then
+    fail "the commit message names \`$duplicate\` more than once; \
+keep one trailer per model"
 fi
 
-if ! [[ $claude_trailers =~ ^Co-authored-by:\ Claude\ [^\<]*[^[:space:]]\ \<noreply@anthropic\.com\>$ ]]; then
-    if ! [[ $claude_trailers == "Co-authored-by: "* ]]; then
-        fail "the \`Co-authored-by:\` key is misspelled in \`$claude_trailers\`; \
+while IFS= read -r trailer; do
+    if ! [[ $trailer =~ ^Co-authored-by:\ Claude\ [^\<]*[^[:space:]]\ \<noreply@anthropic\.com\>$ ]]; then
+        if ! [[ $trailer == "Co-authored-by: "* ]]; then
+            fail "the \`Co-authored-by:\` key is misspelled in \`$trailer\`; \
 \`authored\` and \`by\` are lowercase, and one space follows the colon:
     $example"
-    fi
-    fail "\`$claude_trailers\` is not the expected trailer; it has to read
+        fi
+        fail "\`$trailer\` is not the expected trailer; it has to read
     $correct
 for example
     $example"
-fi
+    fi
+done <<<"$claude_trailers"
