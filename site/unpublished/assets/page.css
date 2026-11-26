@@ -53,8 +53,13 @@ h4 {
     font-family: Yaldevi, Georgia, serif;
     line-height: 1.25;
 }
+/* The headline at the size etany.org sets its own, which grows with the
+   screen: 45px on a 375px phone and 62px on a 1280px window, a line
+   through both. Capped where the site's 1500px stops growing. */
 h1 {
-    font-size: 2.1rem;
+    font-size: clamp(2.8rem, calc(2.39rem + 1.86vw), 4.15rem);
+    font-weight: 500;
+    line-height: 1.232;
     margin-bottom: 0.2em;
 }
 h2 {
