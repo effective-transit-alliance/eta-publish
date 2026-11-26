@@ -203,23 +203,7 @@ def download(
         doc.image_files[image.object_id] = existing.name
 
     for image, content_type, body, live_failure, stale in _fetch_all(wanted, http):
-        if stale:
-            doc.warn(
-                Check.IMAGE_DIFFERS_FROM_SOURCE,
-                "image {} differs from its source {}, which is what publishes; "
-                "paste the current file into the document so its editors see it too",
-                Shown(image.filename),
-                Shown(image.live_uri),
-                marks=[image.location],
-                about=image.filename,
-            )
-        if live_failure:
-            doc.warn(
-                Check.IMAGE_SOURCE_DOWNLOAD_FAILED,
-                f"could not download image {{}} from its source ({live_failure}); "
-                "the copy in the document is published instead",
-                Shown(image.live_uri),
-            )
+        _said_of_source(image, live_failure, stale, doc)
         extension = EXTENSIONS.get(content_type)
         if extension is None:
             # Refused rather than saved under a bare stem.
@@ -252,6 +236,27 @@ def download(
                 )
 
     return written
+
+
+def _said_of_source(image: Image, live_failure: str, stale: bool, doc: Document) -> None:
+    """What `_fetch_image` found about an image's live source, as warnings."""
+    if stale:
+        doc.warn(
+            Check.IMAGE_DIFFERS_FROM_SOURCE,
+            "image {} differs from its source {}, which is what publishes; "
+            "paste the current file into the document so its editors see it too",
+            Shown(image.filename),
+            Shown(image.live_uri),
+            marks=[image.location],
+            about=image.filename,
+        )
+    if live_failure:
+        doc.warn(
+            Check.IMAGE_SOURCE_DOWNLOAD_FAILED,
+            f"could not download image {{}} from its source ({live_failure}); "
+            "the copy in the document is published instead",
+            Shown(image.live_uri),
+        )
 
 
 def _fetch_all(
