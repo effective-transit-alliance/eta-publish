@@ -93,14 +93,24 @@ h4 {
     font-size: var(--h4-size);
     line-height: 1.366;
 }
-/* The headline at the size etany.org sets its own, which grows with the
-   screen: 45px on a 375px phone and 62px on a 1280px window, a line
-   through both. Capped where the site's 1500px stops growing. */
+/* The headline at the size etany.org sets its own, by the rule its stylesheet
+   gives it: 3.6vw and a rem on a window at least 768px wide or wider than it
+   is tall, held to 80.8px where the site's 1800px stops growing; and on a
+   phone held upright, a rem and 3.6% of the window's height, to 900px of it.
+   So it is 48.4px on a phone 900px tall, 40px on one 667px tall, 43.6px at
+   768px, 62.1px at 1280px, 70px at 1500px, and 80.8px from 1800px up. On a
+   window from 768px to 900px that is a little smaller than on a phone, as on
+   etany.org. */
 h1 {
-    font-size: clamp(2.8rem, calc(2.39rem + 1.86vw), 4.15rem);
+    font-size: min(calc(3.6vw + 1rem), 80.8px);
     font-weight: 500;
     line-height: 1.232;
     margin-bottom: 0.2em;
+}
+@media (max-width: 767px) and (orientation: portrait) {
+    h1 {
+        font-size: calc(0.036 * min(100vh, 900px) + 1rem);
+    }
 }
 /* A section opens with white space rather than a rule, more of it on a wider
    window, and less before an `h3` and less again before an `h4`. Under its
