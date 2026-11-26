@@ -26,7 +26,8 @@ body {
         serif;
 }
 /* The masthead's band starts at the top of the window, as the site's starts
-   under its own header, unless a draft's phase is above it. */
+   under its own header, unless something is above it:
+   the banner, or a draft's phase on a page with none. */
 body > .eta-report:first-child > .masthead:first-child {
     margin-top: -3rem;
 }

@@ -232,8 +232,12 @@ def kind_class(label: str) -> str:
     return "-".join(["kind", *label.lower().split()])
 
 
-def banner_markup(banner: Banner) -> str:
+def banner_markup(banner: Banner, phase: str = "") -> str:
     """`banner` as the strip at the top of a page, with the stylesheet it needs.
+
+    A draft's `phase` goes last, after what the banner says,
+    on a line of its own on a phone: it is one more thing about the kind of page this is,
+    so it shares the strip rather than adding one under it.
 
     The Google Doc and the Squarespace preview first, in the banner's upper left,
     where a reviewer looks first, on a line of their own on a phone,
@@ -260,9 +264,15 @@ def banner_markup(banner: Banner) -> str:
                 tag.strong(class_="kind-label")[banner.label],
                 " ",
                 banner.says,
+                *([" ", tag.span(class_="kind-phase")[_phase_parts(phase)]] if phase else []),
             ],
         ]
     )
+
+
+def _phase_parts(phase: str) -> list[Piece]:
+    """`Phase: ` and the phase, as `phase_markup` and the banner both write them."""
+    return [tag.span(class_="phase-label")["Phase: "], phase]
 
 
 def phase_markup(phase: str) -> str:
@@ -274,10 +284,11 @@ def phase_markup(phase: str) -> str:
     A function rather than only a method,
     because `publication_page` writes it above the headline
     and never walks to it.
+    A page with a banner puts the phase in the banner instead, with `banner_markup`.
     """
     if not phase:
         return ""
-    return markup(tag.p(class_="phase")[tag.span(class_="phase-label")["Phase: "], phase])
+    return markup(tag.p(class_="phase")[_phase_parts(phase)])
 
 
 def player_url(node: Embed, card: Card) -> str:
@@ -1641,8 +1652,14 @@ def publication_page(
             for name in ("page.css", "publication.css")
         ),
         htpy.script(src=f"{asset_base}/publication.js", defer=True),
-        *([Markup(banner_markup(banner))] if banner is not None else []),
-        *([Markup(phase_markup(doc.phase))] if doc.phase else []),
+        # The phase is in the banner when there is one, and a strip of its own when not.
+        *(
+            [Markup(banner_markup(banner, doc.phase))]
+            if banner is not None
+            else [Markup(phase_markup(doc.phase))]
+            if doc.phase
+            else []
+        ),
     ]
     # `<!doctype html>` is not an element and no builder emits one.
     return markup([Markup("<!doctype html>"), "\n", lines(head), "\n", Markup(body), "\n"])

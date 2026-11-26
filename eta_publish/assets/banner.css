@@ -36,6 +36,25 @@
     letter-spacing: 0.05em;
     margin-right: 0.3em;
 }
+/* A draft's phase, last in the banner: on a line of its own on a phone,
+   and after what the banner says on a wider screen.
+   Bold on a darker patch of the kind's own color, so it stands out from the sentence
+   without a second color: white on it is over 7:1 on each kind. */
+.kind-phase {
+    display: block;
+    width: fit-content;
+    margin-top: 0.4rem;
+    padding: 0 0.6em;
+    font-weight: bold;
+    background: rgb(0 0 0 / 0.3);
+    border-radius: 0.2em;
+}
+@media (min-width: 40rem) {
+    .kind-phase {
+        display: inline-block;
+        margin: 0 0 0 0.5em;
+    }
+}
 /* White on each is over 6:1. */
 .kind-automatically-published {
     --kind: #1d6b3a;
