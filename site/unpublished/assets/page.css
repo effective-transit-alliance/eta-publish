@@ -102,10 +102,30 @@ h1 {
     line-height: 1.232;
     margin-bottom: 0.2em;
 }
+/* A section opens with white space rather than a rule, more of it on a wider
+   window, and less before an `h3` and less again before an `h4`. Under its
+   heading, a section's words are a paragraph's space away on a phone and up
+   to 2.4 times that on a wide window; a subsection's and an `h4`'s, a
+   paragraph's. */
 h2 {
-    margin-top: 2.5em;
-    border-top: 1px solid currentColor;
-    padding-top: 0.8em;
+    margin-top: clamp(3.5rem, 1.85rem + 7.8vw, 9rem);
+    margin-bottom: clamp(1rem, 0.5rem + 1.8vw, 2.4rem);
+}
+h3 {
+    margin-top: clamp(3.5rem, 2.5rem + 4.5vw, 6rem);
+    margin-bottom: 0.6rem;
+}
+h4 {
+    margin: 2rem 0 0.6rem;
+}
+/* A heading straight under another is as far from it as words would be. */
+:is(h2, h3) + :is(h3, h4) {
+    margin-top: 1rem;
+}
+/* The margins collapse, and the larger wins, so an `h2` that a subheading
+   follows gives up its wider space under it. */
+h2:has(+ :is(h3, h4)) {
+    margin-bottom: 1rem;
 }
 a {
     color: inherit;
