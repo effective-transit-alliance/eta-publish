@@ -37,6 +37,7 @@ from . import console
 from .archive import Stopped
 from .assets import read
 from .build import DOC_JSON, UNWARNED, BuildOptions, build_one, has_its_images, load, media_base
+from .check_names import Check
 from .emit.html import Banner, Piece, lines, markup, phase_markup, tag
 from .fetch import document_url, parse_ref
 from .minify import min_name
@@ -522,6 +523,7 @@ def check_kind(doc: Document) -> None:
     """Warn about a path that only says what kind of publication this is by exception."""
     if PurePosixPath(publication_path(doc)).parts[0] == BRIEFS:
         doc.warn(
+            Check.URL_UNDER_BRIEFS,
             "the {} line puts this under {}, which is not a kind of publication; "
             "it is built as a report",
             Shown("URL:"),

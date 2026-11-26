@@ -30,6 +30,7 @@ import requests
 lazy from PIL import Image as Pillow
 lazy from PIL import ImageChops, ImageStat
 
+from .check_names import Check
 from .naming import (
     PNG_SIDE,
     WEB_DIR,
@@ -204,6 +205,7 @@ def download(
     for image, content_type, body, live_failure, stale in _fetch_all(wanted, http):
         if stale:
             doc.warn(
+                Check.IMAGE_DIFFERS_FROM_SOURCE,
                 "image {} differs from its source {}, which is what publishes; "
                 "paste the current file into the document so its editors see it too",
                 Shown(image.filename),
@@ -212,6 +214,7 @@ def download(
             )
         if live_failure:
             doc.warn(
+                Check.IMAGE_SOURCE_DOWNLOAD_FAILED,
                 f"could not download image {{}} from its source ({live_failure}); "
                 "the copy in the document is published instead",
                 Shown(image.live_uri),
@@ -235,12 +238,17 @@ def download(
     if missing:
         if no_uris:
             doc.warn(
+                Check.IMAGE_URIS_MISSING,
                 "this response carries no image URIs, because they expire and are "
-                "not saved; re-fetch the document to download its images"
+                "not saved; re-fetch the document to download its images",
             )
         else:
             for object_id in missing:
-                doc.warn("image {} has no source URI; not downloaded", Shown(object_id))
+                doc.warn(
+                    Check.IMAGE_WITHOUT_URI,
+                    "image {} has no source URI; not downloaded",
+                    Shown(object_id),
+                )
 
     return written
 
@@ -411,6 +419,7 @@ def _fetch_vector(
     # not even for a vector it has no copy of.
     if not online and not original.exists():
         doc.warn(
+            Check.VECTOR_COPY_MISSING,
             "no copy of the vector {} to build offline from; "
             "the figure is published without a picture",
             Shown(vector.title or vector.uri),
@@ -429,6 +438,7 @@ def _fetch_vector(
                 raise FetchFailed("it is not an SVG")
         except (FetchFailed, OSError, requests.RequestException) as e:
             doc.warn(
+                Check.VECTOR_DOWNLOAD_FAILED,
                 f"could not download the vector {{}} ({e}); "
                 "the figure is published without a picture",
                 Shown(vector.title or vector.uri),
@@ -448,6 +458,7 @@ def _fetch_vector(
             cropped = image.crop
         except FetchFailed as e:
             doc.warn(
+                Check.VECTOR_CROP_FAILED,
                 f"could not crop the vector {{}} ({e}); it is published uncropped",
                 Shown(vector.title or vector.uri),
             )
@@ -456,6 +467,7 @@ def _fetch_vector(
             data = with_logo(data, downloaded, cropped, description)
         except FetchFailed as e:
             doc.warn(
+                Check.VECTOR_LOGO_FAILED,
                 f"could not put the ETA logo on the vector {{}} ({e}); it is published without it",
                 Shown(vector.title or vector.uri),
             )
@@ -596,6 +608,7 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
             box = image.crop.box(opened.width, opened.height)
             if box[2] <= box[0] or box[3] <= box[1]:
                 doc.warn(
+                    Check.IMAGE_CROPS_TO_NOTHING,
                     "image {} crops to nothing; left uncropped",
                     Shown(image.object_id),
                     marks=[image.location],
@@ -607,7 +620,11 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
             trimmed.save(buffer, format=opened.format)
             return buffer.getvalue()
     except OSError as e:
-        doc.warn(f"could not crop image {{}} ({e}); left uncropped", Shown(image.object_id))
+        doc.warn(
+            Check.IMAGE_CROP_FAILED,
+            f"could not crop image {{}} ({e}); left uncropped",
+            Shown(image.object_id),
+        )
         return data
 
 

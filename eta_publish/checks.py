@@ -15,6 +15,7 @@ from dataclasses import replace
 from itertools import groupby
 
 from .branding import credited_to_eta
+from .check_names import Check
 from .nodes import (
     Cut,
     Document,
@@ -91,6 +92,7 @@ def check(doc: Document) -> None:
     for field in REQUIRED_FIELDS:
         if field not in doc.meta:
             doc.warn(
+                Check.HEADER_FIELD_MISSING,
                 "the {} section has no {} line",
                 Shown("Header"),
                 Shown(f"{field}:"),
@@ -98,6 +100,7 @@ def check(doc: Document) -> None:
             )
         elif field not in MAY_BE_EMPTY and not doc.meta[field].strip():
             doc.warn(
+                Check.HEADER_FIELD_EMPTY,
                 "the {} section leaves {} empty",
                 Shown("Header"),
                 Shown(f"{field}:"),
@@ -108,6 +111,7 @@ def check(doc: Document) -> None:
             # The header is consumed before the body walk that flags these,
             # so `Short: TODO` would otherwise reach the page unremarked.
             doc.warn(
+                Check.HEADER_FIELD_UNFINISHED,
                 "{} is still marked unfinished",
                 Shown(f"{field}:"),
                 marks=[doc.header_line(field)],
@@ -121,6 +125,7 @@ def check(doc: Document) -> None:
         written = doc.header_lines.get("SEO Description")
         cut = None if written is None else written.find(seo, SEO_LIMIT)
         doc.warn(
+            Check.SEO_DESCRIPTION_TOO_LONG,
             f"{{}} is {len(seo)} characters, over the {SEO_LIMIT} a search result shows:{{}}",
             Shown("SEO Description:"),
             Quoted(seo[:SEO_LIMIT], Cut(seo[SEO_LIMIT:])),
@@ -142,6 +147,7 @@ def _check_contributors(doc: Document) -> None:
         found = addressed(entry)
         if found is not None and found[1]:
             doc.warn(
+                Check.CONTRIBUTORS_MISSING_COMMA,
                 "the {} line reads {} as one contributor; a comma is missing after the address",
                 Shown("Public Contributors:"),
                 Shown(entry.strip()),
@@ -152,6 +158,7 @@ def _check_contributors(doc: Document) -> None:
     for name in doc.contributors:
         if is_address(name):
             doc.warn(
+                Check.CONTRIBUTOR_CREDITED_BY_ADDRESS,
                 "the {} line credits {} by address, as a person chip Docs couldn't name; "
                 "type their name before the chip, as {}",
                 Shown("Public Contributors:"),
@@ -225,6 +232,7 @@ def _check_stray_fields(doc: Document) -> None:
             field = found[0]
             if field in KNOWN_FIELDS:
                 doc.warn(
+                    Check.HEADER_FIELD_OUTSIDE_HEADER,
                     "{} is a {} field, and this one is outside it: {}",
                     Shown(f"{field}:"),
                     Shown("Header"),
@@ -233,6 +241,7 @@ def _check_stray_fields(doc: Document) -> None:
                 )
             else:
                 doc.warn(
+                    Check.NOT_A_FIELD,
                     "{} reads as a field and is not one: {}",
                     Shown(f"{field}:"),
                     Shown(text),
@@ -259,6 +268,7 @@ def check_described(doc: Document) -> None:
             figure.image = replace(figure.image, alt=alt)
         elif not figure.image.alt and not figure.caption:
             doc.warn(
+                Check.IMAGE_WITHOUT_DESCRIPTION,
                 "the image {} has no alt text and no caption; add a description to it in the doc",
                 Shown(figure.image.filename),
                 marks=[figure.image.location],
@@ -267,6 +277,7 @@ def check_described(doc: Document) -> None:
             # A comment, though the code could say the alt text without the word:
             # nothing here edits an image's alt text, and the sentence left may need rewording.
             doc.warn(
+                Check.ALT_TEXT_SAYS_IMAGE,
                 "the alt text of image {} says {}, which a screen reader already says;"
                 " give the image alt text without it in the doc (right-click, Alt text)",
                 Shown(figure.image.filename),
@@ -310,6 +321,7 @@ def check_charts(doc: Document) -> None:
         else:
             whose = "has no credit, so is taken to be ETA's,"
         doc.warn(
+            Check.CHART_WITHOUT_SVG,
             f"the image {{}} {whose} and looks like a chart, but has no {{}} line;"
             " link the chart's SVG on one under it, so the SVG publishes instead of the raster",
             Shown(image.filename),
@@ -330,7 +342,9 @@ def _check_figures(doc: Document) -> None:
         named = Shown(block.image.filename)
         here = block.image.location
         if not block.caption:
-            doc.warn("the image {} has no caption", named, marks=[here])
+            doc.warn(
+                Check.IMAGE_WITHOUT_CAPTION, "the image {} has no caption", named, marks=[here]
+            )
         if block.credit:
             continue
         # A label is read only where it is underlined, so an unmarked `Credit:`
@@ -346,6 +360,7 @@ def _check_figures(doc: Document) -> None:
         )
         if credit is not None:
             doc.warn(
+                Check.CREDIT_NOT_UNDERLINED,
                 "the image {} has a {} line under it that is not read as its credit, "
                 "because {} is not underlined; underline it in the doc",
                 named,
@@ -354,7 +369,13 @@ def _check_figures(doc: Document) -> None:
                 marks=[_underlined_label(credit)],
             )
         else:
-            doc.warn("the image {} has no {} line", named, Shown("Credit:"), marks=[here])
+            doc.warn(
+                Check.IMAGE_WITHOUT_CREDIT,
+                "the image {} has no {} line",
+                named,
+                Shown("Credit:"),
+                marks=[here],
+            )
 
 
 def _underlined_label(line: list[Inline]) -> Mark | None:
@@ -388,6 +409,7 @@ def _check_named(doc: Document) -> None:
     items = [(Shown(block.image.filename), _describe(block)) for block in unnamed]
     are = "is" if len(unnamed) == 1 else "are"
     doc.warn(
+        Check.IMAGE_UNNAMED,
         f"{plural(len(unnamed), 'image')} {are} unnamed, so each publishes under a "
         f"hash; give each a {{}} line naming its file:{{}}",
         Shown("Source:"),
@@ -446,6 +468,7 @@ def _check_tracked(doc: Document) -> None:
             marks.append(Mark(where, fix=(untagged,), text=item))
         marks += [Mark(where, text=item) for where in _embedded(doc, source)]
     doc.warn(
+        Check.LINK_TRACKING_TAG,
         f"{plural(len(tracked), 'source')} still {carry} the tag it was copied with; "
         f"take it off the link in the doc:{{}}",
         Listed(*items),
@@ -511,6 +534,7 @@ def check_pages(doc: Document) -> None:
         return
     cites = "cites" if len(wrong) == 1 else "cite"
     doc.warn(
+        Check.PDF_PAGE_OUT_OF_RANGE,
         f"{plural(len(wrong), 'PDF citation')} {cites} a page the PDF does not have:{{}}",
         Listed(*wrong),
         marks=marks,
@@ -557,6 +581,7 @@ def _check_bare_urls(doc: Document) -> None:
         return
     listed = Listed(*((Shown(url),) for url in bare))
     doc.warn(
+        Check.URL_NOT_LINKED,
         f"{plural(len(bare), 'URL')} typed out but not linked; "
         f"link {'it' if len(bare) == 1 else 'each'} in the doc:{{}}",
         listed,
@@ -597,6 +622,7 @@ def _check_url_text(doc: Document) -> None:
     listed = Listed(*((Shown(text),) for text in shown))
     one = len(shown) == 1
     doc.warn(
+        Check.LINK_TEXT_IS_URL,
         f"{plural(len(shown), 'link')} {'shows its' if one else 'show their'} URL as "
         f"{'its' if one else 'their'} text; give {'it' if one else 'each'} words in the doc:{{}}",
         listed,
@@ -675,11 +701,15 @@ def _check_review(doc: Document) -> None:
     # and says nothing about them that the person asking does not know.
     if doc.open_suggestions and not doc.suggestions_accepted:
         doc.warn(
+            Check.OPEN_SUGGESTIONS,
             f"{plural(doc.open_suggestions, 'suggestion')} still open on this tab; "
-            "the build publishes the document without them, as it reads today"
+            "the build publishes the document without them, as it reads today",
         )
     if doc.open_comments:
-        doc.warn(f"{plural(doc.open_comments, 'comment thread')} still open on this tab")
+        doc.warn(
+            Check.OPEN_COMMENTS,
+            f"{plural(doc.open_comments, 'comment thread')} still open on this tab",
+        )
 
 
 def plural(count: int, thing: str) -> str:

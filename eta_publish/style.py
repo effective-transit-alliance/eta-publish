@@ -15,6 +15,7 @@ rather than quietly making the publications agree.
 import re
 from collections.abc import Iterator
 
+from .check_names import Check
 from .nodes import SPACE, Document, Highlighted, Shown, plain_text
 
 CONTEXT = 30
@@ -53,10 +54,10 @@ should be able to tell the two apart without reading to the end of the line.
 """
 
 
-def _warn(doc: Document, template: str, *values: Shown | Highlighted) -> None:
+def _warn(doc: Document, check: Check, template: str, *values: Shown | Highlighted) -> None:
     """Warn about how something is written, said as one of these rather than
     as one of the document's other warnings."""
-    doc.warn(PREFIX + template, *values)
+    doc.warn(check, PREFIX + template, *values)
 
 
 def _prose(doc: Document) -> Iterator[str]:
@@ -128,9 +129,19 @@ def _check_spacing(doc: Document, text: str) -> None:
         start, end = match.span("gap")
         drawn = Highlighted(_before(text, start), SPACE * len(gap), _after(text, end))
         if ENDS_A_SENTENCE.search(text[: match.start("gap")]):
-            _warn(doc, f"a sentence should end with 1 space, not {len(gap)}: {{}}", drawn)
+            _warn(
+                doc,
+                Check.EXTRA_SPACE_AFTER_SENTENCE,
+                f"a sentence should end with 1 space, not {len(gap)}: {{}}",
+                drawn,
+            )
         else:
-            _warn(doc, f"two words should be separated by 1 space, not {len(gap)}: {{}}", drawn)
+            _warn(
+                doc,
+                Check.EXTRA_SPACE_BETWEEN_WORDS,
+                f"two words should be separated by 1 space, not {len(gap)}: {{}}",
+                drawn,
+            )
 
 
 DASHES = "—–"
@@ -161,6 +172,7 @@ def _check_dash_spacing(doc: Document, text: str) -> None:
         drawn = match.group().replace(" ", SPACE)
         _warn(
             doc,
+            Check.SPACED_DASH,
             f"{DASH_NAMES[dash]} should not have spaces: {{}}",
             Highlighted(_before(text, start), drawn, _after(text, end)),
         )
@@ -201,6 +213,7 @@ def _check_ranges(doc: Document, text: str) -> None:
             continue
         _warn(
             doc,
+            Check.HYPHEN_IN_RANGE,
             "a range should use an en dash, {}, not a hyphen: {}",
             Shown("\u2013"),
             Highlighted(_before(text, start), "-", _after(text, end)),
@@ -224,6 +237,7 @@ def _check_apostrophes(doc: Document, text: str) -> None:
     for match in STRAIGHT_APOSTROPHE.finditer(text):
         _warn(
             doc,
+            Check.STRAIGHT_APOSTROPHE,
             "an apostrophe should be {}, not {}: {}",
             Shown("\u2019"),
             Shown("'"),
@@ -260,6 +274,7 @@ def _check_organization_name(doc: Document, text: str) -> None:
     for match in ARTICLED.finditer(text):
         _warn(
             doc,
+            Check.ETA_WITH_ARTICLE,
             "{} is written {}; it is {} on its own, and {} spelled out: {}",
             Shown("ETA"),
             Shown(text[match.start() : match.end() + len("ETA")]),
@@ -528,6 +543,7 @@ def _check_street_names(doc: Document, text: str) -> None:
             continue
         _warn(
             doc,
+            Check.STATION_OR_STREET_NAME,
             "{} should be {}: {}",
             Shown(written),
             Shown(correct),
@@ -726,6 +742,7 @@ def _check_units(doc: Document, text: str) -> None:
             continue
         _warn(
             doc,
+            Check.UNIT_NOT_ABBREVIATED,
             "{} should be {}: {}",
             Shown(text[start:end]),
             Shown(f"{amount}{gap}{symbol}"),
@@ -751,6 +768,7 @@ def _check_hyphenated_units(doc: Document, text: str) -> None:
             continue
         _warn(
             doc,
+            Check.HYPHENATED_UNIT,
             "{} should be {}, with no hyphen: {}",
             Shown(text[start:end]),
             Shown(f"{amount} {unit if unit in TIME_UNITS else UNITS.get(unit, unit)}"),
@@ -829,6 +847,7 @@ def _check_spelled_out_symbols(doc: Document, text: str) -> None:
         start = _at(word, at)
         _warn(
             doc,
+            Check.SYMBOL_SPELLED_OUT,
             "{} should be {}: {}",
             Shown(text[start:end]),
             Shown(f"${amount}{scale}" if money else f"{amount}%"),

@@ -20,6 +20,7 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 from urllib.parse import parse_qs, quote, unquote, urlsplit
 
+from .check_names import Check
 from .docs_json import JsonObject
 from .naming import (
     AnchorAllocator,
@@ -943,6 +944,7 @@ class Parser:
             elif not (IGNORED_ELEMENTS & el.keys()):
                 kinds = sorted(k for k in el if k not in ("startIndex", "endIndex"))
                 self.doc.warn(
+                    Check.UNHANDLED_ELEMENT,
                     "unhandled document element {}, dropped",
                     Shown(", ".join(kinds)),
                     marks=[where],
@@ -979,6 +981,7 @@ class Parser:
             # Nothing on one side of it, so it is blank space rather than a break
             # between two things, and it is dropped rather than published.
             self.doc.warn(
+                Check.SHIFT_ENTER_BLANK_SPACE,
                 "a paragraph has a stray {} standing in for blank space; "
                 "it is dropped, and a paragraph's spacing belongs in its style: {}",
                 Shown("Shift+Enter"),
@@ -987,6 +990,7 @@ class Parser:
             )
             return
         self.doc.warn(
+            Check.SHIFT_ENTER_BETWEEN_LINES,
             "a paragraph is broken with {} rather than {}, "
             "so lines that look separate are one paragraph; give each line its own:{}",
             Shown("Shift+Enter"),
@@ -1076,7 +1080,11 @@ class Parser:
         """A date smart chip renders the way the document shows it."""
         text = date_text(chip)
         if not text:
-            self.doc.warn("a date chip carries no timestamp; dropped", marks=[where])
+            self.doc.warn(
+                Check.DATE_CHIP_WITHOUT_DATE,
+                "a date chip carries no timestamp; dropped",
+                marks=[where],
+            )
         return Text(text=text, location=where)
 
     def _href(
@@ -1114,6 +1122,7 @@ class Parser:
         original = archive_today_original(url)
         if original is None:
             self.doc.warn(
+                Check.ARCHIVE_TODAY_SHORT_LINK,
                 "{} is an archive.today link, which is undated; "
                 "link the page itself instead, archived on {}",
                 Shown(url),
@@ -1123,6 +1132,7 @@ class Parser:
             return url
         relinked = None if where is None or chip else Mark(where, fix=(Link(where, original),))
         self.doc.warn(
+            Check.ARCHIVE_TODAY_LINK,
             "{} is an archive.today link; link the page itself, {}, instead, archived on {}",
             Shown(url),
             Shown(original),
@@ -1198,6 +1208,7 @@ class Parser:
         )
         if "imageProperties" not in embedded:
             self.doc.warn(
+                Check.OBJECT_NOT_A_PICTURE,
                 "inline object {} is not a picture (a drawing or chart, perhaps), "
                 "so it is missing from every output; replace it with an image",
                 Shown(object_id),
@@ -1247,6 +1258,7 @@ class Parser:
             title = props.get("title", "")
             if uri and "image/svg" not in props.get("mimeType", ""):
                 self.doc.warn(
+                    Check.SVG_LINE_NOT_SVG,
                     "the {} line links {}, which is not an SVG; the raster is used",
                     Shown("SVG:"),
                     Shown(title or uri),
@@ -1281,6 +1293,7 @@ class Parser:
         """
         if props.get("angle"):
             self.doc.warn(
+                Check.IMAGE_ROTATED,
                 "image {} is rotated in the document; the rotation is not applied",
                 Shown(object_id),
                 marks=[where],
@@ -1358,6 +1371,7 @@ class Parser:
             if pending_source is not None:
                 text = plain_text(pending_source)
                 self.doc.warn(
+                    Check.SOURCE_LINE_WITHOUT_IMAGE,
                     "{} line not followed by an image, dropped: {}",
                     Shown("Source:"),
                     Shown(text[:80]),
@@ -1412,6 +1426,7 @@ class Parser:
                 # whose anchor is a published URL, and buries the image inside it.
                 where = self.location(item)
                 self.doc.warn(
+                    Check.IMAGE_STYLED_AS_HEADING,
                     "an image is styled as a {}; treating it as a figure. "
                     "Set that paragraph to {} in the doc.",
                     Shown("Heading"),
@@ -1439,6 +1454,7 @@ class Parser:
 
             if unfinished(text):
                 self.doc.warn(
+                    Check.UNFINISHED_TEXT,
                     "unfinished text in the document: {}",
                     Shown(text[:80]),
                     marks=[self.location(item)],
@@ -1451,6 +1467,7 @@ class Parser:
             written = plain_text(inlines)
             for start, end in bracketed(inlines):
                 self.doc.warn(
+                    Check.UNFINISHED_TEXT,
                     "unfinished text in the document: {}",
                     Shown(written[start:end][:80]),
                     marks=[locate(inlines, start, end)],
@@ -1479,6 +1496,7 @@ class Parser:
                 embed = embed_of(after_label(inlines))
                 if embed is None:
                     self.doc.warn(
+                        Check.VIDEO_LINE_WITHOUT_VIDEO,
                         "a {} line has to be followed by one link to a YouTube video, "
                         "an X or Bluesky post, or a video in Drive; publishing it as text: {}",
                         Shown("Video:"),
@@ -1526,6 +1544,7 @@ class Parser:
                 kind = labelled(inlines).value.partition(":")[0].strip()
                 if not kind:
                     self.doc.warn(
+                        Check.WARNING_LINE_WITHOUT_KIND,
                         "a {} line has to say what it warns of, as in {}; ignoring it",
                         Shown("Warning:"),
                         Shown("Warning: Graphic Content"),
@@ -1573,6 +1592,7 @@ class Parser:
                             # Nothing reads a `Caption:` label, so the word is
                             # published as the first of the caption.
                             self.doc.warn(
+                                Check.CAPTION_STARTS_WITH_LABEL,
                                 "the caption of image {} starts with {}, which is published "
                                 "as part of it; take it out in the doc",
                                 Shown(last.image.filename),
@@ -1611,6 +1631,7 @@ class Parser:
         if labelled(source).label.casefold().split() == ["image", SOURCE_LABEL]:
             # One label in one place: `Source:` above the image takes a URL too.
             self.doc.warn(
+                Check.IMAGE_SOURCE_LABEL,
                 "write {} as a {} line above the image instead; it takes a URL as well: {}",
                 Shown("Image Source"),
                 Shown("Source:"),
@@ -1667,12 +1688,14 @@ class Parser:
         if len(images) > 1:
             # Each of the others, which is what is left out.
             self.doc.warn(
+                Check.IMAGES_SHARE_PARAGRAPH,
                 f"{len(images)} images share one paragraph; only the first becomes a figure",
                 marks=[image.location for image in images[1:]],
             )
         prose = plain_text(inlines).strip()
         if prose:
             self.doc.warn(
+                Check.TEXT_BESIDE_IMAGE,
                 "text sharing a paragraph with an image was dropped: {}",
                 Shown(prose[:80]),
                 marks=[where],
@@ -1767,6 +1790,7 @@ class Parser:
         start = self._header_index(content)
         if start is None:
             self.doc.warn(
+                Check.NO_HEADER,
                 "no front matter found; expected a leading {} section with {}, {}, and {} lines",
                 Shown("Header"),
                 Shown("URL:"),
@@ -1784,6 +1808,7 @@ class Parser:
             text = plain(para) if para is not None else ""
             if text:
                 self.doc.warn(
+                    Check.LINE_BEFORE_HEADER,
                     "dropped a line before the {} section: {}",
                     Shown("Header"),
                     Shown(text[:80]),
@@ -1865,6 +1890,7 @@ class Parser:
 
         if not self.doc.meta:
             self.doc.warn(
+                Check.HEADER_WITHOUT_FIELDS,
                 "the {} section holds no {} lines; expected {}, {}, and {}",
                 Shown("Header"),
                 Shown("Key: value"),
@@ -1904,6 +1930,7 @@ class Parser:
             found = cue(line)
             if found is None:
                 self.doc.warn(
+                    Check.VIDEO_CAPTION_UNREADABLE,
                     "a caption has to be a time range and what is said in it, as in {}; "
                     "leaving it out: {}",
                     Shown("0:04\u20130:04.7 Jesus"),
@@ -1912,6 +1939,7 @@ class Parser:
                 )
             elif found.end <= found.start:
                 self.doc.warn(
+                    Check.VIDEO_CAPTION_ENDS_BEFORE_START,
                     "a caption ends before it starts; leaving it out: {}",
                     Shown(_clipped(line.strip())),
                     marks=[where],
@@ -1936,6 +1964,7 @@ class Parser:
         for modifier in note.unknown_modifiers():
             at = text.find(modifier, note.label_at, note.mark_at)
             self.doc.warn(
+                Check.UNKNOWN_MODIFIER,
                 "{} is not a modifier {} takes; ignoring it: {}",
                 Shown(modifier),
                 Shown(f"{note.label}:"),
@@ -1955,6 +1984,7 @@ class Parser:
         note = labelled(line)
         if note.bled:
             self.doc.warn(
+                Check.LABEL_UNDERLINE_RUNS_ON,
                 "the underline on {} runs past it into the value; underline the name only: {}",
                 Shown(f"{note.label}:"),
                 Shown(_clipped(plain_text(line).strip())),
@@ -1969,6 +1999,7 @@ class Parser:
         written = HeaderLine(lines=(tuple(line),), key=named)
         if key in RETIRED_FIELDS:
             self.doc.warn(
+                Check.HEADER_FIELD_RETIRED,
                 "the {} line is no longer used; rename it {}",
                 Shown(f"{key}:"),
                 Shown("Short:"),
@@ -1980,6 +2011,7 @@ class Parser:
             # because the likeliest reason for one is a misspelling,
             # and a misspelled `URL:` publishes nowhere at all.
             self.doc.warn(
+                Check.HEADER_FIELD_UNKNOWN,
                 "the {} section has an unrecognized {} line; check it for a typo",
                 Shown("Header"),
                 Shown(f"{key}:"),
@@ -1990,6 +2022,7 @@ class Parser:
             # below the original and a duplicate nobody meant look
             # identical, and neither is visible in what gets published.
             self.doc.warn(
+                Check.HEADER_FIELD_REPEATED,
                 "the {} section has more than one {} line; using {} and ignoring {}",
                 Shown("Header"),
                 Shown(f"{key}:"),
@@ -2038,6 +2071,7 @@ class Parser:
 
         filename = self.json.get("title", "")
         self.doc.warn(
+            Check.NO_TITLE,
             "no {}-styled paragraph, so the document name {} is being used as the "
             "headline; style the headline as {} in the doc",
             Shown("Title"),
@@ -2049,6 +2083,7 @@ class Parser:
             # Said separately, because it is a different thing to fix:
             # the headline is written down, in a line that does not set it.
             self.doc.warn(
+                Check.TITLE_IN_HEADER,
                 "the {} section has {}, which is not what the headline comes from; "
                 "style that line as {} in the body instead",
                 Shown("Header"),
@@ -2067,6 +2102,7 @@ class Parser:
         for fid in self.footnote_defs:
             if fid not in self._footnote_numbers:
                 self.doc.warn(
+                    Check.FOOTNOTE_UNREFERENCED,
                     "footnote {} is defined but never referenced; omitted",
                     Shown(fid),
                     marks=[self._segment_location(fid)],
@@ -2144,6 +2180,7 @@ class Parser:
         # headline is the older way of saying the same, and only stands in for one.
         if SOCIAL_CARD in self.doc.meta and not self._has_social_card:
             self.doc.warn(
+                Check.SOCIAL_CARD_WITHOUT_PICTURE,
                 "the {} line has no picture under it; paste the card itself on the next line",
                 Shown(f"{SOCIAL_CARD}:"),
                 marks=[self.doc.header_lines[SOCIAL_CARD].location],

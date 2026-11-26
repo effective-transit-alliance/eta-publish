@@ -20,6 +20,8 @@ from string import ascii_letters
 from typing import override
 from urllib.parse import urlsplit
 
+from .check_names import Check
+
 # ---- where in the document -----------------------------------------
 
 
@@ -786,6 +788,9 @@ class Notice:
     it is what the log prints and what a test asserts against.
     """
 
+    check: Check
+    """Which check it is from, which stays the same however it is worded."""
+
     parts: tuple[Part, ...]
 
     marks: tuple[Mark, ...] = ()
@@ -1330,9 +1335,13 @@ class Document:
         return size[0] / size[1]
 
     def warn(
-        self, template: str, *values: Part, marks: Iterable[Mark | Location | None] = ()
+        self,
+        check: Check,
+        template: str,
+        *values: Part,
+        marks: Iterable[Mark | Location | None] = (),
     ) -> None:
-        """Warn, with `{}` in `template` wherever a value goes.
+        """Warn of `check`, with `{}` in `template` wherever a value goes.
 
         The template is written here and the values come from the document,
         which is why they are handed over separately rather than formatted in:
@@ -1345,7 +1354,7 @@ class Document:
         placed = tuple(
             Mark(mark) if isinstance(mark, Location) else mark for mark in marks if mark is not None
         )
-        self.warnings.append(Notice(filled(template, values), placed))
+        self.warnings.append(Notice(check, filled(template, values), placed))
 
 
 # What a Docs date chip can render, most likely first.

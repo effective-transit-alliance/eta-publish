@@ -17,18 +17,20 @@ import pytest
 from rich.console import Console, RenderableType
 
 from eta_publish import console as log
+from eta_publish.check_names import Check
 from eta_publish.nodes import Cut, Highlighted, Listed, Notice, Quoted, Shown
 
 KEYS = "https://archive.org/account/s3.php"
 
 WARNING = Notice(
+    Check.HEADER_FIELD_MISSING,
     (
         "the ",
         Shown("Header"),
         " section has no ",
         Shown("Short:"),
         " line",
-    )
+    ),
 )
 
 
@@ -78,7 +80,9 @@ def test_a_warning_too_long_for_the_terminal_hangs_under_itself() -> None:
     """The continuation is indented past the `!`, so a warning that takes three
     lines still reads as one warning rather than as three."""
     console = terminal(40)
-    long = Notice(("a warning long enough that it cannot fit on one line at all",))
+    long = Notice(
+        Check.UNHANDLED_ELEMENT, ("a warning long enough that it cannot fit on one line at all",)
+    )
     lines = rendered(log.notice(long, console), console).splitlines()
     assert len(lines) > 1
     assert _visible(lines[0]).startswith("  ! a warning")
@@ -87,7 +91,9 @@ def test_a_warning_too_long_for_the_terminal_hangs_under_itself() -> None:
 
 def test_what_a_warning_sets_apart_is_indented_under_it() -> None:
     """A list of seventeen images at the left margin reads as seventeen warnings."""
-    listed = Notice(("unnamed images:", Listed((Shown("img-1"),), (Shown("img-2"),))))
+    listed = Notice(
+        Check.IMAGE_UNNAMED, ("unnamed images:", Listed((Shown("img-1"),), (Shown("img-2"),)))
+    )
     lines = rendered(log.notice(listed, plain()), plain()).splitlines()
     assert lines == [
         "  ! unnamed images:",
@@ -98,7 +104,7 @@ def test_what_a_warning_sets_apart_is_indented_under_it() -> None:
 
 def test_a_quoted_value_is_given_its_own_lines() -> None:
     """Long enough to run into the sentence, which is why it was set apart."""
-    quoted = Notice(("too long:", Quoted("kept ", Cut("cut"))))
+    quoted = Notice(Check.SEO_DESCRIPTION_TOO_LONG, ("too long:", Quoted("kept ", Cut("cut"))))
     lines = rendered(log.notice(quoted, plain()), plain()).splitlines()
     assert lines == ["  ! too long:", "      kept ~~cut~~"]
 
@@ -107,7 +113,7 @@ def test_the_cut_part_keeps_its_marks_on_a_terminal_too() -> None:
     """Struck-through text is not drawn by every terminal,
     and a warning about where a sentence stops cannot rely on one that does."""
     console = terminal(200)
-    quoted = Notice(("too long:", Quoted("kept ", Cut("cut"))))
+    quoted = Notice(Check.SEO_DESCRIPTION_TOO_LONG, ("too long:", Quoted("kept ", Cut("cut"))))
     assert "~~cut~~" in _visible(rendered(log.notice(quoted, console), console))
 
 
@@ -230,7 +236,10 @@ def test_a_title_is_a_title_and_not_markup() -> None:
     assert "A [bold]Draft[/] :construction:" in written
 
 
-GAPPED = Notice((Highlighted("It is deep.", "\u00b7\u00b7", "It is expensive."),))
+GAPPED = Notice(
+    Check.EXTRA_SPACE_AFTER_SENTENCE,
+    (Highlighted("It is deep.", "\u00b7\u00b7", "It is expensive."),),
+)
 
 
 def test_the_marked_part_is_drawn_on_a_terminal_too() -> None:

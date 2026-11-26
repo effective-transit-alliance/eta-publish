@@ -4,6 +4,7 @@ Docs counts in UTF-16 code units and Python in code points,
 so every test here with an emoji in it is one the two would disagree on.
 """
 
+from eta_publish.check_names import Check
 from eta_publish.checks import check
 from eta_publish.docs_json import JsonObject
 from eta_publish.embeds import check_embeds
@@ -307,9 +308,9 @@ def test_locate_spans_runs_and_points_between_them() -> None:
 def test_what_a_warning_becomes_is_what_its_marks_say() -> None:
     doc = Document()
     here = Location(TAB, None, 3, 7)
-    doc.warn("nowhere")
-    doc.warn("somewhere {}", Shown("x"), marks=[here, None])
-    doc.warn("fixable", marks=[Mark(here, fix=(Replace(here, ""),))])
+    doc.warn(Check.ARCHIVE_FAILED, "nowhere")
+    doc.warn(Check.UNFINISHED_TEXT, "somewhere {}", Shown("x"), marks=[here, None])
+    doc.warn(Check.URL_NOT_LINKED, "fixable", marks=[Mark(here, fix=(Replace(here, ""),))])
     reported, commented, suggested = doc.warnings
     assert reported.marks == ()
     assert reported.categories == {Category.REPORT}

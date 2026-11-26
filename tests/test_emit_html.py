@@ -9,6 +9,7 @@ import pytest
 import tinycss2
 from paths import FIXTURE_DIR, HOST, named_images
 
+from eta_publish.check_names import Check
 from eta_publish.emit.html import HtmlEmitter, publication_page
 from eta_publish.nodes import Document, Heading, Image, Paragraph, Shown, Text
 from eta_publish.parse import parse
@@ -297,7 +298,7 @@ def test_an_empty_shown_value_is_still_marked(doc: Document) -> None:
     62x18 for one holding `Draft 2`."""
     from eta_publish.nodes import Shown
 
-    doc.warn("the tab is named {}", Shown(""))
+    doc.warn(Check.UNHANDLED_ELEMENT, "the tab is named {}", Shown(""))
     out = HtmlEmitter(site_url=HOST).emit(doc)
     assert "the tab is named <code></code>" in out
 
@@ -332,7 +333,7 @@ def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
     doc.subtitle = [Text(EVIL)]
     doc.meta["SEO Description"] = EVIL
     doc.meta["Public Contributors"] = EVIL
-    doc.warn("a warning about {}", Shown(EVIL))
+    doc.warn(Check.UNHANDLED_ELEMENT, "a warning about {}", Shown(EVIL))
     # Alt text is the document's too, and it reaches the page inside an attribute.
     # An image is frozen, and this is the one place anything writes to one.
     for image in doc.images:

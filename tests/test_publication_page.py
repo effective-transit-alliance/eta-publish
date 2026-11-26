@@ -10,6 +10,7 @@ import pytest
 from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.build import emit
+from eta_publish.check_names import Check
 from eta_publish.emit.html import publication_page
 from eta_publish.nodes import Document
 from eta_publish.parse import parse
@@ -76,7 +77,7 @@ def test_page_images_resolve_next_to_the_page(doc: Document, tmp_path: Path) -> 
 
 def test_warnings_are_shown_where_someone_will_see_them() -> None:
     doc = named_images(parse(FIXTURE))
-    doc.warn("something looked wrong")
+    doc.warn(Check.UNHANDLED_ELEMENT, "something looked wrong")
     assert "something looked wrong" in publication_page(doc, site_url=HOST)
 
 
