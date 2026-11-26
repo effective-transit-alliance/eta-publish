@@ -97,6 +97,7 @@ def check(doc: Document) -> None:
                 Shown("Header"),
                 Shown(f"{field}:"),
                 marks=[doc.header],
+                about=field,
             )
         elif field not in MAY_BE_EMPTY and not doc.meta[field].strip():
             doc.warn(
@@ -105,6 +106,7 @@ def check(doc: Document) -> None:
                 Shown("Header"),
                 Shown(f"{field}:"),
                 marks=[doc.header_line(field)],
+                about=field,
             )
 
         if unfinished(doc.meta.get(field, "")):
@@ -115,6 +117,7 @@ def check(doc: Document) -> None:
                 "{} is still marked unfinished",
                 Shown(f"{field}:"),
                 marks=[doc.header_line(field)],
+                about=field,
             )
 
     seo = doc.meta.get("SEO Description", "")
@@ -152,6 +155,7 @@ def _check_contributors(doc: Document) -> None:
                 Shown("Public Contributors:"),
                 Shown(entry.strip()),
                 marks=[None if written is None else _comma(written, entry.strip(), found[1])],
+                about=entry.strip(),
             )
     # Docs gives an unresolved chip its address as its name too,
     # so the chip alone publishes the address where the byline wants a name.
@@ -166,6 +170,7 @@ def _check_contributors(doc: Document) -> None:
                 Shown(f"Name ({name})"),
                 # The chip, which is all of the address there is.
                 marks=[None if written is None else written.find(name)],
+                about=name,
             )
 
 
@@ -238,6 +243,7 @@ def _check_stray_fields(doc: Document) -> None:
                     Shown("Header"),
                     Shown(text),
                     marks=[span(line)],
+                    about=field,
                 )
             else:
                 doc.warn(
@@ -246,6 +252,7 @@ def _check_stray_fields(doc: Document) -> None:
                     Shown(f"{field}:"),
                     Shown(text),
                     marks=[span(line)],
+                    about=field,
                 )
 
 
@@ -272,6 +279,7 @@ def check_described(doc: Document) -> None:
                 "the image {} has no alt text and no caption; add a description to it in the doc",
                 Shown(figure.image.filename),
                 marks=[figure.image.location],
+                about=figure.image.filename,
             )
         elif word := _ANNOUNCING.search(figure.image.alt):
             # A comment, though the code could say the alt text without the word:
@@ -283,6 +291,7 @@ def check_described(doc: Document) -> None:
                 Shown(figure.image.filename),
                 Shown(word.group()),
                 marks=[figure.image.location],
+                about=figure.image.filename,
             )
 
 
@@ -327,6 +336,7 @@ def check_charts(doc: Document) -> None:
             Shown(image.filename),
             Shown("SVG:"),
             marks=[image.location],
+            about=image.filename,
         )
 
 
@@ -343,7 +353,11 @@ def _check_figures(doc: Document) -> None:
         here = block.image.location
         if not block.caption:
             doc.warn(
-                Check.IMAGE_WITHOUT_CAPTION, "the image {} has no caption", named, marks=[here]
+                Check.IMAGE_WITHOUT_CAPTION,
+                "the image {} has no caption",
+                named,
+                marks=[here],
+                about=block.image.filename,
             )
         if block.credit:
             continue
@@ -367,6 +381,7 @@ def _check_figures(doc: Document) -> None:
                 Shown("Credit:"),
                 Shown("Credit"),
                 marks=[_underlined_label(credit)],
+                about=block.image.filename,
             )
         else:
             doc.warn(
@@ -375,6 +390,7 @@ def _check_figures(doc: Document) -> None:
                 named,
                 Shown("Credit:"),
                 marks=[here],
+                about=block.image.filename,
             )
 
 
@@ -415,7 +431,7 @@ def _check_named(doc: Document) -> None:
         Shown("Source:"),
         Listed(*items),
         marks=[
-            Mark(block.image.location, text=item)
+            Mark(block.image.location, text=item, subject=block.image.filename)
             for block, item in zip(unnamed, items, strict=True)
             if block.image.location is not None
         ],
@@ -465,8 +481,8 @@ def _check_tracked(doc: Document) -> None:
         for runs, where in links.get(source, []):
             written = runs[0].written_href or source
             untagged = Link(where, _untagged(written))
-            marks.append(Mark(where, fix=(untagged,), text=item))
-        marks += [Mark(where, text=item) for where in _embedded(doc, source)]
+            marks.append(Mark(where, fix=(untagged,), text=item, subject=source))
+        marks += [Mark(where, text=item, subject=source) for where in _embedded(doc, source)]
     doc.warn(
         Check.LINK_TRACKING_TAG,
         f"{plural(len(tracked), 'source')} still {carry} the tag it was copied with; "
@@ -528,8 +544,8 @@ def check_pages(doc: Document) -> None:
                 continue
             item = (Shown(source), f" cites page {page} of {plural(pages, 'page')}")
         wrong.append(item)
-        marks += [Mark(where, text=item) for _, where in links.get(source, [])]
-        marks += [Mark(where, text=item) for where in _embedded(doc, source)]
+        marks += [Mark(where, text=item, subject=source) for _, where in links.get(source, [])]
+        marks += [Mark(where, text=item, subject=source) for where in _embedded(doc, source)]
     if not wrong:
         return
     cites = "cites" if len(wrong) == 1 else "cite"
@@ -575,7 +591,9 @@ def _check_bare_urls(doc: Document) -> None:
                 bare.append(url)
                 where = locate(stretch, start, start + len(url))
                 if where is not None:
-                    marks.append(Mark(where, fix=(Link(where, url),), text=(Shown(url),)))
+                    marks.append(
+                        Mark(where, fix=(Link(where, url),), text=(Shown(url),), subject=url)
+                    )
             stretch = []
     if not bare:
         return
@@ -616,7 +634,7 @@ def _check_url_text(doc: Document) -> None:
                 shown.append(text)
                 where = span(texts)
                 if where is not None:
-                    marks.append(Mark(where, text=(Shown(text),)))
+                    marks.append(Mark(where, text=(Shown(text),), subject=text))
     if not shown:
         return
     listed = Listed(*((Shown(text),) for text in shown))

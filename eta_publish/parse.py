@@ -948,6 +948,7 @@ class Parser:
                     "unhandled document element {}, dropped",
                     Shown(", ".join(kinds)),
                     marks=[where],
+                    about=", ".join(kinds),
                 )
         self._soft_breaks(para)
         # A soft break at either end is spacing rather than part of what the paragraph says,
@@ -987,6 +988,7 @@ class Parser:
                 Shown("Shift+Enter"),
                 Shown(_clipped(written[0]) if written else ""),
                 marks=marks,
+                about=_clipped(written[0]) if written else "",
             )
             return
         self.doc.warn(
@@ -997,6 +999,7 @@ class Parser:
             Shown("Enter"),
             Listed(*((Shown(_clipped(line)),) for line in written)),
             marks=marks,
+            about=_clipped(written[0]),
         )
 
     def _unbroken(self, para: JsonObject) -> Mark | None:
@@ -1128,6 +1131,7 @@ class Parser:
                 Shown(url),
                 Shown("web.archive.org"),
                 marks=[where],
+                about=url,
             )
             return url
         relinked = None if where is None or chip else Mark(where, fix=(Link(where, original),))
@@ -1138,6 +1142,7 @@ class Parser:
             Shown(original),
             Shown("web.archive.org"),
             marks=[relinked or where],
+            about=url,
         )
         return original
 
@@ -1213,6 +1218,7 @@ class Parser:
                 "so it is missing from every output; replace it with an image",
                 Shown(object_id),
                 marks=[where],
+                about=object_id,
             )
             return None
         image_props = embedded["imageProperties"]
@@ -1263,6 +1269,7 @@ class Parser:
                     Shown("SVG:"),
                     Shown(title or uri),
                     marks=[self.location(el)],
+                    about=title or uri,
                 )
                 return None
             if not uri:
@@ -1297,6 +1304,7 @@ class Parser:
                 "image {} is rotated in the document; the rotation is not applied",
                 Shown(object_id),
                 marks=[where],
+                about=object_id,
             )
 
         def side(name: str) -> float:
@@ -1376,6 +1384,7 @@ class Parser:
                     Shown("Source:"),
                     Shown(text[:80]),
                     marks=[pending_where],
+                    about=_clipped(text.strip()),
                 )
                 pending_source = None
 
@@ -1458,6 +1467,7 @@ class Parser:
                     "unfinished text in the document: {}",
                     Shown(text[:80]),
                     marks=[self.location(item)],
+                    about=_clipped(text),
                 )
 
             # Read once, here: what a line is depends on how it is styled,
@@ -1471,6 +1481,7 @@ class Parser:
                     "unfinished text in the document: {}",
                     Shown(written[start:end][:80]),
                     marks=[locate(inlines, start, end)],
+                    about=_clipped(written[start:end]),
                 )
 
             if is_source_note(inlines) or is_asset_note(inlines):
@@ -1502,6 +1513,7 @@ class Parser:
                         Shown("Video:"),
                         Shown(text[:80]),
                         marks=[self.location(item)],
+                        about=_clipped(text),
                     )
                     out.append(Paragraph(content=unmarked(inlines), location=self.location(item)))
                     continue
@@ -1549,6 +1561,7 @@ class Parser:
                         Shown("Warning:"),
                         Shown("Warning: Graphic Content"),
                         marks=[self.location(item)],
+                        about=last.url,
                     )
                     continue
                 last.warning = unmarked(inlines)
@@ -1598,6 +1611,7 @@ class Parser:
                                 Shown(last.image.filename),
                                 Shown("Caption:"),
                                 marks=[_without_label(line)],
+                                about=last.image.filename,
                             )
                         last.caption = line
                         caption_slot = 0
@@ -1637,6 +1651,7 @@ class Parser:
                 Shown("Source:"),
                 Shown(source_href(source) or plain_text(source).strip()[:80]),
                 marks=[span(source)],
+                about=source_href(source) or _clipped(plain_text(source).strip()),
             )
         name = source_name(source)
         if name:
@@ -1699,6 +1714,7 @@ class Parser:
                 "text sharing a paragraph with an image was dropped: {}",
                 Shown(prose[:80]),
                 marks=[where],
+                about=_clipped(prose),
             )
         return images[0]
 
@@ -1813,6 +1829,7 @@ class Parser:
                     Shown("Header"),
                     Shown(text[:80]),
                     marks=[self.location(item)],
+                    about=_clipped(text),
                 )
 
         end = start + 1
@@ -1936,6 +1953,7 @@ class Parser:
                     Shown("0:04\u20130:04.7 Jesus"),
                     Shown(_clipped(line.strip())),
                     marks=[where],
+                    about=_clipped(line.strip()),
                 )
             elif found.end <= found.start:
                 self.doc.warn(
@@ -1943,6 +1961,7 @@ class Parser:
                     "a caption ends before it starts; leaving it out: {}",
                     Shown(_clipped(line.strip())),
                     marks=[where],
+                    about=_clipped(line.strip()),
                 )
             else:
                 cues.append(found)
@@ -1970,6 +1989,7 @@ class Parser:
                 Shown(f"{note.label}:"),
                 Shown(_clipped(text.strip())),
                 marks=[locate(line, at, at + len(modifier)) if at >= 0 else span(line)],
+                about=modifier,
             )
 
     def _bleed(self, line: list[Inline]) -> None:
@@ -1989,6 +2009,7 @@ class Parser:
                 Shown(f"{note.label}:"),
                 Shown(_clipped(plain_text(line).strip())),
                 marks=[_unbled(line, note)],
+                about=_clipped(plain_text(line).strip()),
             )
 
     def _meta_line(self, key: str, value: str, line: list[Inline]) -> str:
@@ -2004,6 +2025,7 @@ class Parser:
                 Shown(f"{key}:"),
                 Shown("Short:"),
                 marks=[None if named is None else Mark(named, fix=(Replace(named, "Short"),))],
+                about=key,
             )
         elif key not in KNOWN_FIELDS:
             # A field nothing reads is a field nobody notices is missing.
@@ -2016,6 +2038,7 @@ class Parser:
                 Shown("Header"),
                 Shown(f"{key}:"),
                 marks=[named],
+                about=key,
             )
         if key in self.doc.meta:
             # The later line wins, and says so: a corrected line pasted
@@ -2029,6 +2052,7 @@ class Parser:
                 Shown(value),
                 Shown(self.doc.meta[key]),
                 marks=[self.doc.header_lines[key].location, written.location],
+                about=key,
             )
         self.doc.meta[key] = value
         self.doc.header_lines[key] = written
@@ -2106,6 +2130,7 @@ class Parser:
                     "footnote {} is defined but never referenced; omitted",
                     Shown(fid),
                     marks=[self._segment_location(fid)],
+                    about=fid,
                 )
         return [
             self._footnote(fid, number)

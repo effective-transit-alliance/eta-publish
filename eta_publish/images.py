@@ -211,6 +211,7 @@ def download(
                 Shown(image.filename),
                 Shown(image.live_uri),
                 marks=[image.location],
+                about=image.filename,
             )
         if live_failure:
             doc.warn(
@@ -612,6 +613,7 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
                     "image {} crops to nothing; left uncropped",
                     Shown(image.object_id),
                     marks=[image.location],
+                    about=image.object_id,
                 )
                 return data
             trimmed = opened.crop(box)

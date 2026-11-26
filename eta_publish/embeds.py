@@ -159,6 +159,7 @@ def check_embeds(doc: Document) -> None:
                 Shown(embed.url),
                 Shown(card.mime or "unknown"),
                 marks=[embed.location],
+                about=embed.url,
             )
         elif not doc.served_video(embed):
             # A platform's own player shows the platform's captions, and only those.
@@ -171,6 +172,7 @@ def check_embeds(doc: Document) -> None:
                     Shown("Captions:"),
                     Shown("Copy"),
                     marks=[_made_copy(embed)],
+                    about=embed.url,
                 )
         elif embed.url not in doc.media_captions and not embed.uncaptioned:
             doc.warn(
@@ -183,6 +185,7 @@ def check_embeds(doc: Document) -> None:
                 Shown("0:04\u20130:04.7 Jesus"),
                 Shown("Captions:"),
                 marks=[embed.location],
+                about=embed.url,
             )
 
 

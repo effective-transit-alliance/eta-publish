@@ -27,6 +27,7 @@ from eta_publish.nodes import (
     Table,
     Text,
     Underline,
+    key_line,
     locate,
     sliced,
     span,
@@ -637,7 +638,7 @@ def test_each_unnamed_image_and_url_shown_as_text_is_marked_with_its_own_line() 
     (unnamed,) = [w for w in doc.warnings if "unnamed" in str(w)]
     filename = doc.figures[0].image.filename
     assert unnamed.marks == (
-        Mark(Location(TAB, None, 10, 11), text=(Shown(filename), ": A train.")),
+        Mark(Location(TAB, None, 10, 11), text=(Shown(filename), ": A train."), subject=filename),
     )
     # Not a URL as text: it opens with the emoji, so nothing is marked for it.
     assert not [w for w in doc.warnings if "as its text" in str(w)]
@@ -650,4 +651,87 @@ def test_a_link_showing_its_url_is_marked() -> None:
     doc = parse(_doc(title, body))
     check(doc)
     (notice,) = [w for w in doc.warnings if "as its text" in str(w)]
-    assert notice.marks == (Mark(Location(TAB, None, 13, 31), text=(Shown(url),)),)
+    assert notice.marks == (Mark(Location(TAB, None, 13, 31), text=(Shown(url),), subject=url),)
+
+
+# ---- what a mark is known by ---------------------------------------
+
+
+def test_a_key_is_the_check_and_then_what_its_mark_is_about() -> None:
+    doc = Document()
+    here = Location(TAB, None, 3, 7)
+    doc.warn(
+        Check.HEADER_FIELD_EMPTY, "x", marks=[here, Mark(here, subject="Goals")], about="Short"
+    )
+    doc.warn(Check.SEO_DESCRIPTION_TOO_LONG, "y", marks=[here])
+    doc.warn(Check.SHIFT_ENTER_BETWEEN_LINES, "z", marks=[here], about=" one\vtwo  three ")
+    doc.warn(Check.OPEN_COMMENTS, "reported")
+    assert [notice.keys for notice in doc.warnings] == [
+        ("header-field-empty: Short", "header-field-empty: Goals"),
+        ("seo-description-too-long",),
+        # One line, whatever the text it is about runs over.
+        ("shift-enter-between-lines: one two three",),
+        (),
+    ]
+    assert key_line("seo-description-too-long") == "eta-publish: seo-description-too-long"
+
+
+def _tagged(*urls: str) -> Document:
+    """A document citing each of `urls` once, each with a tracking tag on it."""
+    content = [_para(1, "Headline\n", style="TITLE")]
+    for url in urls:
+        content.append(_para(_end(content[-1]), ("cited", {"link": {"url": url}}), ".\n"))
+    doc = parse(_doc(*content))
+    check(doc)
+    return doc
+
+
+def test_a_key_stays_when_the_numbers_in_its_warning_move() -> None:
+    def seo(length: int) -> Document:
+        doc = parse(_doc(*_header(("SEO Description", "word " * length))))
+        check(doc)
+        return doc
+
+    def notice(doc: Document, check: Check) -> tuple[str, tuple[str, ...]]:
+        (found,) = [w for w in doc.warnings if w.check is check]
+        return str(found), found.keys
+
+    first = "https://example.org/a?utm_source=x"
+    second = "https://example.org/b?utm_source=y"
+    for one, other, check_of in [
+        (seo(80), seo(90), Check.SEO_DESCRIPTION_TOO_LONG),
+        (_tagged(first), _tagged(first, second), Check.LINK_TRACKING_TAG),
+    ]:
+        said, keys = notice(one, check_of)
+        said_again, keys_again = notice(other, check_of)
+        assert said != said_again
+        assert keys_again[: len(keys)] == keys
+
+
+def test_each_warning_s_key_says_what_it_is_about() -> None:
+    header = _header(
+        ("Excerpt", "Trains."),
+        ("Thesis", "More trains."),
+        ("Goals", ""),
+        ("SEO Description", "word " * 80),
+    )
+    tagged = "https://example.org/a?id=1&utm_source=chatgpt.com"
+    body = _para(
+        _end(header[-1]), "See http://a.b/c and ", ("this", {"link": {"url": tagged}}), "\n"
+    )
+    caption = _para(_end(body) + 2, ("Credit", UNDERLINED), ": MTA\n")
+    doc = parse(_with_picture(_doc(*header, body, _picture(_end(body)), caption)))
+    check(doc)
+    filename = doc.figures[0].image.filename
+    keys = {key for notice in doc.warnings for key in notice.keys}
+    assert {
+        "header-field-retired: Excerpt",
+        "header-field-unknown: Thesis",
+        "header-field-empty: Goals",
+        "header-field-missing: Audience",
+        "seo-description-too-long",
+        "url-not-linked: http://a.b/c",
+        f"link-tracking-tag: {tagged}",
+        f"image-without-caption: {filename}",
+        f"image-unnamed: {filename}",
+    } <= keys

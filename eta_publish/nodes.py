@@ -20,6 +20,7 @@ from string import ascii_letters
 from typing import override
 from urllib.parse import urlsplit
 
+from . import PACKAGE_NAME
 from .check_names import Check
 
 # ---- where in the document -----------------------------------------
@@ -812,6 +813,37 @@ class Notice:
             return frozenset({Category.REPORT})
         return frozenset(mark.category for mark in self.marks)
 
+    def key(self, mark: Mark) -> str:
+        """What one of its marks is known by from one build to the next:
+        the check, then what the mark is about, if it says.
+
+        Nothing else, so rewording the warning or a number in it moving
+        leaves the key as it was. Whitespace is run together,
+        since the key is one line of a comment and a subject can be several.
+        """
+        subject = " ".join(mark.subject.split())
+        return f"{self.check}: {subject}" if subject else str(self.check)
+
+    @property
+    def keys(self) -> tuple[str, ...]:
+        """Each mark's key, in the order of its marks."""
+        return tuple(self.key(mark) for mark in self.marks)
+
+
+KEY_LABEL = f"{PACKAGE_NAME}: "
+"""What opens the line of a comment saying which warning it is,
+as in `eta-publish: image-without-caption: bat-curve`.
+
+The line is how a later run finds the comment it left for a warning:
+to reword it, to resolve it once the warning is gone,
+and to reopen it where somebody resolved it and the warning is still there.
+"""
+
+
+def key_line(key: str) -> str:
+    """The line a comment ends with to say it is the one for `key`."""
+    return KEY_LABEL + key
+
 
 @dataclass(frozen=True)
 class Replace:
@@ -876,6 +908,13 @@ class Mark:
     text: tuple[Span, ...] = ()
     """What to say about this place, for a warning listing many:
     the line its list gives this one. Empty where the warning's own words are it."""
+
+    subject: str = ""
+    """What the place is, by whatever names it the same from one build to the next:
+    the field, the image's file, the link's URL, the text the fix is for.
+
+    The second half of its key, after the check.
+    Empty where the check alone says what it is about, as for the one headline."""
 
     @property
     def category(self) -> Category:
@@ -1340,6 +1379,7 @@ class Document:
         template: str,
         *values: Part,
         marks: Iterable[Mark | Location | None] = (),
+        about: str = "",
     ) -> None:
         """Warn of `check`, with `{}` in `template` wherever a value goes.
 
@@ -1350,9 +1390,18 @@ class Document:
         `marks` are the places in the document it is about. A bare `Location`
         is a mark with no fix, and `None` is a place the response did not say
         where it is, which is left out.
+
+        `about` is the subject of each mark that does not give its own:
+        what the warning is about, where it is about one thing.
         """
         placed = tuple(
-            Mark(mark) if isinstance(mark, Location) else mark for mark in marks if mark is not None
+            Mark(mark, subject=about)
+            if isinstance(mark, Location)
+            else mark
+            if mark.subject
+            else replace(mark, subject=about)
+            for mark in marks
+            if mark is not None
         )
         self.warnings.append(Notice(check, filled(template, values), placed))
 
