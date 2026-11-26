@@ -704,7 +704,7 @@ def header_field(line: list[Inline]) -> str:
 CLIP = 60
 
 
-def _clipped(line: str) -> str:
+def clipped(line: str) -> str:
     """A line short enough to quote in a warning, cut on a word where it has to be."""
     if len(line) <= CLIP:
         return line
@@ -986,9 +986,9 @@ class Parser:
                 "a paragraph has a stray {} standing in for blank space; "
                 "it is dropped, and a paragraph's spacing belongs in its style: {}",
                 Shown("Shift+Enter"),
-                Shown(_clipped(written[0]) if written else ""),
+                Shown(clipped(written[0]) if written else ""),
                 marks=marks,
-                about=_clipped(written[0]) if written else "",
+                about=clipped(written[0]) if written else "",
             )
             return
         self.doc.warn(
@@ -997,9 +997,9 @@ class Parser:
             "so lines that look separate are one paragraph; give each line its own:{}",
             Shown("Shift+Enter"),
             Shown("Enter"),
-            Listed(*((Shown(_clipped(line)),) for line in written)),
+            Listed(*((Shown(clipped(line)),) for line in written)),
             marks=marks,
-            about=_clipped(written[0]),
+            about=clipped(written[0]),
         )
 
     def _unbroken(self, para: JsonObject) -> Mark | None:
@@ -1384,7 +1384,7 @@ class Parser:
                     Shown("Source:"),
                     Shown(text[:80]),
                     marks=[pending_where],
-                    about=_clipped(text.strip()),
+                    about=clipped(text.strip()),
                 )
                 pending_source = None
 
@@ -1467,7 +1467,7 @@ class Parser:
                     "unfinished text in the document: {}",
                     Shown(text[:80]),
                     marks=[self.location(item)],
-                    about=_clipped(text),
+                    about=clipped(text),
                 )
 
             # Read once, here: what a line is depends on how it is styled,
@@ -1481,7 +1481,7 @@ class Parser:
                     "unfinished text in the document: {}",
                     Shown(written[start:end][:80]),
                     marks=[locate(inlines, start, end)],
-                    about=_clipped(written[start:end]),
+                    about=clipped(written[start:end]),
                 )
 
             if is_source_note(inlines) or is_asset_note(inlines):
@@ -1513,7 +1513,7 @@ class Parser:
                         Shown("Video:"),
                         Shown(text[:80]),
                         marks=[self.location(item)],
-                        about=_clipped(text),
+                        about=clipped(text),
                     )
                     out.append(Paragraph(content=unmarked(inlines), location=self.location(item)))
                     continue
@@ -1651,7 +1651,7 @@ class Parser:
                 Shown("Source:"),
                 Shown(source_href(source) or plain_text(source).strip()[:80]),
                 marks=[span(source)],
-                about=source_href(source) or _clipped(plain_text(source).strip()),
+                about=source_href(source) or clipped(plain_text(source).strip()),
             )
         name = source_name(source)
         if name:
@@ -1714,7 +1714,7 @@ class Parser:
                 "text sharing a paragraph with an image was dropped: {}",
                 Shown(prose[:80]),
                 marks=[where],
-                about=_clipped(prose),
+                about=clipped(prose),
             )
         return images[0]
 
@@ -1829,7 +1829,7 @@ class Parser:
                     Shown("Header"),
                     Shown(text[:80]),
                     marks=[self.location(item)],
-                    about=_clipped(text),
+                    about=clipped(text),
                 )
 
         end = start + 1
@@ -1951,17 +1951,17 @@ class Parser:
                     "a caption has to be a time range and what is said in it, as in {}; "
                     "leaving it out: {}",
                     Shown("0:04\u20130:04.7 Jesus"),
-                    Shown(_clipped(line.strip())),
+                    Shown(clipped(line.strip())),
                     marks=[where],
-                    about=_clipped(line.strip()),
+                    about=clipped(line.strip()),
                 )
             elif found.end <= found.start:
                 self.doc.warn(
                     Check.VIDEO_CAPTION_ENDS_BEFORE_START,
                     "a caption ends before it starts; leaving it out: {}",
-                    Shown(_clipped(line.strip())),
+                    Shown(clipped(line.strip())),
                     marks=[where],
-                    about=_clipped(line.strip()),
+                    about=clipped(line.strip()),
                 )
             else:
                 cues.append(found)
@@ -1987,7 +1987,7 @@ class Parser:
                 "{} is not a modifier {} takes; ignoring it: {}",
                 Shown(modifier),
                 Shown(f"{note.label}:"),
-                Shown(_clipped(text.strip())),
+                Shown(clipped(text.strip())),
                 marks=[locate(line, at, at + len(modifier)) if at >= 0 else span(line)],
                 about=modifier,
             )
@@ -2007,9 +2007,9 @@ class Parser:
                 Check.LABEL_UNDERLINE_RUNS_ON,
                 "the underline on {} runs past it into the value; underline the name only: {}",
                 Shown(f"{note.label}:"),
-                Shown(_clipped(plain_text(line).strip())),
+                Shown(clipped(plain_text(line).strip())),
                 marks=[_unbled(line, note)],
-                about=_clipped(plain_text(line).strip()),
+                about=clipped(plain_text(line).strip()),
             )
 
     def _meta_line(self, key: str, value: str, line: list[Inline]) -> str:
