@@ -32,7 +32,7 @@ body {
     margin: 0 auto;
     padding: 3rem 1.25rem 6rem;
     font:
-        300 17px / 1.65 Yaldevi,
+        300 1rem / 1.8 Yaldevi,
         Georgia,
         serif;
 }
@@ -41,6 +41,17 @@ body {
 strong,
 b {
     font-weight: 700;
+}
+/* A list's items are half as far apart as paragraphs are, as on etany.org. */
+.eta-report li + li {
+    margin-top: 0.5rem;
+}
+/* A footnote's number at three quarters of the text and with no line height,
+   as etany.org sets it: with one of its own, it pushed its line a few pixels
+   further from the line above. */
+sup {
+    font-size: 75%;
+    line-height: 0;
 }
 h1,
 h2,
