@@ -18,6 +18,7 @@ from dataclasses import dataclass, field
 
 from .check_names import Check
 from .nodes import SPACE, Document, Highlighted, Inline, Shown, plain_text
+from .parse import labelled
 
 CONTEXT = 30
 """How much of the line to show on either side of what is being warned about.
@@ -90,12 +91,33 @@ def _prose(doc: Document) -> Iterator[Prose]:
     would otherwise be the one piece of prose nothing here reads,
     and it is the piece that publishes as what a search result shows.
     The subtitle is taken out of the blocks the same way, so it is read here too.
+
+    A header value is read from the lines it was written on, not from `meta`,
+    where a value wrapped onto a second line is the two joined with a space:
+    the joined string has no one place in the document, and a line has.
+    A finding that would run from the end of one line into the start of the next,
+    such as a number and the unit after it, is not seen.
     """
-    for value in doc.meta.values():
-        yield Prose(value)
+    for key in doc.meta:
+        for number, line in enumerate(doc.header_lines[key].lines):
+            yield _header_value(list(line), keyed=not number)
     yield Prose(plain_text(doc.subtitle), doc.subtitle)
     for run, _ in doc.text_runs():
         yield Prose(plain_text(run), run)
+
+
+def _header_value(line: list[Inline], *, keyed: bool) -> Prose:
+    """What a line of the header says, without its `Key:` and the spaces around the value.
+
+    The same text `meta` holds for a value written on one line,
+    read from the inlines so that where it starts in them is known.
+    `keyed` is whether the line opens with its `Key:`:
+    the first line of a value does, and one wrapped onto from it does not.
+    """
+    written = plain_text(line)
+    start = labelled(line).mark_at + 1 if keyed else 0
+    value = written[start:]
+    return Prose(value.strip(), line, start + len(value) - len(value.lstrip()))
 
 
 def style(doc: Document) -> None:
