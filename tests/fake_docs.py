@@ -22,6 +22,10 @@ class Unit:
     char: str
     inserted: str | None = None
     deleted: set[str] = field(default_factory=set)
+    restyle: dict[str, tuple[str, object]] = field(default_factory=dict)
+    style: str = "NORMAL_TEXT"
+    """The paragraph's named style, on its newline."""
+    restyle_paragraph: dict[str, str] = field(default_factory=dict)
 
 
 class FakeDocs:
@@ -148,7 +152,7 @@ class FakeDocs:
         def key(unit: Unit) -> tuple[object, ...]:
             if not inline:
                 return ()
-            return (unit.inserted, tuple(sorted(unit.deleted)))
+            return (unit.inserted, tuple(sorted(unit.deleted)), tuple(sorted(unit.restyle.items())))
 
         for _, run in groupby(units, key=key):
             run = list(run)
@@ -159,12 +163,34 @@ class FakeDocs:
                     text_run["suggestedInsertionIds"] = [first.inserted]
                 if first.deleted:
                     text_run["suggestedDeletionIds"] = sorted(first.deleted)
+                if first.restyle:
+                    text_run["suggestedTextStyleChanges"] = {
+                        sid: {
+                            "textStyle": {name: {"url": value} if name == "link" else value}
+                            if value
+                            else {},
+                            "textStyleSuggestionState": {f"{name}Suggested": True},
+                        }
+                        for sid, (name, value) in first.restyle.items()
+                    }
             element: JsonObject = {"endIndex": at + len(run), "textRun": text_run}
             if at:
                 element["startIndex"] = at
             elements.append(element)
             at += len(run)
-        paragraph: JsonObject = {"elements": elements}
+        last = units[-1]
+        paragraph: JsonObject = {
+            "elements": elements,
+            "paragraphStyle": {"namedStyleType": last.style},
+        }
+        if inline and last.restyle_paragraph:
+            paragraph["suggestedParagraphStyleChanges"] = {
+                sid: {
+                    "paragraphStyle": {"namedStyleType": named},
+                    "paragraphStyleSuggestionState": {"namedStyleTypeSuggested": True},
+                }
+                for sid, named in last.restyle_paragraph.items()
+            }
         found: JsonObject = {"endIndex": start + len(units), "paragraph": paragraph}
         if start:
             found["startIndex"] = start

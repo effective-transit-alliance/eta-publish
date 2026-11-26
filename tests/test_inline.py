@@ -5,11 +5,22 @@ and looked for in the document as it reads with every suggestion in it.
 """
 
 import pytest
-from fake_docs import FakeDocs
+from fake_docs import FakeDocs, Unit
 
 from eta_publish.docs_json import JsonObject
-from eta_publish.inline import PLACEHOLDER, Live, Units, Unplaceable, align, read_units
-from eta_publish.nodes import utf16_length
+from eta_publish.inline import (
+    PLACEHOLDER,
+    Change,
+    Kind,
+    Live,
+    Units,
+    Unplaceable,
+    align,
+    read_units,
+    suggested_changes,
+    wanted_change,
+)
+from eta_publish.nodes import Link, ParagraphStyle, Replace, Underline, utf16_length
 
 BODY = "A headline\nThe line is 137 feet long, and the ETA says so.\nA last paragraph.\n"
 
@@ -156,3 +167,83 @@ def test_the_text_as_it_will_be_once_suggestions_are_deleted() -> None:
     assert all(kept.deleted[where.start : where.end])
     # Lined up with the build's reading, which has neither, the text left is the same.
     assert align(kept, seen(docs)[None]).aligned
+
+
+# ---- what an open suggestion changes ---------------------------------------
+
+
+def person_replaces(docs: FakeDocs, old: str, new: str) -> str:
+    """Someone suggests `new` in place of `old`, as Docs makes a replacement:
+    a deletion, and the insertion just before it, under one suggestion id."""
+    sid = docs.person_deletes(old)
+    units = docs.segments[None]
+    at = next(i for i, unit in enumerate(units) if sid in unit.deleted)
+    units[at:at] = [Unit(c, inserted=sid) for c in new]
+    return sid
+
+
+def person_restyles(docs: FakeDocs, text: str, name: str, value: object) -> str:
+    """Someone suggests underlining or linking `text`, in a body with no insertion before it."""
+    sid = f"suggest.style.{name}"
+    where = docs.at(text)
+    for unit in docs.segments[None][where.start - 1 : where.end - 1]:
+        unit.restyle[sid] = (name, value)
+    return sid
+
+
+def test_what_a_suggestion_inserts_or_deletes_is_the_edit_a_fix_asks_for() -> None:
+    docs = FakeDocs(BODY)
+    inserted = docs.person_inserts("XYZ ", after="A head")
+    deleted = docs.person_deletes("137 ")
+    replaced = person_replaces(docs, "last", "final")
+    edits = {
+        inserted: Replace(docs.point("A head"), "XYZ "),
+        deleted: Replace(docs.at("137 "), ""),
+        replaced: Replace(docs.at("last"), "final"),
+    }
+    read = seen(docs)
+    assert suggested_changes(lives(docs), set(edits)) == {
+        sid: [wanted_change(edit, read)] for sid, edit in edits.items()
+    }
+
+
+def test_a_suggestion_split_by_someone_elses_insertion_is_still_one_change() -> None:
+    docs = FakeDocs(BODY)
+    where = docs.at("137 feet")
+    deleted = docs.person_deletes("137 feet")
+    underlined = person_restyles(docs, "137 feet", "underline", True)
+    docs.person_inserts("X", after="137 f")
+    assert suggested_changes(lives(docs), {deleted, underlined}) == {
+        deleted: [Change(Kind.REPLACE, None, where.start, where.end, "")],
+        underlined: [Change(Kind.UNDERLINE, None, where.start, where.end, True)],
+    }
+
+
+def test_a_suggested_style_is_the_edit_a_fix_asks_for() -> None:
+    docs = FakeDocs(BODY)
+    underlined = person_restyles(docs, "137", "underline", True)
+    linked = person_restyles(docs, "last", "link", "https://example.org/")
+    restyled = "suggest.paragraph"
+    docs.segments[None][BODY.index("\n")].restyle_paragraph[restyled] = "NORMAL_TEXT"
+    edits = {
+        underlined: Underline(docs.at("137"), underline=True),
+        linked: Link(docs.at("last"), "https://example.org/"),
+        # Anywhere in the paragraph: a paragraph's style is the whole paragraph's.
+        restyled: ParagraphStyle(docs.at("head"), "NORMAL_TEXT"),
+    }
+    read = seen(docs)
+    assert suggested_changes(lives(docs), set(edits)) == {
+        sid: [wanted_change(edit, read)] for sid, edit in edits.items()
+    }
+
+
+def test_a_style_docs_gives_a_suggested_insertion_is_not_a_change_of_its_own() -> None:
+    docs = FakeDocs(BODY)
+    inserted = docs.person_inserts("XYZ ", after="A head")
+    for unit in docs.segments[None]:
+        if unit.inserted == inserted:
+            unit.restyle[inserted] = ("underline", True)
+    at = docs.point("A head").start
+    assert suggested_changes(lives(docs), {inserted}) == {
+        inserted: [Change(Kind.REPLACE, None, at, at, "XYZ ")]
+    }
