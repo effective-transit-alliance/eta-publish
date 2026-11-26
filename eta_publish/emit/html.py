@@ -61,6 +61,7 @@ from ..nodes import (
     Text,
     plain_text,
 )
+from ..squarespace import SITE_NAME
 from .base import (
     PLATFORM_NAMES,
     Emitter,
@@ -1656,13 +1657,15 @@ def publication_page(
         # and these pages are served from a path under it.
         # Remove this, and `site/unpublished/robots.txt`, when the publications go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
-        tag.title[doc.title],
+        # As etany.org titles its own pages, the site's name after the page's,
+        # so a tab of the preview reads as the page it previews.
+        tag.title[f"{doc.title} \N{EM DASH} {SITE_NAME}"],
         # Without one a browser shows whatever it last cached for the host, or nothing.
         htpy.link(rel="icon", type="image/svg+xml", href=f"{asset_base}/logo.svg"),
         htpy.meta(name="description", content=description),
         # What a link to the publication unfurls as, beside the card's picture.
         htpy.meta(property="og:type", content="article"),
-        htpy.meta(property="og:site_name", content="Effective Transit Alliance"),
+        htpy.meta(property="og:site_name", content=SITE_NAME),
         *([htpy.meta(property="og:url", content=page_url)] if page_url else []),
         htpy.meta(property="og:title", content=doc.title),
         htpy.meta(property="og:description", content=description),
