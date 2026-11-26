@@ -263,8 +263,13 @@ It touches only its own threads, never a person's:
 The warnings are worked out afresh from the document as it is,
 with what the last build recorded about its images, embeds, and sources,
 so they are a build's, less the few only a download finds.
-Every place is checked against the text as the build read it before anything is written there;
-a fix that would overlap or touch an open suggestion is skipped, and says so.
+Every place is checked against the text as the build read it before anything is written there.
+A fix whose suggestion would overlap or touch someone else's open suggestion
+becomes a comment with the fix written out,
+and once theirs is out of the way, a later run suggests the fix and resolves the comment;
+`--overlap suggest` suggests it over theirs instead, and `--overlap skip` leaves it, saying so.
+A fix is never suggested over one of its own suggestions for another warning,
+since Docs merges overlapping suggestions by one author into one.
 
 Each document has to be shared with `eta-publish-ci@eta-publish.iam.gserviceaccount.com`
 as a **Commenter**, which is enough to suggest and comment, and not to edit.

@@ -13,6 +13,7 @@ from eta_publish.inline import (
     Change,
     Kind,
     Live,
+    Overlapping,
     Units,
     Unplaceable,
     align,
@@ -151,6 +152,21 @@ def test_an_insertion_may_not_go_against_someone_elses_insertion() -> None:
         live.place(where.start, where.end, clear=True)
     at, _ = live.place(where.start, where.end, clear=False)
     assert live.units.text(at, at + len("137")) == "137"
+
+
+def test_a_place_in_the_way_of_open_suggestions_says_which_they_are() -> None:
+    docs = FakeDocs(BODY)
+    deleted = docs.person_deletes("137 feet")
+    inserted = docs.person_inserts("very ", after="The line is ")
+    live = lives(docs)[None]
+    where = docs.at("feet")
+    with pytest.raises(Overlapping) as overlapping:
+        live.place(where.start, where.end, clear=True)
+    assert overlapping.value.ids == {deleted}
+    point = docs.point("The line is ")
+    with pytest.raises(Overlapping) as overlapping:
+        live.place(point.start, point.end, clear=True)
+    assert overlapping.value.ids == {inserted}
 
 
 def test_the_text_as_it_will_be_once_suggestions_are_deleted() -> None:

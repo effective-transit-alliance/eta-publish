@@ -49,6 +49,7 @@ from .inline import (
     Change,
     Kind,
     Live,
+    Overlapping,
     Units,
     Unplaceable,
     align,
@@ -170,6 +171,37 @@ def _explain(error: HttpError) -> str:
     return f"the API returned {error.status_code}: {error.reason}"
 
 
+# ---- in the way of someone else's suggestion ----------------------------
+
+
+class Overlap(StrEnum):
+    """What to do with a fix whose suggestion would overlap or touch someone else's."""
+
+    SUGGEST = "suggest"
+    """Suggest it all the same, over theirs."""
+    COMMENT = "comment"
+    """Comment instead, with the fix written out."""
+    SKIP = "skip"
+    """Leave it, and say so."""
+
+
+def _place_fix(
+    live: Live, start: int, end: int, ours: set[str], overlap: Overlap
+) -> tuple[int, int]:
+    """Where a suggestion for `start` to `end` goes, as `Live.place` puts it with `clear`,
+    or over someone else's open suggestion if `overlap` says to suggest anyway.
+
+    Never over one of ours: Docs makes two overlapping suggestions by one author one,
+    and a fix merged into one of ours is then neither.
+    """
+    try:
+        return live.place(start, end, clear=True)
+    except Overlapping as e:
+        if overlap is Overlap.SUGGEST and not e.ids & ours:
+            return live.place(start, end, clear=False)
+        raise
+
+
 # ---- the plan ----------------------------------------------------------
 
 
@@ -220,12 +252,16 @@ class Step:
     """Whether its write was sent and taken. A step a failed batch was to make is not."""
 
 
-def comment_text(notice: Notice, mark: Mark, key: str) -> str:
+def comment_text(notice: Notice, mark: Mark, key: str, fix: str = "") -> str:
     """A comment's text: what the warning says there, then its key, on a line of its own.
 
+    With `fix`, a fix written out in place of the suggestion it could not be made as,
+    on a line of its own before the key.
     Cut short to fit, which only ever loses words of the warning: the key is what finds it again.
     """
     last = "\n" + key_line(key)
+    if fix:
+        last = f"\nNot suggested, since it would overlap someone else's suggestion: {fix}." + last
     said = notice.said_at(mark)
     room = COMMENT_LIMIT - len(last.encode())
     if len(said.encode()) > room:
@@ -278,6 +314,8 @@ class Placed:
     notice: Notice
     mark: Mark
     key: str
+    fix: str = ""
+    """A fix written out, for a comment made in place of its suggestion."""
 
 
 def plan(
@@ -285,6 +323,7 @@ def plan(
     seen: dict[str | None, Units],
     document: JsonObject,
     tab: str,
+    overlap: Overlap = Overlap.COMMENT,
 ) -> list[Step]:
     """What to do so the document says what the warnings say, and no more of what it said.
 
@@ -296,16 +335,22 @@ def plan(
     has no suggestion open and is suggested again, as a resolved comment is reopened:
     a warning is answered by fixing the document, or by fixing `eta-publish` where it is wrong.
     The API has no way to reopen a rejected suggestion, so the new one is a suggestion of its own.
+
+    A fix whose suggestion would overlap or touch someone else's open suggestion
+    is done as `overlap` says. As a comment, it is a comment like any other:
+    once the suggestion in the way is gone, the fix is suggested and the comment resolved.
     """
     content = tab_content(document, tab)
     lives = {
         segment: align(units, seen.get(segment)) for segment, units in read_units(content).items()
     }
     placed = [Placed(notice, mark, notice.key(mark)) for notice in notices for mark in notice.marks]
-    steps: list[Step] = []
-    steps += _plan_comments([p for p in placed if not p.mark.fix], document, content, tab, lives)
-    steps += _plan_suggestions([p for p in placed if p.mark.fix], document, lives, seen)
-    return steps
+    suggesting, instead = _plan_suggestions(
+        [p for p in placed if p.mark.fix], document, lives, seen, overlap
+    )
+    suggested = {step.key for step in suggesting if step.verb in (Verb.CREATE, Verb.KEEP)}
+    commenting = [p for p in placed if not p.mark.fix] + instead
+    return [*_plan_comments(commenting, document, content, tab, lives, suggested), *suggesting]
 
 
 def _placeable(mark: Mark, lives: dict[str | None, Live]) -> str:
@@ -321,18 +366,25 @@ def _placeable(mark: Mark, lives: dict[str | None, Live]) -> str:
     return ""
 
 
-def _fixable(mark: Mark, lives: dict[str | None, Live]) -> str:
-    """Why a mark's fix cannot be suggested where it is, or nothing if it can."""
+def _fixable(
+    mark: Mark, lives: dict[str | None, Live], ours: set[str], overlap: Overlap
+) -> Unplaceable | None:
+    """Why a mark's fix cannot be suggested where it is, or `None` if it can."""
     for edit in mark.fix:
         where = edit.location
         live = lives.get(where.segment_id)
         if live is None:
-            return "its footnote is not in the document as read for writing"
+            return Unplaceable("its footnote is not in the document as read for writing")
         try:
-            live.place(where.start, where.end, clear=True)
+            _place_fix(live, where.start, where.end, ours, overlap)
         except Unplaceable as e:
-            return str(e)
-    return ""
+            return e
+    return None
+
+
+def _theirs(reason: Unplaceable | None, ours: set[str]) -> bool:
+    """Whether what is in a fix's way is a suggestion of someone else's."""
+    return isinstance(reason, Overlapping) and bool(reason.ids - ours)
 
 
 def _plan_comments(
@@ -341,7 +393,9 @@ def _plan_comments(
     content: JsonObject,
     tab: str,
     lives: dict[str | None, Live],
+    suggested: set[str],
 ) -> list[Step]:
+    """`suggested` is the keys suggested as a fix, whose comments are resolved as that."""
     here = content.get("commentAnchors", {})
     elsewhere = {
         anchor
@@ -396,9 +450,10 @@ def _plan_comments(
             }
             if one is None:
                 if thread.get("status") != "RESOLVED":
-                    steps.append(Step(Verb.RESOLVE, Thing.COMMENT, key, "no longer warned", **ids))
+                    why = "suggested as a fix now" if key in suggested else "no longer warned"
+                    steps.append(Step(Verb.RESOLVE, Thing.COMMENT, key, why, **ids))
                 continue
-            text = comment_text(one.notice, one.mark, key)
+            text = comment_text(one.notice, one.mark, key, one.fix)
             if where is None:
                 steps.append(
                     Step(Verb.DELETE, Thing.COMMENT, key, "the text it was on is gone", **ids)
@@ -440,7 +495,9 @@ def _create_comment(one: Placed, lives: dict[str | None, Live], why: str = "") -
     reason = _placeable(one.mark, lives)
     if reason:
         return Step(Verb.SKIP, Thing.COMMENT, one.key, reason, mark=one.mark)
-    text = comment_text(one.notice, one.mark, one.key)
+    if one.fix and not why:
+        why = "its fix would overlap someone else's suggestion"
+    text = comment_text(one.notice, one.mark, one.key, one.fix)
     return Step(Verb.CREATE, Thing.COMMENT, one.key, why, mark=one.mark, content=text)
 
 
@@ -449,12 +506,11 @@ def _plan_suggestions(
     document: JsonObject,
     lives: dict[str | None, Live],
     seen: dict[str | None, Units],
-) -> list[Step]:
-    ours = {
-        thread["suggestionId"]: thread
-        for thread in document.get("suggestions", [])
-        if thread.get("headPost", {}).get("author", {}).get("me")
-    }
+    overlap: Overlap,
+) -> tuple[list[Step], list[Placed]]:
+    """The steps for the marks with a fix, and the marks to comment on instead."""
+    ours = _own_suggestions(document)
+    mine = set(ours)
     open_ids = {sid for sid, thread in ours.items() if thread.get("status") == "OPEN"}
     on_tab = suggested_changes(lives, open_ids)
     # Each open change of ours, by what it changes, with the suggestions making it.
@@ -470,6 +526,7 @@ def _plan_suggestions(
                     open_changes[part].append(sid)
 
     steps: list[Step] = []
+    creating: list[tuple[Step, Placed]] = []
     claimed: set[str] = set()
     for one in sorted(placed, key=lambda p: _order(p.mark.location)):
         changes = [wanted_change(edit, seen) for edit in one.mark.fix]
@@ -478,7 +535,8 @@ def _plan_suggestions(
                 claimed.add(open_changes[change].pop(0))
             steps.append(Step(Verb.KEEP, Thing.SUGGESTION, one.key, mark=one.mark))
             continue
-        steps.append(Step(Verb.CREATE, Thing.SUGGESTION, one.key, mark=one.mark))
+        creating.append((Step(Verb.CREATE, Thing.SUGGESTION, one.key, mark=one.mark), one))
+        steps.append(creating[-1][0])
     deleting: set[str] = set()
     for sid in sorted(set(on_tab) - claimed):
         segments = {change.segment for change in on_tab[sid]}
@@ -505,10 +563,21 @@ def _plan_suggestions(
         for segment, live in lives.items()
     }
     planned: dict[str | None, list[tuple[int, int]]] = defaultdict(list)
-    for step in steps:
-        if step.verb is not Verb.CREATE or step.mark is None:
+    instead: list[Placed] = []
+    commented: set[int] = set()
+    for step, one in creating:
+        unplaceable = _fixable(one.mark, after, mine, Overlap.SKIP)
+        if _theirs(unplaceable, mine) and overlap is Overlap.COMMENT:
+            fix = "; ".join(_edit_said(edit, seen, width=None) for edit in one.mark.fix)
+            instead.append(replace(one, fix=fix))
+            commented.add(id(step))
             continue
-        reason = _fixable(step.mark, after)
+        if _theirs(unplaceable, mine) and overlap is Overlap.SUGGEST:
+            unplaceable = _fixable(one.mark, after, mine, overlap)
+            if unplaceable is None:
+                step.why = "over someone else's open suggestion"
+        reason = str(unplaceable or "")
+        assert step.mark is not None
         spans = [(e.location.segment_id, e.location.start, e.location.end) for e in step.mark.fix]
         if not reason and any(
             _overlap((start, end), other)
@@ -524,7 +593,17 @@ def _plan_suggestions(
             continue
         for segment, start, end in spans:
             planned[segment].append((start, end))
-    return steps
+    # A fix commented on instead is that comment's step, not one of these.
+    return [step for step in steps if id(step) not in commented], instead
+
+
+def _own_suggestions(document: JsonObject) -> dict[str, JsonObject]:
+    """The service account's own suggestions on the document, by id, whatever their status."""
+    return {
+        thread["suggestionId"]: thread
+        for thread in document.get("suggestions", [])
+        if thread.get("headPost", {}).get("author", {}).get("me")
+    }
 
 
 def _overlap(one: tuple[int, int], other: tuple[int, int]) -> bool:
@@ -642,7 +721,7 @@ def _comment_request(step: Step, lives: dict[str | None, Live], tab: str) -> Jso
 
 
 def _suggestion_requests(
-    step: Step, lives: dict[str | None, Live], tab: str
+    step: Step, lives: dict[str | None, Live], tab: str, ours: set[str], overlap: Overlap
 ) -> list[tuple[str | None, int, list[JsonObject]]]:
     """Each edit of a mark's fix as the requests making it, with where it starts."""
     assert step.mark is not None
@@ -653,7 +732,10 @@ def _suggestion_requests(
         live = lives.get(segment)
         if live is None:
             raise Unplaceable("its footnote is not in the document as read for writing")
-        start, end = live.place(where.start, where.end, clear=not isinstance(edit, ParagraphStyle))
+        if isinstance(edit, ParagraphStyle):
+            start, end = live.place(where.start, where.end, clear=False)
+        else:
+            start, end = _place_fix(live, where.start, where.end, ours, overlap)
         requests: list[JsonObject] = []
         match edit:
             case Replace(text=text):
@@ -713,7 +795,12 @@ def read(api: Api, doc_id: str) -> tuple[JsonObject, JsonObject]:
 
 
 def carry_out(
-    api: Api, doc_id: str, tab: str, steps: list[Step], seen: dict[str | None, Units]
+    api: Api,
+    doc_id: str,
+    tab: str,
+    steps: list[Step],
+    seen: dict[str | None, Units],
+    overlap: Overlap = Overlap.COMMENT,
 ) -> None:
     """Make the writes `steps` plan, in three batches, reading the document again before each.
 
@@ -722,7 +809,9 @@ def carry_out(
     a suggestion deleted in the first batch takes its text with it.
     The suggestions go last to first, so none moves the place of one after it.
     The last two are sent only if the document is still at the revision they were placed in,
-    and placed again if it is not. A step that can no longer be placed is skipped.
+    and placed again if it is not. A step that can no longer be placed is skipped,
+    and so is a suggestion someone else's has got in the way of since the plan,
+    unless `overlap` says to suggest anyway.
     """
     threads = _thread_requests(steps)
     if threads:
@@ -742,6 +831,7 @@ def carry_out(
                 step.why = why[id(step)]
             creating = list(wanted)
             _, inline = read(api, doc_id)
+            ours = set(_own_suggestions(inline))
             lives = {
                 segment: align(units, seen.get(segment))
                 for segment, units in read_units(tab_content(inline, tab)).items()
@@ -752,7 +842,7 @@ def carry_out(
                     if thing is Thing.COMMENT:
                         placed.append((step, [(None, 0, [_comment_request(step, lives, tab)])]))
                     else:
-                        placed.append((step, _suggestion_requests(step, lives, tab)))
+                        placed.append((step, _suggestion_requests(step, lives, tab, ours, overlap)))
                 except Unplaceable as e:
                     step.verb = Verb.SKIP
                     step.why = str(e)
@@ -876,6 +966,7 @@ def suggest(
     records: Path | None,
     apply: bool,
     warnings: Callable[[JsonObject, Path | None], tuple[Document, list[str]]] | None = None,
+    overlap: Overlap = Overlap.COMMENT,
 ) -> Outcome:
     """Work out what writing into one publication's document takes, and do it if `apply`.
 
@@ -897,17 +988,17 @@ def suggest(
         tab = str(document.get("tabId", ""))
         outcome.seen = read_units(document)
         notices = [notice for notice in doc.warnings if notice.marks]
-        outcome.steps = plan(notices, outcome.seen, inline, tab)
+        outcome.steps = plan(notices, outcome.seen, inline, tab, overlap)
         if apply:
-            carry_out(api, doc_id, tab, outcome.steps, outcome.seen)
+            carry_out(api, doc_id, tab, outcome.steps, outcome.seen, overlap)
     except (SuggestFailed, LookupError, ValueError) as e:
         outcome.error = str(e)
     return outcome
 
 
-def _quoted(text: str, width: int = 40) -> str:
+def _quoted(text: str, width: int | None = 40) -> str:
     text = " ".join(text.replace(PLACEHOLDER, " ").split())
-    return f"“{text if len(text) <= width else text[: width - 1] + '…'}”"
+    return f"“{text if width is None or len(text) <= width else text[: width - 1] + '…'}”"
 
 
 def describe(step: Step, seen: dict[str | None, Units]) -> str:
@@ -928,19 +1019,22 @@ def describe(step: Step, seen: dict[str | None, Units]) -> str:
     return line
 
 
-def _edit_said(edit: Edit, seen: dict[str | None, Units]) -> str:
+def _edit_said(edit: Edit, seen: dict[str | None, Units], width: int | None = 40) -> str:
+    """One edit in words, its text cut to `width`; `None` writes it out whole."""
     where = edit.location
     units = seen.get(where.segment_id)
     old = units.text(where.start, where.end) if units is not None else ""
     match edit:
         case Replace(text=text):
             if not old:
-                return f"insert {_quoted(text)}"
-            return f"{_quoted(old)} to {_quoted(text)}" if text else f"delete {_quoted(old)}"
+                return f"insert {_quoted(text, width)}"
+            if not text:
+                return f"delete {_quoted(old, width)}"
+            return f"{_quoted(old, width)} to {_quoted(text, width)}"
         case Underline(underline=underline):
-            return f"{'underline' if underline else 'take the underline off'} {_quoted(old)}"
+            return f"{'underline' if underline else 'take the underline off'} {_quoted(old, width)}"
         case Link(url=url):
-            return f"link {_quoted(old)} to {url}"
+            return f"link {_quoted(old, width)} to {url}"
         case ParagraphStyle(style=named):
             return f"make the paragraph {named}"
 

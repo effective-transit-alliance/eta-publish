@@ -63,7 +63,7 @@ from .site import (
     saved_for,
     saved_responses,
 )
-from .suggest import DocsApi, tally
+from .suggest import DocsApi, Overlap, tally
 from .suggest import suggest as suggest_one
 from .suggest import write as write_outcome
 
@@ -295,12 +295,22 @@ def suggest(
         bool,
         Option("--apply", help="write it into the documents; without it, only say what it would"),
     ] = False,
+    overlap: Annotated[
+        Overlap,
+        Option(
+            "--overlap",
+            help="a fix whose suggestion would overlap or touch someone else's open suggestion:"
+            " suggested anyway, commented on with the fix written out, or skipped",
+        ),
+    ] = Overlap.COMMENT,
 ) -> None:
     """Turn each publication's warnings into suggestions and comments in its document.
 
     A warning whose fix is known becomes a suggested edit where it is about,
     one only a person can fix becomes a comment there,
     and one about no place in the document stays in the build's report.
+    A fix that would overlap someone else's open suggestion is a comment too,
+    with the fix written out, unless `--overlap` says to suggest it anyway or skip it.
     Signed by the service account `eta-publish-ci`, which needs each document shared with it
     as a Commenter; see `suggest.py` for how a second run knows its own threads again.
 
@@ -324,7 +334,9 @@ def suggest(
     outcomes = []
     for publication in chosen:
         assert api is not None
-        outcome = suggest_one(api, publication, saved_for(publication, saved), apply)
+        outcome = suggest_one(
+            api, publication, saved_for(publication, saved), apply, overlap=overlap
+        )
         write_outcome(outcome, apply, log)
         outcomes.append(outcome)
     console.write(tally(outcomes, apply), log)

@@ -49,6 +49,8 @@ class Units:
     """Whether each unit is in a suggested insertion, whoever suggested it."""
     deleted: list[bool] = field(default_factory=list)
     """Whether each unit is in a suggested deletion, whoever suggested it."""
+    by: list[frozenset[str]] = field(default_factory=list)
+    """The suggestions inserting or deleting each unit, by id."""
     paragraphs: list[tuple[int, int]] = field(default_factory=list)
     pieces: list[Piece] = field(default_factory=list)
     restyled_paragraphs: list[tuple[int, int, str, str]] = field(default_factory=list)
@@ -59,6 +61,7 @@ class Units:
             self.chars.append(PLACEHOLDER)
             self.inserted.append(False)
             self.deleted.append(False)
+            self.by.append(frozenset())
 
     def put(
         self, start: int, end: int, text: str, inserted: Sequence[str], deleted: Sequence[str]
@@ -82,6 +85,7 @@ class Units:
         for at in range(start, end):
             self.inserted[at] = self.inserted[at] or bool(inserted)
             self.deleted[at] = self.deleted[at] or bool(deleted)
+            self.by[at] = self.by[at] | {*inserted, *deleted}
 
     def text(self, start: int, end: int) -> str:
         return "".join(self.chars[start:end])
@@ -105,7 +109,12 @@ class Units:
             [self.chars[at] for at in kept],
             [self.inserted[at] for at in kept],
             [deleted[at] for at in kept],
+            [self.by[at] - ids for at in kept],
         )
+
+    def suggesting(self, start: int, end: int) -> frozenset[str]:
+        """The suggestions inserting or deleting any of the units `start` to `end`."""
+        return frozenset().union(*self.by[start:end])
 
     def paragraph_at(self, index: int) -> tuple[int, int] | None:
         return next(((s, e) for s, e in self.paragraphs if s <= index < e), None)
@@ -186,6 +195,15 @@ class Unplaceable(Exception):
     """A place that cannot be written to safely, and why."""
 
 
+class Overlapping(Unplaceable):
+    """A place a suggestion cannot go without overlapping or touching open suggestions."""
+
+    def __init__(self, why: str, ids: frozenset[str]) -> None:
+        super().__init__(why)
+        self.ids = ids
+        """The suggestions in the way, by id."""
+
+
 @dataclass
 class Live:
     """A segment as it is with every suggestion in it, lined up with the build's reading of it.
@@ -222,12 +240,15 @@ class Live:
             at = self.inline_of[start] if start < count else len(self.units.chars)
             after = self.inline_of[start - 1] + 1 if start else 0
             if clear and at != after:
-                raise Unplaceable("someone's suggested insertion is right there")
+                raise Overlapping(
+                    "someone's suggested insertion is right there",
+                    self.units.suggesting(after, at),
+                )
             return at, at
         first = self.inline_of[start]
         last = self.inline_of[end - 1] + 1
-        if clear and (any(self.units.inserted[first:last]) or any(self.units.deleted[first:last])):
-            raise Unplaceable("it overlaps a suggestion still open there")
+        if clear and (in_way := self.units.suggesting(first, last)):
+            raise Overlapping("it overlaps a suggestion still open there", in_way)
         return first, last
 
 

@@ -35,6 +35,7 @@ from eta_publish.site import Publication
 from eta_publish.suggest import (
     DocsApi,
     Outcome,
+    Overlap,
     SuggestFailed,
     Thing,
     Verb,
@@ -64,8 +65,12 @@ def given(*notices: Notice) -> Callable[[JsonObject, Path | None], tuple[Documen
     return warnings
 
 
-def run(docs: FakeDocs, *notices: Notice, apply: bool = True) -> Outcome:
-    outcome = suggest(docs, Publication(url=URL), None, apply, warnings=given(*notices))
+def run(
+    docs: FakeDocs, *notices: Notice, apply: bool = True, overlap: Overlap = Overlap.COMMENT
+) -> Outcome:
+    outcome = suggest(
+        docs, Publication(url=URL), None, apply, warnings=given(*notices), overlap=overlap
+    )
     assert not outcome.error, outcome.error
     return outcome
 
@@ -74,10 +79,12 @@ def verbs(outcome: Outcome) -> list[tuple[Verb, Thing, str]]:
     return [(step.verb, step.thing, step.key) for step in outcome.steps]
 
 
-def again_changes_nothing(docs: FakeDocs, *notices: Notice) -> None:
+def again_changes_nothing(
+    docs: FakeDocs, *notices: Notice, overlap: Overlap = Overlap.COMMENT
+) -> None:
     """The second run of the same warnings, which has to leave the document as it is."""
     sent = len(docs.batches)
-    outcome = run(docs, *notices)
+    outcome = run(docs, *notices, overlap=overlap)
     assert {step.verb for step in outcome.steps} <= {Verb.KEEP}
     assert len(docs.batches) == sent
 
@@ -357,7 +364,7 @@ def test_what_someone_suggested_before_a_warning_moves_where_it_is_written() -> 
 def test_a_fix_overlapping_someone_elses_suggestion_is_skipped_and_said_why() -> None:
     docs = FakeDocs(BODY)
     docs.person_deletes("137 feet")
-    outcome = run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))))
+    outcome = run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))), overlap=Overlap.SKIP)
     ((verb, why),) = [(step.verb, step.why) for step in outcome.steps]
     assert verb is Verb.SKIP
     assert "overlaps a suggestion" in why
@@ -367,8 +374,71 @@ def test_a_fix_overlapping_someone_elses_suggestion_is_skipped_and_said_why() ->
 def test_an_insertion_against_someone_elses_insertion_is_skipped() -> None:
     docs = FakeDocs(BODY)
     docs.person_inserts("very ", after="The line is ")
-    outcome = run(docs, warned(fixed(docs, Replace(docs.point("The line is "), "now "))))
+    notice = warned(fixed(docs, Replace(docs.point("The line is "), "now ")))
+    outcome = run(docs, notice, overlap=Overlap.SKIP)
     assert [step.verb for step in outcome.steps] == [Verb.SKIP]
+
+
+def test_a_fix_overlapping_someone_elses_suggestion_is_a_comment_with_the_fix_by_default() -> None:
+    docs = FakeDocs(BODY)
+    theirs = docs.person_deletes("137 feet")
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
+    outcome = run(docs, notice)
+    assert verbs(outcome) == [(Verb.CREATE, Thing.COMMENT, notice.key(notice.marks[0]))]
+    assert outcome.steps[0].why == "its fix would overlap someone else's suggestion"
+    (comment,) = docs.comments
+    assert comment["headPost"]["content"].splitlines()[1:] == [
+        "Not suggested, since it would overlap someone else's suggestion: “feet” to “ft”.",
+        key_line(notice.key(notice.marks[0])),
+    ]
+    assert docs.commented(comment["commentId"]) == "feet"
+    assert docs.open_suggestions() == [theirs]
+    again_changes_nothing(docs, notice)
+
+    # Once theirs is gone, the fix is suggested, and the comment resolved as that.
+    docs.person_rejects(theirs)
+    outcome = run(docs, notice)
+    assert sorted((step.verb, step.thing, step.why) for step in outcome.steps) == [
+        (Verb.CREATE, Thing.SUGGESTION, ""),
+        (Verb.RESOLVE, Thing.COMMENT, "suggested as a fix now"),
+    ]
+    (ours,) = docs.open_suggestions()
+    assert docs.suggested_by(ours) == ("ft", "feet")
+    again_changes_nothing(docs, notice)
+
+
+@pytest.mark.parametrize("insertion", [False, True], ids=["over a deletion", "at an insertion"])
+def test_a_fix_overlapping_someone_elses_suggestion_is_suggested_anyway_if_asked(
+    insertion: bool,
+) -> None:
+    docs = FakeDocs(BODY)
+    if insertion:
+        theirs = docs.person_inserts("very ", after="The line is ")
+        notice = warned(fixed(docs, Replace(docs.point("The line is "), "now ")))
+    else:
+        theirs = docs.person_deletes("137 feet")
+        notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
+    outcome = run(docs, notice, overlap=Overlap.SUGGEST)
+    assert [(step.verb, step.why) for step in outcome.steps] == [
+        (Verb.CREATE, "over someone else's open suggestion")
+    ]
+    (ours,) = [sid for sid in docs.open_suggestions() if sid != theirs]
+    assert docs.suggested_by(ours) == (("now ", "") if insertion else ("ft", "feet"))
+    assert theirs in docs.open_suggestions()
+    again_changes_nothing(docs, notice, overlap=Overlap.SUGGEST)
+
+
+def test_a_fix_is_never_suggested_over_one_of_ours() -> None:
+    docs = FakeDocs(BODY)
+    first = warned(fixed(docs, Replace(docs.at("137 feet"), "137 ft")))
+    run(docs, first)
+    second = warned(fixed(docs, Replace(docs.at("feet"), "foot"), subject="x"))
+    for overlap in Overlap:
+        outcome = run(docs, first, second, apply=False, overlap=overlap)
+        assert sorted((step.verb, step.thing) for step in outcome.steps) == [
+            (Verb.KEEP, Thing.SUGGESTION),
+            (Verb.SKIP, Thing.SUGGESTION),
+        ]
 
 
 def test_text_that_changed_before_the_write_is_skipped() -> None:
@@ -425,6 +495,28 @@ def test_the_command_writes_nothing_without_apply(monkeypatch: pytest.MonkeyPatc
     assert result.exit_code == 0, result.output
     assert "created" in result.output
     assert len(docs.open_suggestions()) == 1
+
+
+@pytest.mark.parametrize(
+    ("options", "said"),
+    [
+        ([], "would create comment"),
+        (["--overlap", "suggest"], "would create suggestion"),
+        (["--overlap", "skip"], "skipped suggestion"),
+    ],
+)
+def test_the_command_does_with_an_overlapping_fix_what_it_is_told(
+    monkeypatch: pytest.MonkeyPatch, options: list[str], said: str
+) -> None:
+    docs = FakeDocs(BODY)
+    docs.person_deletes("137 feet")
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
+    monkeypatch.setattr(cli, "DocsApi", lambda: docs)
+    monkeypatch.setattr(suggest_module, "warnings_of", given(notice))
+    result = CliRunner().invoke(cli.app, ["suggest", URL, *options])
+    assert result.exit_code == 0, result.output
+    (line,) = [line for line in result.output.splitlines() if notice.key(notice.marks[0]) in line]
+    assert " ".join(line.split()).startswith(said)
 
 
 class FailingSuggestions(FakeDocs):
