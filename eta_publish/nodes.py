@@ -829,6 +829,19 @@ class Notice:
         """Each mark's key, in the order of its marks."""
         return tuple(self.key(mark) for mark in self.marks)
 
+    def said_at(self, mark: Mark) -> str:
+        """What the warning says about one of its marks, as a comment there says it.
+
+        Its own words, written as the log writes them. Where the mark has a line
+        of its own, that line stands in for the warning's list: a comment on one
+        of seventeen links typed out is about that link, not the other sixteen.
+        """
+        if not mark.text:
+            return str(self)
+        return "".join(
+            _written(Listed(mark.text) if isinstance(part, Listed) else part) for part in self.parts
+        )
+
 
 KEY_LABEL = f"{PACKAGE_NAME}: "
 """What opens the line of a comment saying which warning it is,

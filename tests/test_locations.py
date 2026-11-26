@@ -18,6 +18,7 @@ from eta_publish.nodes import (
     Inline,
     Link,
     List,
+    Listed,
     Location,
     Mark,
     Paragraph,
@@ -674,6 +675,24 @@ def test_a_key_is_the_check_and_then_what_its_mark_is_about() -> None:
         (),
     ]
     assert key_line("seo-description-too-long") == "eta-publish: seo-description-too-long"
+
+
+def test_a_mark_with_a_line_of_its_own_is_said_with_that_line_in_place_of_the_list() -> None:
+    doc = Document()
+    here = Location(TAB, None, 3, 7)
+    doc.warn(
+        Check.URL_NOT_LINKED,
+        "2 URLs typed out but not linked; link each in the doc:{}",
+        Listed((Shown("https://a.org"),), (Shown("https://b.org"),)),
+        marks=[Mark(here, text=(Shown("https://b.org"),)), here],
+    )
+    (notice,) = doc.warnings
+    one, whole = notice.marks
+    assert (
+        notice.said_at(one)
+        == "2 URLs typed out but not linked; link each in the doc:\n- `https://b.org`"
+    )
+    assert notice.said_at(whole) == str(notice)
 
 
 def _tagged(*urls: str) -> Document:
