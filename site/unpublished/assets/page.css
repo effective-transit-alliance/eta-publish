@@ -9,13 +9,15 @@
 }
 :root {
     color-scheme: light dark;
-    --fg: #1a1a1a;
+    --fg: #000516;
     --bg: #fff;
+    --link: #253551;
 }
 @media (prefers-color-scheme: dark) {
     :root {
         --fg: #eaeaea;
         --bg: #141414;
+        --link: #a8bbe3;
     }
 }
 /* The masthead's band is the window's width, which counts a scrollbar the
@@ -69,6 +71,13 @@ h2 {
 }
 a {
     color: inherit;
+}
+/* A paragraph's links in the navy etany.org sets its own in,
+   which a dark page cannot read, so there the same blue lifted to a light tint.
+   Only a paragraph's, as on etany.org, where the links in the outline, a list,
+   a caption, or the sources are in the text's color. */
+.eta-report p a {
+    color: var(--link);
 }
 .standfirst {
     font-size: 1.15rem;
