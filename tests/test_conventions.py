@@ -19,7 +19,7 @@ from eta_publish.docs_json import JsonObject
 from eta_publish.emit.html import HtmlEmitter
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.emit.typst import TypstEmitter
-from eta_publish.images import crop_svg, download, svg_description
+from eta_publish.images import check_pictures, crop_svg, download, svg_description
 from eta_publish.nodes import (
     Crop,
     Document,
@@ -910,6 +910,36 @@ def test_a_live_source_matching_the_documents_copy_is_quiet(tmp_path: Path) -> N
         doc = _live_doc(LIVE_BLOB)
         download(doc, tmp_path / name, session=session)
         assert not doc.warnings, name
+
+
+ELSEWHERE = "https://example.com/kkysen/charts/blob/main/map.png"
+"""A source only cited, so the document's copy is what publishes."""
+
+
+def test_checking_the_pictures_says_one_differs_from_its_source_as_the_download_does() -> None:
+    doc = _live_doc(LIVE_BLOB)
+    session = Live(_png(20, 10))
+    check_pictures(doc, session=session)
+    assert session.asked == [LIVE_RAW, "https://x.invalid/1"]
+    (notice,) = doc.warnings
+    assert "differs from its source" in str(notice)
+
+
+def test_checking_the_pictures_says_one_crops_to_nothing_as_the_download_does() -> None:
+    doc = _live_doc(ELSEWHERE, crop={"offsetLeft": 0.6, "offsetRight": 0.6})
+    session = Live(None)
+    check_pictures(doc, session=session)
+    assert session.asked == ["https://x.invalid/1"]
+    (notice,) = doc.warnings
+    assert "crops to nothing" in str(notice)
+
+
+def test_checking_the_pictures_fetches_only_what_either_check_is_about() -> None:
+    doc = _live_doc(ELSEWHERE)
+    session = Live(None)
+    check_pictures(doc, session=session)
+    assert session.asked == []
+    assert not doc.warnings
 
 
 def test_a_renamed_image_is_found_under_its_old_name(tmp_path: Path) -> None:

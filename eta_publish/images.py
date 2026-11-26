@@ -238,6 +238,25 @@ def download(
     return written
 
 
+def check_pictures(doc: Document, *, session: requests.Session | None = None) -> None:
+    """Warn what `download` warns of the pictures themselves, writing nothing.
+
+    That a live source differs from the document's copy, and that a crop leaves nothing,
+    which only the bytes can tell: see `download` for why nothing else says
+    whether a picture is still the one a file on disk was made from.
+    So only the rasters either is about are fetched, one with a live source or a crop,
+    and nothing else is.
+    """
+    wanted: list[tuple[Image, str]] = []
+    for image in doc.images:
+        uri = image.live_uri or image.source_uri
+        if image.vector is None and (image.live_uri or image.crop.trims) and uri:
+            wanted.append((image, uri))
+    for image, _, body, live_failure, stale in _fetch_all(wanted, session or requests.Session()):
+        _said_of_source(image, live_failure, stale, doc)
+        crop_to(image, body, doc)
+
+
 def _said_of_source(image: Image, live_failure: str, stale: bool, doc: Document) -> None:
     """What `_fetch_image` found about an image's live source, as warnings."""
     if stale:

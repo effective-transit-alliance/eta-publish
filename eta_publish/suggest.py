@@ -44,6 +44,7 @@ from .checks import check, check_charts, check_described, check_pages
 from .docs_json import JsonObject
 from .embeds import check_embeds, read_embed_index
 from .fetch import iter_tabs, parse_ref, select_tab, service_account_credentials, tab_id
+from .images import check_pictures
 from .inline import (
     PLACEHOLDER,
     Change,
@@ -903,11 +904,12 @@ def warnings_of(document: JsonObject, records: Path | None) -> tuple[Document, l
 
     In the order `build.build_one` runs its checks, with what the last build recorded
     (image shapes, embeds, archive captures) read from `records`, its directory,
-    and nothing downloaded or written. So the warnings are a build's, less the few
-    only a download turns up: an image that differs from its source, or crops to nothing.
+    and nothing written. The only downloads are the pictures `check_pictures` needs,
+    to say whether one differs from its source or crops to nothing.
 
     A document with nothing saying where it publishes is still written into, which a build
     refuses: what is said about that, and the checks that need a path left out.
+    So is one whose pictures could not be downloaded, without those two checks.
     """
     doc = parse(document)
     check(doc)
@@ -918,6 +920,12 @@ def warnings_of(document: JsonObject, records: Path | None) -> tuple[Document, l
     except ValueError as e:
         said.append(f"{e}; written into all the same")
     style(doc)
+    try:
+        check_pictures(doc)
+    except (OSError, ValueError) as e:
+        said.append(
+            f"could not download the pictures to check them ({e}); written into all the same"
+        )
     if records is not None:
         read_image_index(records, doc)
     check_described(doc)

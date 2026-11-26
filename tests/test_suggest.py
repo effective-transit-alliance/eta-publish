@@ -626,6 +626,21 @@ def test_a_listed_document_that_is_not_the_one_named_is_not_written_to() -> None
     assert docs.batches == []
 
 
+def test_pictures_that_cannot_be_downloaded_are_said_and_the_rest_is_checked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def failing(doc: Document) -> None:
+        raise OSError("no network")
+
+    monkeypatch.setattr(suggest_module, "check_pictures", failing)
+    saved = Path(__file__).parent.parent / "site/unpublished/reports/monthly-passes"
+    doc, said = warnings_of(json.loads((saved / "doc.json").read_text()), saved)
+    assert said == [
+        "could not download the pictures to check them (no network); written into all the same"
+    ]
+    assert any(notice.marks for notice in doc.warnings)
+
+
 def test_the_build_s_own_checks_give_the_marks(tmp_path: Path) -> None:
     saved = Path(__file__).parent.parent / "site/unpublished/reports/monthly-passes"
     doc, said = warnings_of(json.loads((saved / "doc.json").read_text()), saved)

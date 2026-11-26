@@ -261,8 +261,10 @@ It touches only its own threads, never a person's:
 - A comment whose text is gone from the document is deleted and made again where the warning now is.
 
 The warnings are worked out afresh from the document as it is,
-with what the last build recorded about its images, embeds, and sources,
-so they are a build's, less the few only a download finds.
+with what the last build recorded about its images, embeds, and sources.
+The pictures with a crop or a live source are downloaded again, written nowhere,
+to say whether one crops to nothing or differs from its source,
+since only their bytes say whether they are still the pictures the last build had.
 Every place is checked against the text as the build read it before anything is written there.
 A fix whose suggestion would overlap or touch someone else's open suggestion
 becomes a comment with the fix written out,
