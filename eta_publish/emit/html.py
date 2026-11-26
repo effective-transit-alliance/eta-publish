@@ -270,6 +270,29 @@ def banner_markup(banner: Banner, phase: str = "") -> str:
     )
 
 
+SITE_URL = "https://www.etany.org/"
+"""Where the page's header bar links: the organization's own site."""
+
+
+def site_header_markup(asset_base: str) -> str:
+    """The bar above a preview page's headline that says whose publication it is:
+    the logo and the organization's name, linking to the organization's site.
+
+    Not the site's header, which carries its navigation and its donate button:
+    a preview is not a page of the site, and a link to one that goes nowhere is worse than none.
+    The name is text rather than part of a picture, so it is read, selected, and translated.
+    The picture is decoration beside it, with no text of its own.
+    """
+    return markup(
+        tag.header(class_="site-header")[
+            tag.a(href=SITE_URL)[
+                htpy.img(src=f"{asset_base}/logo.svg", alt="", width="32", height="32"),
+                tag.span["Effective Transit Alliance"],
+            ]
+        ]
+    )
+
+
 def _phase_parts(phase: str) -> list[Piece]:
     """`Phase: ` and the phase, as `phase_markup` and the banner both write them."""
     return [tag.span(class_="phase-label")["Phase: "], phase]
@@ -1660,6 +1683,7 @@ def publication_page(
             if doc.phase
             else []
         ),
+        Markup(site_header_markup(asset_base)),
     ]
     # `<!doctype html>` is not an element and no builder emits one.
     return markup([Markup("<!doctype html>"), "\n", lines(head), "\n", Markup(body), "\n"])

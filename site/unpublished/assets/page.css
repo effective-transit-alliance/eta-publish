@@ -42,12 +42,6 @@ strong,
 b {
     font-weight: 700;
 }
-/* The masthead's band starts at the top of the window, as the site's starts
-   under its own header, unless something is above it:
-   the banner, or a draft's phase on a page with none. */
-body > .eta-report:first-child > .masthead:first-child {
-    margin-top: -3rem;
-}
 h1,
 h2,
 h3,
@@ -71,6 +65,41 @@ h2 {
 }
 a {
     color: inherit;
+}
+/* The header bar is across the window as the kind banner is, in the near-black
+   etany.org's own header is, at a third of its height and with none of its
+   navigation. It starts at the top of the window, as the masthead's band did,
+   unless something is above it: the banner, or a draft's phase on a page with
+   none. Not fixed, so it scrolls away, and not printed. */
+.site-header {
+    margin: 0 calc(50% - 50vw);
+    padding: 0 1.25rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    background: #000516;
+    color: #fff;
+}
+body > .site-header:first-child {
+    margin-top: -3rem;
+}
+.site-header a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1;
+}
+.site-header img {
+    display: block;
+}
+@media print {
+    .site-header {
+        display: none;
+    }
 }
 /* A paragraph's links in the navy etany.org sets its own in,
    which a dark page cannot read, so there the same blue lifted to a light tint.

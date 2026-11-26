@@ -59,7 +59,9 @@ def test_page_images_resolve_next_to_the_page(doc: Document, tmp_path: Path) -> 
     emit(doc, tmp_path, site_url=HOST)
     page = (tmp_path / "report.html").read_text()
 
-    found = sources(page)
+    # Not the logo in the header bar, which is the build's own asset,
+    # linked from the shared `assets/` where the stylesheets are.
+    found = [src for src in sources(page) if not src.endswith("/logo.svg")]
     assert found
     for src in found:
         assert not src.startswith("http")
