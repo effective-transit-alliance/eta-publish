@@ -1,12 +1,13 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Seven commands, because there are seven things to do:
+Eight commands, because there are eight things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the drafts' list
     eta-publish logo            write the logo charts carry from the logo as drawn
+    eta-publish suggest [doc]   say what the warnings would add to each document, or `--apply` it
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
     eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
     eta-publish drafts deploy   the same from CI, for any branch, `main` included
@@ -27,12 +28,14 @@ from pathlib import Path
 from typing import Annotated
 
 from rich.text import Text
-from typer import Argument, BadParameter, Option, Typer
+from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console
 from .drafts import drafts
+from .fetch import FetchFailed
 from .format import ROOT
 from .logo import LOGO, write_logo
+from .naming import UNPUBLISHED_DIR
 from .publish import (
     Archive,
     Comments,
@@ -52,11 +55,17 @@ from .site import (
     DRAFTS,
     PUBLICATIONS,
     SITE,
+    Publication,
     add_publication,
     listed_publication,
     load_hosts,
     load_publications,
+    saved_for,
+    saved_responses,
 )
+from .suggest import DocsApi, tally
+from .suggest import suggest as suggest_one
+from .suggest import write as write_outcome
 
 # With nothing to do, each prints its help rather than that something is missing:
 # a command group has no action of its own, and nor does a command missing a required argument.
@@ -261,6 +270,80 @@ def add(
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
     console.write(console.added(publications, added.name or "", added.tab or "", log), log)
+
+
+@app.command()
+def suggest(
+    doc: Annotated[
+        str | None,
+        Argument(
+            metavar="[DOC]",
+            help="a Google Doc URL (including its `?tab=` id), or a publication's `name`"
+            " in a list; every listed publication without one",
+        ),
+    ] = None,
+    publications: Annotated[
+        list[Path] | None,
+        Option(
+            "-p",
+            "--publications",
+            help="a list to read, more than once for more;"
+            " `publications.toml` and `drafts/publications.toml` without one",
+        ),
+    ] = None,
+    apply: Annotated[
+        bool,
+        Option("--apply", help="write it into the documents; without it, only say what it would"),
+    ] = False,
+) -> None:
+    """Turn each publication's warnings into comments in its document.
+
+    A warning about a place in the document becomes a comment there,
+    and one about no place in it stays in the build's report.
+    Signed by the service account `eta-publish-ci`, which needs each document shared with it
+    as a Commenter; see `suggest.py` for how a second run knows its own comments again.
+
+    Only says what it would do unless `--apply` is given: this writes into documents
+    everyone works in, so writing is asked for each time, not assumed.
+    """
+    lists = publications or [PUBLICATIONS, *([DRAFTS / PUBLICATIONS] if DRAFTS.is_dir() else [])]
+    try:
+        chosen = suggested_publications(doc, lists)
+    except (OSError, ValueError) as e:
+        raise BadParameter(str(e), param_hint="DOC" if doc else "'-p' / '--publications'") from e
+    try:
+        api = DocsApi() if chosen else None
+    except FetchFailed as e:
+        raise BadParameter(str(e), param_hint="credentials") from e
+    log = console.for_stream()
+    saved = {
+        **saved_responses(DRAFTS / SITE / UNPUBLISHED_DIR),
+        **saved_responses(SITE / UNPUBLISHED_DIR),
+    }
+    outcomes = []
+    for publication in chosen:
+        assert api is not None
+        outcome = suggest_one(api, publication, saved_for(publication, saved), apply)
+        write_outcome(outcome, apply, log)
+        outcomes.append(outcome)
+    console.write(tally(outcomes, apply), log)
+    if any(outcome.error for outcome in outcomes):
+        raise Exit(code=1)
+
+
+def suggested_publications(doc: str | None, lists: list[Path]) -> list[Publication]:
+    """The publications `suggest` is about: the one `doc` names, or every one in `lists`.
+
+    A name is looked up in each list in turn, as `one` looks it up in its one;
+    anything else is a document named on the command line, with nothing to check it against.
+    """
+    if doc is None:
+        return [publication for path in lists for publication in load_publications(path)]
+    for path in lists:
+        publication = listed_publication(doc, path)
+        if publication.name is not None:
+            return [publication]
+    return [Publication(url=doc)]
 
 
 @app.command()
