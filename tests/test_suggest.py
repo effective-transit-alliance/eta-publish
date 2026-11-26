@@ -384,6 +384,15 @@ def test_text_that_changed_before_the_write_is_skipped() -> None:
     assert docs.open_suggestions() == []
 
 
+def test_a_write_the_document_moved_on_from_is_placed_again() -> None:
+    docs = FakeDocs(BODY)
+    notice = warned(Mark(docs.at("the ETA"), subject="the ETA"), check=Check.ETA_WITH_ARTICLE)
+    # Something else is suggested between the read the comment is placed in and its write.
+    docs.before_batch = lambda d: d.person_inserts("XYZ ", after="A head")
+    run(docs, notice)
+    assert docs.commented(docs.comments[0]["commentId"]) == "the ETA"
+
+
 # ---- the run -------------------------------------------------------------------
 
 
@@ -462,6 +471,33 @@ def test_comments_the_api_says_it_did_not_save_fail_the_batch() -> None:
     api.documents = Documents()
     with pytest.raises(SuggestFailed, match="ALL_FAILED_UNKNOWN_REASON"):
         api.batch("doc", [{"insertComment": {}}], suggest=False, revision=None)
+
+
+def test_a_fix_skipped_in_one_read_is_placed_again_after_the_document_moves_on() -> None:
+    docs = FakeDocs(BODY)
+    # A comment for the first batch to resolve, so something happens before the suggestions.
+    run(docs, warned(Mark(docs.at("A last"), subject="last"), check=Check.ETA_WITH_ARTICLE))
+    notices = (
+        warned(fixed(docs, Replace(docs.point("The line is "), "now "))),
+        warned(fixed(docs, Replace(docs.at("feet"), "ft")), check=Check.ETA_WITH_ARTICLE),
+    )
+
+    def suggested_beside(d: FakeDocs) -> None:
+        # Someone suggests text right where the insertion goes, so it is skipped in that read,
+        # and withdraws it as the other fix is sent, which moves the document on.
+        theirs = d.person_inserts("very ", after="The line is ")
+        d.before_batch = lambda again: again.person_rejects(theirs)
+
+    docs.before_batch = suggested_beside
+    outcome = run(docs, *notices)
+    assert [(step.verb, step.done) for step in outcome.steps if step.thing is Thing.SUGGESTION] == [
+        (Verb.CREATE, True),
+        (Verb.CREATE, True),
+    ]
+    assert sorted(docs.suggested_by(sid) for sid in docs.open_suggestions()) == [
+        ("ft", "feet"),
+        ("now ", ""),
+    ]
 
 
 def _list(path: Path, *names: str) -> Path:

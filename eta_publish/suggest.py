@@ -74,7 +74,8 @@ from .site import Publication, check_kind, publication_path
 from .style import style
 
 READS = 3
-"""How many times to read a document before giving up on reading it at one revision."""
+"""How many times to read a document before giving up on reading it at one revision,
+or to write one batch that someone else's edit got in ahead of."""
 
 COMMENT_LIMIT = 2048
 """The longest a comment can be, in UTF-8 bytes, as the Docs API takes one."""
@@ -721,8 +722,7 @@ def carry_out(
     a suggestion deleted in the first batch takes its text with it.
     The suggestions go last to first, so none moves the place of one after it.
     The last two are sent only if the document is still at the revision they were placed in,
-    and refused if it is not, which fails the run.
-    A step that can no longer be placed is skipped.
+    and placed again if it is not. A step that can no longer be placed is skipped.
     """
     threads = _thread_requests(steps)
     if threads:
@@ -734,38 +734,55 @@ def carry_out(
         wanted = [s for s in steps if s.verb is Verb.CREATE and s.thing is thing]
         if not wanted:
             continue
-        _, inline = read(api, doc_id)
-        lives = {
-            segment: align(units, seen.get(segment))
-            for segment, units in read_units(tab_content(inline, tab)).items()
-        }
-        placed: list[tuple[Step, list[tuple[str | None, int, list[JsonObject]]]]] = []
-        for step in wanted:
+        why = {id(step): step.why for step in wanted}
+        for attempt in range(READS):
+            # Every one placed afresh in each read, a step skipped in the last included.
+            for step in wanted:
+                step.verb = Verb.CREATE
+                step.why = why[id(step)]
+            creating = list(wanted)
+            _, inline = read(api, doc_id)
+            lives = {
+                segment: align(units, seen.get(segment))
+                for segment, units in read_units(tab_content(inline, tab)).items()
+            }
+            placed: list[tuple[Step, list[tuple[str | None, int, list[JsonObject]]]]] = []
+            for step in creating:
+                try:
+                    if thing is Thing.COMMENT:
+                        placed.append((step, [(None, 0, [_comment_request(step, lives, tab)])]))
+                    else:
+                        placed.append((step, _suggestion_requests(step, lives, tab)))
+                except Unplaceable as e:
+                    step.verb = Verb.SKIP
+                    step.why = str(e)
+            creating = [step for step, _ in placed]
+            if not placed:
+                break
+            edits = [
+                (segment, start, n, requests)
+                for n, (_, made) in enumerate(placed)
+                for segment, start, requests in made
+            ]
+            # Last to first within each segment: an insertion moves only what comes after it.
+            edits.sort(key=lambda e: (e[0] or "", e[1]), reverse=True)
+            requests = [request for *_, made in edits for request in made]
+            owners = [n for _, _, n, made in edits for _ in made]
             try:
-                if thing is Thing.COMMENT:
-                    placed.append((step, [(None, 0, [_comment_request(step, lives, tab)])]))
-                else:
-                    placed.append((step, _suggestion_requests(step, lives, tab)))
-            except Unplaceable as e:
-                step.verb = Verb.SKIP
-                step.why = str(e)
-        if not placed:
-            continue
-        edits = [
-            (segment, start, n, requests)
-            for n, (_, made) in enumerate(placed)
-            for segment, start, requests in made
-        ]
-        # Last to first within each segment: an insertion moves only what comes after it.
-        edits.sort(key=lambda e: (e[0] or "", e[1]), reverse=True)
-        requests = [request for *_, made in edits for request in made]
-        owners = [n for _, _, n, made in edits for _ in made]
-        answer = api.batch(
-            doc_id, requests, suggest=thing is Thing.SUGGESTION, revision=inline.get("revisionId")
-        )
-        _record(answer, placed, owners)
-        for step, _ in placed:
-            step.done = True
+                answer = api.batch(
+                    doc_id,
+                    requests,
+                    suggest=thing is Thing.SUGGESTION,
+                    revision=inline.get("revisionId"),
+                )
+            except RevisionChanged:
+                if attempt + 1 == READS:
+                    raise
+                continue
+            _record(answer, placed, owners)
+            for step, _ in placed:
+                step.done = True
+            break
 
 
 def _record(
