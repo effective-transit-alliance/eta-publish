@@ -32,7 +32,7 @@ passed="$(git rev-parse --git-common-dir)/pytest-passed-trees"
 # each one appears there only in a comment, docstring, or help text.
 unread() {
     case "$1" in
-        docs/* | .github/* | scripts/check-commit-message.sh) return 0 ;;
+        docs/* | .github/*) return 0 ;;
         README.md | LICENSE | discrepancies.md | .markdownlint-cli2.jsonc) return 0 ;;
         *) return 1 ;;
     esac
