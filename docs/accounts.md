@@ -146,6 +146,10 @@ the run trades the token GitHub signs for it for short-lived Google credentials.
   as `principalSet://iam.googleapis.com/projects/635412927675/locations/global/workloadIdentityPools/github-actions/attribute.repository/effective-transit-alliance/<repository>`.
 - **Revoke:** disabling a provider stops its repository's sign-ins at once.
 
+`khybersen@etany.org` has `roles/iam.serviceAccountTokenCreator` on `eta-publish-ci`,
+so a local run can act as it, with no key, through `gcloud`:
+`gcloud auth print-access-token --impersonate-service-account=eta-publish-ci@eta-publish.iam.gserviceaccount.com --scopes=<scopes>`.
+
 Pools: <https://console.cloud.google.com/iam-admin/workload-identity-pools?project=eta-publish>.
 
 ## Cloudflare
