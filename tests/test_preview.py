@@ -35,6 +35,9 @@ def repo(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     # and they would send every `git` here to it rather than to `path`.
     for name in [name for name in os.environ if name.startswith("GIT_")]:
         monkeypatch.delenv(name)
+    # None of the global or system configuration, hooks included.
+    monkeypatch.setenv("GIT_CONFIG_GLOBAL", os.devnull)
+    monkeypatch.setenv("GIT_CONFIG_NOSYSTEM", "1")
     path = tmp_path / "repo"
     path.mkdir()
     git(path, "init", "-b", "main")
