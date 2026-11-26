@@ -126,7 +126,7 @@ renaming the team domain means updating them here too.
 The service account has no IAM roles.
 It reads a document only because the document,
 or a folder it's in, is shared with it as a Viewer,
-or as a Commenter for `eta-publish suggest` to write comments into it.
+or as a Commenter for `eta-publish suggest` to write suggestions and comments into it.
 
 Clients: <https://console.cloud.google.com/auth/clients?project=eta-publish>.
 

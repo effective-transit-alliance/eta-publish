@@ -1,20 +1,21 @@
 """`eta-publish suggest`: a publication's warnings, written into its Google Doc.
 
 A build reports what it finds to whoever runs it. This puts it where the writers are:
-a warning about a place in the document becomes a comment there,
-ending with the line `key_line` writes.
+a warning whose fix the code knows becomes a suggested edit at the place it is about,
+and one only a person can fix becomes a comment there, ending with the line `key_line` writes.
 A warning about no place in the document stays in the build's report.
 
 Signed by the service account `eta-publish-ci`, which each document is shared with as a Commenter.
-That is enough to comment anywhere, footnotes included,
-and to reword, resolve, reopen, and delete its own comments;
-not enough to edit the document, which stays a person's.
+That is enough to suggest any edit, to comment anywhere, footnotes included,
+and to reword, resolve, reopen, and delete its own threads;
+not enough to edit the document or accept a suggestion, which stay a person's.
 
 By default it only says what it would do: `--apply` is what writes.
 
 Run again, it changes only what changed, and nothing at all when nothing did.
-Only its own comments are ever touched, and they are told apart from a person's by their author.
+Only its own threads are ever touched, and they are told apart from a person's by their author.
 A comment is the warning's by its key line.
+A suggestion carries no text to keep a key in, so it is the warning's by the edit it makes, where.
 
 The warnings are worked out here rather than read off the last build:
 writing to a place needs to know exactly where it is in the document as it is now,
@@ -26,7 +27,7 @@ and once with every suggestion and comment in it, which is what the writes are c
 
 from collections import Counter, defaultdict
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import StrEnum
 from pathlib import Path
 from typing import Protocol
@@ -43,8 +44,31 @@ from .checks import check, check_charts, check_described, check_pages
 from .docs_json import JsonObject
 from .embeds import check_embeds, read_embed_index
 from .fetch import iter_tabs, parse_ref, select_tab, service_account_credentials, tab_id
-from .inline import PLACEHOLDER, Live, Units, Unplaceable, align, read_units
-from .nodes import KEY_LABEL, Document, Location, Mark, Notice, key_line
+from .inline import (
+    PLACEHOLDER,
+    Change,
+    Kind,
+    Live,
+    Units,
+    Unplaceable,
+    align,
+    read_units,
+    suggested_changes,
+    wanted_change,
+)
+from .nodes import (
+    KEY_LABEL,
+    Document,
+    Edit,
+    Link,
+    Location,
+    Mark,
+    Notice,
+    ParagraphStyle,
+    Replace,
+    Underline,
+    key_line,
+)
 from .parse import parse
 from .site import Publication, check_kind, publication_path
 from .style import style
@@ -77,8 +101,10 @@ class Api(Protocol):
         """
         ...
 
-    def batch(self, doc_id: str, requests: list[JsonObject], revision: str | None) -> JsonObject:
-        """Send `requests` together.
+    def batch(
+        self, doc_id: str, requests: list[JsonObject], suggest: bool, revision: str | None
+    ) -> JsonObject:
+        """Send `requests` together, as suggestions if `suggest`.
 
         With a `revision`, only if the document is still at it, or `RevisionChanged`.
         """
@@ -106,10 +132,17 @@ class DocsApi:
         except HttpError as e:
             raise SuggestFailed(_explain(e)) from e
 
-    def batch(self, doc_id: str, requests: list[JsonObject], revision: str | None) -> JsonObject:
-        body: JsonObject = {"requests": requests}
+    def batch(
+        self, doc_id: str, requests: list[JsonObject], suggest: bool, revision: str | None
+    ) -> JsonObject:
+        control: JsonObject = {}
+        if suggest:
+            control["writeMode"] = "SUGGEST"
         if revision:
-            body["writeControl"] = {"requiredRevisionId": revision}
+            control["requiredRevisionId"] = revision
+        body: JsonObject = {"requests": requests}
+        if control:
+            body["writeControl"] = control
         request = self.documents.batchUpdate(documentId=doc_id, body=body)
         try:
             answer = request.execute()
@@ -162,6 +195,7 @@ DONE = {
 
 class Thing(StrEnum):
     COMMENT = "comment"
+    SUGGESTION = "suggestion"
 
 
 @dataclass
@@ -171,13 +205,14 @@ class Step:
     verb: Verb
     thing: Thing
     key: str
-    """The warning's key."""
+    """The warning's key; for a suggestion no warning asks for, what Docs sums it up as."""
     why: str = ""
     mark: Mark | None = None
     content: str = ""
     """A comment's text, for one created or updated."""
     comment_id: str = ""
     post_id: str = ""
+    suggestion_id: str = ""
     made: str = ""
     """The id of the thread a write made, once it is made."""
     done: bool = False
@@ -254,14 +289,22 @@ def plan(
 
     `document` is the whole document read with its suggestions and comments in it,
     at the revision `seen`, the tab as the build read it, is of.
-    Only the service account's own comments on this tab are considered.
+    Only the service account's own threads on this tab are considered.
+
+    A suggestion of ours a person rejected is gone from the text, so the mark it was for
+    has no suggestion open and is suggested again, as a resolved comment is reopened:
+    a warning is answered by fixing the document, or by fixing `eta-publish` where it is wrong.
+    The API has no way to reopen a rejected suggestion, so the new one is a suggestion of its own.
     """
     content = tab_content(document, tab)
     lives = {
         segment: align(units, seen.get(segment)) for segment, units in read_units(content).items()
     }
     placed = [Placed(notice, mark, notice.key(mark)) for notice in notices for mark in notice.marks]
-    return _plan_comments(placed, document, content, tab, lives)
+    steps: list[Step] = []
+    steps += _plan_comments([p for p in placed if not p.mark.fix], document, content, tab, lives)
+    steps += _plan_suggestions([p for p in placed if p.mark.fix], document, lives, seen)
+    return steps
 
 
 def _placeable(mark: Mark, lives: dict[str | None, Live]) -> str:
@@ -274,6 +317,20 @@ def _placeable(mark: Mark, lives: dict[str | None, Live]) -> str:
         live.place(where.start, where.end, clear=False)
     except Unplaceable as e:
         return str(e)
+    return ""
+
+
+def _fixable(mark: Mark, lives: dict[str | None, Live]) -> str:
+    """Why a mark's fix cannot be suggested where it is, or nothing if it can."""
+    for edit in mark.fix:
+        where = edit.location
+        live = lives.get(where.segment_id)
+        if live is None:
+            return "its footnote is not in the document as read for writing"
+        try:
+            live.place(where.start, where.end, clear=True)
+        except Unplaceable as e:
+            return str(e)
     return ""
 
 
@@ -386,6 +443,101 @@ def _create_comment(one: Placed, lives: dict[str | None, Live], why: str = "") -
     return Step(Verb.CREATE, Thing.COMMENT, one.key, why, mark=one.mark, content=text)
 
 
+def _plan_suggestions(
+    placed: list[Placed],
+    document: JsonObject,
+    lives: dict[str | None, Live],
+    seen: dict[str | None, Units],
+) -> list[Step]:
+    ours = {
+        thread["suggestionId"]: thread
+        for thread in document.get("suggestions", [])
+        if thread.get("headPost", {}).get("author", {}).get("me")
+    }
+    open_ids = {sid for sid, thread in ours.items() if thread.get("status") == "OPEN"}
+    on_tab = suggested_changes(lives, open_ids)
+    # Each open change of ours, by what it changes, with the suggestions making it.
+    open_changes: dict[Change, list[str]] = defaultdict(list)
+    for sid, changes in on_tab.items():
+        for change in changes:
+            open_changes[change].append(sid)
+            if change.kind is Kind.REPLACE and change.start < change.end and change.value:
+                # Also the deletion and the insertion it is made of: a deletion and
+                # an insertion at its start, sent together for two marks, are one
+                # suggestion in Docs, and each mark's is in it.
+                for part in (replace(change, value=""), replace(change, end=change.start)):
+                    open_changes[part].append(sid)
+
+    steps: list[Step] = []
+    claimed: set[str] = set()
+    for one in sorted(placed, key=lambda p: _order(p.mark.location)):
+        changes = [wanted_change(edit, seen) for edit in one.mark.fix]
+        if all(open_changes.get(change) for change in changes):
+            for change in changes:
+                claimed.add(open_changes[change].pop(0))
+            steps.append(Step(Verb.KEEP, Thing.SUGGESTION, one.key, mark=one.mark))
+            continue
+        steps.append(Step(Verb.CREATE, Thing.SUGGESTION, one.key, mark=one.mark))
+    deleting: set[str] = set()
+    for sid in sorted(set(on_tab) - claimed):
+        segments = {change.segment for change in on_tab[sid]}
+        said = str(ours[sid].get("summaryText", sid))
+        if not all(lives[segment].aligned for segment in segments):
+            steps.append(
+                Step(
+                    Verb.SKIP,
+                    Thing.SUGGESTION,
+                    said,
+                    "the text there has changed since the warnings were read",
+                    suggestion_id=sid,
+                )
+            )
+            continue
+        deleting.add(sid)
+        steps.append(
+            Step(Verb.DELETE, Thing.SUGGESTION, said, "no warning asks for it", suggestion_id=sid)
+        )
+    # Placed in the text as it will be once those are deleted, which is how it is placed
+    # when it is written: a fix that changed overlaps its old suggestion until that is gone.
+    after = {
+        segment: align(live.units.without(deleting), seen.get(segment))
+        for segment, live in lives.items()
+    }
+    planned: dict[str | None, list[tuple[int, int]]] = defaultdict(list)
+    for step in steps:
+        if step.verb is not Verb.CREATE or step.mark is None:
+            continue
+        reason = _fixable(step.mark, after)
+        spans = [(e.location.segment_id, e.location.start, e.location.end) for e in step.mark.fix]
+        if not reason and any(
+            _overlap((start, end), other)
+            for segment, start, end in spans
+            for other in planned[segment]
+        ):
+            # Placed in one read and sent last to first, the second of two edits
+            # on the same text would be placed in text the first has already moved.
+            reason = "it overlaps another fix made in this run"
+        if reason:
+            step.verb = Verb.SKIP
+            step.why = reason
+            continue
+        for segment, start, end in spans:
+            planned[segment].append((start, end))
+    return steps
+
+
+def _overlap(one: tuple[int, int], other: tuple[int, int]) -> bool:
+    """Whether two edits' places share text, or are one point; touching is not overlapping."""
+    (start, end), (other_start, other_end) = one, other
+    if start == end and other_start == other_end:
+        return start == other_start
+    if start == end:
+        return other_start < start < other_end
+    if other_start == other_end:
+        return start < other_start < end
+    return start < other_end and other_start < end
+
+
 # ---- carrying it out ---------------------------------------------------
 
 
@@ -398,32 +550,44 @@ def _range(tab: str, segment: str | None, start: int, end: int) -> JsonObject:
     return found
 
 
+def _point(tab: str, segment: str | None, index: int) -> JsonObject:
+    found: JsonObject = {"index": index}
+    if segment:
+        found["segmentId"] = segment
+    if tab:
+        found["tabId"] = tab
+    return found
+
+
 def _thread_requests(steps: list[Step]) -> list[JsonObject]:
     """Every change to a thread already there, none of which moves any text."""
     requests: list[JsonObject] = []
     for step in steps:
-        if step.verb is Verb.UPDATE:
-            requests.append(
-                {
-                    "updateCommentPost": {
-                        "commentId": step.comment_id,
-                        "postId": step.post_id,
-                        "content": step.content,
+        if step.thing is Thing.COMMENT:
+            if step.verb is Verb.UPDATE:
+                requests.append(
+                    {
+                        "updateCommentPost": {
+                            "commentId": step.comment_id,
+                            "postId": step.post_id,
+                            "content": step.content,
+                        }
                     }
-                }
-            )
-        elif step.verb in (Verb.REOPEN, Verb.RESOLVE):
-            action = "REOPEN" if step.verb is Verb.REOPEN else "RESOLVE"
-            requests.append(
-                {
-                    "addCommentReply": {
-                        "commentId": step.comment_id,
-                        "post": {"commentAction": action},
+                )
+            elif step.verb in (Verb.REOPEN, Verb.RESOLVE):
+                action = "REOPEN" if step.verb is Verb.REOPEN else "RESOLVE"
+                requests.append(
+                    {
+                        "addCommentReply": {
+                            "commentId": step.comment_id,
+                            "post": {"commentAction": action},
+                        }
                     }
-                }
-            )
+                )
+            elif step.verb is Verb.DELETE:
+                requests.append({"deleteComment": {"commentId": step.comment_id}})
         elif step.verb is Verb.DELETE:
-            requests.append({"deleteComment": {"commentId": step.comment_id}})
+            requests.append({"deleteSuggestion": {"suggestionId": step.suggestion_id}})
     return requests
 
 
@@ -476,6 +640,67 @@ def _comment_request(step: Step, lives: dict[str | None, Live], tab: str) -> Jso
     return {"insertComment": {"content": step.content, "range": _range(tab, segment, start, end)}}
 
 
+def _suggestion_requests(
+    step: Step, lives: dict[str | None, Live], tab: str
+) -> list[tuple[str | None, int, list[JsonObject]]]:
+    """Each edit of a mark's fix as the requests making it, with where it starts."""
+    assert step.mark is not None
+    made = []
+    for edit in step.mark.fix:
+        where = edit.location
+        segment = where.segment_id
+        live = lives.get(segment)
+        if live is None:
+            raise Unplaceable("its footnote is not in the document as read for writing")
+        start, end = live.place(where.start, where.end, clear=not isinstance(edit, ParagraphStyle))
+        requests: list[JsonObject] = []
+        match edit:
+            case Replace(text=text):
+                # Deleted first: a suggested deletion leaves its text where it was,
+                # so the insertion goes in at the same index, before it,
+                # which is how Docs shows a replacement.
+                if end > start:
+                    requests.append(
+                        {"deleteContentRange": {"range": _range(tab, segment, start, end)}}
+                    )
+                if text:
+                    requests.append(
+                        {"insertText": {"location": _point(tab, segment, start), "text": text}}
+                    )
+            case Underline(underline=underline):
+                requests.append(
+                    {
+                        "updateTextStyle": {
+                            "range": _range(tab, segment, start, end),
+                            "textStyle": {"underline": underline},
+                            "fields": "underline",
+                        }
+                    }
+                )
+            case Link(url=url):
+                requests.append(
+                    {
+                        "updateTextStyle": {
+                            "range": _range(tab, segment, start, end),
+                            "textStyle": {"link": {"url": url}},
+                            "fields": "link",
+                        }
+                    }
+                )
+            case ParagraphStyle(style=named):
+                requests.append(
+                    {
+                        "updateParagraphStyle": {
+                            "range": _range(tab, segment, start, max(end, start + 1)),
+                            "paragraphStyle": {"namedStyleType": named},
+                            "fields": "namedStyleType",
+                        }
+                    }
+                )
+        made.append((segment, start, requests))
+    return made
+
+
 def read(api: Api, doc_id: str) -> tuple[JsonObject, JsonObject]:
     """The document as the build reads it and with everything in it, at one revision."""
     for _ in range(READS):
@@ -489,45 +714,78 @@ def read(api: Api, doc_id: str) -> tuple[JsonObject, JsonObject]:
 def carry_out(
     api: Api, doc_id: str, tab: str, steps: list[Step], seen: dict[str | None, Units]
 ) -> None:
-    """Make the writes `steps` plan, in two batches, reading the document again before the second.
+    """Make the writes `steps` plan, in three batches, reading the document again before each.
 
-    Changes to comments already there first, which go by id and move no text.
-    Then the new comments, each placed in the document as just read,
-    sent only if the document is still at the revision they were placed in
+    Changes to threads already there first, which go by id and move no text.
+    Then the new comments, then the new suggestions, each placed in the document as just read:
+    a suggestion deleted in the first batch takes its text with it.
+    The suggestions go last to first, so none moves the place of one after it.
+    The last two are sent only if the document is still at the revision they were placed in,
     and refused if it is not, which fails the run.
     A step that can no longer be placed is skipped.
     """
     threads = _thread_requests(steps)
     if threads:
-        api.batch(doc_id, threads, revision=None)
+        api.batch(doc_id, threads, suggest=False, revision=None)
         for step in steps:
             if step.verb in (Verb.UPDATE, Verb.REOPEN, Verb.RESOLVE, Verb.DELETE):
                 step.done = True
-    wanted = [s for s in steps if s.verb is Verb.CREATE]
-    if not wanted:
-        return
-    _, inline = read(api, doc_id)
-    lives = {
-        segment: align(units, seen.get(segment))
-        for segment, units in read_units(tab_content(inline, tab)).items()
-    }
-    placed: list[tuple[Step, JsonObject]] = []
-    for step in wanted:
-        try:
-            placed.append((step, _comment_request(step, lives, tab)))
-        except Unplaceable as e:
-            step.verb = Verb.SKIP
-            step.why = str(e)
-    if not placed:
-        return
-    requests = [request for _, request in placed]
-    answer = api.batch(doc_id, requests, revision=inline.get("revisionId"))
-    # Each comment made is noted on its step, as the reply to its request says.
-    for (step, _), reply in zip(placed, answer.get("replies", []), strict=False):
+    for thing in (Thing.COMMENT, Thing.SUGGESTION):
+        wanted = [s for s in steps if s.verb is Verb.CREATE and s.thing is thing]
+        if not wanted:
+            continue
+        _, inline = read(api, doc_id)
+        lives = {
+            segment: align(units, seen.get(segment))
+            for segment, units in read_units(tab_content(inline, tab)).items()
+        }
+        placed: list[tuple[Step, list[tuple[str | None, int, list[JsonObject]]]]] = []
+        for step in wanted:
+            try:
+                if thing is Thing.COMMENT:
+                    placed.append((step, [(None, 0, [_comment_request(step, lives, tab)])]))
+                else:
+                    placed.append((step, _suggestion_requests(step, lives, tab)))
+            except Unplaceable as e:
+                step.verb = Verb.SKIP
+                step.why = str(e)
+        if not placed:
+            continue
+        edits = [
+            (segment, start, n, requests)
+            for n, (_, made) in enumerate(placed)
+            for segment, start, requests in made
+        ]
+        # Last to first within each segment: an insertion moves only what comes after it.
+        edits.sort(key=lambda e: (e[0] or "", e[1]), reverse=True)
+        requests = [request for *_, made in edits for request in made]
+        owners = [n for _, _, n, made in edits for _ in made]
+        answer = api.batch(
+            doc_id, requests, suggest=thing is Thing.SUGGESTION, revision=inline.get("revisionId")
+        )
+        _record(answer, placed, owners)
+        for step, _ in placed:
+            step.done = True
+
+
+def _record(
+    answer: JsonObject,
+    placed: list[tuple[Step, list[tuple[str | None, int, list[JsonObject]]]]],
+    owners: list[int],
+) -> None:
+    """Note on each step the id of what its requests made."""
+    replies = answer.get("replies", [])
+    suggested = answer.get("suggestionResponses", [])
+    for n, owner in enumerate(owners):
+        step = placed[owner][0]
+        reply = replies[n] if n < len(replies) else {}
         thread = (reply or {}).get("insertComment", {}).get("commentThread", {})
-        step.made = thread.get("commentId", "")
-    for step, _ in placed:
-        step.done = True
+        made = [thread.get("commentId", "")] if thread else []
+        if n < len(suggested):
+            made += (suggested[n] or {}).get("createdSuggestionIds", [])
+        for one in made:
+            if one and one not in step.made.split(", "):
+                step.made = ", ".join(filter(None, [step.made, one]))
 
 
 # ---- the warnings --------------------------------------------------------
@@ -644,11 +902,30 @@ def describe(step: Step, seen: dict[str | None, Units]) -> str:
         if units is not None:
             on = _quoted(units.text(where.start, where.end)) if not where.empty else "a point"
             line += f" on {on}" + (" in a footnote" if where.segment_id else "")
+        if step.thing is Thing.SUGGESTION and units is not None:
+            line += ", " + "; ".join(_edit_said(edit, seen) for edit in step.mark.fix)
     if step.why:
         line += f": {step.why}"
     if step.made:
         line += f" ({step.made})"
     return line
+
+
+def _edit_said(edit: Edit, seen: dict[str | None, Units]) -> str:
+    where = edit.location
+    units = seen.get(where.segment_id)
+    old = units.text(where.start, where.end) if units is not None else ""
+    match edit:
+        case Replace(text=text):
+            if not old:
+                return f"insert {_quoted(text)}"
+            return f"{_quoted(old)} to {_quoted(text)}" if text else f"delete {_quoted(old)}"
+        case Underline(underline=underline):
+            return f"{'underline' if underline else 'take the underline off'} {_quoted(old)}"
+        case Link(url=url):
+            return f"link {_quoted(old)} to {url}"
+        case ParagraphStyle(style=named):
+            return f"make the paragraph {named}"
 
 
 def write(outcome: Outcome, apply: bool, log: Console) -> None:

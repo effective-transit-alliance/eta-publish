@@ -296,12 +296,13 @@ def suggest(
         Option("--apply", help="write it into the documents; without it, only say what it would"),
     ] = False,
 ) -> None:
-    """Turn each publication's warnings into comments in its document.
+    """Turn each publication's warnings into suggestions and comments in its document.
 
-    A warning about a place in the document becomes a comment there,
-    and one about no place in it stays in the build's report.
+    A warning whose fix is known becomes a suggested edit where it is about,
+    one only a person can fix becomes a comment there,
+    and one about no place in the document stays in the build's report.
     Signed by the service account `eta-publish-ci`, which needs each document shared with it
-    as a Commenter; see `suggest.py` for how a second run knows its own comments again.
+    as a Commenter; see `suggest.py` for how a second run knows its own threads again.
 
     Only says what it would do unless `--apply` is given: this writes into documents
     everyone works in, so writing is asked for each time, not assumed.

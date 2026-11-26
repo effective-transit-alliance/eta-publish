@@ -239,9 +239,10 @@ uv run eta-publish suggest
 uv run eta-publish suggest 'IBX Automation' --apply
 ```
 
-`suggest` turns a publication's warnings into comments in its Google Doc,
+`suggest` turns a publication's warnings into suggestions and comments in its Google Doc,
 where the writers will see them, signed by the service account `eta-publish-ci`.
-A warning about a place in the document becomes a comment there,
+A warning whose fix the code knows becomes a suggested edit at the place it is about.
+One only a person can fix becomes a comment there,
 saying what the warning says, with a last line naming it, as in `eta-publish: no-title`.
 A warning about no place in the document stays in the build's report.
 
@@ -250,21 +251,23 @@ It is a command of its own, never part of a build, and only says what it would d
 Without a document, it goes through every publication in both lists; `-p` names other lists.
 
 A second run changes only what changed, and nothing when nothing did.
-It touches only its own comments, never a person's:
+It touches only its own threads, never a person's:
 
 - A comment whose warning now says something else is reworded.
-  One a person resolved while its warning is still there is reopened:
+  One a person resolved while its warning is still there is reopened,
+  and a suggestion a person rejected is suggested again:
   a wrong warning is fixed in `eta-publish`, not dismissed in the document.
-- A comment whose warning is gone is resolved.
+- A comment whose warning is gone is resolved, and a suggestion no warning asks for is deleted.
 - A comment whose text is gone from the document is deleted and made again where the warning now is.
 
 The warnings are worked out afresh from the document as it is,
 with what the last build recorded about its images, embeds, and sources,
 so they are a build's, less the few only a download finds.
-Every place is checked against the text as the build read it before anything is written there.
+Every place is checked against the text as the build read it before anything is written there;
+a fix that would overlap or touch an open suggestion is skipped, and says so.
 
 Each document has to be shared with `eta-publish-ci@eta-publish.iam.gserviceaccount.com`
-as a **Commenter**, which is enough to comment, and not to edit.
+as a **Commenter**, which is enough to suggest and comment, and not to edit.
 Locally it acts as that account through `gcloud`,
 which needs `roles/iam.serviceAccountTokenCreator` on it (see [`docs/accounts.md`](docs/accounts.md#workload-identity-federation));
 in CI, the Workload Identity Federation sign-in already is that account.

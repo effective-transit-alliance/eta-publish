@@ -4,11 +4,14 @@ As much of it as `inline` and `suggest` use, and as the API was seen to behave i
 a suggested deletion leaves its text in place, marked;
 a suggested insertion takes up indices in the text read with suggestions inline
 and none in the text read without them;
-and a Commenter may comment, but not edit.
+an insertion at the start of a deletion just made in the same batch is the same suggestion,
+which is what a replacement is;
+and a Commenter may comment and suggest, but not edit.
 
 One tab, a body, and footnotes; every character is one UTF-16 unit.
 """
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from itertools import count, groupby
 
@@ -43,7 +46,8 @@ class FakeDocs:
         self.comments: list[JsonObject] = []
         self.anchors: dict[str, tuple[str | None, Unit, Unit]] = {}
         self.suggestions: dict[str, JsonObject] = {}
-        self.batches: list[list[JsonObject]] = []
+        self.batches: list[tuple[list[JsonObject], bool]] = []
+        self.before_batch: Callable[[FakeDocs], object] | None = None
         self._ids = count(1)
 
     # ---- where things are
@@ -75,6 +79,17 @@ class FakeDocs:
 
     def _unit_at(self, segment: str | None, index: int) -> int:
         return index - self.offset(segment)
+
+    def suggested_by(self, sid: str) -> tuple[str, str]:
+        """What suggestion `sid` inserts and deletes, as text."""
+        units = [u for units in self.segments.values() for u in units]
+        return (
+            "".join(u.char for u in units if u.inserted == sid),
+            "".join(u.char for u in units if sid in u.deleted),
+        )
+
+    def open_suggestions(self) -> list[str]:
+        return [sid for sid, t in self.suggestions.items() if t["status"] == "OPEN"]
 
     # ---- people
 
@@ -120,6 +135,11 @@ class FakeDocs:
 
     def person_resolves(self, comment_id: str) -> None:
         self._comment(comment_id)["status"] = "RESOLVED"
+        self.bump()
+
+    def person_rejects(self, sid: str) -> None:
+        self._drop_suggestion(sid)
+        self.suggestions[sid]["status"] = "REJECTED"
         self.bump()
 
     def person_comments(self, content: str, on: str) -> str:
@@ -230,15 +250,26 @@ class FakeDocs:
             found["startIndex"] = start
         return found
 
-    def batch(self, doc_id: str, requests: list[JsonObject], revision: str | None) -> JsonObject:
+    def batch(
+        self, doc_id: str, requests: list[JsonObject], suggest: bool, revision: str | None
+    ) -> JsonObject:
+        if self.before_batch is not None:
+            hook, self.before_batch = self.before_batch, None
+            hook(self)
         if revision is not None and revision != f"rev{self.revision}":
             raise RevisionChanged("the required revision is not the current one")
-        self.batches.append(requests)
+        self.batches.append((requests, suggest))
         replies: list[JsonObject] = []
+        responses: list[JsonObject] = []
+        last_deletion: tuple[str | None, int, str] | None = None
         for request in requests:
             ((name, body),) = request.items()
             reply: JsonObject = {}
-            if name == "insertComment":
+            response: JsonObject = {}
+            if suggest:
+                sid, last_deletion = self._suggest(name, body, last_deletion)
+                response = {"createdSuggestionIds": [sid]} if sid else {}
+            elif name == "insertComment":
                 reply = {"insertComment": {"commentThread": self._insert_comment(body, me=True)}}
             elif name == "updateCommentPost":
                 comment = self._comment(body["commentId"])
@@ -251,17 +282,68 @@ class FakeDocs:
                 )
             elif name == "deleteComment":
                 self.comments.remove(self._comment(body["commentId"]))
+            elif name == "deleteSuggestion":
+                assert self.suggestions[body["suggestionId"]]["headPost"]["author"]["me"]
+                self._drop_suggestion(body["suggestionId"])
+                del self.suggestions[body["suggestionId"]]
             else:
                 raise Refused(f"{name}: write access is required")
             replies.append(reply)
+            responses.append(response)
         self.bump()
-        return {"replies": replies}
+        return {"replies": replies, "suggestionResponses": responses}
+
+    def _suggest(
+        self, name: str, body: JsonObject, last: tuple[str | None, int, str] | None
+    ) -> tuple[str, tuple[str | None, int, str] | None]:
+        place = body.get("range") or body.get("location") or {}
+        assert place.get("tabId") == TAB
+        segment = place.get("segmentId")
+        units = self.segments[segment]
+        if name == "deleteContentRange":
+            start, end = self._span(segment, place)
+            sid = self._new_suggestion()
+            for unit in units[start:end]:
+                unit.deleted.add(sid)
+            return sid, (segment, start, sid)
+        if name == "insertText":
+            at = self._unit_at(segment, place["index"])
+            assert 0 <= at <= len(units)
+            if last is not None and last[:2] == (segment, at):
+                sid = last[2]
+                made = ""
+            else:
+                sid = made = self._new_suggestion()
+            units[at:at] = [Unit(c, inserted=sid) for c in body["text"]]
+            return made, None
+        if name == "updateTextStyle":
+            start, end = self._span(segment, place)
+            sid = self._new_suggestion()
+            (field_name,) = body["fields"].split(",")
+            value = body["textStyle"].get(field_name)
+            if field_name == "link":
+                value = value["url"]
+            for unit in units[start:end]:
+                unit.restyle[sid] = (field_name, value)
+            return sid, None
+        if name == "updateParagraphStyle":
+            start, end = self._span(segment, place)
+            sid = self._new_suggestion()
+            at = next(i for i in range(start, len(units)) if units[i].char == "\n")
+            units[at].restyle_paragraph[sid] = body["paragraphStyle"]["namedStyleType"]
+            return sid, None
+        raise Refused(f"{name} cannot be suggested")
 
     def _span(self, segment: str | None, found: JsonObject) -> tuple[int, int]:
         start = self._unit_at(segment, found["startIndex"])
         end = self._unit_at(segment, found["endIndex"])
         assert 0 <= start < end <= len(self.segments[segment]), (start, end)
         return start, end
+
+    def _new_suggestion(self) -> str:
+        sid = f"suggest.ours{next(self._ids)}"
+        self.suggestions[sid] = self._thread(sid, me=True)
+        return sid
 
     @staticmethod
     def _thread(sid: str, me: bool) -> JsonObject:
@@ -270,6 +352,14 @@ class FakeDocs:
             "status": "OPEN",
             "headPost": {"postId": f"post.{sid}", "author": {"me": me}},
         }
+
+    def _drop_suggestion(self, sid: str) -> None:
+        for segment, units in self.segments.items():
+            self.segments[segment] = [u for u in units if u.inserted != sid]
+            for unit in self.segments[segment]:
+                unit.deleted.discard(sid)
+                unit.restyle.pop(sid, None)
+                unit.restyle_paragraph.pop(sid, None)
 
     def _insert_comment(self, body: JsonObject, me: bool) -> JsonObject:
         found = body["range"]

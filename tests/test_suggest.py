@@ -19,7 +19,18 @@ from eta_publish import __main__ as cli
 from eta_publish import suggest as suggest_module
 from eta_publish.check_names import Check
 from eta_publish.docs_json import JsonObject
-from eta_publish.nodes import Document, Location, Mark, Notice, key_line
+from eta_publish.nodes import (
+    Document,
+    Edit,
+    Link,
+    Location,
+    Mark,
+    Notice,
+    ParagraphStyle,
+    Replace,
+    Underline,
+    key_line,
+)
 from eta_publish.site import Publication
 from eta_publish.suggest import (
     DocsApi,
@@ -71,6 +82,10 @@ def again_changes_nothing(docs: FakeDocs, *notices: Notice) -> None:
     assert len(docs.batches) == sent
 
 
+def fixed(docs: FakeDocs, *edits: Edit, subject: str = "137 feet") -> Mark:
+    return Mark(edits[0].location, fix=edits, subject=subject)
+
+
 # ---- comments ------------------------------------------------------------
 
 
@@ -89,7 +104,7 @@ def test_a_comment_in_a_footnote_is_anchored_in_it() -> None:
     docs = FakeDocs(BODY, {"kix.note": " A footnote with the ETA in it.\n"})
     notice = warned(Mark(docs.at("the ETA", "kix.note"), subject="x"), check=Check.ETA_WITH_ARTICLE)
     run(docs, notice)
-    (requests,) = docs.batches
+    ((requests, _),) = docs.batches
     assert requests[0]["insertComment"]["range"]["segmentId"] == "kix.note"
     assert docs.commented(docs.comments[0]["commentId"]) == "the ETA"
     again_changes_nothing(docs, notice)
@@ -186,21 +201,204 @@ def test_someone_elses_comment_is_left_alone() -> None:
     assert [c["commentId"] for c in docs.comments] == [theirs]
 
 
+# ---- suggestions -----------------------------------------------------------
+
+
+def test_a_fix_is_suggested_as_a_replacement_and_kept_the_second_time() -> None:
+    docs = FakeDocs(BODY)
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
+    outcome = run(docs, notice)
+    assert verbs(outcome) == [(Verb.CREATE, Thing.SUGGESTION, "unit-not-abbreviated: 137 feet")]
+    (sid,) = docs.open_suggestions()
+    assert docs.suggested_by(sid) == ("ft", "feet")
+    assert docs.inline_text() == BODY.replace("feet", "ftfeet")
+    again_changes_nothing(docs, notice)
+
+
+def test_a_fix_of_several_edits_is_suggested_whole_and_kept_whole() -> None:
+    docs = FakeDocs(BODY)
+    notice = warned(
+        fixed(
+            docs,
+            Replace(docs.at(" feet"), " ft"),
+            Replace(docs.point("The line"), " A"),
+            Replace(docs.at(", and"), ""),
+        )
+    )
+    run(docs, notice)
+    assert sorted(docs.suggested_by(sid) for sid in docs.open_suggestions()) == [
+        ("", ", and"),
+        (" A", ""),
+        (" ft", " feet"),
+    ]
+    again_changes_nothing(docs, notice)
+
+
+def test_a_style_fix_is_suggested_and_kept() -> None:
+    docs = FakeDocs(BODY)
+    notices = (
+        warned(fixed(docs, Underline(docs.at("137"), underline=True))),
+        warned(
+            fixed(docs, Link(docs.at("last"), "https://example.org/")), check=Check.URL_NOT_LINKED
+        ),
+        warned(
+            Mark(
+                docs.at("A headline\n"),
+                fix=(ParagraphStyle(docs.at("A headline\n"), "NORMAL_TEXT"),),
+            ),
+            check=Check.IMAGE_STYLED_AS_HEADING,
+        ),
+    )
+    outcome = run(docs, *notices)
+    assert [step.verb for step in outcome.steps] == [Verb.CREATE] * 3
+    assert len(docs.open_suggestions()) == 3
+    again_changes_nothing(docs, *notices)
+
+
+def test_a_suggestion_whose_fix_changed_is_deleted_and_made_again() -> None:
+    docs = FakeDocs(BODY)
+    run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))))
+    notice = warned(fixed(docs, Replace(docs.at("feet"), " ft")))
+    outcome = run(docs, notice)
+    assert sorted(step.verb for step in outcome.steps) == [Verb.CREATE, Verb.DELETE]
+    (sid,) = docs.open_suggestions()
+    assert docs.suggested_by(sid) == (" ft", "feet")
+    again_changes_nothing(docs, notice)
+
+
+def test_a_suggestion_no_warning_asks_for_is_deleted() -> None:
+    docs = FakeDocs(BODY)
+    run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))))
+    outcome = run(docs)
+    assert [step.verb for step in outcome.steps] == [Verb.DELETE]
+    assert docs.open_suggestions() == []
+    assert docs.inline_text() == BODY
+    again_changes_nothing(docs)
+
+
+def test_a_suggestion_a_person_rejected_is_suggested_again() -> None:
+    docs = FakeDocs(BODY)
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
+    run(docs, notice)
+    (rejected,) = docs.open_suggestions()
+    docs.person_rejects(rejected)
+    outcome = run(docs, notice)
+    assert verbs(outcome) == [(Verb.CREATE, Thing.SUGGESTION, "unit-not-abbreviated: 137 feet")]
+    (sid,) = docs.open_suggestions()
+    assert sid != rejected
+    assert docs.suggested_by(sid) == ("ft", "feet")
+    again_changes_nothing(docs, notice)
+
+
+def test_someone_elses_suggestion_is_left_alone() -> None:
+    docs = FakeDocs(BODY)
+    theirs = docs.person_inserts("very ", after="The line is ")
+    run(docs)
+    assert docs.open_suggestions() == [theirs]
+
+
+def test_overlapping_fixes_are_not_both_written_in_one_run() -> None:
+    docs = FakeDocs(BODY)
+    outcome = run(
+        docs,
+        warned(fixed(docs, Replace(docs.at("feet"), "ft"))),
+        warned(fixed(docs, Replace(docs.at("137 feet"), "137 ft"), subject="x")),
+    )
+    assert sorted((step.verb, step.why) for step in outcome.steps) == [
+        (Verb.CREATE, ""),
+        (Verb.SKIP, "it overlaps another fix made in this run"),
+    ]
+    (sid,) = docs.open_suggestions()
+    assert docs.suggested_by(sid) == ("137 ft", "137 feet")
+
+
+def test_a_deletion_and_an_insertion_at_its_start_from_two_marks_are_kept() -> None:
+    docs = FakeDocs(BODY)
+    notices = (
+        warned(fixed(docs, Replace(docs.at("137 "), ""))),
+        warned(fixed(docs, Replace(docs.point("is "), "about "), subject="y")),
+    )
+    run(docs, *notices)
+    # Sent together, the two are one replacement, as Docs makes them.
+    (sid,) = docs.open_suggestions()
+    assert docs.suggested_by(sid) == ("about ", "137 ")
+    again_changes_nothing(docs, *notices)
+
+
+@pytest.mark.parametrize("underline", [False, True], ids=["replacement", "underline"])
+def test_our_suggestion_with_someone_elses_insertion_inside_it_is_kept(underline: bool) -> None:
+    docs = FakeDocs(BODY)
+    where = docs.at("137 feet")
+    edit = Underline(where, underline=True) if underline else Replace(where, "137 ft")
+    notice = warned(fixed(docs, edit))
+    run(docs, notice)
+    docs.person_inserts("X", after="137 f")
+    again_changes_nothing(docs, notice)
+
+
+# ---- where, with other people's suggestions in the text -----------------------
+
+
+def test_what_someone_suggested_before_a_warning_moves_where_it_is_written() -> None:
+    docs = FakeDocs(BODY)
+    docs.person_inserts("XYZ ", after="A head")
+    docs.person_deletes("A last")
+    notices = (
+        warned(fixed(docs, Replace(docs.at("feet"), "ft"))),
+        warned(Mark(docs.at("the ETA"), subject="the ETA"), check=Check.ETA_WITH_ARTICLE),
+    )
+    run(docs, *notices)
+    ours = [sid for sid in docs.open_suggestions() if "ours" in sid]
+    assert [docs.suggested_by(sid) for sid in ours] == [("ft", "feet")]
+    assert docs.commented(docs.comments[0]["commentId"]) == "the ETA"
+    again_changes_nothing(docs, *notices)
+
+
+def test_a_fix_overlapping_someone_elses_suggestion_is_skipped_and_said_why() -> None:
+    docs = FakeDocs(BODY)
+    docs.person_deletes("137 feet")
+    outcome = run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))))
+    ((verb, why),) = [(step.verb, step.why) for step in outcome.steps]
+    assert verb is Verb.SKIP
+    assert "overlaps a suggestion" in why
+    assert docs.batches == []
+
+
+def test_an_insertion_against_someone_elses_insertion_is_skipped() -> None:
+    docs = FakeDocs(BODY)
+    docs.person_inserts("very ", after="The line is ")
+    outcome = run(docs, warned(fixed(docs, Replace(docs.point("The line is "), "now "))))
+    assert [step.verb for step in outcome.steps] == [Verb.SKIP]
+
+
+def test_text_that_changed_before_the_write_is_skipped() -> None:
+    docs = FakeDocs(BODY)
+    run(docs, warned(Mark(docs.at("A last"), subject="x"), check=Check.ETA_WITH_ARTICLE))
+    # The first batch resolves that comment; someone edits the text before the next is sent.
+    docs.before_batch = lambda d: d.person_edits("137", "140")
+    outcome = run(docs, warned(fixed(docs, Replace(docs.at("feet"), "ft"))))
+    skipped = [step for step in outcome.steps if step.verb is Verb.SKIP]
+    assert [step.why for step in skipped] == [
+        "the text there has changed since the warnings were read"
+    ]
+    assert docs.open_suggestions() == []
+
+
 # ---- the run -------------------------------------------------------------------
 
 
 def test_without_apply_nothing_is_written_and_everything_is_said() -> None:
     docs = FakeDocs(BODY)
-    notice = warned(Mark(docs.at("the ETA"), subject="the ETA"), check=Check.ETA_WITH_ARTICLE)
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
     outcome = run(docs, notice, apply=False)
-    assert verbs(outcome) == [(Verb.CREATE, Thing.COMMENT, "eta-with-article: the ETA")]
+    assert verbs(outcome) == [(Verb.CREATE, Thing.SUGGESTION, "unit-not-abbreviated: 137 feet")]
     assert docs.batches == []
-    assert docs.comments == []
+    assert docs.suggestions == {}
 
 
 def test_the_command_writes_nothing_without_apply(monkeypatch: pytest.MonkeyPatch) -> None:
     docs = FakeDocs(BODY)
-    notice = warned(Mark(docs.at("the ETA"), subject="the ETA"), check=Check.ETA_WITH_ARTICLE)
+    notice = warned(fixed(docs, Replace(docs.at("feet"), "ft")))
     monkeypatch.setattr(cli, "DocsApi", lambda: docs)
 
     def warnings(document: JsonObject, records: Path | None) -> tuple[Document, list[str]]:
@@ -217,37 +415,38 @@ def test_the_command_writes_nothing_without_apply(monkeypatch: pytest.MonkeyPatc
     result = CliRunner().invoke(cli.app, ["suggest", URL, "--apply"])
     assert result.exit_code == 0, result.output
     assert "created" in result.output
-    assert len(docs.comments) == 1
+    assert len(docs.open_suggestions()) == 1
 
 
-class FailingComments(FakeDocs):
-    """A document whose API refuses every new comment, once `failing`."""
-
-    failing = False
-
+class FailingSuggestions(FakeDocs):
     @override
-    def batch(self, doc_id: str, requests: list[JsonObject], revision: str | None) -> JsonObject:
-        if self.failing and any("insertComment" in request for request in requests):
+    def batch(
+        self, doc_id: str, requests: list[JsonObject], suggest: bool, revision: str | None
+    ) -> JsonObject:
+        if suggest:
             raise SuggestFailed("the API returned 400: invalid range")
-        return super().batch(doc_id, requests, revision)
+        return super().batch(doc_id, requests, suggest, revision)
 
 
 def test_what_a_failed_batch_was_to_make_is_said_to_be_not_done() -> None:
-    docs = FailingComments(BODY)
+    docs = FailingSuggestions(BODY)
     run(docs, warned(Mark(docs.at("the ETA"), subject="the ETA"), check=Check.ETA_WITH_ARTICLE))
-    docs.failing = True
-    notice = warned(Mark(docs.at("A last"), subject="last"), check=Check.ETA_WITH_ARTICLE)
-    outcome = suggest(docs, Publication(url=URL), None, True, warnings=given(notice))
+    notices = (
+        warned(Mark(docs.at("A last"), subject="last"), check=Check.ETA_WITH_ARTICLE),
+        warned(fixed(docs, Replace(docs.at("feet"), "ft"))),
+    )
+    outcome = suggest(docs, Publication(url=URL), None, True, warnings=given(*notices))
     assert outcome.error == "the API returned 400: invalid range"
     log = StringIO()
     write(outcome, True, Console(file=log, width=200))
     lines = log.getvalue().splitlines()
-    # The resolution went out before the failure; the new comment did not.
-    assert sorted(" ".join(line.split()[:3]) for line in lines[1:3]) == [
-        "not created comment",
+    # The comments went out before the failure; the suggestion did not.
+    assert sorted(" ".join(line.split()[:3]) for line in lines[1:4]) == [
+        "created comment eta-with-article:",
+        "not created suggestion",
         "resolved comment eta-with-article:",
     ]
-    assert str(tally([outcome], True)) == "1 resolved · 1 not done · 1 failed"
+    assert str(tally([outcome], True)) == "1 created · 1 resolved · 1 not done · 1 failed"
 
 
 def test_comments_the_api_says_it_did_not_save_fail_the_batch() -> None:
@@ -262,7 +461,7 @@ def test_comments_the_api_says_it_did_not_save_fail_the_batch() -> None:
     api = DocsApi.__new__(DocsApi)
     api.documents = Documents()
     with pytest.raises(SuggestFailed, match="ALL_FAILED_UNKNOWN_REASON"):
-        api.batch("doc", [{"insertComment": {}}], revision=None)
+        api.batch("doc", [{"insertComment": {}}], suggest=False, revision=None)
 
 
 def _list(path: Path, *names: str) -> Path:
