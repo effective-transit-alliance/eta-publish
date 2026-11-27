@@ -13,6 +13,7 @@ from collections.abc import Callable
 from pathlib import Path
 from threading import Barrier
 
+import docs_json
 import pytest
 from paths import FIXTURE_DIR, HOST, HOSTS, named_images
 from PIL import Image as Pillow
@@ -31,7 +32,7 @@ from eta_publish.build import (
 )
 from eta_publish.docs_json import JsonObject
 from eta_publish.emit.html import banner_markup, publication_page
-from eta_publish.naming import UNPUBLISHED_DIR
+from eta_publish.naming import ASSET_DIR, UNPUBLISHED_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
@@ -519,6 +520,26 @@ def test_one_publication_replaces_only_its_own_directory(tmp_path: Path) -> None
     assert not (out / SLUG / "stale.html").exists()
     assert (out / SLUG / "report.html").is_file()
     assert (out / "reports" / "other" / "report.html").read_text() == "another publication's"
+
+
+def test_one_publication_that_fails_keeps_the_shared_assets(tmp_path: Path) -> None:
+    """A build of one publication that fails says so and leaves the last build's assets,
+    which the pages already published link, rather than crashing on assets it never wrote.
+    """
+    assets = tmp_path / "site" / UNPUBLISHED_DIR / ASSET_DIR
+    assets.mkdir(parents=True)
+    (assets / "page.css").write_text("what the last build wrote")
+
+    site, _ = docs_json.build(
+        tmp_path, {"title": "A draft", "body": {"content": [para("No header here.")]}}
+    )
+
+    assert not site.built
+    assert [f.error for f in site.failed] == [
+        "no `Header` section, so nothing says where this publishes; "
+        "add one, styling its heading as a heading rather than as body text"
+    ]
+    assert (assets / "page.css").read_text() == "what the last build wrote"
 
 
 def placed(doc: Document, *paths: str) -> list[Built]:
