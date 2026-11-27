@@ -732,7 +732,7 @@ SHARED_ASSETS = (
 )
 
 FONT_DIR = "fonts"
-"""Where in `ASSET_DIR` the `woff2` of each font in `fonts.FONTS` is, which `page.css` loads.
+"""Where in `ASSET_DIR` the `woff2` of each font in `fonts.PAGE_FONTS` is, which `page.css` loads.
 Built from the cached `ttf` by every build, and not committed."""
 
 

@@ -784,12 +784,14 @@ that changed, so it is for a change to this code rather than to a document,
 and it is not what the workflow runs.
 
 The pages and the PDF are set in Yaldevi, which a build downloads once as a `ttf`, pinned by its checksum,
-into `~/.cache/eta-publish/fonts/`, as `eta_publish/fonts.py` says.
-`typst` reads the `ttf`,
-and every build converts it to the `woff2` the pages load, `assets/fonts/Yaldevi.woff2`, which is not committed.
+into `~/.cache/eta-publish/fonts/`, as `eta_publish/fonts.py` says,
+beside DejaVu Sans and its bold, downloaded the same way,
+which only the PDF is set in: the charts' text, and any character Yaldevi lacks.
+`typst` reads those `ttf`s, its own fonts, and none of the machine's,
+and every build converts Yaldevi to the `woff2` the pages load, `assets/fonts/Yaldevi.woff2`, which is not committed.
 An offline build downloads nothing,
-so on a machine that has not downloaded it, every publication fails.
-`eta-publish fonts` downloads it without building anything.
+so on a machine that has not downloaded them, every publication fails.
+`eta-publish fonts` downloads them without building anything.
 
 Publications are built several at a time, since a build is nearly all waiting,
 so a list takes about as long as its slowest document rather than as long as

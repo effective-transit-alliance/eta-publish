@@ -40,7 +40,7 @@ def install_template(outdir: Path) -> Path:
 def compile_pdf(source: Path, fonts: Path, dest: Path | None = None) -> Path:
     """Run `typst compile` on `source`, returning the PDF path.
 
-    `fonts` is the directory of fonts it is set in besides the machine's own,
+    `fonts` is the directory of fonts it is set in besides `typst`'s own,
     which a build gets from `fonts.fonts`.
     """
     typst = shutil.which("typst")
@@ -51,6 +51,8 @@ def compile_pdf(source: Path, fonts: Path, dest: Path | None = None) -> Path:
         # the values they are rather than spelled into a string.
         raise TypstMissing("typst")
     dest = dest or source.with_suffix(".pdf")
+    # Set only in the fonts in `fonts` and those built into `typst`,
+    # never the machine's, so every machine sets the same PDF.
     result = subprocess.run(
         [
             typst,
@@ -59,6 +61,7 @@ def compile_pdf(source: Path, fonts: Path, dest: Path | None = None) -> Path:
             str(source.parent),
             "--font-path",
             str(fonts),
+            "--ignore-system-fonts",
             str(source),
             str(dest),
         ],
