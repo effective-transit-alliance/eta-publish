@@ -4,7 +4,7 @@ Each is one pinned `ttf`, by its URL and its SHA-256,
 so every machine sets a publication in the same bytes,
 and a download that is not those bytes is an error rather than a different publication.
 `typst` reads the directory they are kept in,
-and the pages load a `woff2` the build makes from each.
+and the pages load a `woff2` the build makes from each of theirs.
 """
 
 from dataclasses import dataclass
@@ -41,7 +41,7 @@ class FontFile:
         return f"{self.name}.woff2"
 
 
-# A font is one pinned `ttf`, which `typst` reads, and the pages get a `woff2` built from it.
+# A font is one pinned `ttf`, which `typst` reads, and a page font gets a `woff2` built from it.
 # Yaldevi, the typeface etany.org sets its text in,
 # as one variable font holding every weight, which `typst` sets at whatever weight it is asked for.
 # Google Fonts' repository at the commit that added this version, through jsDelivr's copy of it,
@@ -57,8 +57,28 @@ YALDEVI = FontFile(
     sha256="21d5516cd9a8831964b57503f5b7a119aafa9603bdddd0183e91a0ac8c8dc2e4",
 )
 
-FONTS = (YALDEVI,)
-"""Every font, which is every file in `font_dir()`, and every `woff2` the pages load."""
+# DejaVu Sans 2.37, regular and bold, for the PDF alone:
+# `typst` sets in it the text of the charts, whose SVGs name `DejaVu Sans`,
+# and any character neither Yaldevi nor `typst`'s own fonts have, like the "⚠" of `template.typ`.
+# The upstream release's own files, through jsDelivr's copy of the `dejavu-fonts-ttf` npm package,
+# which ships them one file each, where the release itself is a tarball.
+DEJAVU_SANS = FontFile(
+    name="DejaVuSans",
+    url="https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans.ttf",
+    sha256="7da195a74c55bef988d0d48f9508bd5d849425c1770dba5d7bfc6ce9ed848954",
+)
+DEJAVU_SANS_BOLD = FontFile(
+    name="DejaVuSans-Bold",
+    url="https://cdn.jsdelivr.net/npm/dejavu-fonts-ttf@2.37.3/ttf/DejaVuSans-Bold.ttf",
+    sha256="e6476c1b80502924294eed40894c5b18e06c181444ca953e5334262df9c27724",
+)
+
+PAGE_FONTS = (YALDEVI,)
+"""The fonts the pages load, each as a `woff2`."""
+
+FONTS = (*PAGE_FONTS, DEJAVU_SANS, DEJAVU_SANS_BOLD)
+"""Every font, which is every file in `font_dir()`:
+every one `typst` sets a PDF in but its own."""
 
 _lock = Lock()
 """Held while the fonts are checked and fetched,
@@ -137,7 +157,7 @@ def fonts(offline: bool = False, http: requests.Session | None = None) -> Path:
 
 
 def woff2s(fonts_dir: Path) -> dict[str, bytes]:
-    """Each font in `FONTS`, from `fonts_dir` as `fonts` returns it, as the `woff2` the pages load.
+    """Each page font, from `fonts_dir` as `fonts` returns it, as the `woff2` the pages load.
 
     By the name it is served as.
     Converted by `fontTools`, which keeps every glyph and every table but `DSIG`,
@@ -147,7 +167,7 @@ def woff2s(fonts_dir: Path) -> dict[str, bytes]:
     """
     converted = {}
     with _lock:
-        for font in FONTS:
+        for font in PAGE_FONTS:
             if font.sha256 not in _woff2:
                 ttf = TTFont(fonts_dir / font.ttf, recalcTimestamp=False)
                 ttf.flavor = "woff2"

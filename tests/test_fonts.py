@@ -16,7 +16,7 @@ from requests.adapters import BaseAdapter
 from eta_publish import fonts
 from eta_publish.assets import read
 from eta_publish.fonts import (
-    FONTS,
+    PAGE_FONTS,
     FontDownloadFailed,
     FontFile,
     FontMismatch,
@@ -96,6 +96,7 @@ def _http(adapter: _Served) -> requests.Session:
 def _one_font(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     pinned = FontFile(name="Test", url=URL, sha256=sha256(FONT).hexdigest())
     monkeypatch.setattr(fonts, "FONTS", (pinned,))
+    monkeypatch.setattr(fonts, "PAGE_FONTS", (pinned,))
     monkeypatch.setattr(fonts, "font_dir", lambda: tmp_path / "fonts")
 
 
@@ -161,5 +162,5 @@ def test_a_font_always_makes_the_same_woff2(monkeypatch: pytest.MonkeyPatch) -> 
 
 def test_the_pages_load_each_font_from_the_site() -> None:
     css = read("page.css")
-    for font in FONTS:
+    for font in PAGE_FONTS:
         assert f'url("fonts/{font.woff2}") format("woff2")' in css
