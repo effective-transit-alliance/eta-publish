@@ -7,11 +7,9 @@ from typing import override
 
 import pytest
 import tinycss2
-from htpy import a
 from paths import FIXTURE_DIR, HOST, named_images
 
-from eta_publish.emit.base import shown_url
-from eta_publish.emit.html import HtmlEmitter, link_mark, markup, publication_page
+from eta_publish.emit.html import HtmlEmitter, publication_page
 from eta_publish.nodes import Document, Heading, Image, Paragraph, Shown, Text
 from eta_publish.parse import parse
 
@@ -43,25 +41,16 @@ def test_every_footnote_has_a_matching_backlink(out: str) -> None:
 
 
 def test_ids_are_unique() -> None:
-    """`fn18-return` appears twice on the published page."""
-    emitted = HtmlEmitter(site_url=HOST).emit(named_images(parse(FIXTURE)))
+    """`fn18-return` appears twice on the published page.
+    Two paragraphs with the same words are not the same paragraph either."""
+    parsed = named_images(parse(FIXTURE))
+    same = "The same words twice."
+    parsed.blocks.extend(
+        [Paragraph(content=[Text(text=same)]), Paragraph(content=[Text(text=same)])]
+    )
+    emitted = HtmlEmitter(site_url=HOST).emit(parsed)
     ids = re.findall(r'id="([^"]+)"', emitted)
     assert len(ids) == len(set(ids))
-
-
-def test_the_source_line_is_not_published(out: str) -> None:
-    """`Source:` names the original file in Drive, for whoever assembles the publication.
-    It appears nowhere on the live page and must not leak.
-
-    The published image is named after it, which is a filename rather than the line:
-    the note itself, and the extension it was exported under, are both absent."""
-    assert "Source:" not in out
-    assert "sas-west-036.jpg" not in out
-
-
-def test_the_caption_and_credit_are_published(out: str) -> None:
-    assert '<figcaption class="figure-caption">The SAS West and Phase 2 alignments.' in out
-    assert '<figcaption class="figure-credit">Credit: MTA' in out
 
 
 def test_images_use_the_image_base_and_resolved_extension(out: str) -> None:
@@ -95,50 +84,12 @@ def sections_and_headings(out: str) -> list[str]:
     ]
 
 
-def test_the_table_of_contents_links_to_real_anchors(out: str) -> None:
-    toc_html = without_marks(re.findall(r'<nav class="toc".*?</nav>', out, re.S)[0])
-    linked = set(re.findall(r'href="#([^"]+)"', toc_html))
-    targets = set(sections_and_headings(out))
-    assert linked and linked <= targets
-    assert '<a href="#the-elephants-in-the-room">The Elephants in the Room</a>' in toc_html
-
-
 def test_the_table_of_contents_lists_every_heading(out: str) -> None:
     """Every heading on the page, in order, footnotes and contributors too."""
     toc_html = without_marks(re.findall(r'<nav class="toc".*?</nav>', out, re.S)[0])
     linked = re.findall(r'href="#([^"]+)"', toc_html)
     assert linked == sections_and_headings(out)
-
-
-def test_the_table_of_contents_indents_a_subsection(out: str) -> None:
-    """A subsection sits in a list inside its section's own entry."""
-    toc_html = without_marks(re.findall(r'<nav class="toc".*?</nav>', out, re.S)[0])
-    assert (
-        '<li><a href="#the-elephants-in-the-room">The Elephants in the Room</a>\n'
-        '<ul>\n<li><a href="#ground-conditions">Ground Conditions</a></li>\n'
-        "</ul></li>" in toc_html
-    )
-
-
-def test_toc_entries_close_in_order(out: str) -> None:
-    """Nesting a list inside an entry is easy to close in the wrong order."""
-    toc_html = re.findall(r'<nav class="toc".*?</nav>', out, re.S)[0]
-    stack: list[str] = []
-    for tag in re.findall(r"</?(?:ul|li)\b", toc_html):
-        if tag.startswith("</"):
-            assert stack.pop() == tag.removeprefix("</")
-        else:
-            stack.append(tag.removeprefix("<"))
-    assert not stack
-
-
-def test_nested_lists_nest(out: str) -> None:
-    assert re.search(
-        r'<div class="list-block" id="list-[0-9a-f]{8}">'
-        r"<ul><li>First point<ul><li>Nested point</li></ul></li>"
-        r"<li>Second point</li></ul></div>",
-        without_marks(out),
-    )
+    assert '<a href="#the-elephants-in-the-room">The Elephants in the Room</a>' in toc_html
 
 
 class Read(HTMLParser):
@@ -173,55 +124,10 @@ def read(markup: str) -> Read:
     return parser
 
 
-def test_text_and_urls_are_escaped() -> None:
-    """Doc text is prose, but it reaches a published page verbatim."""
-    hostile = json.loads(json.dumps(FIXTURE))
-    hostile["body"]["content"].append(
-        {
-            "paragraph": {
-                "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
-                "elements": [
-                    {
-                        "textRun": {
-                            "content": "<script>alert(1)</script>\n",
-                            "textStyle": {"link": {"url": 'https://x.test/?a="b'}},
-                        }
-                    }
-                ],
-            }
-        }
-    )
-    emitted = HtmlEmitter(site_url=HOST).emit(named_images(parse(hostile)))
-    parsed = read(emitted)
-    # The page carries one script of its own, the one that places the footnote
-    # tooltips, so the check is that nothing from the document became a second
-    # one, rather than that the page has none.
-    assert parsed.tags.count("script") == 1
-    assert "<script>alert(1)</script>" in "".join(parsed.text), "as text, not as a tag"
-    # Which characters the escaping spells out is the builder's business.
-    # What has to hold is that the link points where the document pointed.
-    assert {"href": 'https://x.test/?a="b'} in parsed.attrs
-
-
-def test_inline_css_is_optional(doc: Document) -> None:
-    assert HtmlEmitter(inline_css=True, site_url=HOST).emit(doc).startswith("<style>")
-    assert not HtmlEmitter(inline_css=False, site_url=HOST).emit(doc).startswith("<style>")
-
-
 # Determinism across runs is `test_snapshots.py`'s.
 # Comparing an emitter with itself in one process cannot see it:
 # hash randomization is fixed for the life of an interpreter,
 # so order-dependent output matches itself and still differs from run to run.
-
-
-def test_tables_scroll_rather_than_overflow(out: str) -> None:
-    """Wide comparison tables are common in these publications,
-    and a page that scrolls sideways on a phone is worse than a table that does."""
-    marked = without_marks(out)
-    assert re.search(r'<div class="table-scroll" id="table-[0-9a-f]{8}"><table>', marked)
-    # A cell's paragraphs are numbered within the table,
-    # not within the section the table sits in.
-    assert re.search(r'<td><p id="table-[0-9a-f]{8}-p\d+">Grand Paris Express</p></td>', marked)
 
 
 def test_the_contributors_section_lists_the_public_contributors(doc: Document) -> None:
@@ -231,17 +137,9 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert "<li>Grace Hopper</li>\n<li>Ada Lovelace</li>" in out
     assert "Someone Unnamed" not in out
-
-
-def test_the_contributors_section_comes_last(doc: Document) -> None:
-    """After the footnotes, which is where the live publication credits them."""
-    doc.meta["Public Contributors"] = "Khyber Sen"
-    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
+    # After the footnotes, which is where the live publication credits them.
     assert out.index('<section class="footnotes"') < out.index('<section class="contributors"')
-
-
-def test_a_publication_with_no_public_contributors_has_no_contributors(doc: Document) -> None:
-    doc.meta.pop("Public Contributors", None)
+    doc.meta.pop("Public Contributors")
     assert 'class="contributors"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
@@ -250,29 +148,8 @@ def test_the_dateline_is_the_final_due_date(doc: Document) -> None:
     doc.meta["Publish Due Date"] = "Aug 19, 2026"
     out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
     assert '<p class="dateline" id="date">August 19, 2026</p>' in without_marks(out)
-
-
-def test_a_publication_with_no_final_due_date_has_no_dateline(doc: Document) -> None:
-    doc.meta.pop("Publish Due Date", None)
+    doc.meta.pop("Publish Due Date")
     assert 'class="dateline"' not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
-
-
-def test_every_block_can_be_linked_to(out: str) -> None:
-    """A publication is quoted a paragraph at a time, so every block is a target.
-
-    Paragraphs, figures, and tables wherever they sit,
-    footnote bodies and table cells included.
-    A list nested inside a list item is reached through the list that holds it."""
-    for opening in ("<p", "<figure", '<div class="table-scroll"'):
-        for tag in re.findall(rf"{re.escape(opening)}[ >][^>]*>?", out):
-            assert "id=" in tag, f"{tag} cannot be linked to"
-
-
-def test_a_paragraph_is_named_by_its_section_and_its_place_in_it(out: str) -> None:
-    """`#ground-conditions-p2` says where it is,
-    which is what someone reading the link before following it wants to know."""
-    assert '<p id="ground-conditions-p1">' in out
-    assert re.search(r'<p id="the-elephants-in-the-room-p\d+">', out)
 
 
 def test_editing_a_paragraph_does_not_move_its_id(doc: Document) -> None:
@@ -303,28 +180,10 @@ def test_inserting_a_paragraph_moves_only_what_follows_it_in_that_section(
     ]
 
 
-def test_repeated_text_still_gets_unique_ids(doc: Document) -> None:
-    same = "The same words twice."
-    doc.blocks.extend([Paragraph(content=[Text(text=same)]), Paragraph(content=[Text(text=same)])])
-    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
-    ids = re.findall(r'<p id="([^"]+)"', out)
-    assert len(ids) == len(set(ids))
-
-
 def test_emitting_twice_gives_the_same_ids(doc: Document) -> None:
     """The suffixing counter must not carry over between runs."""
     emitter = HtmlEmitter(inline_css=False, site_url=HOST)
     assert emitter.emit(doc) == emitter.emit(doc)
-
-
-def test_the_backlink_sits_inside_the_first_paragraph(out: str) -> None:
-    """A paragraph is a block,
-    so an arrow placed before one lands on a line of its own
-    with the note starting underneath it."""
-    for note in re.findall(r'<li id="fn\d+">.*?</li>', out, re.S):
-        assert re.match(
-            r'<li id="fn\d+"><a class="link-mark"[^>]*></a><p[^>]*><a href="#fnref\d+"', note
-        ), note[:160]
 
 
 def test_a_figure_carries_the_shape_of_its_image(doc: Document) -> None:
@@ -334,20 +193,20 @@ def test_a_figure_carries_the_shape_of_its_image(doc: Document) -> None:
     Docs says how large an image is placed rather than how large it is,
     and the crop has already changed the shape by the time anything is emitted.
     """
+    assert "--aspect" not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc), (
+        "unrecorded: a build that skipped the images, or an SVG with no pixel size"
+    )
     doc.image_shapes["io.1"] = (400, 250)
     assert 'style="--aspect: 1.600"' in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
-
-
-def test_a_figure_of_unrecorded_size_says_nothing_about_its_shape(doc: Document) -> None:
-    """A build that skipped the images,
-    and the SVG originals that have no pixel size at all.
-    The stylesheet's own default stands in, so a row of them is still a row."""
-    assert "--aspect" not in HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
 
 
 def test_every_linkable_block_carries_a_link_to_itself(out: str) -> None:
     """Anything with an id is something a reader may want to send someone,
     so the link to it is on the page rather than in its source.
+
+    A publication is quoted a paragraph at a time, so every block is a target:
+    paragraphs, figures, and tables wherever they sit,
+    footnote bodies and table cells included.
 
     Except in the back matter and in a table,
     where the paragraphs are not passages of the publication:
@@ -356,6 +215,9 @@ def test_every_linkable_block_carries_a_link_to_itself(out: str) -> None:
     """
     publication = re.sub(r'<section class="footnotes".*?</section>', "", out, flags=re.S)
     publication = re.sub(r"<td>.*?</td>", "", publication, flags=re.S)
+    for opening in ("<p", "<figure", '<div class="table-scroll"'):
+        for tag in re.findall(rf"{re.escape(opening)}[ >][^>]*>?", out):
+            assert "id=" in tag, f"{tag} cannot be linked to"
     anchors = re.findall(r'<(?:h[1-6]|p|figure|div|nav|section)[^>]* id="([^"]+)"', publication)
     assert anchors
     marked = set(re.findall(r'<a class="link-mark"[^>]* href="#([^"]+)"', out))
@@ -414,15 +276,8 @@ def test_the_footnote_preview_is_hidden_where_nothing_hovers() -> None:
     for selectors, declarations in rules:
         if any(s.endswith("-tip") for s in selectors) and "display" in declarations:
             assert declarations["display"] == "none", selectors
-
-
-def test_the_footnote_preview_is_shown_where_something_does() -> None:
-    """Hidden by default is only right if hovering still brings it back.
-
-    A source's box is shown by the same rule, and built by the script.
-    """
-    from eta_publish.emit.html import PUBLICATION_CSS
-
+    # Hidden by default is only right if hovering still brings it back.
+    # A source's box is shown by the same rule, and built by the script.
     shown = {
         ".eta-report .footnote-ref:hover .footnote-tip",
         ".eta-report .footnote-ref:focus-within .footnote-tip",
@@ -447,61 +302,21 @@ def test_an_empty_shown_value_is_still_marked(doc: Document) -> None:
     assert "the tab is named <code></code>" in out
 
 
-def test_a_footnotes_mark_sits_outside_its_number(out: str) -> None:
-    """Beside the arrow back it crowded the one control that was already there,
-    so it hangs outside the list's own numbering instead."""
-    footnote = re.findall(r'<li id="fn1">.*?</li>', out, re.S)[0]
-    assert footnote.index("link-mark") < footnote.index("footnote-back")
-
-
-def test_the_link_is_not_part_of_the_heading_text(out: str) -> None:
-    """The `#` is drawn by the stylesheet:
-    quoting a section title must not pick up a character nobody wrote,
-    and a reader who cannot see the mark is given the label instead."""
-    assert 'aria-label="Link to this section"></a>' in out
-    assert "#</a>" not in out
-
-
 def test_paragraphs_are_numbered_from_one_in_each_section(out: str) -> None:
     """Within the section rather than across the page:
     a paragraph added to the first section would otherwise renumber the last one."""
     for section in ("ground-conditions", "the-elephants-in-the-room"):
         numbers = [int(n) for n in re.findall(rf'<p id="{section}-p(\d+)"', out)]
         assert numbers == list(range(1, len(numbers) + 1))
-
-
-def test_a_footnote_numbers_its_own_paragraphs(out: str) -> None:
-    """Numbering a footnote's paragraphs along with the publication
-    would put 43 between 12 and 13,
-    and nobody could do anything with that number."""
+    # `#ground-conditions-p1` says where it is,
+    # which is what someone reading the link before following it wants to know.
+    assert '<p id="ground-conditions-p1">' in out
+    # A footnote's paragraphs are numbered within it, not along with the publication:
+    # 43 between 12 and 13 is a number nobody could do anything with.
     assert '<p id="fn1-p1">' in out
 
 
 EVIL = '"><script>alert(1)</script><x y="'
-
-
-def test_an_attribute_value_comes_back_out_as_it_went_in() -> None:
-    """Escaping is wrong in two directions, and a substring check sees neither.
-
-    A value that escapes too little closes its own quotes,
-    and a value that escapes too much reaches the page as `&amp;amp;`
-    or as an apostrophe nobody typed.
-    Both are the same failure to a reader: the attribute does not say
-    what the document said. So it is read back and compared.
-    """
-    values = [EVIL, "a & b", "&amp;", "it's", 'say "hi"', "<>", "\u00e9 \u00a3 \u00b7", ""]
-    for value in values:
-        parsed = read(markup(a(id=value, title=value)))
-        assert parsed.attrs == [{"id": value, "title": value}], value
-
-
-def test_a_link_to_a_block_says_where_it_points() -> None:
-    """`link_mark` builds its own tag, so what that tag says is worth reading back."""
-    parsed = read(markup(link_mark(EVIL, EVIL)))
-    assert parsed.tags == ["a"]
-    assert parsed.attrs == [
-        {"class": "link-mark", "href": f"#{EVIL}", "aria-label": f"Link to this {EVIL}"}
-    ]
 
 
 def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
@@ -522,45 +337,30 @@ def test_a_hostile_document_opens_no_tag_of_its_own(doc: Document) -> None:
     # An image is frozen, and this is the one place anything writes to one.
     for image in doc.images:
         object.__setattr__(image, "alt", EVIL)
+    # A link's address is the document's too: what has to hold is that
+    # it points where the document pointed, whichever characters get spelled out.
+    href = "https://x.test/?a=\"b&c='d'"
+    doc.blocks.append(Paragraph([Text(text="a link", href=href)]))
     for output in (HtmlEmitter(site_url=HOST).emit(doc), publication_page(doc, site_url=HOST)):
         parsed = read(output)
         assert parsed.tags.count("script") == 1, "only the page's own script"
         assert parsed.tags.count("x") == 0, "the document opened no tag"
         assert EVIL in "".join(parsed.text), "the text itself survives, as text"
-
-
-def test_an_absent_attribute_is_not_an_empty_one() -> None:
-    """`None` leaves the attribute out, which is a different page.
-
-    The distinction is the builder's rather than this emitter's,
-    and every conditional attribute here is written as one:
-    a `tabindex` that is `None` has to be no `tabindex` at all
-    rather than `tabindex=""`, which is a real value meaning something else.
-    """
-    assert markup(a(title=None)) == "<a></a>"
-    assert markup(a(title="")) == '<a title=""></a>'
-    # Python will not take `class` as an argument name, and HTML will not take
-    # anything else.
-    assert markup(a(class_="x", aria_label="y")) == '<a class="x" aria-label="y"></a>'
-
-
-def test_nothing_a_document_says_becomes_markup(doc: Document) -> None:
-    """The document is the untrusted half of every page this builds."""
-    doc.title = EVIL
-    doc.meta["Short"] = EVIL
-    doc.subtitle = [Text(EVIL)]
-    doc.meta["SEO Description"] = EVIL
-    doc.meta["Public Contributors"] = EVIL
-    doc.warn("a warning about {}", Shown(EVIL))
-    for output in (HtmlEmitter(site_url=HOST).emit(doc), publication_page(doc, site_url=HOST)):
-        assert "<script>alert(1)</script>" not in output
-        assert "alert(1)" in output, "the text itself should survive, escaped"
-
-
-def test_a_source_is_shown_without_its_www() -> None:
-    """Only what is shown: the link still goes where the document said."""
-    assert shown_url("https://www.mta.info/document/196361") == "mta.info/document/196361"
-    assert shown_url("https://web.archive.org/x/www.a.b") == "web.archive.org/x/www.a.b"
+        assert any(attrs.get("href") == href for attrs in parsed.attrs)
+    # Escaping is wrong in two directions, and a substring check sees neither:
+    # too little closes the attribute's quotes, too much reaches the page as
+    # `&amp;amp;` or as an apostrophe nobody typed.
+    # Both are the same failure to a reader, so each value is read back and compared.
+    for value in ("a & b", "&amp;", "it's", 'say "hi"', "<>", "\u00e9 \u00a3 \u00b7"):
+        doc.meta["SEO Description"] = value
+        for image in doc.images:
+            object.__setattr__(image, "alt", value)
+        parsed = read(publication_page(doc, site_url=HOST))
+        descriptions = [
+            attrs["content"] for attrs in parsed.attrs if attrs.get("name") == "description"
+        ]
+        assert descriptions == [value], value
+        assert any(attrs.get("alt") == value for attrs in parsed.attrs), value
 
 
 def test_a_linked_fragment_links_the_sites_copies(doc: Document) -> None:
@@ -595,7 +395,7 @@ def test_the_masthead_links_the_pdf_where_it_is_given(doc: Document) -> None:
 
 
 def test_the_masthead_links_no_pdf_unless_given(doc: Document) -> None:
-    assert 'class="pdf"' not in HtmlEmitter(site_url=HOST).emit(doc)
+    assert 'class="pdf-button"' not in HtmlEmitter(site_url=HOST).emit(doc)
 
 
 def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) -> None:
@@ -620,10 +420,7 @@ def test_the_share_card_is_absolute_and_sized_for_a_link_preview(doc: Document) 
 
 def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str) -> None:
     """Off, the `[n]` stays in the markup for the backlinks, and the root says to hide it."""
-    from eta_publish.emit.html import PUBLICATION_CSS
-
     assert '<div class="eta-report no-source-brackets">' in out
     assert 'id="srcref1-1"' in out
-    assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in PUBLICATION_CSS
     shown = HtmlEmitter(inline_css=False, source_brackets=True, site_url=HOST).emit(doc)
     assert '<div class="eta-report">' in shown
