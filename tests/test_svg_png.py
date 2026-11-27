@@ -1,11 +1,14 @@
 """The PNG an SVG is offered as too, for whoever cannot use an SVG."""
 
+import os
 from pathlib import Path
 from typing import cast
 
+import pytest
 from PIL import Image as Pillow
 
-from eta_publish.images import write_web_copies
+from eta_publish import images
+from eta_publish.images import write_print_copies, write_web_copies
 from eta_publish.naming import PNG_SIDE
 
 CHART = (
@@ -37,3 +40,134 @@ def test_a_png_already_drawn_from_the_same_svg_is_kept(tmp_path: Path) -> None:
     png.write_bytes(b"kept")
     write_web_copies({"io.1": svg}, tmp_path)
     assert png.read_bytes() == b"kept"
+
+
+def _photo(path: Path, color: tuple[int, int, int]) -> Path:
+    Pillow.new("RGB", (32, 32), color).save(path, "PNG")
+    return path
+
+
+def test_a_print_copy_made_from_the_same_picture_is_not_encoded_again(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    photo = _photo(tmp_path / "photo.png", (200, 10, 10))
+    calls: list[Path] = []
+    real = images._for_print
+
+    def counting(path: Path) -> bytes | None:
+        calls.append(path)
+        return real(path)
+
+    monkeypatch.setattr(images, "_for_print", counting)
+    dest = tmp_path / "print"
+    first = write_print_copies({"io.1": photo}, dest)
+    second = write_print_copies({"io.1": photo}, dest)
+    assert first == second
+    assert len(calls) == 1
+    assert second["io.1"].is_file()
+
+
+def test_a_changed_picture_or_a_missing_copy_is_encoded_again(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    photo = _photo(tmp_path / "photo.png", (200, 10, 10))
+    calls: list[Path] = []
+    real = images._for_print
+
+    def counted(path: Path) -> bytes | None:
+        calls.append(path)
+        return real(path)
+
+    monkeypatch.setattr(images, "_for_print", counted)
+    dest = tmp_path / "print"
+    copy = write_print_copies({"io.1": photo}, dest)["io.1"]
+    write_print_copies({"io.1": photo}, dest)
+    assert len(calls) == 1
+    _photo(photo, (10, 10, 200))
+    write_print_copies({"io.1": photo}, dest)
+    assert len(calls) == 2
+    with Pillow.open(copy) as shown:
+        assert cast("tuple[int, int, int]", shown.convert("RGB").getpixel((0, 0)))[2] > 150
+    copy.unlink()
+    write_print_copies({"io.1": photo}, dest)
+    assert len(calls) == 3 and copy.is_file()
+
+
+def test_writing_a_print_copy_leaves_the_file_it_is_linked_to_alone(tmp_path: Path) -> None:
+    """A carried copy is a hard link to the last build's, which must not change."""
+    photo = _photo(tmp_path / "photo.png", (200, 10, 10))
+    last = tmp_path / "last"
+    copy = write_print_copies({"io.1": photo}, last)["io.1"]
+    before = copy.read_bytes()
+    this = tmp_path / "this"
+    this.mkdir()
+    for name in (copy.name, images.PRINT_SOURCES):
+        os.link(last / name, this / name)
+    _photo(photo, (10, 10, 200))
+    write_print_copies({"io.1": photo}, this)
+    assert copy.read_bytes() == before
+    assert (this / copy.name).read_bytes() != before
+
+
+def test_a_build_stopped_while_encoding_does_not_leave_a_copy_recorded_as_another_picture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The record forgets a copy before it is rewritten, not after the last one is."""
+    first = _photo(tmp_path / "first.png", (200, 10, 10))
+    second = _photo(tmp_path / "second.png", (10, 200, 10))
+    written = {"io.1": first, "io.2": second}
+    dest = tmp_path / "print"
+    copy = write_print_copies(written, dest)["io.1"]
+    _photo(first, (10, 10, 200))
+    _photo(second, (10, 10, 10))
+    real = images._for_print
+
+    def stopping(path: Path) -> bytes | None:
+        if path == second:
+            raise KeyboardInterrupt
+        return real(path)
+
+    monkeypatch.setattr(images, "_for_print", stopping)
+    with pytest.raises(KeyboardInterrupt):
+        write_print_copies(written, dest)
+    calls: list[Path] = []
+
+    def counting(path: Path) -> bytes | None:
+        calls.append(path)
+        return real(path)
+
+    monkeypatch.setattr(images, "_for_print", counting)
+    _photo(first, (200, 10, 10))
+    write_print_copies(written, dest)
+    with Pillow.open(copy) as shown:
+        assert cast("tuple[int, int, int]", shown.convert("RGB").getpixel((0, 0)))[0] > 150
+    write_print_copies(written, dest)
+    assert calls == [first, second]
+
+
+def test_a_build_stopped_while_encoding_does_not_leave_a_page_copy_recorded_as_another_picture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The record forgets a copy before it is rewritten, not after the last one is."""
+    first = _photo(tmp_path / "first.png", (200, 10, 10))
+    second = _photo(tmp_path / "second.png", (10, 200, 10))
+    written = {"io.1": first, "io.2": second}
+    copy = write_web_copies(written, tmp_path)[0]
+    assert copy.name.startswith("first")
+    _photo(first, (10, 10, 200))
+    _photo(second, (10, 10, 10))
+    real = images._for_web
+
+    def stopping(path: Path, width: int, extension: str) -> bytes:
+        if path == second:
+            raise KeyboardInterrupt
+        return real(path, width, extension)
+
+    monkeypatch.setattr(images, "_for_web", stopping)
+    with pytest.raises(KeyboardInterrupt):
+        write_web_copies(written, tmp_path)
+    monkeypatch.setattr(images, "_for_web", real)
+    _photo(first, (200, 10, 10))
+    write_web_copies(written, tmp_path)
+    with Pillow.open(copy) as shown:
+        assert cast("tuple[int, int, int]", shown.convert("RGB").getpixel((0, 0)))[0] > 150

@@ -610,6 +610,18 @@ PRINT_QUALITY = 85
 """The JPEG quality the PDF's copies are written at."""
 
 
+PRINT_SOURCES = "sources.json"
+"""Which version of each picture the copies in `PRINT_DIR` were made from.
+
+Maps each copy's file name to the hash of the picture's bytes and the
+`PRINT_QUALITY` it was encoded at, so a changed picture or a changed quality
+makes a copy stale.
+Not committed, like the copies: it lets a rebuild that changed no picture skip
+encoding them all again.
+`write_posters` writes into the same folder and is not recorded here.
+"""
+
+
 def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
     """Write the PDF's copy of every image, returning object id to written path.
 
@@ -623,22 +635,43 @@ def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
     The cost is line art, which picks up ringing along hard edges for little
     saving. It is paid in the PDF only: `images/` keeps what the document
     holds, and that is what each picture in the PDF links to.
+
+    A copy already made from the same bytes at the same `PRINT_QUALITY` is
+    kept rather than made again, as `write_web_copies` does, and only the
+    rest are encoded. Other files in `dest`, the posters, are left alone.
+    Every file is written with `replace_bytes`, since `dest` may hold
+    hard links to the last build's copies.
     """
     dest.mkdir(parents=True, exist_ok=True)
     copies: dict[str, Path] = {}
-    if not written:
-        return copies
-    # Several at once, because Pillow lets go of the GIL while it decodes and
-    # encodes, which is nearly all of the time a picture takes here.
-    with ThreadPoolExecutor(max_workers=min(len(written), MAX_ENCODING_AT_ONCE)) as pool:
-        encoded = pool.map(_for_print, written.values())
-        for (object_id, path), data in zip(written.items(), encoded, strict=True):
-            out = dest / print_href(path.name)
-            copies[object_id] = out
-            if data is None:
-                shutil.copyfile(path, out)
-            else:
-                out.write_bytes(data)
+    try:
+        made: dict[str, str] = json.loads((dest / PRINT_SOURCES).read_text())
+    except OSError, ValueError:
+        made = {}
+    keys: dict[str, str] = {}
+    stale: list[tuple[str, Path]] = []
+    for object_id, path in written.items():
+        name = print_href(path.name)
+        out = dest / name
+        copies[object_id] = out
+        keys[name] = f"{hashlib.sha256(path.read_bytes()).hexdigest()}:{PRINT_QUALITY}"
+        if made.get(name) != keys[name] or not out.is_file():
+            stale.append((name, path))
+    if stale:
+        # Forgotten before any is rewritten: a build stopped partway would
+        # otherwise leave a record naming the old picture beside the new copy,
+        # which a later build of the old picture would then keep.
+        forgotten = {name for name, _ in stale}
+        kept = {name: key for name, key in sorted(made.items()) if name not in forgotten}
+        replace_bytes(dest / PRINT_SOURCES, (json.dumps(kept, indent=2) + "\n").encode())
+        # Several at once, because Pillow lets go of the GIL while it decodes and
+        # encodes, which is nearly all of the time a picture takes here.
+        with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
+            encoded = pool.map(_for_print, [path for _, path in stale])
+            for (name, path), data in zip(stale, encoded, strict=True):
+                replace_bytes(dest / name, path.read_bytes() if data is None else data)
+    record = {name: key for name, key in sorted(keys.items())}
+    replace_bytes(dest / PRINT_SOURCES, (json.dumps(record, indent=2) + "\n").encode())
     return copies
 
 
@@ -689,6 +722,12 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
         if made.get(name) != source[3] or not (web / name).is_file()
     ]
     if stale:
+        # Forgotten before any is rewritten: a build stopped partway would
+        # otherwise leave a record naming the old picture beside the new copy,
+        # which a later build of the old picture would then keep.
+        forgotten = {name for name, _ in stale}
+        kept = {name: digest for name, digest in sorted(made.items()) if name not in forgotten}
+        replace_bytes(web / WEB_SOURCES, (json.dumps(kept, indent=2) + "\n").encode())
         # Several at once: Pillow lets go of the GIL while it encodes.
         with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
             encoded = pool.map(

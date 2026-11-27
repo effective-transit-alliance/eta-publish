@@ -62,6 +62,7 @@ from .naming import (
     VIDEO_DIR,
     WEB_DIR,
     partial_name,
+    replace_bytes,
     squarespace_name,
     video_frame_name,
     warning_poster_name,
@@ -72,6 +73,7 @@ from .style import style
 lazy from .assets import read, read_bytes
 lazy from .fetch import fetch
 lazy from .images import (
+    PRINT_SOURCES,
     download,
     original_name,
     svg_description,
@@ -247,7 +249,9 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     a new file in its place and leaves the last build's copy alone.
     The records are copied, since each is rewritten.
 
-    Not the print copies, the PDF, or the outputs: every build writes those.
+    The print copies, with the record of what each was made from, are carried
+    the same way: `write_print_copies` makes again only those whose picture changed.
+    Not the posters, the PDF, or the outputs: every build writes those.
     """
     if previous.resolve() == dest.resolve():
         return
@@ -272,6 +276,15 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     web = previous / IMAGE_DIR / WEB_DIR
     if web.is_dir():
         media += [f"{IMAGE_DIR}/{WEB_DIR}/{copy.name}" for copy in web.iterdir()]
+    # Only the copies the record names: the posters share the folder.
+    printed = previous / PRINT_DIR
+    try:
+        recorded: dict[str, str] = json.loads((printed / PRINT_SOURCES).read_text())
+    except OSError, ValueError:
+        recorded = {}
+    if recorded:
+        media += [f"{PRINT_DIR}/{PRINT_SOURCES}"]
+        media += [f"{PRINT_DIR}/{name}" for name in recorded]
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
@@ -693,7 +706,8 @@ def write_posters(doc: Document, dest: Path) -> list[Path]:
     written = []
     for kind in sorted({embed.warning_kind for embed in doc.embeds if embed.warning}):
         path = dest / warning_poster_name(kind)
-        path.write_text(warning_poster(LOGO.read_text(), kind))
+        # Replaced rather than rewritten: `dest` holds links to the last build's print copies.
+        replace_bytes(path, warning_poster(LOGO.read_text(), kind).encode())
         written.append(path)
     return written
 
