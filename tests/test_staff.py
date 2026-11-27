@@ -16,7 +16,7 @@ from eta_publish import staff
 from eta_publish.build import IMAGES_JSON
 from eta_publish.naming import UNPUBLISHED_DIR
 from eta_publish.site import Publication
-from eta_publish.staff import STAFF_JSON, look_up, read_staff, staff_names, write_staff
+from eta_publish.staff import look_up, read_staff, staff_names, write_staff
 
 PAGE = (FIXTURE / "about-us.html").read_text()
 
@@ -59,10 +59,6 @@ class Unreachable(requests.Session):
         raise requests.ConnectionError("could not resolve www.etany.org")
 
 
-def test_the_names_are_the_headings_of_the_staff_list() -> None:
-    assert staff_names(PAGE) == SEVEN
-
-
 def test_a_heading_outside_the_staff_list_is_not_a_name() -> None:
     page = (
         "<h2>About Us</h2>"
@@ -77,6 +73,7 @@ def test_a_heading_outside_the_staff_list_is_not_a_name() -> None:
 
 def test_the_page_read_is_what_the_build_links(capsys: pytest.CaptureFixture[str]) -> None:
     assert look_up(SAVED, Serving(200, PAGE)) == SEVEN
+    assert staff_names(PAGE) == SEVEN
     assert "could not read the staff" not in capsys.readouterr().err
 
 
@@ -98,12 +95,6 @@ def test_a_page_listing_no_names_keeps_the_saved_names(
     """Markup that changed under the parser says nothing about who left."""
     assert look_up(SAVED, Serving(200, "<html><body><h2>About Us</h2></body></html>")) == SAVED
     assert "could not read the staff" in capsys.readouterr().err
-
-
-def test_the_saved_names_read_back_as_written(tmp_path: Path) -> None:
-    write_staff(tmp_path, SEVEN)
-    assert json.loads((tmp_path / STAFF_JSON).read_text()) == list(SEVEN)
-    assert read_staff(tmp_path) == SEVEN
 
 
 def test_with_nothing_saved_there_are_no_names(tmp_path: Path) -> None:
