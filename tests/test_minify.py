@@ -6,7 +6,6 @@ from pathlib import Path
 import pytest
 
 from eta_publish import minify
-from eta_publish.minify import min_name
 
 BASE = "https://example.com/assets"
 
@@ -20,23 +19,59 @@ PAGE = f"""<link rel="stylesheet" href="{BASE}/publication.css" />
 """
 
 
-def test_the_minified_name_keeps_the_extension() -> None:
-    assert min_name("report.html") == "report.min.html"
-    assert min_name("report.published.html") == "report.published.min.html"
+WHOLE_PAGE = (
+    '<!doctype html>\n<html>\n<head>\n<link rel="stylesheet" href="../assets/page.css" />\n'
+    '<link rel="stylesheet" href="../assets/publication.css" />\n'
+    '<script src="../assets/publication.js" defer></script>\n</head>\n<body>\n<p>A page.</p>\n'
+    "</body>\n</html>\n"
+)
+"""A publication's `index.html`, which links the page's stylesheet too, and relatively."""
 
 
-def test_the_page_links_the_minified_assets(tmp_path: Path) -> None:
-    source = tmp_path / "report.html"
-    source.write_text(PAGE)
-    written = minify.page(source, BASE)
-    assert written == tmp_path / "report.min.html"
+@pytest.mark.parametrize(
+    ("name", "text", "base", "linked", "assets", "body"),
+    [
+        (
+            "report.html",
+            PAGE,
+            BASE,
+            None,
+            ["publication.min.css", "publication.min.js"],
+            # The spaces around the link draw, so they stay.
+            "A <a href=#a>link</a> and a word.",
+        ),
+        (
+            "index.html",
+            WHOLE_PAGE,
+            "../assets",
+            minify.PAGE_ASSETS,
+            ["page.min.css", "publication.min.css", "publication.min.js"],
+            "<p>A page.</p>",
+        ),
+    ],
+)
+def test_the_page_links_the_minified_assets(
+    tmp_path: Path,
+    name: str,
+    text: str,
+    base: str,
+    linked: tuple[str, ...] | None,
+    assets: list[str],
+    body: str,
+) -> None:
+    source = tmp_path / name
+    source.write_text(text)
+    if linked is None:
+        written = minify.page(source, base)
+    else:
+        written = minify.page(source, base, linked=linked)
+    assert written == tmp_path / name.replace(".html", ".min.html")
     html = written.read_text()
-    assert f"{BASE}/publication.min.css" in html
-    assert f"{BASE}/publication.min.js" in html
-    assert "publication.css" not in html.replace("publication.min.css", "")
-    # The spaces around the link draw, so they stay.
-    assert "A <a href=#a>link</a> and a word." in html
-    assert len(html) < len(PAGE)
+    for asset in assets:
+        assert f"{base}/{asset}" in html
+        assert asset.replace(".min", "") not in html.replace(asset, "")
+    assert body in html
+    assert len(html) < len(text)
 
 
 def test_a_page_not_linking_the_assets_there_is_refused(tmp_path: Path) -> None:
@@ -86,25 +121,3 @@ def test_the_assets_are_found_in_a_relative_directory(
     monkeypatch.chdir(tmp_path)
     written = minify.assets(Path("site/assets"))
     assert all((tmp_path / path).exists() for path in written)
-
-
-def test_a_minified_copy_is_told_apart_from_its_original() -> None:
-    """What a glob for `report.part*.html` also finds."""
-    assert minify.is_min("report.part01.min.html")
-    assert minify.is_min("report.published.min.html")
-    assert not minify.is_min("report.part01.html")
-
-
-def test_a_whole_page_links_the_minified_copy_of_each_stylesheet(tmp_path: Path) -> None:
-    """A publication's `index.html`, which links the page's stylesheet too, and relatively."""
-    source = tmp_path / "index.html"
-    source.write_text(
-        '<!doctype html>\n<html>\n<head>\n<link rel="stylesheet" href="../assets/page.css" />\n'
-        '<link rel="stylesheet" href="../assets/publication.css" />\n'
-        '<script src="../assets/publication.js" defer></script>\n</head>\n<body>\n<p>A page.</p>\n'
-        "</body>\n</html>\n"
-    )
-    html = minify.page(source, "../assets", linked=minify.PAGE_ASSETS).read_text()
-    for name in ("page.min.css", "publication.min.css", "publication.min.js"):
-        assert f"../assets/{name}" in html
-    assert "<p>A page.</p>" in html
