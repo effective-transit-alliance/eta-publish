@@ -1170,6 +1170,31 @@ def test_a_carried_over_image_is_linked_and_replacing_it_leaves_the_last_build_a
     assert (last / "images" / "sas-west-036.png").read_bytes() == b"the last build's"
 
 
+def test_a_build_elsewhere_carries_over_the_print_copies_its_record_names(
+    tmp_path: Path,
+) -> None:
+    """Linked with their record, so a rebuild into a fresh directory encodes none of them again.
+
+    Only those the record names: a poster shares the folder and every build writes it.
+    """
+    from eta_publish.build import carry_over
+    from eta_publish.images import PRINT_SOURCES
+    from eta_publish.naming import PRINT_DIR
+
+    last = tmp_path / "last"
+    (last / PRINT_DIR).mkdir(parents=True)
+    (last / PRINT_DIR / PRINT_SOURCES).write_text(json.dumps({"sas-west-036.jpg": "abc:85"}))
+    (last / PRINT_DIR / "sas-west-036.jpg").write_bytes(b"encoded")
+    (last / PRINT_DIR / "poster.svg").write_text("written by every build")
+
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+
+    printed = tmp_path / "next" / PRINT_DIR
+    assert {p.name for p in printed.iterdir()} == {PRINT_SOURCES, "sas-west-036.jpg"}
+    linked = printed / "sas-west-036.jpg"
+    assert linked.stat().st_ino == (last / PRINT_DIR / "sas-west-036.jpg").stat().st_ino
+
+
 def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 
