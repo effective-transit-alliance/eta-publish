@@ -49,9 +49,41 @@ dgit() {
     git -C "$drafts" "$@"
 }
 
-# The code commit the drafts commit `$1` pins, or nothing if it pins none.
-pin_of() {
-    dgit rev-parse --quiet --verify "$1:$pin_path" || true
+# Each drafts commit `git log "$@"` lists, in its order, then the code commit it pins, on one line,
+# or just the drafts commit if it pins none.
+# It reads them all with one `git log` and one `git diff-tree`, however many there are:
+# diffing each commit's tree against the empty tree lists its `$pin_path` entry,
+# which `git cat-file` can't, since the pinned commit isn't in `$drafts/`.
+pins_of() {
+    local empty
+    local commits=()
+    local trees=()
+    local pins=()
+    local commit
+    local tree
+    local line
+    local pin
+    local i=-1
+    empty="$(dgit hash-object -t tree /dev/null)"
+    while read -r commit tree; do
+        commits+=("$commit")
+        trees+=("$empty $tree")
+    done < <(dgit log --format='%H %T' "$@")
+    if ((${#commits[@]} == 0)); then
+        return 0
+    fi
+    # Each pair of trees is echoed, then followed by its `$pin_path` entry if it has one.
+    while read -r line; do
+        if [[ $line == :* ]]; then
+            read -r _ _ _ pin _ <<<"$line"
+            pins[i]="$pin"
+        else
+            i=$((i + 1))
+        fi
+    done < <(printf '%s\n' "${trees[@]}" | dgit diff-tree --stdin --no-abbrev -- "$pin_path")
+    for i in "${!commits[@]}"; do
+        echo "${commits[i]} ${pins[i]-}"
+    done
 }
 
 # Whether the drafts commit `$1` was made here, rather than by hand.
@@ -59,10 +91,16 @@ made_here() {
     [[ -n "$(dgit log -1 --format="%(trailers:key=$trailer,valueonly)" "$1")" ]]
 }
 
-# Whether the code commit `$1` is `$2` or one of its ancestors.
-# A pin this checkout doesn't have is neither.
-in_history() {
-    git merge-base --is-ancestor "$1" "$2" 2>/dev/null
+# Fills the associative array named `$1` with the code commit `$2` and all its ancestors, as keys,
+# read with one `git rev-list`, so whether a pin is in that history is a lookup.
+# A pin this checkout doesn't have is never in it.
+load_history() {
+    local -n history="$1"
+    local commit
+    while read -r commit; do
+        # shellcheck disable=SC2034 # It's the caller's array, read there.
+        history["$commit"]=1
+    done < <(git rev-list "$2")
 }
 
 # The newest drafts commit whose pin is in the history of the code commit `$2`,
@@ -71,24 +109,25 @@ in_history() {
 base_for() {
     local branch="$1"
     local target="$2"
+    local -A target_history=()
     local ref
     local commit
     local pin
+    load_history target_history "$target"
     for ref in "refs/heads/$branch" "refs/remotes/origin/$branch" refs/heads/main refs/remotes/origin/main; do
         if ! dgit rev-parse --quiet --verify "$ref" >/dev/null; then
             continue
         fi
-        while read -r commit; do
-            pin="$(pin_of "$commit")"
+        while read -r commit pin; do
             # Older commits than the first pin have none either.
             if [[ -z $pin ]]; then
                 break
             fi
-            if in_history "$pin" "$target"; then
+            if [[ -n ${target_history[$pin]-} ]]; then
                 echo "$commit"
                 return 0
             fi
-        done < <(dgit rev-list --first-parent "$ref")
+        done < <(pins_of --first-parent "$ref")
     done
     return 1
 }
@@ -153,15 +192,16 @@ dropping ${#dropped[@]} drafts commits for code commits no longer in its history
 # and neither side's pin has the other side in its history.
 # Only pins in `HEAD`'s history count, as `base_for`'s do.
 missing() {
+    local -A head_history=()
     local commit
     local pin
     local pins=()
-    while read -r commit; do
-        pin="$(pin_of "$commit")"
-        if [[ -n $pin ]] && in_history "$pin" HEAD; then
+    load_history head_history HEAD
+    while read -r commit pin; do
+        if [[ -n $pin && -n ${head_history[$pin]-} ]]; then
             pins+=("$pin")
         fi
-    done < <(dgit rev-list HEAD)
+    done < <(pins_of HEAD)
     git rev-list --reverse --topo-order HEAD --not "${pins[@]}"
 }
 
