@@ -302,14 +302,20 @@ def test_the_clock_keeps_moving_while_nothing_finishes(monkeypatch: pytest.Monke
 
     On a clock and a tick both twenty times faster,
     so the seconds the row shows pass without the suite waiting for them.
+    Waited on until a second time is drawn, not for a fixed six ticks:
+    on a machine busy with the suite's other workers,
+    the redrawing thread can sleep through all six, and a clock that moves late still moves.
     """
     monkeypatch.setattr(log, "TICK", log.TICK / 20)
     console = terminal()
     console.get_time = lambda: time.monotonic() * 20
+    deadline = time.monotonic() + 5
     with log.progress("checking the archive", 3, console) as along:
         along()
-        time.sleep((log.TICK * 6).total_seconds())
-    drawn = set(re.findall(r"0:00:0\d", _written(console)))
+        while len(drawn := set(re.findall(r"\d+:\d\d:\d\d", _written(console)))) < 2:
+            if time.monotonic() > deadline:
+                break
+            time.sleep(log.TICK.total_seconds())
     assert len(drawn) > 1
 
 
