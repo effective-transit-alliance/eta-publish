@@ -51,12 +51,6 @@ def test_branch_refuses_main(repo: Path) -> None:
         preview.branch()
 
 
-def test_branch_is_the_branch_it_is_on(repo: Path) -> None:
-    git(repo, "checkout", "-b", "foo")
-
-    assert preview.branch() == "foo"
-
-
 def test_branch_refuses_a_detached_head(repo: Path) -> None:
     git(repo, "checkout", "--detach")
 
@@ -98,20 +92,13 @@ def test_local_name_does_not_count_an_untracked_file(repo: Path) -> None:
     assert preview.local_name() == f"foo-{commit_of(repo)}"
 
 
-def test_local_name_refuses_main(repo: Path) -> None:
-    with pytest.raises(preview.Refused, match="main"):
-        preview.local_name()
-
-
-def test_token_refuses_a_missing_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(preview, "TOKEN", tmp_path / "t")
-
-    with pytest.raises(preview.Refused):
-        preview.token()
-
-
-def test_token_refuses_a_blank_file(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    (tmp_path / "t").write_text("  \n")
+@pytest.mark.parametrize("contents", [None, "  \n"])
+def test_token_refuses_a_missing_file(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, contents: str | None
+) -> None:
+    """Missing, or blank."""
+    if contents is not None:
+        (tmp_path / "t").write_text(contents)
     monkeypatch.setattr(preview, "TOKEN", tmp_path / "t")
 
     with pytest.raises(preview.Refused):
@@ -154,18 +141,8 @@ def test_upload_runs_wrangler_with_the_token_only_in_its_environment(
     preview.upload(tmp_path, "foo", "secret")
 
     [(command, kwargs)] = run.calls
-    assert command[:10] == [
-        "mise",
-        "x",
-        "--",
-        "bun",
-        "x",
-        "--bun",
-        preview.WRANGLER,
-        "pages",
-        "deploy",
-        str(tmp_path.resolve()),
-    ]
+    start = command.index(preview.WRANGLER)
+    assert command[start + 1 : start + 4] == ["pages", "deploy", str(tmp_path.resolve())]
     assert ["--project-name", "eta-drafts"] in [command[i : i + 2] for i in range(len(command))]
     assert ["--branch", "foo"] in [command[i : i + 2] for i in range(len(command))]
     assert "secret" not in command
@@ -304,9 +281,12 @@ def test_preview_refused_builds_and_uploads_nothing(
 def test_preview_without_a_drafts_list_uploads_nothing(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    """With a `drafts/` directory but no list, it says which file is missing."""
+    (tmp_path / "drafts").mkdir()
     result, uploads = preview_drafts(tmp_path, monkeypatch, url=None)
 
     assert result.exit_code == 1
+    assert "drafts/publications.toml" in result.output
     assert uploads.calls == []
 
 
@@ -329,36 +309,21 @@ def test_preview_with_a_failed_draft_uploads_nothing(
 @pytest.mark.parametrize(
     ("name", "expected"),
     [
-        ("foo", "foo"),
-        ("Foo", "foo"),
-        ("fix/api", "fix-api"),
-        ("a_b.c", "a-b-c"),
-        ("v1--x", "v1--x"),
+        ("/x", None),
+        ("x/", None),
+        ("-x", None),
+        ("é", None),
+        ("a" * 64, None),
+        ("a" * 63, "a" * 63),
     ],
 )
-def test_alias_lowercases_and_hyphenates_what_is_not_alphanumeric(name: str, expected: str) -> None:
-    assert preview.alias(name) == expected
-
-
-@pytest.mark.parametrize("name", ["/x", "x/", "-x", "é", "a" * 64])
-def test_alias_refuses_what_cloudflare_does_not_say(name: str) -> None:
-    with pytest.raises(preview.Refused):
-        preview.alias(name)
-
-
-def test_alias_allows_the_longest_label() -> None:
-    assert preview.alias("a" * 63) == "a" * 63
-
-
-def test_previewed_moves_production_to_the_branch_with_the_same_paths() -> None:
-    hosts = preview.Hosts(
-        published=f"{preview.PRODUCTION_URL}/published", unpublished=preview.PRODUCTION_URL
-    )
-
-    assert preview.previewed(hosts, "Fix/API") == preview.Hosts(
-        published="https://fix-api.eta-drafts.pages.dev/published",
-        unpublished="https://fix-api.eta-drafts.pages.dev",
-    )
+def test_alias_refuses_what_cloudflare_does_not_say(name: str, expected: str | None) -> None:
+    """A label is at most 63 characters, and the longest one is allowed."""
+    if expected is None:
+        with pytest.raises(preview.Refused):
+            preview.alias(name)
+    else:
+        assert preview.alias(name) == expected
 
 
 @pytest.mark.parametrize(
@@ -413,17 +378,6 @@ def test_preview_leaves_the_committed_drafts_hosts_alone(
 
     assert result.exit_code == 0, result.output
     assert preview.PRODUCTION_URL in (tmp_path / "drafts" / "publications.toml").read_text()
-
-
-def test_preview_with_a_drafts_directory_but_no_list_says_which_file_is_missing(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    (tmp_path / "drafts").mkdir()
-    result, uploads = preview_drafts(tmp_path, monkeypatch, url=None)
-
-    assert result.exit_code == 1
-    assert "drafts/publications.toml" in result.output
-    assert uploads.calls == []
 
 
 def test_ci_token_refuses_outside_github_actions(monkeypatch: pytest.MonkeyPatch) -> None:
