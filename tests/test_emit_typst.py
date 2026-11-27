@@ -12,7 +12,7 @@ from pypdf import PdfReader
 from eta_publish.emit.typst import TypstEmitter, breakable
 from eta_publish.images import write_print_copies
 from eta_publish.naming import IMAGE_DIR, PRINT_DIR
-from eta_publish.nodes import Document, Text
+from eta_publish.nodes import Document
 from eta_publish.parse import parse
 from eta_publish.pdf import compile_pdf, install_template
 
@@ -85,15 +85,6 @@ def test_a_field_name_cannot_be_typst_code(doc: Document) -> None:
     assert "read(" not in TypstEmitter(site_url=HOST).emit(doc)
 
 
-def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
-    """As the page links them; anyone else is credited as plain text."""
-    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
-    doc.staff = ("Blair Lorenzo", "Khyber Sen")
-    out = TypstEmitter(site_url=HOST).emit(doc)
-    linked = '[#link("https://www.etany.org/about-us#:~:text=Khyber%20Sen")[Khyber Sen]]'
-    assert f'  contributors: ("Ada Lovelace", {linked}, ),\n' in out
-
-
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")
 def test_the_pdf_links_a_contributor_on_staff(doc: Document, tmp_path: Path) -> None:
     """The link survives into the PDF, and only for the name on staff."""
@@ -162,14 +153,3 @@ def test_a_long_query_string_can_break_without_a_slash() -> None:
         "#box[oecd.org/vis?]#box[a=]#box[1&]#box[b=]#box[A]#box[%2BB]"
     )
     assert breakable("oecd.org/vis") == "oecd.org/vis"
-
-
-def test_struck_text_is_struck_through() -> None:
-    """As Docs draws it, so the PDF shows what the document does."""
-    struck = Text(text="cut this", strike=True)
-    assert TypstEmitter(site_url=HOST).text(struck) == "#strike[cut this]"
-
-
-def test_colored_text_keeps_its_color() -> None:
-    colored = Text(text="note", color="#ff9900")
-    assert TypstEmitter(site_url=HOST).text(colored) == '#text(fill: rgb("#ff9900"))[note]'

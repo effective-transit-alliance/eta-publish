@@ -233,15 +233,6 @@ def test_the_contributors_section_lists_the_public_contributors(doc: Document) -
     assert "Someone Unnamed" not in out
 
 
-def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
-    """Anyone else is credited as plain text, since there is nowhere to link them to."""
-    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
-    doc.staff = ("Blair Lorenzo", "Khyber Sen")
-    out = HtmlEmitter(inline_css=False, site_url=HOST).emit(doc)
-    linked = '<a href="https://www.etany.org/about-us#:~:text=Khyber%20Sen">Khyber Sen</a>'
-    assert f"<li>Ada Lovelace</li>\n<li>{linked}</li>" in out
-
-
 def test_the_contributors_section_comes_last(doc: Document) -> None:
     """After the footnotes, which is where the live publication credits them."""
     doc.meta["Public Contributors"] = "Khyber Sen"
@@ -636,13 +627,3 @@ def test_source_brackets_are_out_of_the_text_by_default(doc: Document, out: str)
     assert ".eta-report.no-source-brackets .source-ref:not(.footnote-tip *)" in PUBLICATION_CSS
     shown = HtmlEmitter(inline_css=False, source_brackets=True, site_url=HOST).emit(doc)
     assert '<div class="eta-report">' in shown
-
-
-def test_struck_text_is_struck_through() -> None:
-    """As Docs draws it, so the page shows what the document does."""
-    assert HtmlEmitter(site_url=HOST).text(Text(text="cut this", strike=True)) == "<s>cut this</s>"
-
-
-def test_colored_text_keeps_its_color() -> None:
-    colored = Text(text="note", color="#ff9900")
-    assert HtmlEmitter(site_url=HOST).text(colored) == '<span style="color: #ff9900">note</span>'

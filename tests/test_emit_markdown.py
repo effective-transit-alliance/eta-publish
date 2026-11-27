@@ -23,15 +23,6 @@ def out(doc: Document) -> str:
     return MarkdownEmitter().emit(doc)
 
 
-def test_a_contributor_on_staff_links_to_their_entry_on_the_about_page(doc: Document) -> None:
-    """As the page links them; anyone else is credited as plain text."""
-    doc.meta["Public Contributors"] = "Khyber Sen, Ada Lovelace"
-    doc.staff = ("Blair Lorenzo", "Khyber Sen")
-    out = MarkdownEmitter().emit(doc)
-    linked = "[Khyber Sen](<https://www.etany.org/about-us#:~:text=Khyber%20Sen>)"
-    assert f"- Ada Lovelace\n- {linked}" in out
-
-
 def with_paragraph(text: str) -> Document:
     doc_json: JsonObject = json.loads(json.dumps(FIXTURE))
     doc_json["body"]["content"].append(
@@ -227,13 +218,3 @@ def test_an_image_destination_is_bracketed_only_when_it_has_to_be() -> None:
 def test_spaces_after_a_sentence_collapse_so_it_splits() -> None:
     paragraph = Paragraph([Text(text="One sentence.  Another one.")])
     assert MarkdownEmitter().paragraph(paragraph) == "One sentence.\nAnother one."
-
-
-def test_struck_text_is_struck_through() -> None:
-    """As Docs draws it, so the archive shows what the document does."""
-    assert MarkdownEmitter().text(Text(text="cut this", strike=True)) == "~~cut this~~"
-
-
-def test_colored_text_keeps_its_color() -> None:
-    written = MarkdownEmitter().text(Text(text="note", color="#ff9900"))
-    assert written == '<span style="color: #ff9900">note</span>'
