@@ -287,7 +287,7 @@ since a commit can be on more than one branch:
 
 - **`eta-drafts / sync`:** success once the commit has its drafts commit.
   Still with none, it's left to the run it links while that's going,
-  set pending on this run if this run started the next one,
+  left to the next sync run if this run started it, set pending on this run first if `drafts.yml` set it,
   left to a sync run of that branch that's going or waiting,
   and otherwise failure or error: nothing is left to make it.
   On a commit no longer on the branch: error, if it's this branch's run.
