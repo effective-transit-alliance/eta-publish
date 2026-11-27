@@ -120,12 +120,6 @@ def test_the_index_groups_every_list_by_kind() -> None:
     assert manual < page.index('href="reports/m/"')
 
 
-def test_the_index_says_when_a_kind_has_none() -> None:
-    page = drafts_site.index_page([Site(built=[built(Published.DRAFT, "reports/d")])])
-
-    assert page.count("None yet.") == 2
-
-
 def test_the_index_says_each_kind_as_its_pages_banners_do() -> None:
     """Less what only one publication has to link: its live page, and the file pasted live."""
     page = drafts_site.index_page([Site(built=[built(Published.DRAFT, "reports/d")])])
@@ -138,6 +132,7 @@ def test_the_index_says_each_kind_as_its_pages_banners_do() -> None:
         f'<p class="kind-says">live on {etany} using '
         f'<a href="{repository}"><code>eta-publish</code></a></p>'
     ) in page
+    assert page.count("None yet.") == 2
 
 
 def test_the_hosts_are_production_on_main_and_the_preview_elsewhere() -> None:
