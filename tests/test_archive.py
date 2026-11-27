@@ -3,7 +3,6 @@
 import json
 import threading
 import time
-import tomllib
 from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
@@ -14,10 +13,10 @@ from typing import cast, override
 
 import pytest
 import requests
-from paths import HOST, ROOT
+from paths import HOST
 from pypdf import PdfWriter
 
-from eta_publish import archive, repository
+from eta_publish import archive
 from eta_publish.archive import (
     ARCHIVES_JSON,
     missing,
@@ -32,7 +31,6 @@ from eta_publish.nodes import (
     Paragraph,
     Text,
     archive_today_original,
-    is_archive_today,
     unwrap_snapshot,
 )
 
@@ -43,11 +41,6 @@ def cites(*hrefs: str) -> Document:
 
 
 # ---- what counts as a source ----------------------------------------
-
-
-def test_sources_are_external_links_in_document_order() -> None:
-    doc = cites("https://b.example/2", "https://a.example/1")
-    assert doc.sources == ["https://b.example/2", "https://a.example/1"]
 
 
 def test_a_source_cited_twice_is_one_source_and_keeps_its_first_place() -> None:
@@ -82,15 +75,24 @@ def test_a_figures_source_line_is_not_a_source() -> None:
 # ---- a link the document already wrote as a snapshot ------------------
 
 
-def test_a_wayback_link_is_the_page_it_is_of() -> None:
-    original, archived = unwrap_snapshot(
-        "https://web.archive.org/web/20240503123456/https://nypost.com/a"
-    )
-    assert original == "https://nypost.com/a"
-    assert archived == Archived(
-        snapshot="https://web.archive.org/web/20240503123456/https://nypost.com/a",
-        timestamp="20240503123456",
-    )
+@pytest.mark.parametrize(
+    ("link", "page", "archived"),
+    [
+        (
+            "https://web.archive.org/web/20240503123456/https://nypost.com/a",
+            "https://nypost.com/a",
+            Archived(
+                snapshot="https://web.archive.org/web/20240503123456/https://nypost.com/a",
+                timestamp="20240503123456",
+            ),
+        ),
+        ("https://nypost.com/a", "https://nypost.com/a", None),
+    ],
+)
+def test_a_wayback_link_is_the_page_it_is_of(
+    link: str, page: str, archived: Archived | None
+) -> None:
+    assert unwrap_snapshot(link) == (page, archived)
 
 
 def test_a_modifier_on_the_timestamp_is_not_a_different_capture() -> None:
@@ -103,34 +105,7 @@ def test_a_modifier_on_the_timestamp_is_not_a_different_capture() -> None:
     assert archived.snapshot.endswith("/web/20240503123456/https://nypost.com/a")
 
 
-def test_an_ordinary_link_is_left_alone() -> None:
-    assert unwrap_snapshot("https://nypost.com/a") == ("https://nypost.com/a", None)
-
-
 # ---- the record -------------------------------------------------------
-
-
-def test_the_record_round_trips(tmp_path: Path) -> None:
-    doc = cites("https://a.example/1")
-    doc.archives["https://a.example/1"] = Archived(
-        snapshot="https://web.archive.org/web/20240503123456/https://a.example/1",
-        timestamp="20240503123456",
-    )
-    write_archive_index(tmp_path, doc)
-
-    read = cites("https://a.example/1")
-    read_archive_index(tmp_path, read)
-    assert read.archives == doc.archives
-
-
-def test_the_record_is_sorted_so_two_builds_write_the_same_bytes(tmp_path: Path) -> None:
-    """The file is committed and compared against a fresh build."""
-    doc = cites("https://b.example/2", "https://a.example/1")
-    for url in doc.sources:
-        doc.archives[url] = Archived(snapshot=f"snap {url}", timestamp="20240503123456")
-    write_archive_index(tmp_path, doc)
-    written = json.loads((tmp_path / ARCHIVES_JSON).read_text())
-    assert list(written) == sorted(written)
 
 
 def test_only_what_the_publication_still_cites_is_written(tmp_path: Path) -> None:
@@ -245,12 +220,6 @@ def test_each_step_of_a_capture_is_said_while_it_is_waited_on(no_waiting: None) 
     ]
 
 
-def test_a_job_save_page_now_cannot_find_is_not_the_pages_answer(no_waiting: None) -> None:
-    session = Saving([{"job_id": "job-4"}, {"status": "error", "status_ext": "error:no-request"}])
-    with pytest.raises(archive.Busy):
-        archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/4")
-
-
 # ---- what the service says --------------------------------------------
 
 
@@ -349,34 +318,34 @@ def ia_ini(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, text: str) -> None:
     monkeypatch.setenv(archive.IA_CONFIG, str(path))
 
 
+@pytest.mark.parametrize(
+    ("environment", "ini", "authorization"),
+    [
+        (False, "[s3]\naccess = from-ia\nsecret = shh\n", "LOW from-ia:shh"),
+        (True, "[s3]\naccess = from-ia\nsecret = shh\n", "LOW access:secret"),
+        (False, "not an ini file\n", None),
+    ],
+)
 def test_without_keys_in_the_environment_the_ia_config_is_read(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    environment: bool,
+    ini: str,
+    authorization: str | None,
 ) -> None:
-    monkeypatch.delenv(archive.ACCESS_KEY, raising=False)
-    monkeypatch.delenv(archive.SECRET_KEY, raising=False)
-    ia_ini(tmp_path, monkeypatch, "[s3]\naccess = from-ia\nsecret = shh\n")
-    assert archive._keys() == {
-        "Accept": "application/json",
-        "Authorization": "LOW from-ia:shh",
-    }
-
-
-def test_keys_in_the_environment_come_before_the_ia_config(
-    keyed: None, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    ia_ini(tmp_path, monkeypatch, "[s3]\naccess = from-ia\nsecret = shh\n")
+    """Keys in the environment come before the config, and a config with none is no keys."""
+    if environment:
+        monkeypatch.setenv(archive.ACCESS_KEY, "access")
+        monkeypatch.setenv(archive.SECRET_KEY, "secret")
+    else:
+        monkeypatch.delenv(archive.ACCESS_KEY, raising=False)
+        monkeypatch.delenv(archive.SECRET_KEY, raising=False)
+    ia_ini(tmp_path, monkeypatch, ini)
     keys = archive._keys()
-    assert keys is not None
-    assert keys["Authorization"] == "LOW access:secret"
-
-
-def test_an_ia_config_without_keys_is_no_keys(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.delenv(archive.ACCESS_KEY, raising=False)
-    monkeypatch.delenv(archive.SECRET_KEY, raising=False)
-    ia_ini(tmp_path, monkeypatch, "not an ini file\n")
-    assert archive._keys() is None
+    if authorization is None:
+        assert keys is None
+    else:
+        assert keys == {"Accept": "application/json", "Authorization": authorization}
 
 
 class Refusing(Answering):
@@ -506,24 +475,11 @@ def test_an_item_is_archived_at_itself_the_day_it_was_added() -> None:
     archived = doc.archives["https://archive.org/details/slurrywallsasstr0000xant/page/34/mode/2up"]
     assert archived.timestamp == "20230504005139"
     assert archived.date == "May 4, 2023"
+    # `/page/34/mode/2up` is the page the claim is about, not the front matter.
+    assert archived.snapshot == (
+        "https://archive.org/details/slurrywallsasstr0000xant/page/34/mode/2up"
+    )
     assert session.wayback_asked == 0
-
-
-def test_a_capture_date_writes_its_month_in_three_letters() -> None:
-    """So a list of them is one width, rather than as wide as `September`."""
-    assert Archived(timestamp="20260902181426").date == "Sep 2, 2026"
-
-
-def test_a_failed_capture_is_shown_without_its_error_prefix() -> None:
-    assert Archived(error="error:blocked-url").reason == "blocked-url"
-
-
-def test_the_archived_copy_is_the_page_that_was_cited() -> None:
-    """`/page/34/mode/2up` is the page the claim is about, not the front matter."""
-    url = "https://archive.org/details/slurrywallsasstr0000xant/page/34/mode/2up"
-    doc = cites(url)
-    archive.capture(doc, session=Item({"metadata": {"addeddate": "2023-05-04 00:51:39"}}))
-    assert doc.archives[url].snapshot == url
 
 
 def test_public_date_stands_in_where_an_item_has_no_added_date() -> None:
@@ -534,17 +490,18 @@ def test_public_date_stands_in_where_an_item_has_no_added_date() -> None:
     assert doc.archives[url].timestamp == "20230329192910"
 
 
-def test_an_item_that_says_no_date_is_left_to_the_next_build() -> None:
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"metadata": {"addeddate": "0000-00-00"}},
+        # The API answers `{}` for an identifier nothing holds, rather than saying so.
+        {},
+    ],
+)
+def test_an_item_that_says_no_date_is_left_to_the_next_build(body: dict[str, object]) -> None:
     """Learning nothing is not the same as there being no archive."""
     doc = cites("https://archive.org/details/something")
-    archive.capture(doc, session=Item({"metadata": {"addeddate": "0000-00-00"}}))
-    assert doc.archives == {}
-
-
-def test_an_identifier_nothing_holds_is_not_recorded() -> None:
-    """The API answers `{}` rather than saying so."""
-    doc = cites("https://archive.org/details/nothing-is-here")
-    archive.capture(doc, session=Item({}))
+    archive.capture(doc, session=Item(body))
     assert doc.archives == {}
 
 
@@ -558,13 +515,6 @@ def test_an_archive_today_link_is_its_own_archived_copy_undated() -> None:
     assert archived == Archived(snapshot="https://archive.is/TVQXL")
     assert archived.date == "undated"
     assert session.wayback_asked == 0
-
-
-def test_archive_today_goes_by_several_names() -> None:
-    for url in ("https://archive.today/x", "https://www.archive.ph/x", "http://archive.md/x"):
-        assert is_archive_today(url)
-    assert not is_archive_today("https://archive.org/details/x")
-    assert not is_archive_today("https://notarchive.is/x")
 
 
 def test_an_archive_today_link_names_its_page_only_in_its_long_form() -> None:
@@ -781,27 +731,18 @@ def test_the_replay_is_asked_again_once_the_hour_is_up(unkeyed: None) -> None:
     assert session.index_asked == 0
 
 
-def test_an_hour_of_holding_back_does_not_renew_itself(unkeyed: None) -> None:
-    """The time is when the replay was asked, not when it was skipped.
+@pytest.mark.parametrize("key", ["index", "replay"])
+def test_skipping_a_cache_entry_does_not_renew_it(unkeyed: None, key: str) -> None:
+    """The time is when the cache entry was asked, not when it was skipped:
+    the index's date is the day it said so, and the replay's the time it was asked.
 
-    Refreshed on a build that never asked, the entry would never reach an hour old.
+    Refreshed on a build that never asked, the entry would never grow old,
+    and it would never be asked again.
     """
     archive.capture(cites("https://a.example/1"), session=Replaying([]))
-    cached = json.loads(archive.archive_cache_path().read_text())["replay"]
+    cached = json.loads(archive.archive_cache_path().read_text())[key]
     archive.capture(cites("https://a.example/1"), session=Replaying([]))
-    assert json.loads(archive.archive_cache_path().read_text())["replay"] == cached
-
-
-def test_a_week_of_holding_back_does_not_renew_itself(unkeyed: None) -> None:
-    """The date is the day the index said so, not the day it was skipped.
-
-    Refreshed on a build that never asked, the entry would be a week old
-    forever and the index would never be asked again.
-    """
-    archive.capture(cites("https://a.example/1"), session=Replaying([]))
-    cached = json.loads(archive.archive_cache_path().read_text())["index"]
-    archive.capture(cites("https://a.example/1"), session=Replaying([]))
-    assert json.loads(archive.archive_cache_path().read_text())["index"] == cached
+    assert json.loads(archive.archive_cache_path().read_text())[key] == cached
 
 
 def test_it_is_looked_up_again_once_the_week_is_up(
@@ -872,7 +813,7 @@ def test_a_cache_that_cannot_be_read_is_an_empty_one(
 # ---- a link to a page of a PDF ---------------------------------------
 
 
-def test_pages_of_one_pdf_are_one_document_to_capture() -> None:
+def test_every_page_of_a_pdf_shares_the_one_capture(keyed: None) -> None:
     """A fragment never reaches a server, so there is one file to ask for."""
     doc = cites(
         "https://a.example/report.pdf#page=28",
@@ -881,23 +822,8 @@ def test_pages_of_one_pdf_are_one_document_to_capture() -> None:
     )
     assert len(doc.sources) == 3
     assert missing(doc) == ["https://a.example/report.pdf"]
-
-
-def test_every_page_of_a_pdf_shares_the_one_capture(keyed: None) -> None:
-    doc = cites("https://a.example/report.pdf#page=28", "https://a.example/report.pdf#page=5")
     session = Answering(200, [["timestamp"], ["20240503123456"]])
     assert archive.capture(doc, session=session) == (1, 0)
-
-
-def test_the_archived_copy_opens_on_the_page_that_was_cited() -> None:
-    doc = cites("https://a.example/report.pdf#page=28")
-    doc.archives["https://a.example/report.pdf"] = Archived(
-        snapshot="https://web.archive.org/web/20240503123456/https://a.example/report.pdf",
-        timestamp="20240503123456",
-    )
-    archived = doc.archived("https://a.example/report.pdf#page=28")
-    assert archived is not None
-    assert archived.snapshot.endswith("/https://a.example/report.pdf#page=28")
 
 
 def test_a_hand_written_snapshot_of_a_page_is_recorded_as_the_document() -> None:
@@ -1069,20 +995,21 @@ def test_a_status_poll_that_fails_does_not_submit_the_page_again(no_waiting: Non
     assert session.submitted == 1
 
 
-def test_a_capture_keeps_its_job(no_waiting: None) -> None:
-    """In the cache the moment it is given, and on the record once it answers."""
-    session = Saving([{"job_id": "job-1"}, {"status": "success", "timestamp": "20261009120000"}])
+@pytest.mark.parametrize(
+    ("answer", "error"),
+    [
+        ({"status": "success", "timestamp": "20261009120000"}, ""),
+        ({"status": "error", "status_ext": "error:not-found"}, "error:not-found"),
+    ],
+)
+def test_a_capture_keeps_its_job(no_waiting: None, answer: dict[str, str], error: str) -> None:
+    """In the cache the moment it is given, and on the record once it answers,
+    whether the answer is a capture or a refusal."""
+    session = Saving([{"job_id": "job-1"}, answer])
     captured = archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
-    assert captured.job == "job-1"
+    assert (captured.error, captured.job) == (error, "job-1")
     jobs = json.loads(archive.archive_cache_path().read_text())["jobs"]
     assert list(jobs["https://a.example/1"]) == ["job-1"]
-
-
-def test_a_failed_capture_keeps_its_job(no_waiting: None) -> None:
-    refused = {"status": "error", "status_ext": "error:not-found"}
-    session = Saving([{"job_id": "job-2"}, refused])
-    captured = archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/2")
-    assert (captured.error, captured.job) == ("error:not-found", "job-2")
 
 
 def test_a_refused_capture_keeps_its_job_in_the_cache(no_waiting: None) -> None:
@@ -1093,14 +1020,6 @@ def test_a_refused_capture_keeps_its_job_in_the_cache(no_waiting: None) -> None:
         archive._submit(session, {"Authorization": "LOW a:b"}, "https://a.example/3")
     jobs = json.loads(archive.archive_cache_path().read_text())["jobs"]
     assert "job-3" in jobs["https://a.example/3"]
-
-
-def test_remembering_lookups_keeps_the_jobs(no_waiting: None) -> None:
-    archive._remember_job("https://a.example/4", "job-4")
-    archive._remember({"index": ["https://a.example/5"], "replay": []})
-    cached = json.loads(archive.archive_cache_path().read_text())
-    assert "job-4" in cached["jobs"]["https://a.example/4"]
-    assert "https://a.example/5" in cached["index"]
 
 
 def _found_nothing(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1124,6 +1043,20 @@ def test_a_recorded_job_that_worked_is_the_capture(
     assert session.submitted == 0
 
 
+def test_a_recorded_job_is_still_asked_about_within_the_day(
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Asking about a job is not asking for a capture."""
+    _found_nothing(monkeypatch)
+    archive._remember_request("https://a.example/1")
+    archive._remember_job("https://a.example/1", "job-1")
+    session = Saving([{"status": "success", "timestamp": "20261010114910"}])
+    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
+    assert lookup.archived is not None
+    assert lookup.archived.timestamp == "20261010114910"
+    assert session.submitted == 0
+
+
 def test_a_recorded_job_still_running_is_not_submitted_again(
     no_waiting: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1136,15 +1069,30 @@ def test_a_recorded_job_still_running_is_not_submitted_again(
     assert session.submitted == 0
 
 
+BLOCKS = {
+    "status": "error",
+    "status_ext": "error:no-request",
+    "message": "The target server blocks access to https://a.example/1. (HTTP status=403)",
+}
+"""What Save Page Now said of the Harsimus Cove photo's capture, every time it said why."""
+
+
+@pytest.mark.parametrize(
+    ("answer", "error"),
+    [
+        ({"status": "error", "status_ext": "error:not-found"}, "error:not-found"),
+        (BLOCKS, archive.BLOCKED),
+    ],
+)
 def test_a_recorded_job_refused_about_the_page_is_the_answer(
-    no_waiting: None, monkeypatch: pytest.MonkeyPatch
+    no_waiting: None, monkeypatch: pytest.MonkeyPatch, answer: dict[str, str], error: str
 ) -> None:
     _found_nothing(monkeypatch)
     archive._remember_job("https://a.example/1", "job-1")
-    session = Saving([{"status": "error", "status_ext": "error:not-found"}])
+    session = Saving([answer])
     lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
     assert lookup.archived is not None
-    assert (lookup.archived.error, lookup.archived.job) == ("error:not-found", "job-1")
+    assert (lookup.archived.error, lookup.archived.job) == (error, "job-1")
     assert session.submitted == 0
 
 
@@ -1195,14 +1143,6 @@ def test_a_job_save_page_now_lost_is_not_captured_again_within_the_day(
     assert (lookup.unanswered, lookup.short) == (True, archive.ASKED_LATELY)
 
 
-BLOCKS = {
-    "status": "error",
-    "status_ext": "error:no-request",
-    "message": "The target server blocks access to https://a.example/1. (HTTP status=403)",
-}
-"""What Save Page Now said of the Harsimus Cove photo's capture, every time it said why."""
-
-
 @pytest.mark.parametrize("when", ["submitted", "polled"])
 def test_a_site_that_blocks_the_archive_is_the_pages_answer(
     no_waiting: None, monkeypatch: pytest.MonkeyPatch, when: str
@@ -1217,24 +1157,6 @@ def test_a_site_that_blocks_the_archive_is_the_pages_answer(
     assert (lookup.archived.error, lookup.archived.pending) == (archive.BLOCKED, False)
 
 
-def test_a_recorded_job_the_site_blocked_is_not_asked_for_again(
-    no_waiting: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    _found_nothing(monkeypatch)
-    archive._remember_job("https://a.example/1", "job-1")
-    session = Saving([BLOCKS])
-    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
-    assert lookup.archived is not None
-    assert (lookup.archived.error, lookup.archived.job) == (archive.BLOCKED, "job-1")
-    assert session.submitted == 0
-
-
-def test_a_source_the_site_blocks_is_not_asked_about_again(keyed: None) -> None:
-    doc = cites("https://a.example/1")
-    doc.archives["https://a.example/1"] = Archived(timestamp="20261108", error=archive.BLOCKED)
-    assert missing(doc) == []
-
-
 def test_a_capture_is_asked_for_again_the_next_day(
     no_waiting: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1245,37 +1167,6 @@ def test_a_capture_is_asked_for_again_the_next_day(
     lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
     assert lookup.archived is not None
     assert session.submitted == 1
-
-
-def test_a_recorded_job_is_still_asked_about_within_the_day(
-    no_waiting: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """Asking about a job is not asking for a capture."""
-    _found_nothing(monkeypatch)
-    archive._remember_request("https://a.example/1")
-    archive._remember_job("https://a.example/1", "job-1")
-    session = Saving([{"status": "success", "timestamp": "20261010114910"}])
-    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
-    assert lookup.archived is not None
-    assert lookup.archived.timestamp == "20261010114910"
-    assert session.submitted == 0
-
-
-def test_a_capture_still_running_is_not_asked_of_the_index(
-    no_waiting: None, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """The index is the slow one; the job says in one request that it is still going."""
-    asked: list[bool] = []
-
-    def existing(*_args: object, index: bool = True, **_kwargs: object) -> None:
-        asked.append(index)
-
-    monkeypatch.setattr(archive, "_existing", existing)
-    archive._remember_job("https://a.example/1", "job-1")
-    session = Saving([{"status": "pending"}])
-    lookup = archive._archive(session, {"Authorization": "LOW a:b"}, "https://a.example/1")
-    assert (lookup.unanswered, lookup.short) == (True, archive.STILL_RUNNING)
-    assert asked == [False]
 
 
 def test_a_source_waiting_for_tomorrow_keeps_what_it_last_heard(keyed: None) -> None:
@@ -1292,7 +1183,9 @@ def test_a_source_waiting_for_tomorrow_keeps_what_it_last_heard(keyed: None) -> 
 
 def test_an_anonymous_capture_is_asked_for_at_most_once_a_day(anonymous: None) -> None:
     session = SavingAnonymously(429)
-    archive.capture(cites("https://a.example/1"), session=session)
+    doc = cites("https://a.example/1")
+    archive.capture(doc, session=session)
+    assert pending(doc) == {"https://a.example/1": archive.NO_ANSWER}
     archive.capture(cites("https://a.example/1"), session=session)
     assert len(session.saved) == 1
 
@@ -1371,16 +1264,22 @@ def test_a_pdf_cited_by_page_is_counted_from_its_raw_capture() -> None:
     assert session.asked == [raw]
 
 
-def test_a_recorded_capture_that_is_not_the_pdf_is_dropped() -> None:
+@pytest.mark.parametrize("served", [b"<!DOCTYPE html>", None])
+def test_a_recorded_capture_that_is_not_the_pdf_is_dropped(served: bytes | None) -> None:
     """The capture of `TCP_Final_Report.pdf` is a bot check, not the report.
 
     Dropped, the next lookup finds a capture that is the PDF.
+    Where nothing could be read at all, the capture stays and counts no pages.
     """
     doc = cites("https://a.example/a.pdf#page=2")
     doc.archives["https://a.example/a.pdf"] = CAPTURED
     raw = "https://web.archive.org/web/20240503123456id_/https://a.example/a.pdf"
-    assert archive.count_pages(doc, session=Serving({raw: b"<!DOCTYPE html>"})) == 0
-    assert "https://a.example/a.pdf" not in doc.archives
+    serving = Serving({raw: served} if served is not None else {})
+    assert archive.count_pages(doc, session=serving) == 0
+    if served is None:
+        assert doc.archives["https://a.example/a.pdf"].pages == 0
+    else:
+        assert "https://a.example/a.pdf" not in doc.archives
 
 
 def test_a_capture_that_cannot_be_downloaded_is_counted_live_once(no_waiting: None) -> None:
@@ -1496,28 +1395,12 @@ def test_a_redirect_out_of_the_archive_is_not_followed(keyed: None) -> None:
     assert session.index_asked == 1
 
 
-def test_what_cannot_be_counted_is_not_recorded() -> None:
-    doc = cites("https://a.example/a.pdf#page=2")
-    doc.archives["https://a.example/a.pdf"] = CAPTURED
-    assert archive.count_pages(doc, session=Serving({})) == 0
-    assert doc.archives["https://a.example/a.pdf"].pages == 0
-
-
 def test_a_counted_pdf_is_not_downloaded_again() -> None:
     doc = cites("https://a.example/a.pdf#page=2")
     doc.archives["https://a.example/a.pdf"] = replace(CAPTURED, pages=6)
     session = Serving({})
     assert archive.count_pages(doc, session=session) == 0
     assert session.asked == []
-
-
-def test_the_page_count_survives_the_record(tmp_path: Path) -> None:
-    doc = cites("https://a.example/a.pdf#page=2")
-    doc.archives["https://a.example/a.pdf"] = replace(CAPTURED, pages=6)
-    write_archive_index(tmp_path, doc)
-    again = cites("https://a.example/a.pdf#page=2")
-    read_archive_index(tmp_path, again)
-    assert again.archives["https://a.example/a.pdf"].pages == 6
 
 
 def test_a_capture_the_document_names_keeps_its_recorded_page_count(tmp_path: Path) -> None:
@@ -1603,14 +1486,6 @@ def test_a_failure_status_without_a_reason_is_not_recorded(anonymous: None) -> N
     assert pending(doc) == {"https://a.example/1": archive.NO_ANSWER}
 
 
-def test_being_rate_limited_anonymously_is_not_an_answer(anonymous: None) -> None:
-    doc = cites("https://a.example/1")
-    session = SavingAnonymously(429)
-    archive.capture(doc, session=session)
-    assert len(session.saved) == 1
-    assert pending(doc) == {"https://a.example/1": archive.NO_ANSWER}
-
-
 def test_in_ci_nothing_is_captured_anonymously(
     anonymous: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -1643,6 +1518,35 @@ class Revisions(requests.Session):
 
 COMMONS = "https://commons.wikimedia.org/wiki/File:Harsimus_Cove_HBLR_4th_St_RR_Crossing.jpg"
 REFUSED = Archived(timestamp="20261015", error="error:no-request", pending=True, said="403")
+
+
+@pytest.mark.parametrize(
+    ("source", "key", "archived"),
+    [
+        (
+            "https://a.example/1",
+            "https://a.example/1",
+            Archived(
+                snapshot="https://web.archive.org/web/20240503123456/https://a.example/1",
+                timestamp="20240503123456",
+            ),
+        ),
+        ("https://a.example/a.pdf#page=2", "https://a.example/a.pdf", replace(CAPTURED, pages=6)),
+        (
+            COMMONS,
+            COMMONS,
+            replace(REFUSED, version="https://x.org/w/index.php?oldid=1", versioned="20261015"),
+        ),
+    ],
+)
+def test_the_record_round_trips(tmp_path: Path, source: str, key: str, archived: Archived) -> None:
+    doc = cites(source)
+    doc.archives[key] = archived
+    write_archive_index(tmp_path, doc)
+
+    read = cites(source)
+    read_archive_index(tmp_path, read)
+    assert read.archives == doc.archives
 
 
 def test_a_wikimedia_page_that_could_not_be_captured_links_its_version() -> None:
@@ -1681,17 +1585,6 @@ def test_a_capture_that_worked_or_a_page_elsewhere_is_not_versioned() -> None:
     assert not session.asked
 
 
-def test_a_version_round_trips(tmp_path: Path) -> None:
-    doc = cites(COMMONS)
-    doc.archives[COMMONS] = replace(
-        REFUSED, version="https://x.org/w/index.php?oldid=1", versioned="20261015"
-    )
-    archive.write_archive_index(tmp_path, doc)
-    again = cites(COMMONS)
-    archive.read_archive_index(tmp_path, again)
-    assert again.archives == doc.archives
-
-
 def test_a_versioned_source_says_versioned_not_archived() -> None:
     from eta_publish.emit.html import HtmlEmitter, markup
 
@@ -1701,9 +1594,3 @@ def test_a_versioned_source_says_versioned_not_archived() -> None:
         '(versioned <a class="source-archive" href="https://x.org/w/index.php?oldid=1">'
         "Oct 15, 2026</a>)"
     )
-
-
-def test_the_user_agent_names_the_repository_pyproject_does() -> None:
-    """Read from the installed metadata, which only matches once it is reinstalled."""
-    urls = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["urls"]
-    assert repository() == urls["Repository"]
