@@ -1,7 +1,5 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Eight commands, because there are eight things to do:
-
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
