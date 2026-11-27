@@ -1,454 +1,266 @@
-"""How a publication is written, as distinct from what it says."""
+"""How a publication is written, as distinct from what it says.
 
-import pytest
+Each test is one realistic document, built the way a build builds one,
+with a paragraph for each thing a writer might do.
+A paragraph that is fine is there to be left alone, so each list of warnings
+says what the writer is told about the mistakes and nothing about the rest.
+"""
 
-from eta_publish.nodes import Document, Footnote, Highlighted, Paragraph, Text
-from eta_publish.style import style
+from pathlib import Path
+
+from docs_json import build, cites, drafted, footnote, para, rich, warned
+
+from eta_publish.docs_json import JsonObject
 
 
-def written(*paragraphs: str) -> Document:
-    """A document that says these paragraphs and nothing else."""
-    return Document(blocks=[Paragraph(content=[Text(text=p)]) for p in paragraphs])
+def paragraphs(*texts: str) -> list[JsonObject]:
+    """One paragraph for each text."""
+    return [para(text) for text in texts]
 
 
-def cited(text: str) -> Document:
-    """A document whose only words are a footnote's, which are somebody else's."""
-    doc = Document()
-    doc.footnotes = [
-        Footnote(footnote_id="f1", number=1, content=[Paragraph(content=[Text(text=text)])])
+def test_spacing_punctuation_and_the_initials(tmp_path: Path) -> None:
+    body = [
+        # Spaces: after a sentence, inside one, and at the edge of a line.
+        *paragraphs(
+            "It is deep. It is also expensive.",
+            "It is deep.  It is also expensive.",
+            "(costs are given separately.)  This is a Buy America cost.",
+            "It is deep.   It is expensive.",
+            "On such routes, demand  requires high frequency.",
+            "  It is deep.",
+            "It is deep.  ",
+        ),
+        # Apostrophes and quotes.
+        *paragraphs(
+            "The MTA’s trains don’t wait.",
+            "The MTA's trains don’t wait.",
+            "It was called 'automation' then.",
+        ),
+        # Dashes and ranges.
+        *paragraphs(
+            "They are unfixable mistakes—while the debt is not.",
+            "Groundwater is only 10–20 ft deep.",
+            "They are unfixable mistakes — while the debt is not.",
+            "It is cheaper —and faster.",
+            "It spans 125 St, 2 – 3x the station width.",
+            "The pipe-jacking at Jing’an Temple station.",
+            "Trains every 5-10 minutes, from 2027-2031.",
+            "Trains every 5–10 minutes.",
+            "Opened on 2024-05-01.",
+            "Call 212-555-0100.",
+            "See nyc.gov/report-2024-5 for more.",
+            "The R211-T cars.",
+            "A 3-car train.",
+            "Change at 47-50 Sts/6 Av for the F.",
+            "See https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242) there.",
+        ),
+        # The initials.
+        *paragraphs(
+            "ETA recommended reducing the scope.",
+            "For the same reason, the ETA recommended reducing the scope.",
+            "The ETA recommended reducing the scope.",
+            "The Effective Transit Alliance recommended reducing it.",
+            "Read the ETA’s response to the MTA.",
+            "The ETAs quoted were all optimistic.",
+        ),
+        # A footnote is read like the body, whoever it cites.
+        rich(
+            "A spacing slip",
+            cites("fn.spaces"),
+            ", a dash",
+            cites("fn.dash"),
+            ", the initials",
+            cites("fn.initials"),
+            ".",
+        ),
     ]
-    return doc
-
-
-def warnings(doc: Document) -> list[str]:
-    style(doc)
-    return [str(w) for w in doc.warnings]
-
-
-def test_one_space_after_a_sentence_is_not_warned_about() -> None:
-    assert warnings(written("It is deep. It is also expensive.")) == []
-
-
-def test_two_spaces_after_a_sentence_are_warned_about() -> None:
-    found = warnings(written("It is deep.  It is also expensive."))
-    assert len(found) == 1
-    assert "1 space, not 2" in found[0]
-
-
-def test_the_warning_shows_which_spaces_it_means() -> None:
-    """The spaces themselves, drawn: quoted as spaces they are a space,
-    in HTML and in the PDF alike, and the line reads as already correct."""
-    found = warnings(written("It is deep.  It is also expensive."))
-    assert "It is deep.\u00b7\u00b7It is also expensive." in found[0]
-
-
-def test_a_closing_bracket_does_not_hide_the_gap() -> None:
-    """`costs are given separately).  This` is how the real publication writes one:
-    the spaces come after the sentence, whatever closes the quote around it."""
-    assert len(warnings(written("(costs are given separately.)  This is a Buy America cost."))) == 1
-
-
-def test_three_spaces_are_counted_rather_than_rounded_to_two() -> None:
-    found = warnings(written("It is deep.   It is expensive."))[0]
-    assert "1 space, not 3" in found
-    assert "deep.\u00b7\u00b7\u00b7It" in found
-
-
-def test_two_spaces_mid_clause_are_a_different_warning() -> None:
-    """`demand  requires` is a slipped finger rather than the typewriter habit,
-    so it is said differently even though the characters are the same."""
-    found = warnings(written("On such routes, demand  requires high frequency."))
-    assert found == [
-        "style: two words should be separated by 1 space, not 2: "
-        "`On such routes, demand\u00b7\u00b7requires high frequency.`"
-    ]
-
-
-def test_indentation_is_neither_mistake() -> None:
-    """A run at the start or the end of a line is not two words run together."""
-    assert warnings(written("  It is deep.")) == []
-    assert warnings(written("It is deep.  ")) == []
-
-
-def test_a_footnote_is_read_like_the_body() -> None:
-    """A footnote carries the publication's own prose as often as a citation,
-    and a citation is published here under this publication's name too."""
-    assert len(warnings(cited('Barbara Russo-Lennon, "Subway spots.  The ad blitz."'))) == 1
-
-
-def test_a_curled_apostrophe_is_not_warned_about() -> None:
-    assert warnings(written("The MTA\u2019s trains don\u2019t wait.")) == []
-
-
-def test_a_straight_apostrophe_is_warned_about() -> None:
-    found = warnings(written("The MTA's trains don\u2019t wait."))
-    assert len(found) == 1
-    assert "MTA's" in found[0]
-
-
-def test_a_straight_quote_around_words_is_not_an_apostrophe() -> None:
-    assert warnings(written("It was called 'automation' then.")) == []
-
-
-def test_a_closed_up_dash_is_not_warned_about() -> None:
-    assert warnings(written("They are unfixable mistakes—while the debt is not.")) == []
-
-
-def test_a_range_is_not_warned_about() -> None:
-    """`10–20 ft` is how the publications write a range, and it is closed up already."""
-    assert warnings(written("Groundwater is only 10–20 ft deep.")) == []
-
-
-def test_a_spaced_em_dash_is_warned_about() -> None:
-    found = warnings(written("They are unfixable mistakes — while the debt is not."))
-    assert found == [
-        "style: an em dash should not have spaces: "
-        "`They are unfixable mistakes\u00b7—\u00b7while the debt is not.`"
-    ]
-
-
-def test_a_dash_spaced_on_one_side_is_warned_about() -> None:
-    assert len(warnings(written("It is cheaper —and faster."))) == 1
-
-
-def test_a_spaced_en_dash_is_warned_about() -> None:
-    found = warnings(written("It spans 125 St, 2 – 3x the station width."))
-    assert len(found) == 1
-    assert found[0].startswith("style: an en dash should not have spaces: ")
-
-
-def test_a_hyphen_is_not_a_dash() -> None:
-    """`pipe-jacking` is one word, and `2 - 3` is a different thing to say."""
-    assert warnings(written("The pipe-jacking at Jing\u2019an Temple station.")) == []
-
-
-def test_a_range_written_with_a_hyphen_is_warned_about() -> None:
-    found = warnings(written("Trains every 5-10 minutes, from 2027-2031."))
-    assert len(found) == 2
-    assert all("en dash" in w for w in found)
-
-
-def test_a_range_with_an_en_dash_is_not_warned_about() -> None:
-    assert warnings(written("Trains every 5\u201310 minutes.")) == []
-
-
-@pytest.mark.parametrize(
-    "text",
-    [
-        "Opened on 2024-05-01.",
-        "Call 212-555-0100.",
-        "See nyc.gov/report-2024-5 for more.",
-        "The R211-T cars.",
-        "A 3-car train.",
-        "Change at 47-50 Sts/6 Av for the F.",
-        "See https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242) there.",
-    ],
-)
-def test_what_only_looks_like_a_range_is_not_warned_about(text: str) -> None:
-    assert warnings(written(text)) == []
-
-
-def test_a_footnote_dash_is_read_like_the_body() -> None:
-    assert len(warnings(cited('Barbara Russo-Lennon, "Subway spots — the ad blitz."'))) == 1
-
-
-def test_the_initials_on_their_own_are_not_warned_about() -> None:
-    assert warnings(written("ETA recommended reducing the scope.")) == []
-
-
-def test_an_article_before_the_initials_is_warned_about() -> None:
-    found = warnings(written("For the same reason, the ETA recommended reducing the scope."))
-    assert len(found) == 1
-    assert "`the ETA`" in found[0]
-    assert "`the Effective Transit Alliance`" in found[0]
-
-
-def test_a_sentence_opening_with_it_is_the_same_mistake() -> None:
-    assert len(warnings(written("The ETA recommended reducing the scope."))) == 1
-
-
-def test_the_name_spelled_out_keeps_its_article() -> None:
-    assert warnings(written("The Effective Transit Alliance recommended reducing it.")) == []
-
-
-def test_a_possessive_is_still_the_initials() -> None:
-    assert len(warnings(written("Read the ETA’s response to the MTA."))) == 1
-
-
-def test_a_word_beginning_with_the_initials_is_not_them() -> None:
-    assert warnings(written("The ETAs quoted were all optimistic.")) == []
-
-
-def test_a_footnote_saying_the_initials_is_warned_about() -> None:
-    assert len(warnings(cited('Barbara Russo-Lennon, "What the ETA wants."'))) == 1
-
-
-def test_the_header_is_read_like_the_body() -> None:
-    """`Short:` and `SEO Description:` publish as what a search result shows,
-    and the header is consumed before the body walk,
-    so neither is reached by walking the blocks."""
-    doc = Document()
-    doc.meta = {"Short": "It is deep.  It is also expensive."}
-    assert len(warnings(doc)) == 1
-
-
-def test_a_header_field_saying_the_initials_is_warned_about() -> None:
-    doc = Document()
-    doc.meta = {"SEO Description": "The ETA outlines the best practices."}
-    assert len(warnings(doc)) == 1
-
-
-def test_every_warning_says_it_is_about_style() -> None:
-    """The rest of a document's warnings are things the build could not do,
-    and these are things somebody may want to write differently,
-    which is a different thing to go and fix."""
-    found = warnings(written("It is deep.  The ETA said so — twice."))
-    assert len(found) == 3
-    assert all(w.startswith("style: ") for w in found)
-
-
-def test_the_gap_is_carried_as_its_own_piece_of_the_excerpt() -> None:
-    """So a terminal can highlight it without having to find it again,
-    and so a document writing a middle dot of its own is never mistaken for one."""
-    doc = written("It is deep.  It is expensive.")
-    style(doc)
-    (part,) = [p for p in doc.warnings[0].parts if isinstance(p, Highlighted)]
-    assert (part.before, part.marked, part.after) == (
-        "It is deep.",
-        "\u00b7\u00b7",
-        "It is expensive.",
+    site, _ = build(
+        tmp_path,
+        drafted(
+            body,
+            changes={
+                "Short": "It is deep.  It is also expensive.",
+                "SEO Description": "The ETA outlines the best practices.",
+            },
+            footnotes={
+                "fn.spaces": footnote('Barbara Russo-Lennon, "Subway spots.  The ad blitz."'),
+                "fn.dash": footnote('Barbara Russo-Lennon, "Subway spots — the ad blitz."'),
+                "fn.initials": footnote('Barbara Russo-Lennon, "What the ETA wants."'),
+            },
+        ),
     )
-
-
-def test_a_station_written_the_way_the_mta_writes_it_is_left_alone() -> None:
-    assert warnings(written("The ventilation structure at 69 St and 2 Av.")) == []
-
-
-def test_an_ordinal_loses_its_suffix_and_the_kind_is_abbreviated() -> None:
-    found = warnings(written("The proposed 125th Street extension."))
-    assert found == [
-        "style: `125th Street` should be `125 St`: `The proposed 125th Street extension.`"
+    assert warned(site) == [
+        "1 URL typed out but not linked; link it in the doc:\n"
+        "- `https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)`",
+        "style: a sentence should end with 1 space, not 2: `It is deep.\u00b7\u00b7It is "
+        "also expensive.`",
+        "style: `ETA` is written `The ETA`; it is `ETA` on its own, and `the "
+        "Effective Transit Alliance` spelled out: `The ETA outlines the best "
+        "practices.`",
+        "style: a sentence should end with 1 space, not 2: `It is deep.\u00b7\u00b7It is "
+        "also expensive.`",
+        "style: a sentence should end with 1 space, not 2: `(costs are given "
+        "separately.)\u00b7\u00b7This is a Buy America cost.`",
+        "style: a sentence should end with 1 space, not 3: `It is deep.\u00b7\u00b7\u00b7It "
+        "is expensive.`",
+        "style: two words should be separated by 1 space, not 2: `On such "
+        "routes, demand\u00b7\u00b7requires high frequency.`",
+        "style: an apostrophe should be `\u2019`, not `'`: `The MTA's trains don\u2019t wait.`",
+        "style: an em dash should not have spaces: `They are unfixable "
+        "mistakes\u00b7\u2014\u00b7while the debt is not.`",
+        "style: an em dash should not have spaces: `It is cheaper\u00b7\u2014and faster.`",
+        "style: an en dash should not have spaces: `It spans 125 St, 2\u00b7\u2013\u00b73x "
+        "the station width.`",
+        "style: a range should use an en dash, `\u2013`, not a hyphen: `Trains "
+        "every 5-10 minutes, from 2027-2031.`",
+        "style: a range should use an en dash, `\u2013`, not a hyphen: `... every "
+        "5-10 minutes, from 2027-2031.`",
+        "style: `ETA` is written `the ETA`; it is `ETA` on its own, and `the "
+        "Effective Transit Alliance` spelled out: `For the same reason, the "
+        "ETA recommended reducing the scop...`",
+        "style: `ETA` is written `The ETA`; it is `ETA` on its own, and `the "
+        "Effective Transit Alliance` spelled out: `The ETA recommended "
+        "reducing the scop...`",
+        "style: `ETA` is written `the ETA`; it is `ETA` on its own, and `the "
+        "Effective Transit Alliance` spelled out: `Read the ETA\u2019s response to "
+        "the MTA.`",
+        "style: a sentence should end with 1 space, not 2: `...a Russo-Lennon, "
+        '"Subway spots.\u00b7\u00b7The ad blitz."`',
+        "style: an em dash should not have spaces: `...ra Russo-Lennon, "
+        '"Subway spots\u00b7\u2014\u00b7the ad blitz."`',
+        "style: `ETA` is written `the ETA`; it is `ETA` on its own, and `the "
+        'Effective Transit Alliance` spelled out: `Barbara Russo-Lennon, "What '
+        'the ETA wants."`',
     ]
 
 
-def test_an_avenue_is_av_rather_than_ave() -> None:
-    assert "`2 Av`" in warnings(written("Blasting at the 2nd Ave site."))[0]
-
-
-def test_a_named_street_is_abbreviated_too() -> None:
-    assert "`Fordham Rd`" in warnings(written("Circumferential routes such as Fordham Road."))[0]
-
-
-def test_every_kind_the_mta_spells_its_own_way() -> None:
-    for name, correct in (
-        ("Queens Boulevard", "Queens Blvd"),
-        ("Henry Hudson Parkway", "Henry Hudson Pkwy"),
-        ("Union Square", "Union Sq"),
-        ("Sutphin Place", "Sutphin Pl"),
-    ):
-        assert f"`{correct}`" in warnings(written(f"It runs along {name} today."))[0]
-
-
-def test_a_spelled_out_number_is_a_digit_like_any_other() -> None:
-    """The station on Second Avenue is `2 Av`, on every sign the MTA prints."""
-    assert "`2 Av`" in warnings(written("The stations along Second Avenue are deep."))[0]
-    assert "`5 Av`" in warnings(written("It runs under Fifth Ave for a mile."))[0]
-
-
-def test_the_second_avenue_subway_is_left_as_the_mta_names_it() -> None:
-    assert warnings(written("The Second Avenue Subway opened in 2017.")) == []
-
-
-def test_the_project_is_corrected_towards_its_name_rather_than_the_station() -> None:
-    """`Second Ave Subway` is the project written short, not a station,
-    so the warning names the whole phrase rather than half of it."""
-    assert (
-        "`Second Ave Subway` should be `Second Avenue Subway`"
-        in warnings(written("The cost of the Second Ave Subway."))[0]
+def test_streets_and_the_second_avenue_subway(tmp_path: Path) -> None:
+    body = paragraphs(
+        # The way the MTA writes a station.
+        "The ventilation structure at 69 St and 2 Av.",
+        "The proposed 125th Street extension.",
+        "Blasting at the 2nd Ave site.",
+        "Circumferential routes such as Fordham Road.",
+        "It runs along Queens Boulevard today.",
+        "It runs along Henry Hudson Parkway today.",
+        "It runs along Union Square today.",
+        "It runs along Sutphin Place today.",
+        "The stations along Second Avenue are deep.",
+        "It runs under Fifth Ave for a mile.",
+        # The project is not a station.
+        "The Second Avenue Subway opened in 2017.",
+        "The cost of the Second Ave Subway.",
+        "Features of the Second Ave subway.",
+        # Not a street at all, or not in New York.
+        "The steepest of these grades is the 4th grade.",
+        "Cross-traffic on Nanba Road could move underground.",
+        "The Green Line Extension reaches Ball Square.",
+        "The light rail stops at Jersey Avenue.",
+        "Metro-North and the Long Island Rail Road both.",
+        "Ruling Grade: The Wrong Place to Scale Back",
+        "Uncropped Source: 96st_station, sas-west-72nd-street.jpg",
+        # The court is the name and the square the kind.
+        "The train terminates at Court Square today.",
+        # The joke is on the name, so it keeps the name it is on.
+        "The so-called “Second Avenue Stubway” made three stops.",
+        "Riding the Second Ave Stubway.",
     )
+    site, _ = build(tmp_path, drafted(body))
+    assert warned(site) == [
+        "style: `125th Street` should be `125 St`: `The proposed 125th Street extension.`",
+        "style: `2nd Ave` should be `2 Av`: `Blasting at the 2nd Ave site.`",
+        "style: `Fordham Road` should be `Fordham Rd`: `...ircumferential "
+        "routes such as Fordham Road.`",
+        "style: `Queens Boulevard` should be `Queens Blvd`: `It runs along "
+        "Queens Boulevard today.`",
+        "style: `Henry Hudson Parkway` should be `Henry Hudson Pkwy`: `It runs "
+        "along Henry Hudson Parkway today.`",
+        "style: `Union Square` should be `Union Sq`: `It runs along Union Square today.`",
+        "style: `Sutphin Place` should be `Sutphin Pl`: `It runs along Sutphin Place today.`",
+        "style: `Second Avenue` should be `2 Av`: `The stations along Second Avenue are deep.`",
+        "style: `Fifth Ave` should be `5 Av`: `It runs under Fifth Ave for a mile.`",
+        "style: `Second Ave Subway` should be `Second Avenue Subway`: `The "
+        "cost of the Second Ave Subway.`",
+        "style: `Second Ave subway` should be `Second Avenue Subway`: "
+        "`Features of the Second Ave subway.`",
+        "style: `Court Square` should be `Court Sq`: `The train terminates at Court Square today.`",
+        "style: `Second Ave Stubway` should be `Second Avenue Stubway`: "
+        "`Riding the Second Ave Stubway.`",
+    ]
 
 
-def test_the_project_is_named_however_it_was_written() -> None:
-    """SAS West writes `Second Ave subway` twice, abbreviated and lowercase,
-    and the name it is reaching for is the one it is corrected to."""
-    assert (
-        "should be `Second Avenue Subway`"
-        in warnings(written("Features of the Second Ave subway."))[0]
+def test_units_money_and_measurements(tmp_path: Path) -> None:
+    body = paragraphs(
+        # A time may be written out or abbreviated; a hyphenated one keeps its word.
+        "It cost riders 5 minutes every trip.",
+        "It cost riders 5 min every trip.",
+        "Doors close in 20 seconds.",
+        "It runs on 3-minute headways.",
+        "The extreme 1-min headways of Lille.",
+        # A unit after a number is the symbol, and a symbol has no plural.
+        "Stations between 100 and 130 feet down.",
+        "Trains of 180 meters or longer.",
+        "Openings only 6 inches above the road.",
+        "A weight of 72,000 lbs per car.",
+        "It is 137 ft deep, 1.2 km long, and 2 kg lighter.",
+        # A mile stays a word, and so does a number that is one.
+        "It runs two miles north, or about 2 miles.",
+        "The walk takes ten minutes from the mezzanine.",
+        # A measurement is not hyphenated into what it describes, and says so once.
+        "The capacity of a 600-foot train.",
+        "It has 2-track lines, 4-car sets, and is NFPA 130-compliant.",
+        # The units the publications already write as symbols, and the spelled-out ones.
+        "At 750 V, 232 t, 83 dB, 2.9 mm, and 33 tph.",
+        "It runs at 750 volts today.",
+        "It runs at 83 decibels today.",
+        "It runs at 3 millimeters today.",
+        "It runs at 232 tonnes today.",
+        "It runs at 1.5 kilovolts today.",
+        "It runs at 60 hertz today.",
+        "It runs at 30 trains per hour today.",
+        "Lines run 30 trains per hour (tph) without tail tracks.",
+        # Percentages and money.
+        "Costs rose 3.5 percent last year.",
+        "Utilization of 92 per cent is assumed.",
+        "A cost of 7.7 billion dollars.",
+        "It would cost 5 dollars a ride.",
+        "At $7.7 billion and 92%, it is the most expensive.",
+        # A year dates the dollars rather than counting them, unless a scale says otherwise.
+        "That is $4.5 billion per mile in 2026 dollars.",
+        "A cost of 2026 million dollars.",
+        "That is $4.5 billion per mile in 2050 dollars.",
+        "Costs are given in 2026 dollars throughout.",
+        "A denarius bought more in 5 dollars than today.",
+        # A speed is the two units it is made of.
+        "It runs at 80 kmh today.",
+        "It runs at 80 kph today.",
+        "It runs at 80 kilometers per hour today.",
+        "It runs at 80 km/h today.",
     )
-
-
-def test_an_ordinal_that_names_no_street_is_not_a_street() -> None:
-    """`the 4th grade` is a slope in the IBX report, and `4 grade` is nothing."""
-    assert warnings(written("The steepest of these grades is the 4th grade.")) == []
-
-
-def test_a_street_in_another_city_keeps_its_own_name() -> None:
-    """`Nanba Rd` is a name nothing anywhere calls it."""
-    assert warnings(written("Cross-traffic on Nanba Road could move underground.")) == []
-    assert warnings(written("The Green Line Extension reaches Ball Square.")) == []
-    assert warnings(written("The light rail stops at Jersey Avenue.")) == []
-
-
-def test_a_court_is_a_name_rather_than_a_kind_of_street() -> None:
-    """The station is `Court Sq`: the court is the name and the square is the
-    kind, so abbreviating the court would rename it."""
-    assert warnings(written("The train terminates at Court Square today.")) == [
-        "style: `Court Square` should be `Court Sq`: `The train terminates at Court Square today.`"
+    site, _ = build(tmp_path, drafted(body))
+    assert warned(site) == [
+        "style: `3-minute` should be `3 minute`, with no hyphen: `It runs on 3-minute headways.`",
+        "style: `1-min` should be `1 min`, with no hyphen: `The extreme 1-min headways of Lille.`",
+        "style: `130 feet` should be `130 ft`: `Stations between 100 and 130 feet down.`",
+        "style: `180 meters` should be `180 m`: `Trains of 180 meters or longer.`",
+        "style: `6 inches` should be `6 in`: `Openings only 6 inches above the road.`",
+        "style: `72,000 lbs` should be `72,000 lb`: `A weight of 72,000 lbs per car.`",
+        "style: `600-foot` should be `600 ft`, with no hyphen: `The capacity of a 600-foot train.`",
+        "style: `750 volts` should be `750 V`: `It runs at 750 volts today.`",
+        "style: `83 decibels` should be `83 dB`: `It runs at 83 decibels today.`",
+        "style: `3 millimeters` should be `3 mm`: `It runs at 3 millimeters today.`",
+        "style: `232 tonnes` should be `232 t`: `It runs at 232 tonnes today.`",
+        "style: `1.5 kilovolts` should be `1.5 kV`: `It runs at 1.5 kilovolts today.`",
+        "style: `60 hertz` should be `60 Hz`: `It runs at 60 hertz today.`",
+        "style: `30 trains per hour` should be `30 tph`: `It runs at 30 trains per hour today.`",
+        "style: `3.5 percent` should be `3.5%`: `Costs rose 3.5 percent last year.`",
+        "style: `92 per cent` should be `92%`: `Utilization of 92 per cent is assumed.`",
+        "style: `7.7 billion dollars` should be `$7.7 billion`: `A cost of 7.7 billion dollars.`",
+        "style: `5 dollars` should be `$5`: `It would cost 5 dollars a ride.`",
+        "style: `2026 million dollars` should be `$2026 million`: `A cost of "
+        "2026 million dollars.`",
+        "style: `80 kmh` should be `80 km/h`: `It runs at 80 kmh today.`",
+        "style: `80 kph` should be `80 km/h`: `It runs at 80 kph today.`",
+        "style: `80 kilometers per hour` should be `80 km/h`: `It runs at 80 "
+        "kilometers per hour today.`",
     ]
-
-
-def test_a_railroad_is_not_a_road() -> None:
-    assert warnings(written("Metro-North and the Long Island Rail Road both.")) == []
-
-
-def test_an_ordinary_phrase_is_not_a_street() -> None:
-    """`Place`, `Square` and `Drive` are words as well as streets,
-    and no street is `The` anything."""
-    assert warnings(written("Ruling Grade: The Wrong Place to Scale Back")) == []
-
-
-def test_a_slug_is_not_a_street_name() -> None:
-    """A URL and a filename write it without the space that names one."""
-    assert warnings(written("Uncropped Source: 96st_station, sas-west-72nd-street.jpg")) == []
-
-
-def test_the_joke_on_the_project_name_keeps_the_name_it_is_on() -> None:
-    """SAS West calls the line the so-called `Second Avenue Stubway`,
-    which only works while it is spelled like what it is playing on."""
-    assert warnings(written("The so-called “Second Avenue Stubway” made three stops.")) == []
-    assert (
-        "should be `Second Avenue Stubway`"
-        in warnings(written("Riding the Second Ave Stubway."))[0]
-    )
-
-
-def test_a_time_may_be_written_out_or_abbreviated() -> None:
-    assert warnings(written("It cost riders 5 minutes every trip.")) == []
-    assert warnings(written("It cost riders 5 min every trip.")) == []
-    assert warnings(written("Doors close in 20 seconds.")) == []
-
-
-def test_a_hyphenated_time_keeps_its_word() -> None:
-    found = warnings(written("It runs on 3-minute headways."))
-    assert len(found) == 1
-    assert "`3 minute`" in found[0]
-
-
-def test_a_unit_after_a_number_is_the_symbol() -> None:
-    assert "`130 ft`" in warnings(written("Stations between 100 and 130 feet down."))[0]
-    assert "`180 m`" in warnings(written("Trains of 180 meters or longer."))[0]
-    assert "`6 in`" in warnings(written("Openings only 6 inches above the road."))[0]
-
-
-def test_a_symbol_has_no_plural() -> None:
-    """`3 lb` is how the unit is written however many of them there are."""
-    assert "`72,000 lb`" in warnings(written("A weight of 72,000 lbs per car."))[0]
-
-
-def test_a_unit_already_written_as_a_symbol_is_left_alone() -> None:
-    assert warnings(written("It is 137 ft deep, 1.2 km long, and 2 kg lighter.")) == []
-
-
-def test_a_mile_stays_a_word() -> None:
-    """The one length these publications spell out:
-    a distance a reader pictures rather than a measurement they compare."""
-    assert warnings(written("It runs two miles north, or about 2 miles.")) == []
-
-
-def test_a_number_written_as_a_word_is_left_alone() -> None:
-    """`ten minutes` is a duration somebody is describing,
-    and `10 min` is one they are measuring."""
-    assert warnings(written("The walk takes ten minutes from the mezzanine.")) == []
-
-
-def test_the_second_avenue_is_not_a_second() -> None:
-    """`second` is a unit and an avenue, and only one of them follows a number."""
-    assert warnings(written("The Second Avenue Subway opened.")) == []
-
-
-def test_a_measurement_is_not_hyphenated_into_what_it_describes() -> None:
-    """The hyphen is right as English and dropped all the same,
-    so a search for `600 ft` finds every one of them rather than the ones
-    that happened not to be describing anything."""
-    found = warnings(written("The extreme 1-min headways of Lille."))
-    assert found == [
-        "style: `1-min` should be `1 min`, with no hyphen: `The extreme 1-min headways of Lille.`"
-    ]
-
-
-def test_the_hyphen_and_the_spelling_are_one_warning() -> None:
-    """Two mistakes in one measurement, said once, as the whole of what to write.
-    Said separately, the spelling's warning would say `600-ft`,
-    which the hyphen's says is wrong; and only one of them would leave
-    somebody to write `600 foot` and be told about it on the next build."""
-    found = warnings(written("The capacity of a 600-foot train."))
-    assert found == [
-        "style: `600-foot` should be `600 ft`, with no hyphen: `The capacity of a 600-foot train.`"
-    ]
-
-
-def test_an_ordinary_hyphenated_phrase_is_not_a_measurement() -> None:
-    """`2-track`, `4-car` and `NFPA 130-compliant` are hyphenated for the
-    ordinary reason, and the publications are full of them."""
-    assert warnings(written("It has 2-track lines, 4-car sets, and is NFPA 130-compliant.")) == []
-
-
-def test_the_units_the_publications_already_write_as_symbols() -> None:
-    """`750 V`, `232 t`, `83 dB`, `2.9 mm` and `33 tph` are right today,
-    and the spelled-out form is what the check is for."""
-    assert warnings(written("At 750 V, 232 t, 83 dB, 2.9 mm, and 33 tph.")) == []
-    for spelled, symbol in (
-        ("750 volts", "750 V"),
-        ("83 decibels", "83 dB"),
-        ("3 millimeters", "3 mm"),
-        ("232 tonnes", "232 t"),
-        ("1.5 kilovolts", "1.5 kV"),
-        ("60 hertz", "60 Hz"),
-        ("30 trains per hour", "30 tph"),
-    ):
-        assert f"`{symbol}`" in warnings(written(f"It runs at {spelled} today."))[0]
-
-
-def test_a_unit_introduced_with_its_symbol_is_being_defined() -> None:
-    """SAS West writes `30 trains per hour (tph)` once and `33 tph` after it,
-    which is how an abbreviation is handed to a reader."""
-    assert warnings(written("Lines run 30 trains per hour (tph) without tail tracks.")) == []
-
-
-def test_a_percentage_is_a_symbol() -> None:
-    assert "`3.5%`" in warnings(written("Costs rose 3.5 percent last year."))[0]
-    assert "`92%`" in warnings(written("Utilization of 92 per cent is assumed."))[0]
-
-
-def test_money_is_a_symbol_in_front_of_the_number() -> None:
-    """The scale comes with it: `$7.7 billion`, not `$7.7 billion dollars`."""
-    assert "`$7.7 billion`" in warnings(written("A cost of 7.7 billion dollars."))[0]
-    assert "`$5`" in warnings(written("It would cost 5 dollars a ride."))[0]
-
-
-def test_a_symbol_already_written_is_left_alone() -> None:
-    assert warnings(written("At $7.7 billion and 92%, it is the most expensive.")) == []
-
-
-def test_a_year_dates_the_dollars_rather_than_counting_them() -> None:
-    """`in 2026 dollars` is what a cost is inflated to, and `$2026` is nothing."""
-    assert warnings(written("That is $4.5 billion per mile in 2026 dollars.")) == []
-
-
-def test_a_scale_says_a_year_is_a_sum_after_all() -> None:
-    assert "`$2026 million`" in warnings(written("A cost of 2026 million dollars."))[0]
-
-
-def test_the_in_is_what_says_the_dollars_are_dated() -> None:
-    """The `in` says so whatever the number is,
-    which is why it holds for years no pattern would recognize as one."""
-    assert warnings(written("That is $4.5 billion per mile in 2050 dollars.")) == []
-    assert warnings(written("Costs are given in 2026 dollars throughout.")) == []
-    assert warnings(written("A denarius bought more in 5 dollars than today.")) == []
-
-
-def test_a_speed_is_written_as_the_two_units_it_is_made_of() -> None:
-    """`kmh` and `kph` are what somebody reaches for, and neither is the symbol."""
-    for written_as in ("80 kmh", "80 kph", "80 kilometers per hour"):
-        assert "`80 km/h`" in warnings(written(f"It runs at {written_as} today."))[0]
-    assert warnings(written("It runs at 80 km/h today.")) == []
