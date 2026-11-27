@@ -2,11 +2,13 @@
 
 import glob
 import hashlib
+import inspect
 import json
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
+from typing import TypedDict, TypeIs, cast, get_type_hints
 lazy import os
 lazy import shutil
 lazy import subprocess
@@ -270,6 +272,7 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
         files = [entry["file"] for entry in entries.values() if entry.get("file")]
         media += [f"{folder}/{name}" for name in files for folder in (IMAGE_DIR, VIDEO_DIR)]
     media += [f"{IMAGE_DIR}/{original_name(image)}" for image in doc.images if image.vector]
+    media += [f"{IMAGE_DIR}/{FOUND_JSON}"]
     # The copies a page shows, with the record of what each was made from:
     # `write_web_copies` keeps those still made from the same picture and
     # removes the rest, so carrying all of them costs nothing and saves encoding.
@@ -375,23 +378,133 @@ def write_image_index(
     """
     if not written and (dest / IMAGES_JSON).exists():
         return
-    index = {
-        object_id: {
-            "file": path.name,
-            **_digest(path),
-            **_pixel_size(path),
-            **_flatness(path),
-            **_description(path),
-        }
-        for object_id, path in sorted(written.items())
+    recorded = _read_found(dest)
+    code = _found_code()
+    keys = {path.name: _found_key(path, code) for path in written.values() if path.suffix != ".svg"}
+    # Unlike the print copies' record, this one needs no rewrite before computing:
+    # each entry keeps its key beside its fields, so a build stopped partway
+    # leaves only entries that still describe the bytes they were found in.
+    # Only the rasters this build wrote: an entry keyed `null`
+    # must not match a drawing, or a file it didn't write, by having no key either.
+    kept = {
+        name: entry
+        for name, entry in recorded.items()
+        if name in keys and entry["key"] == keys[name]
     }
+    found = dict(kept)
+    index: dict[str, JsonObject] = {}
+    for object_id, path in sorted(written.items()):
+        if path.suffix == ".svg":
+            fields = _find(path)
+        elif path.name in kept:
+            fields = kept[path.name]["fields"]
+        else:
+            fields = _find(path)
+            found[path.name] = {"key": keys[path.name], "fields": fields}
+        index[object_id] = {"file": path.name, **fields, **_description(path)}
     for object_id, why in (unpublished or {}).items():
         index[object_id] = {"unpublished": why}
     index = dict(sorted(index.items()))
     (dest / IMAGES_JSON).write_text(json.dumps(index, indent=2, sort_keys=True) + "\n")
+    _write_found(dest, found)
 
 
-def _digest(path: Path) -> dict[str, str]:
+FOUND_JSON = "found.json"
+"""What `write_image_index` found in each raster, kept in `IMAGE_DIR` beside the pictures.
+
+Not committed, like them: `images.json` is, and is all that says what a build
+wrote; this only lets a rebuild that changed no picture skip decoding every one
+of them again (`_flatness` alone counts the colors of every pixel).
+Maps each file name to the key its fields were found under and the fields,
+and `carry_over` links it into a build's own directory like the pictures.
+"""
+
+
+class Found(TypedDict, total=False):
+    """What `_find` learns about a file: each key from one of the functions it calls."""
+
+    pixels_sha256: str
+    sha256: str
+    width: int
+    height: int
+    flatness: float
+
+
+class FoundEntry(TypedDict):
+    """A file's entry in `FOUND_JSON`: the key its fields were found under, and the fields."""
+
+    key: str
+    fields: Found
+
+
+FOUND_TYPES: dict[str, object] = get_type_hints(Found)
+"""Each of `Found`'s keys and the type its value has, to check a record read back against.
+
+Read off `Found` itself, so a field added there is checked without being listed twice.
+"""
+
+
+def _find(path: Path) -> Found:
+    """What `write_image_index` records about `path`, besides its name and any description."""
+    found: Found = {}
+    found.update(_digest(path))
+    found.update(_pixel_size(path))
+    found.update(_flatness(path))
+    return found
+
+
+def _found_code() -> str:
+    """A hash of the code that finds the fields, so editing any of it finds them again."""
+    functions = (_find, _digest, _pixel_size, _flatness)
+    source = "".join(inspect.getsource(function) for function in functions)
+    return hashlib.sha256(source.encode()).hexdigest()
+
+
+def _found_key(path: Path, code: str) -> str:
+    """What the fields found in `path` depend on: its bytes, Pillow, `FLAT_COLORS`, and `code`."""
+    parts = (hashlib.sha256(path.read_bytes()).hexdigest(), Pillow.__version__, FLAT_COLORS, code)
+    return json.dumps(parts)
+
+
+def _read_found(dest: Path) -> dict[str, FoundEntry]:
+    """The record `_write_found` made, without any entry not shaped like a `FoundEntry`.
+
+    Empty if it is missing or unreadable.
+    """
+    try:
+        recorded: object = json.loads((dest / IMAGE_DIR / FOUND_JSON).read_text())
+    except OSError, ValueError:
+        return {}
+    if not isinstance(recorded, dict):
+        return {}
+    return {
+        name: entry
+        for name, entry in cast(dict[str, object], recorded).items()
+        if _is_found_entry(entry)
+    }
+
+
+def _is_found_entry(entry: object) -> TypeIs[FoundEntry]:
+    """Whether `entry`, read back from JSON, is shaped like a `FoundEntry`."""
+    if not isinstance(entry, dict):
+        return False
+    entry = cast(dict[str, object], entry)
+    fields = entry.get("fields")
+    if not isinstance(entry.get("key"), str) or not isinstance(fields, dict):
+        return False
+    return all(
+        name in FOUND_TYPES and type(value) is FOUND_TYPES[name]
+        for name, value in cast(dict[str, object], fields).items()
+    )
+
+
+def _write_found(dest: Path, found: dict[str, FoundEntry]) -> None:
+    """Replace the record, never rewrite it: it may be a hard link to the last build's."""
+    data = json.dumps(dict(sorted(found.items())), indent=2) + "\n"
+    replace_bytes(dest / IMAGE_DIR / FOUND_JSON, data.encode())
+
+
+def _digest(path: Path) -> Found:
     """A hash of what `path` shows: its decoded pixels, or its bytes for a file that has none.
 
     Google Docs serves the same picture in more than one encoding,
@@ -420,7 +533,7 @@ def _digest(path: Path) -> dict[str, str]:
         return {"sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
 
 
-def _pixel_size(path: Path) -> dict[str, int]:
+def _pixel_size(path: Path) -> Found:
     """`path`'s width and height, or nothing for a file that has no pixels.
 
     An SVG has none: it is a drawing rather than a grid, and Pillow will not open one.
@@ -438,7 +551,7 @@ FLAT_COLORS = 16
 """How many of an image's most common colors `_flatness` counts the pixels of."""
 
 
-def _flatness(path: Path) -> dict[str, float]:
+def _flatness(path: Path) -> Found:
     """The share of `path`'s pixels in its `FLAT_COLORS` most common colors, or nothing for an SVG.
 
     What tells a chart pasted as a raster from a photograph without looking at it:

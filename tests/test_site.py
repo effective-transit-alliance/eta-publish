@@ -1411,6 +1411,164 @@ def test_a_drawing_is_recorded_by_its_bytes_and_has_no_flatness(tmp_path: Path) 
     assert "flatness" not in entry
 
 
+def _counted_finds(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Which pictures `write_image_index` decoded, one entry per decode of `_flatness`."""
+    from eta_publish import build
+
+    decoded: list[str] = []
+    real = build._flatness
+    code = build._found_code()
+
+    def counting(path: Path) -> build.Found:
+        decoded.append(path.name)
+        return real(path)
+
+    monkeypatch.setattr(build, "_flatness", counting)
+    # The code hash reads the source of `_flatness`, which is now this wrapper's.
+    monkeypatch.setattr(build, "_found_code", lambda: code)
+    return decoded
+
+
+def _two_pictures(tmp_path: Path) -> dict[str, Path]:
+    written: dict[str, Path] = {}
+    for n, color in enumerate(("teal", "orange"), start=1):
+        path = tmp_path / f"img-{n}.png"
+        Pillow.new("RGB", (4, 3), color).save(path)
+        written[f"kix.{n}"] = path
+    return written
+
+
+def test_an_index_of_pictures_that_did_not_change_decodes_none_of_them(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Counting the colors of every pixel was most of what an unchanged rebuild spent here."""
+    written = _two_pictures(tmp_path)
+    write_image_index(tmp_path, written)
+    first = (tmp_path / IMAGES_JSON).read_text()
+    decoded = _counted_finds(monkeypatch)
+    write_image_index(tmp_path, written)
+    assert decoded == []
+    assert (tmp_path / IMAGES_JSON).read_text() == first
+
+
+def test_the_index_is_the_same_with_and_without_what_was_found_before(tmp_path: Path) -> None:
+    from eta_publish.build import FOUND_JSON
+    from eta_publish.naming import IMAGE_DIR
+
+    written = _two_pictures(tmp_path)
+    write_image_index(tmp_path, written)
+    cold = (tmp_path / IMAGES_JSON).read_text()
+    write_image_index(tmp_path, written)
+    assert (tmp_path / IMAGES_JSON).read_text() == cold
+    (tmp_path / IMAGE_DIR / FOUND_JSON).write_text("[1, 2]")
+    write_image_index(tmp_path, written)
+    assert (tmp_path / IMAGES_JSON).read_text() == cold
+
+
+def test_a_picture_whose_bytes_changed_is_decoded_again_and_the_others_are_not(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    written = _two_pictures(tmp_path)
+    write_image_index(tmp_path, written)
+    before = json.loads((tmp_path / IMAGES_JSON).read_text())
+    Pillow.new("RGB", (4, 3), "purple").save(written["kix.2"])
+    decoded = _counted_finds(monkeypatch)
+    write_image_index(tmp_path, written)
+    assert decoded == ["img-2.png"]
+    after = json.loads((tmp_path / IMAGES_JSON).read_text())
+    assert after["kix.2"]["pixels_sha256"] != before["kix.2"]["pixels_sha256"]
+    assert after["kix.1"] == before["kix.1"]
+
+
+@pytest.mark.parametrize("part", ["flat colors", "code"])
+def test_changing_what_the_fields_depend_on_decodes_every_picture_again(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, part: str
+) -> None:
+    from eta_publish import build
+
+    written = _two_pictures(tmp_path)
+    write_image_index(tmp_path, written)
+    decoded = _counted_finds(monkeypatch)
+    if part == "flat colors":
+        monkeypatch.setattr(build, "FLAT_COLORS", build.FLAT_COLORS + 1)
+    else:
+        monkeypatch.setattr(build, "_found_code", lambda: "an edited _flatness")
+    write_image_index(tmp_path, written)
+    assert sorted(decoded) == ["img-1.png", "img-2.png"]
+
+
+@pytest.mark.parametrize(
+    ("fields", "shaped"),
+    [
+        ({"pixels_sha256": "ab", "width": 3, "height": 2, "flatness": 0.5}, True),
+        ({"sha256": "ab"}, True),
+        ({"width": "wide"}, False),
+        ({"width": True}, False),
+        ({"flatness": 1}, False),
+        ({"colour": "red"}, False),
+    ],
+)
+def test_only_an_entry_shaped_like_what_was_found_is_read_back(
+    fields: dict[str, object], shaped: bool
+) -> None:
+    """Checked against `Found` itself,
+    so a hand-edited or older record can't put a wrong type in `images.json`."""
+    from eta_publish.build import _is_found_entry
+
+    assert _is_found_entry({"key": "k", "fields": fields}) is shaped
+
+
+def test_a_drawing_is_never_taken_from_what_was_found_before(tmp_path: Path) -> None:
+    from eta_publish.build import FOUND_JSON
+    from eta_publish.naming import IMAGE_DIR
+
+    """Not even from an entry keyed `null`, which a drawing's missing key must not match."""
+    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
+    drawing = tmp_path / "chart.svg"
+    drawing.write_bytes(svg)
+    stale = {"chart.svg": {"key": None, "fields": {"sha256": "stale"}}}
+    (tmp_path / IMAGE_DIR).mkdir()
+    (tmp_path / IMAGE_DIR / FOUND_JSON).write_text(json.dumps(stale))
+    write_image_index(tmp_path, {"kix.1": drawing})
+    index = json.loads((tmp_path / IMAGES_JSON).read_text())
+    assert index["kix.1"]["sha256"] == hashlib.sha256(svg).hexdigest()
+    assert json.loads((tmp_path / IMAGE_DIR / FOUND_JSON).read_text()) == {}
+
+
+def test_a_build_elsewhere_carries_over_what_the_index_found(tmp_path: Path) -> None:
+    from eta_publish.build import FOUND_JSON, carry_over
+    from eta_publish.naming import IMAGE_DIR
+
+    last = tmp_path / "last"
+    (last / IMAGE_DIR).mkdir(parents=True)
+    (last / IMAGE_DIR / FOUND_JSON).write_text("{}")
+
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+
+    linked = tmp_path / "next" / IMAGE_DIR / FOUND_JSON
+    assert linked.stat().st_ino == (last / IMAGE_DIR / FOUND_JSON).stat().st_ino
+
+
+def test_writing_what_the_index_found_leaves_the_last_builds_record_alone(tmp_path: Path) -> None:
+    from eta_publish.build import FOUND_JSON, carry_over
+    from eta_publish.naming import IMAGE_DIR
+
+    last = tmp_path / "last"
+    (last / IMAGE_DIR).mkdir(parents=True)
+    written = _two_pictures(last / IMAGE_DIR)
+    write_image_index(last, written)
+    before = (last / IMAGE_DIR / FOUND_JSON).read_bytes()
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+    # A new file, as a download makes, rather than a write through the carried link.
+    changed = tmp_path / "next" / IMAGE_DIR / "img-1.png"
+    changed.unlink()
+    Pillow.new("RGB", (4, 3), "purple").save(changed)
+    write_image_index(
+        tmp_path / "next", {k: tmp_path / "next" / IMAGE_DIR / v.name for k, v in written.items()}
+    )
+    assert (last / IMAGE_DIR / FOUND_JSON).read_bytes() == before
+
+
 def test_a_picture_is_named_only_once_something_wrote_it(doc: Document) -> None:
     """The stem is not an answer: an extension is learned by fetching,
     so `images/img-d4734d4b` is a path no browser serves as an image,
