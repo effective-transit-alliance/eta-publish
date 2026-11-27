@@ -245,8 +245,8 @@ as two commit statuses, shown with the checks on each commit and pull request:
 
 - **`eta-drafts / sync`:** pending on the commit pushed, from `drafts.yml`,
   or failure if it couldn't start the sync, and error if its run was cancelled before starting it.
-  Every sync run sets it pending again on each code commit still with no drafts commit, linking the run,
-  then success on the one it made the drafts commit for, once pushed,
+  Each sync run sets it pending on the code commit it makes the drafts commit for, the oldest with none, linking the run,
+  then success on that one, once pushed,
   or on the branch's last commit if none was missing,
   and failure on that one if the run fails.
   A refused push leaves it pending, for the next run to make again.
@@ -281,7 +281,7 @@ then every commit in the last one's history but not in that one's.
 That commit is where an earlier sweep settled everything before it,
 so this relies on every earlier sweep of the branch having run,
 `main`'s and any other branch's alike.
-It also takes the deploy's pin, and the commits the sync run set pending, in case a force-push has dropped them since.
+It also takes the deploy's pin, and the commit the sync run set pending, in case a force-push has dropped them since.
 Of each status still pending, by the run it links and that run's branch,
 since a commit can be on more than one branch:
 
