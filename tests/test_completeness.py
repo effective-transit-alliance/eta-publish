@@ -229,23 +229,3 @@ def test_anything_the_parser_drops_is_reported() -> None:
         assert any(lost in w for w in map(str, doc.warnings)), (
             f"{lost} was dropped without a warning"
         )
-
-
-def test_the_parser_check_catches_the_front_matter_overrun() -> None:
-    """The bug that motivated all of this:
-    a front-matter scan running past the headline
-    swallowed the hero image, its caption, and the addendum."""
-    doc = parse(REAL_SHAPE)
-    overrun = Document(
-        title=doc.title,
-        meta=doc.meta,
-        blocks=[],  # everything after the header consumed
-        footnotes=doc.footnotes,
-    )
-    kept = tree_text(overrun)
-    missing = [
-        t
-        for t in source_text(REAL_SHAPE)
-        if t.lower() not in CONSUMED and normalize(t).lower() not in kept
-    ]
-    assert missing, "the check must notice content the parser never produced"

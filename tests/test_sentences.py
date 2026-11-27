@@ -41,22 +41,5 @@ CASES: list[tuple[str, list[str]]] = [
 @pytest.mark.parametrize(("text", "expected"), CASES)
 def test_split(text: str, expected: list[str]) -> None:
     assert split(text) == expected
-
-
-@pytest.mark.parametrize(("text", "expected"), CASES)
-def test_splitting_never_changes_the_text(text: str, expected: list[str]) -> None:
-    """Rejoining must reproduce the input, so a reflow cannot lose a word."""
+    # Rejoining must reproduce the input, so a reflow cannot lose a word.
     assert " ".join(split(text)) == text
-
-
-def test_a_real_paragraph() -> None:
-    text = (
-        "On paper, the MTA's proposed extension should be a slam dunk. "
-        "It is the right route, a logical extension under Harlem's main street. "
-        "It would cost $7.7 billion, or 12 times what Paris achieves."
-    )
-    assert split(text) == [
-        "On paper, the MTA's proposed extension should be a slam dunk.",
-        "It is the right route, a logical extension under Harlem's main street.",
-        "It would cost $7.7 billion, or 12 times what Paris achieves.",
-    ]

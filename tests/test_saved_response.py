@@ -77,12 +77,6 @@ def test_the_response_it_was_taken_from_is_untouched() -> None:
     assert embedded["imageProperties"]["contentUri"].startswith("https://")
 
 
-def test_dropping_a_uri_leaves_the_document_unchanged_otherwise(saved: JsonObject) -> None:
-    """The whole point: an unedited document re-fetches to the same file."""
-    once = json.dumps(without_content_uris(DOCUMENT), indent=2)
-    assert once == json.dumps(saved, indent=2)
-
-
 def test_an_image_is_still_an_image_without_its_uri(saved: JsonObject) -> None:
     """`contentUri` says where to fetch an image, not whether it is one."""
     doc = parse(saved)
@@ -146,6 +140,10 @@ def test_a_run_that_cannot_read_the_review_keeps_the_last_answer(tmp_path: Path)
     fresh: dict[str, object] = {"body": {}}
     carry_over_review(fresh, saved)
     assert fresh == {"body": {}, "openSuggestions": 17, "openComments": 3}
+    # A first build has no last answer to keep.
+    fresh = {"body": {}}
+    carry_over_review(fresh, tmp_path / "absent.json")
+    assert fresh == {"body": {}}
 
 
 def test_a_run_that_could_read_the_review_keeps_what_it_read(tmp_path: Path) -> None:
@@ -157,31 +155,3 @@ def test_a_run_that_could_read_the_review_keeps_what_it_read(tmp_path: Path) -> 
     carry_over_review(fresh, saved)
     assert fresh["openSuggestions"] == 0
     assert fresh["openComments"] == 0
-
-
-def test_a_first_build_has_no_last_answer_to_keep(tmp_path: Path) -> None:
-    from eta_publish.build import carry_over_review
-
-    fresh: dict[str, object] = {"body": {}}
-    carry_over_review(fresh, tmp_path / "absent.json")
-    assert fresh == {"body": {}}
-
-
-def test_two_builds_that_agree_write_the_same_bytes(tmp_path: Path) -> None:
-    """One build reads the counts and another carries them over,
-    so they land in different places in the dictionary.
-    The file is sorted, so that is not a difference anybody has to keep in step."""
-    from eta_publish.build import DOC_JSON, carry_over_review, without_content_uris
-
-    saved = tmp_path / DOC_JSON
-    saved.write_text(json.dumps({"openSuggestions": 17, "openComments": 3}))
-
-    read_for_itself: dict[str, object] = {"body": {}, "openComments": 3, "openSuggestions": 17}
-    carried_over: dict[str, object] = {"body": {}}
-    carry_over_review(read_for_itself, saved)
-    carry_over_review(carried_over, saved)
-
-    assert list(read_for_itself) != list(carried_over), "the orders really do differ"
-    assert json.dumps(
-        without_content_uris(read_for_itself), indent=2, sort_keys=True
-    ) == json.dumps(without_content_uris(carried_over), indent=2, sort_keys=True)

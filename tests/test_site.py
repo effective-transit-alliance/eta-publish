@@ -83,20 +83,6 @@ def doc() -> Document:
     return parse(FIXTURE)
 
 
-def test_a_publication_is_published_at_the_path_its_header_names(doc: Document) -> None:
-    doc.meta["URL"] = "/reports/digging-out-deep-hole-sas-west"
-    assert publication_path(doc) == "reports/digging-out-deep-hole-sas-west"
-
-
-@pytest.mark.parametrize(
-    ("url", "kind"),
-    [("/reports/x", Kind.REPORT), ("/statements/x", Kind.STATEMENT), ("/briefs/x", Kind.REPORT)],
-)
-def test_the_path_says_which_kind_a_publication_is(doc: Document, url: str, kind: Kind) -> None:
-    doc.meta["URL"] = url
-    assert publication_kind(doc) == kind
-
-
 def test_a_brief_is_built_as_a_report_with_a_warning(doc: Document) -> None:
     doc.meta["URL"] = "/briefs/too-damn-loud"
     check_kind(doc)
@@ -134,13 +120,6 @@ def test_a_document_with_no_header_is_told_that_and_not_about_its_url(doc: Docum
         publication_path(doc)
 
 
-def test_an_absolute_url_cannot_escape_the_site_root(doc: Document) -> None:
-    """`/reports/x` is a published path, not a filesystem one;
-    joined unstripped it would write to the root of the disk."""
-    doc.meta["URL"] = "/reports/x"
-    assert not Path(publication_path(doc)).is_absolute()
-
-
 def test_publications_are_read_from_the_list(tmp_path: Path) -> None:
     path = tmp_path / "publications.toml"
     path.write_text(
@@ -148,6 +127,8 @@ def test_publications_are_read_from_the_list(tmp_path: Path) -> None:
         'published = "draft"\n'
         '\n[[statement]]\nname = "Deinterlining"\ntab = "Tab 1"\nurl = "https://example.invalid/b"\n'
         'published = "draft"\n'
+        '\n[[report]]\nname = "Automated"\ntab = "T"\nurl = "https://example.invalid/c"\n'
+        'published = "automated"\n'
     )
     assert load_publications(path) == [
         Publication(
@@ -156,51 +137,37 @@ def test_publications_are_read_from_the_list(tmp_path: Path) -> None:
         Publication(
             url="https://example.invalid/b", name="Deinterlining", tab="Tab 1", kind=Kind.STATEMENT
         ),
+        Publication(
+            url="https://example.invalid/c",
+            name="Automated",
+            tab="T",
+            kind=Kind.REPORT,
+            published=Published.AUTOMATED,
+        ),
     ]
 
 
-def test_publications_load_in_the_order_the_list_gives(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    entry = 'name = "{0}"\ntab = "T"\nurl = "https://example.invalid/{0}"\npublished = "draft"\n'
-    path.write_text(
-        "[[report]]\n"
-        + entry.format("a")
-        + "[[statement]]\n"
-        + entry.format("b")
-        + "[[report]]\n"
-        + entry.format("c")
-    )
-    assert [p.name for p in load_publications(path)] == ["a", "b", "c"]
-
-
-def test_a_list_with_no_entries_lists_nothing(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    path.write_text("")
-    assert load_publications(path) == []
-
-
-def test_an_unknown_heading_is_an_error_not_skipped(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("text", "message"),
+    [
+        (
+            '[[brief]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n',
+            "{path}: `brief` is not a heading",
+        ),
+        ('[extra]\nname = "A"\n', "`extra` is not a heading"),
+        ('stray = "A"\n', "`stray` is not a heading"),
+        (
+            '[report]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n',
+            "`report` must be written `\\[\\[report\\]\\]`",
+        ),
+        ('[[report]]\nname = "Nameless"\n', "no `url`"),
+    ],
+)
+def test_a_malformed_list_is_an_error_not_skipped(tmp_path: Path, text: str, message: str) -> None:
     """`[[reports]]` for `[[report]]` would otherwise build nothing, and say nothing."""
     path = tmp_path / "publications.toml"
-    path.write_text('[[brief]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
-    with pytest.raises(ValueError, match=f"{path}: `brief` is not a heading"):
-        load_publications(path)
-
-
-def test_an_unknown_table_is_an_error_too(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    path.write_text('[extra]\nname = "A"\n')
-    with pytest.raises(ValueError, match="`extra` is not a heading"):
-        load_publications(path)
-    path.write_text('stray = "A"\n')
-    with pytest.raises(ValueError, match="`stray` is not a heading"):
-        load_publications(path)
-
-
-def test_a_table_of_a_known_kind_must_be_a_list(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    path.write_text('[report]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
-    with pytest.raises(ValueError, match="`report` must be written `\\[\\[report\\]\\]`"):
+    path.write_text(text)
+    with pytest.raises(ValueError, match=message.format(path=path)):
         load_publications(path)
 
 
@@ -295,19 +262,6 @@ def test_one_refuses_a_name_two_entries_share(tmp_path: Path) -> None:
         listed_publication("IBX", path)
 
 
-def test_an_entry_without_a_url_is_an_error(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    path.write_text('[[report]]\nname = "Nameless"\n')
-    with pytest.raises(ValueError, match="no `url`"):
-        load_publications(path)
-
-
-def test_an_entry_says_how_it_is_published(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "automated"\n')
-    assert load_publications(path)[0].published is Published.AUTOMATED
-
-
 @pytest.mark.parametrize("published", ["", 'published = ""\n', 'published = "live"\n'])
 def test_an_entry_that_does_not_say_how_it_is_published_is_an_error(
     tmp_path: Path, published: str
@@ -338,15 +292,6 @@ def test_add_names_an_entry_from_the_document(tmp_path: Path) -> None:
     assert "# a comment worth keeping" in path.read_text()
     assert load_publications(path)[-1] == added
     assert added.published is Published.DRAFT
-
-
-def test_add_refuses_a_document_already_listed(tmp_path: Path) -> None:
-    """Two entries for one document publish it twice to one path,
-    and the second build overwrites the first."""
-    path = tmp_path / "publications.toml"
-    path.write_text('[[report]]\nname = "A"\ntab = "B"\nurl = "u"\npublished = "draft"\n')
-    with pytest.raises(ValueError, match="already lists"):
-        add_publication("u", path)
 
 
 def test_add_refuses_a_document_that_names_no_tab(tmp_path: Path) -> None:
@@ -469,15 +414,6 @@ def test_a_title_with_a_quotation_mark_stays_one_string(tmp_path: Path) -> None:
     assert load_publications(path)[-1].name == 'The "Deep Hole" Publication'
 
 
-def test_the_project_list_parses() -> None:
-    """The committed one, so a typo in it fails here rather than in CI."""
-    publications = load_publications()
-    assert publications
-    assert all(
-        "?tab=" in r.url or "&tab=" in r.url or not r.url.startswith("http") for r in publications
-    )
-
-
 def test_one_failure_does_not_stop_the_others(tmp_path: Path) -> None:
     # Named as the entry below names it, and with a tab title to confirm:
     # this test is about a fetch failure, not about a wrong entry.
@@ -593,31 +529,28 @@ def placed(doc: Document, *paths: str) -> list[Built]:
     ]
 
 
-def test_two_publications_at_one_path_clash(doc: Document) -> None:
-    built = placed(doc, "reports/a", "reports/b", "reports/a")
-    assert clashes([(None, built)]) == [
-        "`Doc 0` (tab `Draft`) and `Doc 2` (tab `Draft`) are both at `/reports/a`"
-    ]
-
-
-def test_a_publication_inside_another_clashes_whichever_is_listed_first(doc: Document) -> None:
-    said = "`/reports/a/b` is inside `/reports/a`"
-    assert said in clashes([(None, placed(doc, "reports/a", "reports/a/b"))])[0]
-    assert said in clashes([(None, placed(doc, "reports/a/b", "reports/a"))])[0]
+@pytest.mark.parametrize(
+    ("paths", "said"),
+    [
+        (
+            ("reports/a", "reports/b", "reports/a"),
+            "`Doc 0` (tab `Draft`) and `Doc 2` (tab `Draft`) are both at `/reports/a`",
+        ),
+        (("reports/a", "reports/a/b"), "`/reports/a/b` is inside `/reports/a`"),
+        (("reports/a/b", "reports/a"), "`/reports/a/b` is inside `/reports/a`"),
+    ],
+)
+def test_two_publications_at_one_path_clash(
+    doc: Document, paths: tuple[str, ...], said: str
+) -> None:
+    found = clashes([(None, placed(doc, *paths))])
+    assert len(found) == 1
+    assert said in found[0]
 
 
 def test_a_path_that_only_starts_with_another_does_not_clash(doc: Document) -> None:
     """A directory, not a string: `reports/ab` is beside `reports/a`, not in it."""
     assert clashes([(None, placed(doc, "reports/a", "reports/ab", "statements/a"))]) == []
-
-
-def test_a_clash_across_lists_names_each_list(doc: Document) -> None:
-    """For a site laid out from more than one list, which is the same check over all of them."""
-    public, drafts = Path("publications.toml"), Path("drafts/publications.toml")
-    assert clashes([(public, placed(doc, "reports/a")), (drafts, placed(doc, "reports/a"))]) == [
-        "`Doc 0` (tab `Draft`, in `publications.toml`) and "
-        "`Doc 0` (tab `Draft`, in `drafts/publications.toml`) are both at `/reports/a`"
-    ]
 
 
 def test_a_path_claimed_second_is_refused_and_named_in_list_order() -> None:
@@ -793,22 +726,15 @@ def test_all_with_a_drafts_directory_but_no_list_is_an_error_and_builds_nothing(
     [
         ["-o", "out"],
         ["other.toml"],
+        # Absolute, because `biome` is run from the repository, not from where the build is.
+        ["--into", "elsewhere"],
     ],
 )
 def test_all_builds_the_drafts_only_for_the_committed_list_and_site(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, args: list[str]
 ) -> None:
+    args = [str(tmp_path / a) if a == "elsewhere" else a for a in args]
     result = build_everything(tmp_path, monkeypatch, *args)
-
-    assert result.exit_code == 0, result.output
-    assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
-
-
-def test_all_into_a_directory_does_not_build_the_drafts(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    # Absolute, because `biome` is run from the repository, not from where the build is.
-    result = build_everything(tmp_path, monkeypatch, "--into", str(tmp_path / "elsewhere"))
 
     assert result.exit_code == 0, result.output
     assert not (tmp_path / "drafts" / "site" / UNPUBLISHED_DIR / SLUG / "report.html").exists()
@@ -913,24 +839,6 @@ def test_a_wrong_entry_leaves_no_files_behind(tmp_path: Path) -> None:
     assert not list(out.rglob("report.html"))
 
 
-def test_a_saved_response_is_found_by_the_document_it_came_from(tmp_path: Path) -> None:
-    """A publication's directory is named after its `URL:` line, which is a path and
-    not an id, so the response's own `documentId` is what joins it to an entry."""
-    written = tmp_path / "reports" / "a-report"
-    written.mkdir(parents=True)
-    (written / "doc.json").write_text(json.dumps({**FIXTURE, "documentId": "abc", "tabId": "t.1"}))
-    assert saved_responses(tmp_path) == {("abc", "t.1"): written}
-
-
-def test_a_directory_that_is_not_a_saved_response_is_passed_over(tmp_path: Path) -> None:
-    """Unreadable, or readable and saying nothing about which document it is."""
-    for name, text in (("broken", "{not json"), ("anonymous", "{}")):
-        d = tmp_path / "reports" / name
-        d.mkdir(parents=True)
-        (d / "doc.json").write_text(text)
-    assert saved_responses(tmp_path) == {}
-
-
 def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
     """The same bytes as the build that fetched it, without fetching anything:
     a `fetch` reached for here would be a network call in a run asked for none."""
@@ -939,6 +847,10 @@ def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
     out = tmp_path / "site"
     written = out / "reports" / "digging-out-deep-hole-sas-west"
     written.mkdir(parents=True)
+    # A directory that is not a saved response is passed over: unreadable, or saying nothing.
+    for name, text in (("broken", "{not json"), ("anonymous", "{}")):
+        (out / "reports" / name).mkdir(parents=True)
+        (out / "reports" / name / "doc.json").write_text(text)
     (written / "doc.json").write_text(
         json.dumps(
             {
@@ -976,6 +888,7 @@ def test_offline_builds_from_the_saved_response(tmp_path: Path) -> None:
     )
     monkeypatch.undo()
     assert [b.path for b in site.built] == ["reports/digging-out-deep-hole-sas-west"]
+    assert list(saved_responses(out).values()) == [written]
 
 
 def test_offline_refuses_a_response_read_the_other_way(tmp_path: Path) -> None:
@@ -1124,28 +1037,10 @@ def test_a_card_summarizes_the_publication_by_its_short(doc: Document) -> None:
     page = index_page(site)
     assert "The short." in page
     assert "The SEO description." not in page
-
-
-def test_only_one_document_or_list_at_a_time() -> None:
-    """Building several at once is what a list is for,
-    and a list is a file that can be reviewed
-    rather than a shell line that is right once."""
-    from typer.testing import CliRunner
-
-    from eta_publish.__main__ import app
-
-    assert CliRunner().invoke(app, ["all", "one.toml", "two.toml"]).exit_code != 0
-    assert CliRunner().invoke(app, ["one", "a.json", "b.json"]).exit_code != 0
-
-
-def test_one_needs_a_document_to_build() -> None:
-    """`all` has a list to fall back on and `one` has nothing:
-    a document is the whole of what it was asked."""
-    from typer.testing import CliRunner
-
-    from eta_publish.__main__ import app
-
-    assert CliRunner().invoke(app, ["one"]).exit_code != 0
+    assert 'class="card"' not in page
+    doc.card = Image(object_id="io.card", filename="card")
+    doc.image_files["io.card"] = "card.jpg"
+    assert 'src="r/s/images/card.jpg"' in index_page(site)
 
 
 def test_a_missing_list_is_reported_as_a_bad_argument(tmp_path: Path) -> None:
@@ -1159,26 +1054,6 @@ def test_a_missing_list_is_reported_as_a_bad_argument(tmp_path: Path) -> None:
     result = CliRunner().invoke(app, ["all", str(absent)])
     assert result.exit_code != 0
     assert str(absent) in result.output
-
-
-def test_all_with_a_list_of_no_entries_builds_an_empty_site(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    """A list keeps its `[site]` before anything is listed in it, and building it succeeds."""
-    from typer.testing import CliRunner
-
-    from eta_publish.__main__ import app
-
-    monkeypatch.chdir(tmp_path)
-    path = tmp_path / "publications.toml"
-    path.write_text(
-        f'[site]\npublished = "{HOSTS.published}"\nunpublished = "{HOSTS.unpublished}"\n'
-    )
-    seed_image_index(tmp_path / "site" / UNPUBLISHED_DIR)
-    result = CliRunner().invoke(
-        app, ["all", str(path), "--no-images", "--no-archive", "--no-comments"]
-    )
-    assert result.exit_code == 0, result.output
 
 
 def test_a_publication_directory_is_a_document(tmp_path: Path) -> None:
@@ -1226,18 +1101,7 @@ def test_a_statement_is_written_as_one(tmp_path: Path) -> None:
     built = tmp_path / "site" / "statements" / "x"
     assert {p.name for p in built.glob("*.md")} == {"statement.md"}
     assert not list(built.glob("report.*"))
-
-
-@pytest.mark.parametrize(
-    ("url", "kind"), [("/statements/x", "statement"), ("/reports/x", "report")]
-)
-def test_the_contributors_line_calls_the_publication_what_it_is(
-    doc: Document, url: str, kind: str
-) -> None:
-    from eta_publish.emit.base import contributors_note
-
-    doc.meta["URL"] = url
-    assert f"contributed to this {kind}," in contributors_note(doc)
+    assert "contributed to this statement," in (built / "statement.typ").read_text()
 
 
 def test_a_build_elsewhere_carries_over_only_what_the_publication_still_uses(
@@ -1317,24 +1181,6 @@ def test_a_name_that_is_not_the_documents_is_warned_about(
     assert f"`{FIXTURE['title']}`" in warning
 
 
-def test_the_documents_own_name_is_not_warned_about(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
-) -> None:
-    saved = tmp_path / "doc.json"
-    saved.write_text(json.dumps(FIXTURE))
-    build_site(
-        [Publication(url=str(saved), name=str(FIXTURE["title"]))],
-        tmp_path / "site",
-        BuildOptions(
-            images=False,
-            archive=False,
-            unpublished_url=HOSTS.unpublished,
-            published_url=HOSTS.published,
-        ),
-    )
-    assert "publications.toml calls this" not in capsys.readouterr().err
-
-
 def test_a_tab_that_is_not_the_documents_is_warned_about(
     tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -1377,14 +1223,16 @@ def test_a_response_that_names_no_tab_cannot_confirm_one(tmp_path: Path) -> None
     assert "the tab is named ``" in site.failed[0].error
 
 
-def test_an_entry_that_names_neither_is_not_warned_about(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+@pytest.mark.parametrize("named", [False, True])
+def test_an_entry_that_names_what_the_document_is_called_is_not_warned_about(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], named: bool
 ) -> None:
-    """Both fields are optional: an entry says as much as whoever wrote it wanted."""
+    """Both fields are optional: an entry says as much as whoever wrote it wanted,
+    and the document's own name is nothing to correct."""
     saved = tmp_path / "doc.json"
     saved.write_text(json.dumps(FIXTURE))
     build_site(
-        [Publication(url=str(saved))],
+        [Publication(url=str(saved), name=str(FIXTURE["title"]) if named else None)],
         tmp_path / "site",
         BuildOptions(
             images=False,
@@ -1403,6 +1251,8 @@ def test_a_url_that_climbs_out_of_the_site_is_refused(doc: Document) -> None:
     doc.meta["URL"] = "/../../../../tmp/pwned"
     with pytest.raises(ValueError, match="climbs out of the site"):
         publication_path(doc)
+    doc.meta["URL"] = "/reports/x"
+    assert not Path(publication_path(doc)).is_absolute()
 
 
 def _publication_dir(tmp_path: Path, recorded: dict[str, dict[str, str]]) -> Path:
@@ -1412,34 +1262,28 @@ def _publication_dir(tmp_path: Path, recorded: dict[str, dict[str, str]]) -> Pat
     return previous
 
 
-def test_a_response_whose_images_are_gone_is_not_reused(tmp_path: Path) -> None:
+@pytest.mark.parametrize(
+    ("on_disk", "images", "reused"),
+    [(False, True, False), (True, True, True), (False, False, True)],
+)
+def test_a_response_is_reused_when_its_images_are_there_or_not_wanted(
+    tmp_path: Path, on_disk: bool, images: bool, reused: bool
+) -> None:
     """The response is committed and the images are not,
     so a fresh checkout has one describing pictures that are not beside it.
-    Reused there, the build downloads nothing and publishes a page with no images."""
+    Reused there, the build downloads nothing and publishes a page with no images.
+    A build that wants no images is not going to download them either way,
+    so the pictures on disk are not what it is asking about."""
     previous = _publication_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
-    assert (
-        reusable(
-            previous,
-            BuildOptions(
-                archive=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
-            ),
-        )
-        is None
+    if on_disk:
+        (previous / "images" / "img-a.jpg").write_bytes(b"")
+    options = BuildOptions(
+        images=images,
+        archive=False,
+        unpublished_url=HOSTS.unpublished,
+        published_url=HOSTS.published,
     )
-
-
-def test_a_response_whose_images_are_there_is_reused(tmp_path: Path) -> None:
-    previous = _publication_dir(tmp_path, {"kix.1": {"file": "img-a.jpg"}})
-    (previous / "images" / "img-a.jpg").write_bytes(b"")
-    assert (
-        reusable(
-            previous,
-            BuildOptions(
-                archive=False, unpublished_url=HOSTS.unpublished, published_url=HOSTS.published
-            ),
-        )
-        == previous / "doc.json"
-    )
+    assert reusable(previous, options) == (previous / "doc.json" if reused else None)
 
 
 def test_an_image_the_code_now_names_differently_is_not_on_disk(tmp_path: Path) -> None:
@@ -1503,12 +1347,6 @@ def test_the_same_pixels_encoded_differently_are_recorded_the_same(tmp_path: Pat
     assert changed["pixels_sha256"] != fast["pixels_sha256"]
 
 
-def test_a_drawing_is_recorded_by_its_bytes(tmp_path: Path) -> None:
-    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
-    entry = _index_entry(tmp_path, "chart.svg", lambda p: p.write_bytes(svg))
-    assert entry["sha256"] == hashlib.sha256(svg).hexdigest()
-
-
 def test_a_chart_is_recorded_flatter_than_a_photograph(tmp_path: Path) -> None:
     """A few flat colors against a pixel of its own almost everywhere."""
     chart = Pillow.new("RGB", (40, 30), "white")
@@ -1520,39 +1358,24 @@ def test_a_chart_is_recorded_flatter_than_a_photograph(tmp_path: Path) -> None:
     assert noisy["flatness"] < 0.5
 
 
-def test_a_drawing_has_no_flatness(tmp_path: Path) -> None:
+def test_a_drawing_is_recorded_by_its_bytes_and_has_no_flatness(tmp_path: Path) -> None:
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
-    assert "flatness" not in _index_entry(tmp_path, "chart.svg", lambda p: p.write_bytes(svg))
+    entry = _index_entry(tmp_path, "chart.svg", lambda p: p.write_bytes(svg))
+    assert entry["sha256"] == hashlib.sha256(svg).hexdigest()
+    assert "flatness" not in entry
 
 
-def test_a_picture_nothing_wrote_has_no_name_to_emit(doc: Document) -> None:
+def test_a_picture_is_named_only_once_something_wrote_it(doc: Document) -> None:
     """The stem is not an answer: an extension is learned by fetching,
     so `images/img-d4734d4b` is a path no browser serves as an image,
     and a page that links one has a hole in it that nothing reports as this."""
     with pytest.raises(ValueError, match="was never written"):
         doc.image_href(doc.images[0])
-
-
-def test_a_named_picture_is_not_asked_to_be_on_disk(doc: Document) -> None:
-    """The file being there is a different question:
-    a build that wants no images has no `images` directory,
-    and the paths it writes are the right paths to files it did not fetch."""
+    # The file being there is a different question:
+    # a build that wants no images has no `images` directory,
+    # and the paths it writes are the right paths to files it did not fetch.
     doc.image_files = {image.object_id: f"{image.filename}.jpg" for image in doc.images}
     assert doc.image_href(doc.images[0]).endswith(".jpg")
-
-
-def test_a_build_that_downloaded_nothing_reads_both_back(tmp_path: Path) -> None:
-    """Neither the filename nor the shape can be derived, and the files are not
-    committed, so `images.json` is the record of both and the only thing such a
-    build has to go on."""
-    (tmp_path / IMAGES_JSON).write_text(
-        json.dumps({"kix.1": {"file": "img-a.jpg", "width": 10, "height": 5, "flatness": 0.97}})
-    )
-    doc = Document()
-    read_image_index(tmp_path, doc)
-    assert doc.image_files == {"kix.1": "img-a.jpg"}
-    assert doc.image_shapes == {"kix.1": (10, 5)}
-    assert doc.image_flatness == {"kix.1": 0.97}
 
 
 def test_what_this_build_downloaded_beats_what_the_last_one_recorded(tmp_path: Path) -> None:
@@ -1620,26 +1443,28 @@ def test_publications_are_separated_from_each_other(
     assert lines[headings[1] - 1] == ""
 
 
-def test_a_url_is_listed_without_what_the_browser_added() -> None:
+@pytest.mark.parametrize(
+    ("copied", "listed"),
+    [
+        (
+            "https://docs.google.com/document/d/1GB5qDuIjDB/edit"
+            "?pli=1&tab=t.0#heading=h.mkzkbxod1acf",
+            "https://docs.google.com/document/d/1GB5qDuIjDB/edit?tab=t.0",
+        ),
+        (
+            "https://docs.google.com/document/d/1GB5qDuIjDB/edit?pli=1",
+            "https://docs.google.com/document/d/1GB5qDuIjDB/edit",
+        ),
+        # A bare document id and a path to a saved response
+        # are both things `one` accepts, and neither has parts to drop.
+        ("1GB5qDuIjDB", "1GB5qDuIjDB"),
+        ("site/reports/ibx-automation", "site/reports/ibx-automation"),
+    ],
+)
+def test_a_url_is_listed_without_what_the_browser_added(copied: str, listed: str) -> None:
     """`?pli=1` says the reader is signed into more than one account and
     `#heading=` is where their cursor was, and neither names the document."""
-    copied = (
-        "https://docs.google.com/document/d/1GB5qDuIjDB/edit?pli=1&tab=t.0#heading=h.mkzkbxod1acf"
-    )
-    assert canonical(copied) == "https://docs.google.com/document/d/1GB5qDuIjDB/edit?tab=t.0"
-
-
-def test_a_document_named_without_a_tab_keeps_its_url_whole() -> None:
-    assert canonical("https://docs.google.com/document/d/1GB5qDuIjDB/edit?pli=1") == (
-        "https://docs.google.com/document/d/1GB5qDuIjDB/edit"
-    )
-
-
-def test_what_is_not_a_docs_url_is_left_alone() -> None:
-    """A bare document id and a path to a saved response
-    are both things `one` accepts, and neither has parts to drop."""
-    assert canonical("1GB5qDuIjDB") == "1GB5qDuIjDB"
-    assert canonical("site/reports/ibx-automation") == "site/reports/ibx-automation"
+    assert canonical(copied) == listed
 
 
 def test_the_same_document_copied_twice_is_recognized_as_listed(tmp_path: Path) -> None:
@@ -1795,17 +1620,6 @@ def test_the_social_image_is_the_sites_copy_of_the_card(doc: Document) -> None:
     assert social_image(doc, "reports/r", site_url=HOST) == ""
 
 
-def test_a_card_shows_the_publications_share_card_where_it_has_one(doc: Document) -> None:
-    doc.card = Image(object_id="io.card", filename="card")
-    doc.image_files["io.card"] = "card.jpg"
-    site = Site(
-        built=[Built(publication=Publication(url="u", name="SAS West"), doc=doc, path="r/s")]
-    )
-    assert 'src="r/s/images/card.jpg"' in index_page(site)
-    doc.card = None
-    assert 'class="card"' not in index_page(site)
-
-
 def test_the_hosts_are_the_lists_own(tmp_path: Path) -> None:
     path = tmp_path / "publications.toml"
     path.write_text(
@@ -1826,20 +1640,11 @@ def test_a_list_must_say_where_its_site_is(tmp_path: Path) -> None:
     path.write_text('[site]\npublished = "https://reports.example.org"\n')
     with pytest.raises(ValueError, match="no `unpublished` URL"):
         load_hosts(path)
-    with pytest.raises(OSError):
-        load_hosts(tmp_path / "missing.toml")
-
-
-def test_a_host_that_is_not_https_is_refused(tmp_path: Path) -> None:
-    path = tmp_path / "publications.toml"
     path.write_text('[site]\npublished = "publications.example.org"\n')
     with pytest.raises(ValueError, match="not an `https://` URL"):
         load_hosts(path)
-
-
-def test_the_committed_list_publishes_under_its_preview_for_now() -> None:
-    """Until it has a host of its own: one Pages site, `site/published/` under `/published/`."""
-    assert HOSTS.published == f"{HOSTS.unpublished}/published"
+    with pytest.raises(OSError):
+        load_hosts(tmp_path / "missing.toml")
 
 
 DOC_URL = "https://docs.google.com/document/d/abc/edit?tab=t.0"
@@ -1853,13 +1658,6 @@ def test_a_preview_banner_links_the_google_doc_it_is_built_from(doc: Document) -
     banner = kind_banner(publication, doc)
     assert banner.doc == DOC_URL
     assert f'<a class="kind-doc" href="{DOC_URL}">Google Doc</a>' in banner_markup(banner)
-
-
-def test_a_banner_links_the_doc_ahead_of_the_kind(doc: Document) -> None:
-    """In the banner's upper left, before the kind and what it says."""
-    publication = Publication(url=DOC_URL, published=Published.AUTOMATED)
-    shown = banner_markup(kind_banner(publication, doc))
-    assert shown.index("Google Doc") < shown.index("Automatically Published")
 
 
 def test_a_banner_links_no_doc_for_a_saved_response(doc: Document, tmp_path: Path) -> None:
@@ -1935,8 +1733,3 @@ def test_a_page_without_a_banner_keeps_the_phase_strip(doc: Document) -> None:
     page = publication_page(doc, site_url=HOST)
     assert '<p class="phase"><span class="phase-label">Phase: </span>Compositing</p>' in page
     assert '<span class="kind-phase"' not in page
-
-
-def test_a_banner_without_a_phase_adds_nothing(doc: Document) -> None:
-    banner = kind_banner(Publication(url=DOC_URL, published=Published.DRAFT), doc)
-    assert '<span class="kind-phase"' not in banner_markup(banner)

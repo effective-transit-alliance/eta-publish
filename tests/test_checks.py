@@ -1,541 +1,372 @@
-"""What a publication has to have before it is published."""
+"""What a publication has to have before it is published.
 
-import json
-from dataclasses import replace
+Each test is one realistic document, built the way a build builds one,
+that has a whole kind of problem in it (or none),
+and asserts every warning the writer is told, in the order they are told.
+"""
 
-import pytest
-from paths import FIXTURE_DIR
+from pathlib import Path
 
-from eta_publish.checks import CHART_FLATNESS, check, check_charts, check_pages
-from eta_publish.nodes import (
-    Archived,
-    Block,
-    Document,
-    Figure,
-    Heading,
-    Image,
-    Inline,
-    Paragraph,
-    Text,
-    Vector,
-)
-from eta_publish.parse import REQUIRED_FIELDS, parse
-
-FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
-
-
-@pytest.fixture
-def doc() -> Document:
-    parsed = parse(FIXTURE)
-    parsed.warnings.clear()
-    parsed.meta = {field: "something" for field in REQUIRED_FIELDS}
-    return parsed
-
-
-def _labelled(label: str, rest: str) -> list[Inline]:
-    """A line whose label is underlined, which is how the document writes one."""
-    return [Text(text=label, underline=True), Text(text=rest)]
-
-
-def test_a_complete_header_is_not_warned_about(doc: Document) -> None:
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_a_missing_field_is_named(doc: Document) -> None:
-    """By name, rather than as a list of twelve:
-    a warning naming one line is a line to go and add."""
-    del doc.meta["Discussion Channel"]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "the `Header` section has no `Discussion Channel:` line"
-    ]
-
-
-def test_seo_is_spelled_the_way_the_document_spells_it(doc: Document) -> None:
-    del doc.meta["SEO Description"]
-    check(doc)
-    assert "`SEO Description:`" in str(doc.warnings[0])
-
-
-def test_an_empty_field_is_not_a_filled_one(doc: Document) -> None:
-    doc.meta["URL"] = "   "
-    check(doc)
-    assert [str(w) for w in doc.warnings] == ["the `Header` section leaves `URL:` empty"]
-
-
-def test_an_empty_private_list_is_an_answer(doc: Document) -> None:
-    """A publication with nobody uncredited has an empty line, and that is the answer."""
-    doc.meta["Private Contributors"] = ""
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_an_empty_sme_liaison_is_an_answer(doc: Document) -> None:
-    """Not every publication has a subject-matter expert to check it."""
-    doc.meta["SME/Liaison"] = ""
-    check(doc)
-    assert doc.warnings == []
-
-
-@pytest.mark.parametrize("field", ["SME/Liaison", "Goals", "Audience"])
-def test_the_planning_fields_are_required(doc: Document, field: str) -> None:
-    del doc.meta[field]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [f"the `Header` section has no `{field}:` line"]
-
-
-def test_a_document_with_no_header_is_left_to_the_parser(doc: Document) -> None:
-    """`parse` has already said so; twelve more warnings would bury it."""
-    doc.meta.clear()
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_an_seo_description_over_the_limit_shows_what_is_cut(doc: Document) -> None:
-    """Which words are lost is the thing to fix,
-    and a count of characters over does not say which they are."""
-    doc.meta["SEO Description"] = "x" * 300 + " and this is lost"
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "`SEO Description:` is 317 characters, over the 300 a search result shows:\n> "
-        + "x" * 300
-        + "~~ and this is lost~~"
-    ]
-
-
-def test_an_seo_description_at_the_limit_is_fine(doc: Document) -> None:
-    doc.meta["SEO Description"] = "x" * 300
-    check(doc)
-    assert doc.warnings == []
-
-
-def figure(*, caption: bool = True, credit: bool = True, named: bool = True) -> Figure:
-    return Figure(
-        image=Image(object_id="io.9", filename="a-diagram", named=named),
-        caption=[Text(text="What it shows.")] if caption else [],
-        credit=_labelled("Credit", ": MTA") if credit else [],
-    )
-
-
-def test_a_figure_with_both_is_not_warned_about(doc: Document) -> None:
-    doc.blocks = [figure()]
-    check(doc)
-    assert doc.warnings == []
-
-
-UNREAD_CREDIT = (
-    "the image `a-diagram` has a `Credit:` line under it that is not read as its credit, "
-    "because `Credit` is not underlined; underline it in the doc"
+from docs_json import (
+    build,
+    drafted,
+    field,
+    image,
+    link,
+    para,
+    rich,
+    warned,
 )
 
+from eta_publish.checks import CHART_FLATNESS, check
+from eta_publish.docs_json import JsonObject
+from eta_publish.parse import parse
+from eta_publish.publish import Suggestions
 
-def test_a_credit_left_as_prose_under_a_figure_says_why(doc: Document) -> None:
-    """IBX's lead image: its `Credit:` is not underlined, so it publishes as a
-    paragraph, after the table of contents the image is moved above."""
-    doc.blocks = [figure(credit=False), Paragraph(content=[Text(text="Credit: MTA")])]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [UNREAD_CREDIT]
+SEO_LIMIT = 300
 
-
-def test_a_credit_taken_for_the_caption_says_why(doc: Document) -> None:
-    """The only line under the image is the caption, whatever it says."""
-    doc.blocks = [replace(figure(credit=False), caption=[Text(text="Credit: MTA")])]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [UNREAD_CREDIT]
+SVG = "https://raw.githubusercontent.com/kkysen/automated-metro-data/main/charts/share.svg"
 
 
-def test_an_uncaptioned_figure_is_named_by_its_file(doc: Document) -> None:
-    """The Docs object id is not something the document shows anybody."""
-    doc.blocks = [figure(caption=False)]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == ["the image `a-diagram` has no caption"]
+def picture(name: str, flatness: float | None = None) -> dict[str, object]:
+    """What `images.json` records of one picture: the file it was written as, and how flat it is."""
+    entry: dict[str, object] = {"file": f"{name}.png"}
+    if flatness is not None:
+        entry["flatness"] = flatness
+    return entry
 
 
-def test_an_unattributed_figure_is_flagged(doc: Document) -> None:
-    """These publications run other people's diagrams on nearly every page."""
-    doc.blocks = [figure(credit=False)]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == ["the image `a-diagram` has no `Credit:` line"]
+ALTS = {f"io.{n}": f"Alt text {n}" for n in range(1, 11)} | {
+    "io.8": "A cross-section of the station box"
+}
 
 
-def test_a_figure_missing_both_says_both(doc: Document) -> None:
-    doc.blocks = [figure(caption=False, credit=False)]
-    check(doc)
-    assert len(doc.warnings) == 2
-
-
-def test_an_unfinished_header_line_is_flagged(doc: Document) -> None:
-    """The body walk never sees the header: it is consumed before that walk begins."""
-    doc.meta["SEO Description"] = "TODO write this"
-    check(doc)
-    assert [str(w) for w in doc.warnings] == ["`SEO Description:` is still marked unfinished"]
-
-
-def test_open_suggestions_are_flagged(doc: Document) -> None:
-    """A build resolves them away, so what publishes looks finished and is not."""
-    doc.open_suggestions = 3
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "3 suggestions still open on this tab; "
-        "the build publishes the document without them, as it reads today"
+def figure(
+    heading: str, source: str | None, object_id: str, *under: JsonObject
+) -> list[JsonObject]:
+    """A picture and what is under it, after a heading (a `Source:` line right after another
+    figure's credit would be read as that figure's)."""
+    return [
+        para(heading, "HEADING_2"),
+        *([field(f"Source: {source}.png")] if source else []),
+        image(object_id),
+        *under,
     ]
 
 
-def test_one_open_comment_is_not_called_comments(doc: Document) -> None:
-    doc.open_comments = 1
-    check(doc)
-    assert [str(w) for w in doc.warnings] == ["1 comment thread still open on this tab"]
+def test_a_draft_nobody_has_reviewed(tmp_path: Path) -> None:
+    """Every kind of thing a writer is told to fix before publishing, in one document.
 
-
-def test_a_document_under_no_review_says_nothing(doc: Document) -> None:
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_an_unnamed_image_is_flagged(doc: Document) -> None:
-    """Without a `Source:` line the published URL is a hash of a Docs object id."""
-    doc.blocks = [figure(named=False)]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "1 image is unnamed, so each publishes under a hash; "
-        "give each a `Source:` line naming its file:\n- `a-diagram`: What it shows."
-    ]
-
-
-def test_an_unnamed_image_falls_back_to_its_alt_text(doc: Document) -> None:
-    """A picture with no caption still has to be told apart from the others."""
-    bare = figure(caption=False, named=False)
-    bare.image = replace(bare.image, alt="A cross-section of the station box")
-    doc.blocks = [bare]
-    check(doc)
-    listed = str(doc.warnings[-1]).split("\n")[-1]
-    assert listed == "- `a-diagram`: A cross-section of the station box"
-
-
-def test_an_image_a_human_named_img_is_not_unnamed(doc: Document) -> None:
-    """`img-` is what an unnamed image is called,
-    and also a name a `Source:` line is free to give one."""
-    named = figure()
-    named.image = replace(named.image, filename="img-of-the-tunnel", named=True)
-    doc.blocks = [named]
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_an_address_beside_a_name_is_not_published(doc: Document) -> None:
-    """A byline is names. Docs writes the address when it cannot resolve
-    a person chip to a display name, and the name is typed beside it."""
-    doc.meta["Public Contributors"] = "Alon Levy (alon@example.org), Khyber Sen"
-    assert doc.contributors == ["Alon Levy", "Khyber Sen"]
-
-
-def test_a_missing_comma_after_an_address_is_warned_about(doc: Document) -> None:
-    """It reads as one contributor, sorted under a surname belonging to neither."""
-    doc.meta["Public Contributors"] = "Franklin Tang (ft@example.org) Madison Feinberg, Khyber Sen"
-    check(doc)
-    assert any("a comma is missing after the address" in w for w in map(str, doc.warnings))
-
-
-def test_a_contributor_credited_by_address_alone_is_warned_about(doc: Document) -> None:
-    """Docs names an unresolved person chip by its address,
-    so with no name typed beside it, the byline would publish the address."""
-    doc.meta["Public Contributors"] = "Alon Levy, someone@example.org"
-    check(doc)
-    found = [w for w in map(str, doc.warnings) if "by address" in w]
-    assert len(found) == 1
-    assert "someone@example.org" in found[0]
-
-
-def test_names_without_addresses_are_left_alone(doc: Document) -> None:
-    """Two bare names run together are two words,
-    and nothing here can tell those from a double-barrelled surname."""
-    doc.meta["Public Contributors"] = "Ada Lovelace, Grace Hopper"
-    check(doc)
-    assert doc.contributors == ["Grace Hopper", "Ada Lovelace"]
-    assert not any("comma is missing" in w for w in map(str, doc.warnings))
-
-
-# ---- a tracking tag left on a source ---------------------------------
-
-
-def citing(*hrefs: str) -> list[Block]:
-    """A body that is one paragraph of links, each written as words."""
-    return [Paragraph(content=[Text(text="a source", href=href) for href in hrefs])]
-
-
-def test_a_tracking_tag_left_on_a_source_is_flagged(doc: Document) -> None:
-    """It publishes where the link was read rather than anything about the page.
-
-    It also costs the source its archived copy in the index, which has no row
-    for a URL nothing links to.
+    The header is short of lines and unfinished in two fields,
+    the pictures are each missing something, the sources are not cited the way they should be,
+    and the review is not over.
     """
-    doc.blocks = citing("https://a.example/story?utm_source=chatgpt.com")
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "1 source still carries the tag it was copied with; take it off the link in the doc:\n"
-        "- `utm_source=chatgpt.com` on `https://a.example/story?utm_source=chatgpt.com`"
-    ]
-
-
-def test_every_utm_parameter_on_one_source_is_named(doc: Document) -> None:
-    """All of them, because taking one off and leaving two is not the fix."""
-    doc.blocks = citing("https://a.example/story?utm_source=x&utm_medium=email&id=7")
-    check(doc)
-    assert "`utm_source=x&utm_medium=email`" in str(doc.warnings[0])
-
-
-def test_a_tag_after_another_parameter_is_found(doc: Document) -> None:
-    """`?id=7&utm_source=x` is the same mistake as `?utm_source=x`."""
-    doc.blocks = citing("https://a.example/story?id=7&utm_source=x")
-    check(doc)
-    assert doc.warnings
-
-
-def test_an_ordinary_query_is_left_alone(doc: Document) -> None:
-    """A parameter that changes the page is part of the source, not a tag on it."""
-    doc.blocks = citing("https://a.example/search?q=slurry&page=2")
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_a_parameter_that_merely_ends_in_utm_is_not_a_tag(doc: Document) -> None:
-    """The prefix is what names these, and `?autm_source=` is not one."""
-    doc.blocks = citing("https://a.example/story?autm_source=x")
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_all_the_tagged_sources_are_listed_together(doc: Document) -> None:
-    """One warning rather than one each: it is one fix repeated."""
-    doc.blocks = citing(
-        "https://a.example/one?utm_source=x", "https://b.example/two?utm_campaign=y"
+    seo = "TODO write this " + "x" * SEO_LIMIT
+    contributors = (
+        "Alon Levy (alon@example.org), Franklin Tang (ft@example.org) Madison Feinberg, "
+        "someone@example.org"
     )
-    check(doc)
-    assert len(doc.warnings) == 1
-    assert str(doc.warnings[0]).startswith("2 sources still carry the tag")
-
-
-def test_a_header_field_in_the_body_is_warned_about(doc: Document) -> None:
-    """A `SEO Description:` line under the headline is not the header's.
-
-    It publishes as a paragraph, and the field it was meant to fill
-    is reported missing elsewhere in the same build.
-    """
-    line = _labelled("SEO Description", ": A 125 St subway should be a slam dunk.")
-    doc.blocks = [Paragraph(content=line)]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "`SEO Description:` is a `Header` field, and this one is outside it: "
-        "`SEO Description: A 125 St subway should be a slam dunk.`"
+    pdf = "https://a.example/a.pdf"
+    content = [
+        para("The Elephants in the Room", "HEADING_1"),
+        # Each picture is missing one thing, or two.
+        *figure("No caption", "no-caption", "io.1", field("Credit: MTA")),
+        *figure("No credit", "no-credit", "io.2", para("The station box.")),
+        *figure("Neither", "bare", "io.3"),
+        *figure(
+            "Credit not underlined",
+            "prose-credit",
+            "io.4",
+            para("A cross-section."),
+            para("Credit: MTA"),
+        ),
+        *figure("Credit read as the caption", "credit-as-caption", "io.5", para("Credit: MTA")),
+        *figure(
+            "Phase in the caption",
+            "phase",
+            "io.6",
+            field("Phase: Compositing"),
+            field("Credit: MTA"),
+        ),
+        # No `Source:` line, so each is told apart by its caption or, with none, its alt text.
+        *figure(
+            "Unnamed", None, "io.7", para("The tunnel from the platform."), field("Credit: MTA")
+        ),
+        *figure("Unnamed, no caption", None, "io.8", field("Credit: MTA")),
+        # Flat enough to be a chart, with no `SVG:` line.
+        *figure(
+            "Chart credited to ETA",
+            "station-lengths",
+            "io.9",
+            para("Station lengths."),
+            field("Credit: ETA"),
+        ),
+        *figure("Chart with no credit", "station-costs", "io.10", para("Station costs.")),
+        para("Fields where there are none", "HEADING_2"),
+        field("SEO Description: A 125 St subway should be a slam dunk."),
+        field("Sort: A 125 St subway."),
+        field("Source: sas-west-036.jpg"),
+        para("Prose after a `Source:` line that has no image above it."),
+        field("Some prose.\vSource: sas-west-036.jpg"),
+        para("Sources", "HEADING_2"),
+        rich(
+            ("Story", link("https://a.example/story?utm_source=chatgpt.com")),
+            ", ",
+            ("mail", link("https://a.example/mail?utm_source=x&utm_medium=email&id=7")),
+            ", ",
+            ("late", link("https://a.example/late?id=7&utm_source=x")),
+            ", and ",
+            ("another", link("https://b.example/two?utm_campaign=y")),
+            ".",
+        ),
+        rich(
+            "Badoe. https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242). ",
+            "See (https://a.example/x), and ",
+            ("a linked page", link("https://linked.example/")),
+            ". At https://a.exam",
+            ("ple/y", {"bold": True}),
+            ".",
+        ),
+        rich(
+            "See ",
+            ("https://a.example/", link("https://a.example/")),
+            ("x", {**link("https://a.example/"), "bold": True}),
+            " and ",
+            ("the ridership figures", link("https://b.example/")),
+            ".",
+        ),
+        rich(
+            ("past the end", link(f"{pdf}#page=150")),
+            ", ",
+            ("the last page", link(f"{pdf}#page=6")),
+            ", ",
+            ("zero", link(f"{pdf}#page=0")),
+            ", and ",
+            ("a number", link(f"{pdf}#page=iv&zoom=80")),
+            ".",
+        ),
     ]
-
-
-def test_a_header_field_in_a_caption_is_warned_about(doc: Document) -> None:
-    """`Credit:` and `Phase:` look alike enough in a document
-    that one lands where the other belongs."""
-    doc.blocks = [
-        Figure(
-            image=Image(object_id="io.1", filename="x.png", named=True),
-            caption=_labelled("Phase", ": Compositing"),
-            credit=_labelled("Credit", ": MTA"),
-        )
-    ]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "`Phase:` is a `Header` field, and this one is outside it: `Phase: Compositing`"
-    ]
-
-
-def test_an_unrecognized_field_in_the_body_is_warned_about(doc: Document) -> None:
-    """`Sort:` in the body is a line nothing reads,
-    whether it was meant for the header or meant to be prose."""
-    doc.blocks = [Paragraph(content=_labelled("Sort", ": A 125 St subway."))]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "`Sort:` reads as a field and is not one: `Sort: A 125 St subway.`"
-    ]
-
-
-def test_a_figure_note_is_ordinary_under_a_picture(doc: Document) -> None:
-    """`Source:` and `Credit:` are how a figure is written,
-    so they are strays only in prose."""
-    doc.blocks = [
-        Figure(
-            image=Image(object_id="io.1", filename="x.png", named=True),
-            source=[Text(text="Source: sas-west-036.jpg")],
-            caption=[Text(text="The SAS West alignment.")],
-            credit=_labelled("Credit", ": MTA"),
-        )
-    ]
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_a_figure_note_loose_in_the_body_is_warned_about(doc: Document) -> None:
-    """Nothing claimed it, so it publishes as a paragraph reading `Source: ...`."""
-    doc.blocks = [Paragraph(content=_labelled("Source", ": sas-west-036.jpg"))]
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "`Source:` reads as a field and is not one: `Source: sas-west-036.jpg`"
-    ]
-
-
-def test_a_heading_holding_a_colon_is_not_a_stray_field(doc: Document) -> None:
-    """`Appendix A: Freedom Tunnel` is a section name, and the publication is full of them."""
-    doc.blocks = [
-        Heading(level=2, anchor="appendix-a", content=[Text(text="Appendix A: Freedom Tunnel")])
-    ]
-    check(doc)
-    assert doc.warnings == []
-
-
-def test_prose_holding_a_colon_is_not_a_stray_field(doc: Document) -> None:
-    """Warning on every `and then: this` would make the check worth turning off."""
-    doc.blocks = [
-        Paragraph(content=[Text(text="The answer was simple: build it shallower.")]),
-        Paragraph(content=[Text(text="Phases of the project: three.")]),
-        Paragraph(content=[Text(text='Barbara Russo-Lennon, "Subway spots: the ad blitz."')]),
-    ]
-    check(doc)
-    assert doc.warnings == []
-
-
-def _citing(*hrefs: str) -> Document:
-    return Document(blocks=[Paragraph(content=[Text(text=href, href=href) for href in hrefs])])
-
-
-def test_a_page_past_the_end_of_the_pdf_is_named() -> None:
-    doc = _citing("https://a.example/a.pdf#page=150", "https://a.example/a.pdf#page=6")
-    doc.archives["https://a.example/a.pdf"] = Archived(snapshot="s", timestamp="t", pages=6)
-    check_pages(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "1 PDF citation cites a page the PDF does not have:\n"
-        "- `https://a.example/a.pdf#page=150` cites page 150 of 6 pages"
-    ]
-
-
-def test_a_page_that_is_not_a_number_is_named() -> None:
-    doc = _citing("https://a.example/a.pdf#page=0", "https://a.example/a.pdf#page=iv&zoom=80")
-    check_pages(doc)
-    assert len(doc.warnings) == 1
-    assert "`https://a.example/a.pdf#page=0` names no page" in str(doc.warnings[0])
-    assert "`https://a.example/a.pdf#page=iv&zoom=80` names no page" in str(doc.warnings[0])
-
-
-def test_an_uncounted_pdf_is_left_alone() -> None:
-    doc = _citing("https://a.example/a.pdf#page=150&zoom=80")
-    check_pages(doc)
-    assert doc.warnings == []
-
-
-def test_a_url_typed_out_but_not_linked_is_named() -> None:
-    doc = Document(
-        blocks=[
-            Paragraph(
-                content=[
-                    Text(text="Badoe. https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242). "),
-                    Text(text="See (https://a.example/x), and "),
-                    Text(text="a linked page", href="https://linked.example/"),
-                    Text(text="."),
-                ]
-            )
-        ]
+    document = drafted(
+        content,
+        changes={
+            "Discussion Channel": None,
+            "Goals": None,
+            "Audience": None,
+            "Phase": "",
+            "SEO Description": seo,
+            "Public Contributors": contributors,
+        },
+        objects=ALTS,
+        openSuggestions=3,
+        openComments=1,
     )
-    check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "2 URLs typed out but not linked; link each in the doc:\n"
+    site, dest = build(
+        tmp_path,
+        document,
+        images={
+            "io.1": picture("no-caption"),
+            "io.2": picture("no-credit"),
+            "io.3": picture("bare"),
+            "io.4": picture("prose-credit"),
+            "io.5": picture("credit-as-caption"),
+            "io.6": picture("phase"),
+            "io.7": picture("unnamed-1"),
+            "io.8": picture("unnamed-2"),
+            "io.9": picture("station-lengths", 0.97),
+            "io.10": picture("station-costs", 0.97),
+        },
+        archives={pdf: {"snapshot": "s", "timestamp": "t", "pages": 6}},
+    )
+    assert warned(site) == [
+        "a paragraph is broken with `Shift+Enter` rather than `Enter`, so lines that look "
+        "separate are one paragraph; give each line its own:\n"
+        "- `Some prose.`\n"
+        "- `Source: sas-west-036.jpg`",
+        "`Source:` line not followed by an image, dropped: `Source: sas-west-036.jpg`",
+        "the image `no-caption` has no caption",
+        "the image `no-credit` has no `Credit:` line",
+        "the image `bare` has no caption",
+        "the image `bare` has no `Credit:` line",
+        "the image `prose-credit` has a `Credit:` line under it that is not read as "
+        "its credit, because `Credit` is not underlined; underline it in the doc",
+        "the image `credit-as-caption` has a `Credit:` line under it that is not read "
+        "as its credit, because `Credit` is not underlined; underline it in the doc",
+        "the image `img-e5f3cc85` has no caption",
+        "the image `station-costs` has no `Credit:` line",
+        "2 images are unnamed, so each publishes under a hash; give each a `Source:` "
+        "line naming its file:\n"
+        "- `img-e8909388`: The tunnel from the platform.\n"
+        "- `img-e5f3cc85`: A cross-section of the station box",
+        "3 suggestions still open on this tab; the build publishes the document "
+        "without them, as it reads today",
+        "1 comment thread still open on this tab",
+        "the `Public Contributors:` line reads `Franklin Tang (ft@example.org) Madison "
+        "Feinberg` as one contributor; a comma is missing after the address",
+        "the `Public Contributors:` line credits `someone@example.org` by address, as "
+        "a person chip Docs couldn't name; type their name before the chip, as `Name "
+        "(someone@example.org)`",
+        "4 sources still carry the tag it was copied with; take it off the link in the "
+        "doc:\n"
+        "- `utm_source=chatgpt.com` on "
+        "`https://a.example/story?utm_source=chatgpt.com`\n"
+        "- `utm_source=x&utm_medium=email` on "
+        "`https://a.example/mail?utm_source=x&utm_medium=email&id=7`\n"
+        "- `utm_source=x` on `https://a.example/late?id=7&utm_source=x`\n"
+        "- `utm_campaign=y` on `https://b.example/two?utm_campaign=y`",
+        "3 URLs typed out but not linked; link each in the doc:\n"
         "- `https://doi.org/10.1061/(ASCE)0733-9488(2007)133:4(242)`\n"
-        "- `https://a.example/x`"
+        "- `https://a.example/x`\n"
+        "- `https://a.example/y`",
+        "1 link shows its URL as its text; give it words in the doc:\n- `https://a.example/x`",
+        "`Phase:` is a `Header` field, and this one is outside it: `Phase: Compositing`",
+        "`SEO Description:` is a `Header` field, and this one is outside it: `SEO "
+        "Description: A 125 St subway should be a slam dunk.`",
+        "`Sort:` reads as a field and is not one: `Sort: A 125 St subway.`",
+        "`Source:` reads as a field and is not one: `Source: sas-west-036.jpg`",
+        "the `Header` section leaves `Phase:` empty",
+        "the `Header` section has no `Discussion Channel:` line",
+        "the `Header` section has no `Goals:` line",
+        "the `Header` section has no `Audience:` line",
+        "`SEO Description:` is still marked unfinished",
+        "`SEO Description:` is 316 characters, over the 300 a search result shows:\n> "
+        "TODO write this " + "x" * 284 + "~~" + "x" * 16 + "~~",
+        "the image `station-lengths` is credited to ETA and looks like a chart, but "
+        "has no `SVG:` line; link the chart's SVG on one under it, so the SVG "
+        "publishes instead of the raster",
+        "the image `station-costs` has no credit, so is taken to be ETA's, and looks "
+        "like a chart, but has no `SVG:` line; link the chart's SVG on one under it, "
+        "so the SVG publishes instead of the raster",
+        "3 PDF citations cite a page the PDF does not have:\n"
+        "- `https://a.example/a.pdf#page=150` cites page 150 of 6 pages\n"
+        "- `https://a.example/a.pdf#page=0` names no page\n"
+        "- `https://a.example/a.pdf#page=iv&zoom=80` names no page",
     ]
+    # Docs writes the address when it cannot name a person chip; the byline is names.
+    assert "alon@example.org" not in (dest / "report.html").read_text()
 
 
-def test_a_url_split_across_styles_is_one_url() -> None:
-    doc = Document(
-        blocks=[Paragraph(content=[Text(text="At https://a.exam"), Text(text="ple/x", bold=True)])]
+def test_a_draft_with_one_of_each(tmp_path: Path) -> None:
+    """The warnings that count what they found say so in the singular too."""
+    pdf = "https://a.example/a.pdf"
+    content = [
+        *figure(
+            "Unnamed", None, "io.1", para("The tunnel from the platform."), field("Credit: MTA")
+        ),
+        rich(("Story", link("https://a.example/story?utm_source=chatgpt.com")), "."),
+        rich("See (https://a.example/x)."),
+        rich(("https://a.example/", link("https://a.example/")), "."),
+        rich(("past the end", link(f"{pdf}#page=150")), "."),
+    ]
+    site, _ = build(
+        tmp_path,
+        drafted(content, objects={"io.1": "A tunnel"}),
+        images={"io.1": picture("unnamed")},
+        archives={pdf: {"snapshot": "s", "timestamp": "t", "pages": 6}},
     )
-    check(doc)
-    assert "`https://a.example/x`" in str(doc.warnings[0])
+    assert warned(site) == [
+        "1 image is unnamed, so each publishes under a hash; "
+        "give each a `Source:` line naming its file:\n"
+        "- `img-1933bef5`: The tunnel from the platform.",
+        "1 source still carries the tag it was copied with; take it off the link in the doc:\n"
+        "- `utm_source=chatgpt.com` on `https://a.example/story?utm_source=chatgpt.com`",
+        "1 URL typed out but not linked; link it in the doc:\n- `https://a.example/x`",
+        "1 link shows its URL as its text; give it words in the doc:\n- `https://a.example/`",
+        "1 PDF citation cites a page the PDF does not have:\n"
+        "- `https://a.example/a.pdf#page=150` cites page 150 of 6 pages",
+    ]
 
 
-def test_a_link_that_shows_its_url_is_named() -> None:
-    doc = Document(
-        blocks=[
-            Paragraph(
-                content=[
-                    Text(text="See "),
-                    Text(text="https://a.example/", href="https://a.example/"),
-                    Text(text="x", href="https://a.example/", bold=True),
-                    Text(text=" and "),
-                    Text(text="the ridership figures", href="https://b.example/"),
-                    Text(text="."),
-                ]
-            )
-        ]
+def test_a_document_with_no_header_is_left_to_the_parser() -> None:
+    """`parse` has already said so; twelve more warnings would bury it."""
+    doc = parse(
+        {
+            "title": "A Draft",
+            "body": {"content": [para("A Draft", "TITLE"), para("Some words.")]},
+            "footnotes": {},
+            "lists": {},
+            "inlineObjects": {},
+        }
     )
+    parsed = [str(w) for w in doc.warnings]
     check(doc)
-    assert [str(w) for w in doc.warnings] == [
-        "1 link shows its URL as its text; give it words in the doc:\n- `https://a.example/x`"
+    assert parsed == [
+        "no front matter found; expected a leading `Header` section with `URL:`, "
+        "`SEO Description:`, and `Social Title Card:` lines"
     ]
+    assert [str(w) for w in doc.warnings] == parsed
 
 
-def test_open_suggestions_are_warned_about(doc: Document) -> None:
-    doc.open_suggestions = 3
-    check(doc)
-    assert any("3 suggestions still open" in w for w in map(str, doc.warnings))
+def test_a_finished_publication_previewed_with_its_suggestions_accepted(tmp_path: Path) -> None:
+    """Text that looks like each mistake, and is not one, and a header that is complete.
 
-
-def test_open_suggestions_are_not_warned_about_in_a_preview_of_them(doc: Document) -> None:
-    doc.open_suggestions = 3
-    doc.suggestions_accepted = True
-    check(doc)
-    assert not any("suggestions still open" in w for w in map(str, doc.warnings))
-
-
-def _charted(
-    credit: str = "Credit: ETA", flatness: float = 0.97, vector: Vector | None = None
-) -> Document:
-    """A document with one figure, credited and as flat as given."""
-    image = Image(object_id="io.1", filename="station-lengths", vector=vector)
-    doc = Document(blocks=[Figure(image=image, credit=[Text(text=credit)] if credit else [])])
-    doc.image_flatness = {"io.1": flatness}
-    check_charts(doc)
-    return doc
-
-
-def test_a_chart_credited_to_eta_with_no_svg_line_is_warned_about() -> None:
-    assert [str(w) for w in _charted().warnings] == [
-        "the image `station-lengths` is credited to ETA and looks like a chart,"
-        " but has no `SVG:` line; link the chart's SVG on one under it,"
-        " so the SVG publishes instead of the raster"
+    Nothing here is warned about:
+    an empty answer where the publication has none to give, an SEO description at its limit,
+    a query that is not a tag, a PDF nobody has counted the pages of,
+    a colon that is not a field, and each kind of picture a chart check should let go.
+    """
+    pdf = "https://a.example/a.pdf"
+    content = [
+        *figure(
+            "A figure with both", "tunnel", "io.1", para("What it shows."), field("Credit: MTA")
+        ),
+        # `img-` is what an unnamed image is called, and a name a `Source:` line may give one too.
+        *figure(
+            "Named img", "img-of-the-tunnel", "io.2", para("The tunnel."), field("Credit: MTA")
+        ),
+        *figure(
+            "A chart with its SVG",
+            "with-svg",
+            "io.3",
+            rich(("SVG", {"underline": True}), ": ", ("share.svg", link(SVG))),
+            para("Station lengths."),
+            field("Credit: ETA"),
+        ),
+        *figure(
+            "A chart someone else drew", "theirs", "io.4", para("Fares."), field("Credit: MTA")
+        ),
+        *figure("A photograph", "photo", "io.5", para("Fares."), field("Credit: ETA")),
+        *figure(
+            "Just too varied for a chart", "almost", "io.6", para("Fares."), field("Credit: ETA")
+        ),
+        *figure("Never measured", "unmeasured", "io.7", para("Fares."), field("Credit: ETA")),
+        para("Appendix A: Freedom Tunnel", "HEADING_2"),
+        para("The answer was simple: build it shallower."),
+        para("Phases of the project: three."),
+        para('Barbara Russo-Lennon, "Subway spots: the ad blitz."'),
+        rich(
+            ("a search", link("https://a.example/search?q=slurry&page=2")),
+            ", ",
+            ("not a tag", link("https://a.example/story?autm_source=x")),
+            ", and ",
+            ("a PDF", link(f"{pdf}#page=150&zoom=80")),
+            ".",
+        ),
     ]
-
-
-@pytest.mark.parametrize(
-    "doc",
-    [
-        pytest.param(_charted(vector=Vector(file_id="f", filename="c")), id="with its SVG"),
-        pytest.param(_charted(credit="Credit: MTA"), id="someone else's"),
-        pytest.param(_charted(flatness=0.05), id="a photograph"),
-        pytest.param(_charted(flatness=CHART_FLATNESS - 0.01), id="just under"),
-    ],
-)
-def test_a_picture_that_is_not_an_eta_chart_missing_its_svg_is_not(doc: Document) -> None:
-    assert doc.warnings == []
-
-
-def test_a_chart_with_no_credit_is_taken_to_be_etas() -> None:
-    """Most likely ETA's own, often with the logo drawn into it."""
-    assert [str(w) for w in _charted(credit="").warnings] == [
-        "the image `station-lengths` has no credit, so is taken to be ETA's,"
-        " and looks like a chart, but has no `SVG:` line; link the chart's SVG on one under it,"
-        " so the SVG publishes instead of the raster"
-    ]
-
-
-def test_a_picture_with_no_flatness_recorded_is_not_warned_about() -> None:
-    """An SVG, or a build that never saw the pixels: nothing says it looks like a chart."""
-    image = Image(object_id="io.1", filename="chart")
-    doc = Document(blocks=[Figure(image=image, credit=[Text(text="Credit: ETA")])])
-    check_charts(doc)
-    assert doc.warnings == []
+    site, dest = build(
+        tmp_path,
+        drafted(
+            content,
+            changes={
+                "SME/Liaison": "",
+                "Private Contributors": "",
+                "SEO Description": "x" * SEO_LIMIT,
+                "Public Contributors": "Ada Lovelace, Grace Hopper",
+            },
+            objects={f"io.{n}": f"Alt text {n}" for n in range(1, 8)},
+            openSuggestions=3,
+        ),
+        images={
+            "io.1": picture("tunnel"),
+            "io.2": picture("img-of-the-tunnel"),
+            "io.3": picture("with-svg", 0.97),
+            "io.4": picture("theirs", 0.97),
+            "io.5": picture("photo", 0.05),
+            "io.6": picture("almost", CHART_FLATNESS - 0.01),
+            "io.7": picture("unmeasured"),
+        },
+        suggestions=Suggestions.ACCEPTED,
+    )
+    assert warned(site) == []
+    # Sorted by surname, not as typed.
+    page = (dest / "report.html").read_text()
+    assert page.index("Grace Hopper") < page.index("Ada Lovelace")

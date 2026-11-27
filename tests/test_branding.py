@@ -67,9 +67,10 @@ def branded(data: bytes, crop: Crop | None = None, description: str = "") -> byt
 
 
 def test_an_empty_corner_takes_the_logo_and_the_chart_keeps_its_size() -> None:
-    svg = branded(chart(BAR))
+    svg = branded(chart(BAR), description="Bars & more")
     assert view(svg) == [0, 0, WIDTH, HEIGHT]
     assert logo_at(svg) == pytest.approx((WIDTH - MARGIN - SIDE, MARGIN))
+    assert b"<title>Bars &amp; more</title>" in svg
 
 
 def test_a_corner_with_something_in_it_grows_the_chart_upward() -> None:
@@ -140,11 +141,6 @@ def test_a_crop_is_looked_at_as_cropped() -> None:
     from eta_publish.images import crop_svg
 
     assert view(with_logo(crop_svg(original, crop), original, crop)) == [0, 0, WIDTH / 2, HEIGHT]
-
-
-def test_the_chart_keeps_its_description() -> None:
-    svg = branded(chart(BAR), description="Bars & more")
-    assert b"<title>Bars &amp; more</title>" in svg
 
 
 def credited(credit: str) -> bool:

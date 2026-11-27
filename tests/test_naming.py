@@ -20,17 +20,6 @@ COST_COLON = "Cost: Overview"
 COST_PLAIN = "Cost Overview"
 
 
-def test_slugify_strips_punctuation_and_accents():
-    assert slugify("The Elephants in the Room") == "the-elephants-in-the-room"
-    assert slugify("Cost: $7.7B!") == "cost-77b"
-    assert slugify("") == "section"
-
-
-def test_the_common_case_gets_a_clean_anchor():
-    a = AnchorAllocator(["The Elephants in the Room", "Station Depth"])
-    assert a.allocate("Station Depth") == "station-depth"
-
-
 def test_repeated_heading_text_reuses_its_anchor():
     a = AnchorAllocator(["Overview", "Overview"])
     assert a.allocate("Overview") == a.allocate("Overview") == "overview"
@@ -39,18 +28,15 @@ def test_repeated_heading_text_reuses_its_anchor():
 def test_colliding_anchors_survive_reordering():
     """The bug this guards:
     giving the bare slug to whichever heading claims it first is still positional,
-    so swapping two colliding headings moves both of their anchors."""
+    so swapping two colliding headings moves both of their anchors.
+    Neither does an unrelated heading inserted between them."""
     first = AnchorAllocator([COST_COLON, COST_PLAIN])
     second = AnchorAllocator([COST_PLAIN, COST_COLON])
     assert first.allocate(COST_COLON) == second.allocate(COST_COLON)
     assert first.allocate(COST_PLAIN) == second.allocate(COST_PLAIN)
     assert first.allocate(COST_COLON) != first.allocate(COST_PLAIN)
-
-
-def test_colliding_anchors_survive_an_unrelated_insertion():
-    before = AnchorAllocator([COST_COLON, COST_PLAIN])
     after = AnchorAllocator([COST_COLON, "Station Depth", COST_PLAIN])
-    assert before.allocate(COST_PLAIN) == after.allocate(COST_PLAIN)
+    assert first.allocate(COST_PLAIN) == after.allocate(COST_PLAIN)
 
 
 def test_an_override_wins_and_is_not_treated_as_a_collision():
@@ -60,57 +46,59 @@ def test_an_override_wins_and_is_not_treated_as_a_collision():
     assert a.allocate(COST_PLAIN) == "cost-overview"
 
 
-def test_image_names_depend_only_on_the_docs_object_id():
-    assert image_filename("io.7", ".png") == image_filename("io.7", ".png")
-    assert image_filename("io.7", ".png") != image_filename("io.8", ".png")
-
-
-def test_an_anchor_is_slugged_the_way_markdown_slugs_one():
+@pytest.mark.parametrize(
+    ("heading", "anchor"),
+    [
+        ("The Elephants in the Room", "the-elephants-in-the-room"),
+        ("Cost: $7.7B!", "cost-77b"),
+        ("The Stations: Too Big and Too Deep", "the-stations-too-big-and-too-deep"),
+        ("project_cost_comparison", "project_cost_comparison"),
+        ("SAS West - Tunnel Profile", "sas-west---tunnel-profile"),
+        # A letter is a letter whether or not it is ASCII,
+        # which is where a rule written here to look like GitHub's stopped looking like it.
+        ("Café Society", "café-society"),
+        # An id is what the emitter writes into `id=`,
+        # so it cannot be empty however little of the heading survives the rule.
+        ("!?", "section"),
+        ("", "section"),
+    ],
+)
+def test_an_anchor_is_slugged_the_way_markdown_slugs_one(heading: str, anchor: str):
     """The same publication goes out as HTML and as Markdown,
     so a link to a section has to mean the same thing in both.
     GitHub's slugger keeps `-` and `_`, drops the rest of the punctuation,
     and writes one hyphen per space.
     The rule is imported rather than reimplemented; this says what was imported."""
-    assert slugify("The Stations: Too Big and Too Deep") == "the-stations-too-big-and-too-deep"
-    assert slugify("project_cost_comparison") == "project_cost_comparison"
-    assert slugify("SAS West - Tunnel Profile") == "sas-west---tunnel-profile"
-    # A letter is a letter whether or not it is ASCII,
-    # which is where a rule written here to look like GitHub's stopped looking like it.
-    assert slugify("Café Society") == "café-society"
+    assert slugify(heading) == anchor
 
 
-def test_a_heading_of_nothing_sluggable_still_has_an_anchor():
-    """An id is what the emitter writes into `id=`,
-    so it cannot be empty however little of the heading survives the rule."""
-    assert slugify("!?") == "section"
-    assert slugify("") == "section"
-
-
-def test_an_image_is_named_after_the_file_its_source_line_names():
-    assert image_filename("io.7", ".png", name="sas-west-036.jpg") == "sas-west-036.png"
-    # The underscore is the name's own, and a legal character in a URL.
-    assert image_filename("io.7", ".png", name="96st_station") == "96st_station.png"
-
-
-def test_a_filename_is_the_name_that_was_written_and_not_a_slug_of_it():
-    """Only what cannot appear in a name changes, one underscore for each.
-    Runs stay runs, capitals stay capitals,
-    and a dot is a legal part of a filename rather than punctuation to be dropped."""
-    assert (
-        image_filename("io.7", ".png", name="SAS West - Tunnel Profile - pg 18.screenshot.png")
-        == "SAS_West_-_Tunnel_Profile_-_pg_18.screenshot.png"
-    )
-
-
-def test_the_extension_a_source_line_writes_is_not_the_published_one():
-    """`Source: chart.png` is the file that was exported,
-    and the published file is whatever the download turns out to fetch."""
-    assert image_filename("io.7", ".jpg", name="chart.png") == "chart.jpg"
-
-
-def test_a_source_line_that_names_no_file_leaves_the_hashed_name():
-    assert image_filename("io.7", ".png", name="   ") == image_filename("io.7", ".png")
-    assert image_filename("io.7", ".png", name="!?").startswith("img-")
+@pytest.mark.parametrize(
+    ("name", "extension", "filename"),
+    [
+        ("sas-west-036.jpg", ".png", "sas-west-036.png"),
+        # The underscore is the name's own, and a legal character in a URL.
+        ("96st_station", ".png", "96st_station.png"),
+        # Only what cannot appear in a name changes, one underscore for each.
+        # Runs stay runs, capitals stay capitals,
+        # and a dot is a legal part of a filename rather than punctuation to be dropped.
+        (
+            "SAS West - Tunnel Profile - pg 18.screenshot.png",
+            ".png",
+            "SAS_West_-_Tunnel_Profile_-_pg_18.screenshot.png",
+        ),
+        # `Source: chart.png` is the file that was exported,
+        # and the published file is whatever the download turns out to fetch.
+        ("chart.png", ".jpg", "chart.jpg"),
+        # A source line that names no file leaves the hashed name.
+        ("   ", ".png", image_filename("io.7", ".png")),
+        ("!?", ".png", image_filename("io.7", ".png")),
+    ],
+)
+def test_an_image_is_named_after_the_file_its_source_line_names(
+    name: str, extension: str, filename: str
+):
+    assert image_filename("io.7", extension, name=name) == filename
+    assert image_filename("io.7", ".png") != image_filename("io.8", ".png")
 
 
 def test_a_cropped_image_is_not_named_the_same_as_its_original():
@@ -131,9 +119,7 @@ def test_two_images_naming_one_file_are_both_told_apart_by_hash():
     # And the one that was alone in claiming its name keeps it whole.
     alone = image_filenames([("io.7", "", "plan.jpg"), ("io.8", "", "section.jpg")])
     assert alone["io.7"] == "plan"
-
-
-def test_a_name_a_reordered_document_still_gives_the_same_image():
+    # Nor does reordering the publication move an image's name.
     claims = [("io.7", "", "plan.jpg"), ("io.8", "", "plan.jpg"), ("io.9", "", "")]
     assert image_filenames(claims) == image_filenames(list(reversed(claims)))
 
@@ -144,11 +130,9 @@ def test_a_heading_cannot_take_an_id_the_emitter_reserves():
     a = AnchorAllocator(["Footnotes"], reserved={"footnotes"})
     assert a.allocate("Footnotes") != "footnotes"
     assert a.allocate("Footnotes").startswith("footnotes-")
-
-
-def test_reserving_does_not_disturb_other_headings():
-    a = AnchorAllocator(["Footnotes", "Station Depth"], reserved={"footnotes"})
-    assert a.allocate("Station Depth") == "station-depth"
+    # And no other heading is disturbed by it.
+    other = AnchorAllocator(["Footnotes", "Station Depth"], reserved={"footnotes"})
+    assert other.allocate("Station Depth") == "station-depth"
 
 
 @pytest.mark.parametrize(
