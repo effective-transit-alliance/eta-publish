@@ -793,6 +793,16 @@ An offline build downloads nothing,
 so on a machine that has not downloaded them, every publication fails.
 `eta-publish fonts` downloads them without building anything.
 
+What a build makes from the pictures is kept in `~/.cache/eta-publish`, as `eta_publish/build_cache.py` says,
+in `images/found/`, `images/web/`, `images/print/`, and `pdfs/`:
+what the image index finds in each picture, the page's and the PDF's copies of each, and the PDFs,
+each under a hash of everything it is made from, its sources' bytes and what made it.
+So a build links in whatever any build already made,
+whether its own last build, another publication's, or a drafts build,
+and makes only the rest.
+A file no build has used for a week is removed.
+None of it is committed, and a build with none of it writes the same files, only more slowly.
+
 Publications are built several at a time, since a build is nearly all waiting,
 so a list takes about as long as its slowest document rather than as long as
 all of them. They are still reported in the order the list gives them.

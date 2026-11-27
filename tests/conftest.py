@@ -7,6 +7,8 @@ from pathlib import Path
 
 import pytest
 
+from eta_publish.build_cache import BUILD_CACHE
+
 # Rich draws errors in a box the width of the terminal
 # and breaks anything longer than the box wherever the box ends, mid-word,
 # so a test asking whether a message names a file
@@ -209,6 +211,20 @@ def _fresh_lookup_cache(
     from eta_publish.archive import ARCHIVE_CACHE
 
     monkeypatch.setenv(ARCHIVE_CACHE, str(tmp_path_factory.mktemp("cache") / "archive.json"))
+
+
+@pytest.fixture(autouse=True)
+def _fresh_build_cache(
+    tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Each test starts with nothing made from the pictures, and keeps what it makes to itself.
+
+    What is kept is what a build would make, so a test would pass either way,
+    but one that counts what was made again would count what the machine's own builds left,
+    and one that makes a file in place of an encoder's would leave it for every build after.
+    The offline build of the whole site uses the machine's, as a build does.
+    """
+    monkeypatch.setenv(BUILD_CACHE, str(tmp_path_factory.mktemp("build-cache")))
 
 
 @pytest.fixture(autouse=True)

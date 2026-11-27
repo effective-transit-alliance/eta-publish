@@ -207,10 +207,6 @@ def set_a_typst_variable(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SOURCE_DATE_EPOCH", "0")
 
 
-def replace_the_pdf(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    source.with_suffix(".pdf").write_bytes(b"%PDF not the one compiled")
-
-
 @needs_typst
 @pytest.mark.parametrize(
     "change",
@@ -221,7 +217,6 @@ def replace_the_pdf(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         change_a_font,
         change_typst,
         set_a_typst_variable,
-        replace_the_pdf,
     ],
 )
 def test_a_change_to_anything_typst_reads_compiles_again(
@@ -249,8 +244,40 @@ def test_a_change_to_anything_typst_reads_compiles_again(
 
 
 @needs_typst
+def test_a_pdf_replaced_since_is_linked_again_rather_than_compiled(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """What was compiled is kept apart from the build's directory, whatever is put there."""
+    source = small_publication(tmp_path)
+    fonts = _no_fonts(tmp_path)
+    compiled = compile_pdf(source, fonts).read_bytes()
+    compiles = counted_compiles(monkeypatch)
+    pdf = source.with_suffix(".pdf")
+    pdf.unlink()
+    pdf.write_bytes(b"%PDF not the one compiled")
+
+    assert compile_pdf(source, fonts).read_bytes() == compiled
+    assert compiles == []
+
+
+@needs_typst
+def test_a_build_elsewhere_reuses_the_pdf_another_compiled_from_the_same(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Kept by what it was compiled from, not by where, so the drafts share the site's."""
+    fonts = _no_fonts(tmp_path)
+    compiled = compile_pdf(small_publication(tmp_path / "site"), fonts)
+    compiles = counted_compiles(monkeypatch)
+
+    elsewhere = compile_pdf(small_publication(tmp_path / "drafts"), fonts)
+
+    assert compiles == []
+    assert elsewhere.stat().st_ino == compiled.stat().st_ino
+
+
+@needs_typst
 def test_a_compile_replaces_the_pdf_and_leaves_a_linked_copy_alone(tmp_path: Path) -> None:
-    """The PDF may be a link to the last build's, which must keep what it was."""
+    """The PDF is a link to the one kept for every build, which must keep what it was."""
     source = small_publication(tmp_path)
     fonts = _no_fonts(tmp_path)
     pdf = compile_pdf(source, fonts)

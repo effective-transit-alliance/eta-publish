@@ -23,16 +23,19 @@ from typer.testing import Result
 
 from eta_publish import console
 from eta_publish.build import (
+    FOUND_KIND,
     IMAGES_JSON,
     BuildOptions,
+    _is_found,
     has_its_figures,
     read_image_index,
     require_image_index,
     write_image_index,
 )
+from eta_publish.build_cache import build_cache_dir
 from eta_publish.docs_json import JsonObject
 from eta_publish.emit.html import banner_markup, publication_page
-from eta_publish.naming import ASSET_DIR, UNPUBLISHED_DIR
+from eta_publish.naming import ASSET_DIR, IMAGE_DIR, PRINT_DIR, UNPUBLISHED_DIR, WEB_DIR
 from eta_publish.nodes import Document, Image
 from eta_publish.parse import parse
 from eta_publish.site import (
@@ -1170,55 +1173,29 @@ def test_a_carried_over_image_is_linked_and_replacing_it_leaves_the_last_build_a
     assert (last / "images" / "sas-west-036.png").read_bytes() == b"the last build's"
 
 
-def test_a_build_elsewhere_carries_over_the_print_copies_its_record_names(
+def test_a_build_elsewhere_carries_over_nothing_it_made_from_the_pictures(
     tmp_path: Path,
 ) -> None:
-    """Linked with their record, so a rebuild into a fresh directory encodes none of them again.
-
-    Only those the record names: a poster shares the folder and every build writes it.
-    """
+    """Those are linked from the cache, made from what this build has,
+    so nothing the last build made is published by this one unless this one would make it."""
     from eta_publish.build import carry_over
-    from eta_publish.images import PRINT_SOURCES
-    from eta_publish.naming import PRINT_DIR
 
     last = tmp_path / "last"
-    (last / PRINT_DIR).mkdir(parents=True)
-    (last / PRINT_DIR / PRINT_SOURCES).write_text(json.dumps({"sas-west-036.jpg": "abc:85"}))
-    (last / PRINT_DIR / "sas-west-036.jpg").write_bytes(b"encoded")
-    (last / PRINT_DIR / "poster.svg").write_text("written by every build")
+    for name in (
+        f"{IMAGE_DIR}/found.json",
+        f"{IMAGE_DIR}/{WEB_DIR}/sources.json",
+        f"{IMAGE_DIR}/{WEB_DIR}/sas-west-036-800w.avif",
+        f"{PRINT_DIR}/sources.json",
+        f"{PRINT_DIR}/sas-west-036.jpg",
+        f"{PRINT_DIR}/pdfs.json",
+        "report.pdf",
+    ):
+        (last / name).parent.mkdir(parents=True, exist_ok=True)
+        (last / name).write_text("the last build's")
 
     carry_over(last, tmp_path / "next", parse(FIXTURE))
 
-    printed = tmp_path / "next" / PRINT_DIR
-    assert {p.name for p in printed.iterdir()} == {PRINT_SOURCES, "sas-west-036.jpg"}
-    linked = printed / "sas-west-036.jpg"
-    assert linked.stat().st_ino == (last / PRINT_DIR / "sas-west-036.jpg").stat().st_ino
-
-
-def test_a_build_elsewhere_carries_over_the_pdfs_its_record_names(tmp_path: Path) -> None:
-    """Linked with their record, so a rebuild into a fresh directory compiles none of them again.
-
-    Only those the record names, and replaced rather than rewritten, like the pictures.
-    """
-    from eta_publish.build import carry_over
-    from eta_publish.naming import replace_bytes
-    from eta_publish.pdf import PDF_RECORD, PdfEntry, PdfKey
-
-    last = tmp_path / "last"
-    (last / PDF_RECORD).parent.mkdir(parents=True)
-    key = PdfKey(typst="typst 0.15.1", args=[], env={}, fonts={}, inputs={})
-    (last / PDF_RECORD).write_text(json.dumps({"report.pdf": PdfEntry(key=key, pdf="abc")}))
-    (last / "report.pdf").write_bytes(b"the last build's")
-    (last / "statement.pdf").write_bytes(b"no record names it")
-
-    carry_over(last, tmp_path / "next", parse(FIXTURE))
-
-    carried = {p.relative_to(tmp_path / "next").as_posix() for p in (tmp_path / "next").rglob("*")}
-    assert carried == {"print", PDF_RECORD, "report.pdf"}
-    for name in (PDF_RECORD, "report.pdf"):
-        assert (tmp_path / "next" / name).stat().st_ino == (last / name).stat().st_ino
-    replace_bytes(tmp_path / "next" / "report.pdf", b"this build's")
-    assert (last / "report.pdf").read_bytes() == b"the last build's"
+    assert [p for p in (tmp_path / "next").rglob("*") if p.is_file()] == []
 
 
 def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
@@ -1478,15 +1455,16 @@ def test_an_index_of_pictures_that_did_not_change_decodes_none_of_them(
 
 
 def test_the_index_is_the_same_with_and_without_what_was_found_before(tmp_path: Path) -> None:
-    from eta_publish.build import FOUND_JSON
-    from eta_publish.naming import IMAGE_DIR
-
     written = _two_pictures(tmp_path)
     write_image_index(tmp_path, written)
     cold = (tmp_path / IMAGES_JSON).read_text()
     write_image_index(tmp_path, written)
     assert (tmp_path / IMAGES_JSON).read_text() == cold
-    (tmp_path / IMAGE_DIR / FOUND_JSON).write_text("[1, 2]")
+    kept = list((build_cache_dir() / FOUND_KIND).iterdir())
+    assert len(kept) == 2
+    for found in kept:
+        found.unlink()
+        found.write_text("[1, 2]")
     write_image_index(tmp_path, written)
     assert (tmp_path / IMAGES_JSON).read_text() == cold
 
@@ -1538,61 +1516,37 @@ def test_only_an_entry_shaped_like_what_was_found_is_read_back(
     fields: dict[str, object], shaped: bool
 ) -> None:
     """Checked against `Found` itself,
-    so a hand-edited or older record can't put a wrong type in `images.json`."""
-    from eta_publish.build import _is_found_entry
-
-    assert _is_found_entry({"key": "k", "fields": fields}) is shaped
+    so a hand-edited or older file can't put a wrong type in `images.json`."""
+    assert _is_found(fields) is shaped
 
 
-def test_a_drawing_is_never_taken_from_what_was_found_before(tmp_path: Path) -> None:
-    from eta_publish.build import FOUND_JSON
-    from eta_publish.naming import IMAGE_DIR
-
-    """Not even from an entry keyed `null`, which a drawing's missing key must not match."""
+def test_a_drawing_is_read_every_time_and_never_kept(tmp_path: Path) -> None:
     svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1"/>'
     drawing = tmp_path / "chart.svg"
     drawing.write_bytes(svg)
-    stale = {"chart.svg": {"key": None, "fields": {"sha256": "stale"}}}
-    (tmp_path / IMAGE_DIR).mkdir()
-    (tmp_path / IMAGE_DIR / FOUND_JSON).write_text(json.dumps(stale))
     write_image_index(tmp_path, {"kix.1": drawing})
     index = json.loads((tmp_path / IMAGES_JSON).read_text())
     assert index["kix.1"]["sha256"] == hashlib.sha256(svg).hexdigest()
-    assert json.loads((tmp_path / IMAGE_DIR / FOUND_JSON).read_text()) == {}
+    assert not (build_cache_dir() / FOUND_KIND).exists()
 
 
-def test_a_build_elsewhere_carries_over_what_the_index_found(tmp_path: Path) -> None:
-    from eta_publish.build import FOUND_JSON, carry_over
-    from eta_publish.naming import IMAGE_DIR
-
+def test_a_build_elsewhere_reuses_what_another_found_in_the_same_pictures(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Found once for every build: kept by the pictures' bytes, not by where they are."""
     last = tmp_path / "last"
-    (last / IMAGE_DIR).mkdir(parents=True)
-    (last / IMAGE_DIR / FOUND_JSON).write_text("{}")
-
-    carry_over(last, tmp_path / "next", parse(FIXTURE))
-
-    linked = tmp_path / "next" / IMAGE_DIR / FOUND_JSON
-    assert linked.stat().st_ino == (last / IMAGE_DIR / FOUND_JSON).stat().st_ino
-
-
-def test_writing_what_the_index_found_leaves_the_last_builds_record_alone(tmp_path: Path) -> None:
-    from eta_publish.build import FOUND_JSON, carry_over
-    from eta_publish.naming import IMAGE_DIR
-
-    last = tmp_path / "last"
-    (last / IMAGE_DIR).mkdir(parents=True)
-    written = _two_pictures(last / IMAGE_DIR)
+    last.mkdir()
+    written = _two_pictures(last)
     write_image_index(last, written)
-    before = (last / IMAGE_DIR / FOUND_JSON).read_bytes()
-    carry_over(last, tmp_path / "next", parse(FIXTURE))
-    # A new file, as a download makes, rather than a write through the carried link.
-    changed = tmp_path / "next" / IMAGE_DIR / "img-1.png"
-    changed.unlink()
-    Pillow.new("RGB", (4, 3), "purple").save(changed)
-    write_image_index(
-        tmp_path / "next", {k: tmp_path / "next" / IMAGE_DIR / v.name for k, v in written.items()}
-    )
-    assert (last / IMAGE_DIR / FOUND_JSON).read_bytes() == before
+    after = tmp_path / "next"
+    (after / "images").mkdir(parents=True)
+    moved = {k: after / "images" / v.name for k, v in written.items()}
+    for k, v in written.items():
+        moved[k].write_bytes(v.read_bytes())
+    decoded = _counted_finds(monkeypatch)
+    write_image_index(after, moved)
+    assert decoded == []
+    assert (after / IMAGES_JSON).read_text() == (last / IMAGES_JSON).read_text()
 
 
 def test_a_picture_is_named_only_once_something_wrote_it(doc: Document) -> None:

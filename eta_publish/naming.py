@@ -17,6 +17,7 @@ from collections import defaultdict
 from collections.abc import Collection, Iterable
 from enum import StrEnum
 from pathlib import Path, PurePosixPath
+from shutil import copy2
 from urllib.parse import quote, unquote, urlsplit
 
 from pymdownx.slugs import slugify as _slugify
@@ -477,9 +478,11 @@ def replace_bytes(path: Path, data: bytes) -> None:
     """Write `data` as `path` by putting a new file in its place, never by rewriting it.
 
     A build links the last build's images and videos into its own directory
-    rather than copying them. Rewritten in place, a linked file would change
+    rather than copying them, and what it makes from the pictures
+    from `build_cache_dir`.
+    Rewritten in place, a linked file would change
     the last build's copy too, which is the committed site when a test builds
-    beside it. Replaced, the last build keeps its own.
+    beside it, or what every build after reuses. Replaced, each keeps its own.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
@@ -490,6 +493,15 @@ def replace_bytes(path: Path, data: bytes) -> None:
     except BaseException:
         Path(temporary).unlink(missing_ok=True)
         raise
+
+
+def link_or_copy(source: Path, dest: Path) -> None:
+    """`source` at `dest` as a second name for the same file, or a copy across filesystems."""
+    dest.unlink(missing_ok=True)
+    try:
+        os.link(source, dest)
+    except OSError:
+        copy2(source, dest)
 
 
 CAPTIONS_LANGUAGE = "en"
