@@ -1,9 +1,10 @@
 # Everything a runner needs before it can build the publications from the live documents:
-# the tools, the fonts, the archive lookups, and the sign-in to Google.
+# the tools, the cache (the fonts, the archive lookups, and what the builds made from the pictures),
+# and the sign-in to Google.
 #
-# One place for both workflows that build: this repository's Pages workflow,
-# and `eta-drafts`'s deploy, which runs it from the `eta-publish` commit it pins,
-# so a drafts deploy sets up exactly what that commit's code was written against
+# One place for every workflow that builds: this repository's Pages workflow,
+# and `eta-drafts`'s deploy and sync, which run it from the `eta-publish` commit they pin,
+# so a drafts build sets up exactly what that commit's code was written against
 # (see `docs/drafts.md`).
 name: Set up a build
 description: Install what building the publications needs, and sign in to Google.
@@ -18,6 +19,12 @@ inputs:
     description: the `eta-publish` checkout, relative to the workspace
     required: false
     default: .
+  save-cache:
+    description: >-
+      whether to save `~/.cache/eta-publish` once the job has succeeded, for the next run;
+      not for a job that adds nothing to it, as `eta-drafts`'s sync doesn't
+    required: false
+    default: "true"
 
 runs:
   using: composite
@@ -41,28 +48,48 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       run: bun install --frozen-lockfile
 
-    # Which sources the Wayback Machine has no capture of.
+    # `~/.cache/eta-publish`, which is where `platformdirs` puts it on Linux:
+    # which sources the Wayback Machine has no capture of (`archive.json`),
+    # the fonts the publications are set in (`fonts/`),
+    # and what the builds made from the pictures (see `eta_publish/build_cache.py`):
+    # what the image index found in each picture (`images/found/`),
+    # each picture's copies (`images/web/` and `images/print/`), and the PDFs (`pdfs/`).
     #
     # A runner starts with nothing, so without this every run re-asks the
     # index about all of them, which is the slowest thing the build does and
-    # takes minutes. Nothing is written to `site/` either way, so a restored
-    # cache, a stale one and a missing one all build the same bytes and
-    # `check-committed-site.sh` compares the same.
-    #
-    # `~/.cache/eta-publish` is where `platformdirs` puts it on Linux.
-    # The fonts the publications are set in are downloaded there too, under `fonts/`,
-    # so it comes back with the lookups rather than being downloaded every run.
+    # takes minutes, downloads the fonts, encodes every picture, and compiles every PDF.
+    # None of it changes what a build writes: an archive lookup writes nothing to `site/`,
+    # a font is checked against its checksum, and what was made from the pictures
+    # is found only under a hash of everything it was made from.
+    # So a restored cache, a stale one, and a missing one all build the same bytes,
+    # and `check-committed-site.sh` compares the same.
+    # Not the pictures themselves, which every build downloads again.
     #
     # The key carries the run id so each run saves its own, and `restore-keys`
     # is what makes the previous one the starting point: a key that never
     # changes would restore the first run's cache forever and never save
-    # another, and the week would never expire.
-    - name: Restore the archive lookups
+    # another, and nothing in it would ever expire.
+    # Saved as the job ends, only when it succeeds.
+    - name: Restore the cache, and save it once the job succeeds
+      if: inputs.save-cache == 'true'
       uses: actions/cache@v6
       with:
         path: ~/.cache/eta-publish
-        key: archive-lookups-${{ github.run_id }}
-        restore-keys: archive-lookups-
+        key: eta-publish-cache-${{ github.run_id }}
+        restore-keys: eta-publish-cache-
+
+    # Only restored, for a job that adds nothing to it, as `eta-drafts`'s sync,
+    # whose builds are offline and without the pictures, and which runs about a hundred times a day:
+    # each saving a copy of what it restored would fill the repository's 10 GB of caches,
+    # evicting the deploy's, and one that started before a deploy ended
+    # would save the older copy as the newest.
+    - name: Restore the cache
+      if: inputs.save-cache != 'true'
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.cache/eta-publish
+        key: eta-publish-cache-${{ github.run_id }}
+        restore-keys: eta-publish-cache-
 
     # Workload Identity Federation rather than a stored key:
     # the run trades the token GitHub signs for it for short-lived Google credentials,

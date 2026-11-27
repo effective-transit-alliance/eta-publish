@@ -829,6 +829,10 @@ The job fetches the document rather than deploying the committed
 and cannot be recovered from what is:
 the `contentUri` values in a saved `doc.json` are signed and short-lived,
 and are already `403` the next day.
+What it makes from them is kept between runs, though,
+since CI keeps `~/.cache/eta-publish` with `actions/cache`
+(see `.github/actions/build-setup/action.yml`),
+so a run makes again only what changed, as a local rebuild does.
 
 So CI needs credentials, and they are a service account, not a person.
 A service account is an identity inside the Cloud project, with no inbox,
