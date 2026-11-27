@@ -83,7 +83,7 @@ lazy from .images import (
     write_print_copies,
     write_web_copies,
 )
-lazy from .pdf import TypstMissing, compile_pdf, install_template
+lazy from .pdf import PDF_RECORD, TypstMissing, compile_pdf, install_template, read_pdf_record
 lazy from .site import check_kind, publication_kind, publication_path
 lazy from .squarespace import squarespace_page
 
@@ -254,7 +254,9 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
 
     The print copies, with the record of what each was made from, are carried
     the same way: `write_print_copies` makes again only those whose picture changed.
-    Not the posters, the PDF, or the outputs: every build writes those.
+    So are the PDFs, with theirs: `compile_pdf` compiles again only those
+    made from something that changed.
+    Not the posters or the outputs: every build writes those.
     """
     if previous.resolve() == dest.resolve():
         return
@@ -289,6 +291,10 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     if recorded:
         media += [f"{PRINT_DIR}/{PRINT_SOURCES}"]
         media += [f"{PRINT_DIR}/{name}" for name in recorded]
+    # Only the PDFs the record names, which are all a build compiles.
+    compiled = read_pdf_record(previous / PDF_RECORD)
+    if compiled:
+        media += [PDF_RECORD, *compiled]
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
@@ -1337,6 +1343,10 @@ def build_one(
     )
     for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
         # From a build that published it, which this one may not.
+        # But for the PDF of one that still publishes and compiles it,
+        # which `compile_pdf` keeps if nothing it was compiled from has changed.
+        if publishes and not skipped_images and stale.name == f"{kind}.{UNWARNED}.pdf":
+            continue
         stale.unlink()
     if publishes:
         console.step("writing the outputs to publish")

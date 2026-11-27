@@ -1195,6 +1195,32 @@ def test_a_build_elsewhere_carries_over_the_print_copies_its_record_names(
     assert linked.stat().st_ino == (last / PRINT_DIR / "sas-west-036.jpg").stat().st_ino
 
 
+def test_a_build_elsewhere_carries_over_the_pdfs_its_record_names(tmp_path: Path) -> None:
+    """Linked with their record, so a rebuild into a fresh directory compiles none of them again.
+
+    Only those the record names, and replaced rather than rewritten, like the pictures.
+    """
+    from eta_publish.build import carry_over
+    from eta_publish.naming import replace_bytes
+    from eta_publish.pdf import PDF_RECORD, PdfEntry, PdfKey
+
+    last = tmp_path / "last"
+    (last / PDF_RECORD).parent.mkdir(parents=True)
+    key = PdfKey(typst="typst 0.15.1", args=[], env={}, fonts={}, inputs={})
+    (last / PDF_RECORD).write_text(json.dumps({"report.pdf": PdfEntry(key=key, pdf="abc")}))
+    (last / "report.pdf").write_bytes(b"the last build's")
+    (last / "statement.pdf").write_bytes(b"no record names it")
+
+    carry_over(last, tmp_path / "next", parse(FIXTURE))
+
+    carried = {p.relative_to(tmp_path / "next").as_posix() for p in (tmp_path / "next").rglob("*")}
+    assert carried == {"print", PDF_RECORD, "report.pdf"}
+    for name in (PDF_RECORD, "report.pdf"):
+        assert (tmp_path / "next" / name).stat().st_ino == (last / name).stat().st_ino
+    replace_bytes(tmp_path / "next" / "report.pdf", b"this build's")
+    assert (last / "report.pdf").read_bytes() == b"the last build's"
+
+
 def test_a_directory_without_a_saved_response_says_so(tmp_path: Path) -> None:
     from typer.testing import CliRunner
 

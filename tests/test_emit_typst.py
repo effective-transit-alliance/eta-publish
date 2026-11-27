@@ -3,7 +3,9 @@
 import base64
 import json
 import shutil
+from collections.abc import Callable
 from pathlib import Path
+from shutil import copyfile, copytree
 
 import pytest
 from paths import FIXTURE_DIR, HOST
@@ -123,3 +125,141 @@ def test_a_long_query_string_can_break_without_a_slash() -> None:
         "#box[oecd.org/vis?]#box[a=]#box[1&]#box[b=]#box[A]#box[%2BB]"
     )
     assert breakable("oecd.org/vis") == "oecd.org/vis"
+
+
+needs_typst = pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")
+
+
+def counted_compiles(monkeypatch: pytest.MonkeyPatch) -> list[list[str]]:
+    """Every `typst compile` from here on, still run, so a test can count them."""
+    import subprocess
+
+    from eta_publish import pdf
+
+    compiles: list[list[str]] = []
+    run = subprocess.run
+
+    def counting(
+        command: list[str], *, capture_output: bool, text: bool, check: bool
+    ) -> subprocess.CompletedProcess[str]:
+        if "compile" in command:
+            compiles.append(command)
+        return run(command, capture_output=capture_output, text=text, check=check)
+
+    monkeypatch.setattr(pdf.subprocess, "run", counting)
+    return compiles
+
+
+def small_publication(directory: Path) -> Path:
+    """A source that sets text and embeds a print copy, as a publication does."""
+    (directory / PRINT_DIR).mkdir(parents=True)
+    (directory / PRINT_DIR / "figure.png").write_bytes(PNG)
+    source = directory / "report.typ"
+    source.write_text('#import "template.typ": video_warning\nHello.\n#image("print/figure.png")\n')
+    install_template(directory)
+    return source
+
+
+@needs_typst
+def test_a_second_compile_of_unchanged_sources_does_not_run_typst(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The PDF the last compile made is kept, and is what is returned."""
+    compiles = counted_compiles(monkeypatch)
+    source = small_publication(tmp_path)
+    fonts = _no_fonts(tmp_path)
+
+    first = compile_pdf(source, fonts).read_bytes()
+    assert compile_pdf(source, fonts).read_bytes() == first
+    assert len(compiles) == 1
+
+
+def change_the_source(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source.write_text(source.read_text() + "More.\n")
+
+
+def change_the_template(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    template = source.parent / "template.typ"
+    template.write_text(template.read_text() + "\n// edited\n")
+
+
+def change_a_print_copy(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from PIL import Image as Pillow
+
+    Pillow.new("RGB", (2, 2), "red").save(source.parent / PRINT_DIR / "figure.png")
+
+
+def change_a_font(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    fonts = source.parent.parent / "fonts"
+    copyfile(fonts / "DejaVuSans.ttf", fonts / "DejaVuSans-Bold.ttf")
+
+
+def change_typst(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from eta_publish import pdf
+
+    def another_release(typst: str) -> str:
+        return "typst 99.0.0 (00000000)"
+
+    monkeypatch.setattr(pdf, "_typst_version", another_release)
+
+
+def set_a_typst_variable(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "0")
+
+
+def replace_the_pdf(source: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    source.with_suffix(".pdf").write_bytes(b"%PDF not the one compiled")
+
+
+@needs_typst
+@pytest.mark.parametrize(
+    "change",
+    [
+        change_the_source,
+        change_the_template,
+        change_a_print_copy,
+        change_a_font,
+        change_typst,
+        set_a_typst_variable,
+        replace_the_pdf,
+    ],
+)
+def test_a_change_to_anything_typst_reads_compiles_again(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    change: Callable[[Path, pytest.MonkeyPatch], None],
+) -> None:
+    from eta_publish.fonts import fonts as cached_fonts
+
+    # A copy of the fonts a build gets, which `change_a_font` can change.
+    fonts = tmp_path / "fonts"
+    copytree(cached_fonts(offline=True), fonts)
+    monkeypatch.delenv("SOURCE_DATE_EPOCH", raising=False)
+    compiles = counted_compiles(monkeypatch)
+    source = small_publication(tmp_path / "publication")
+    compile_pdf(source, fonts)
+
+    change(source, monkeypatch)
+    compiled = compile_pdf(source, fonts)
+
+    assert len(compiles) == 2
+    assert compiled.read_bytes().startswith(b"%PDF-")
+    compile_pdf(source, fonts)
+    assert len(compiles) == 2
+
+
+@needs_typst
+def test_a_compile_replaces_the_pdf_and_leaves_a_linked_copy_alone(tmp_path: Path) -> None:
+    """The PDF may be a link to the last build's, which must keep what it was."""
+    source = small_publication(tmp_path)
+    fonts = _no_fonts(tmp_path)
+    pdf = compile_pdf(source, fonts)
+    last = tmp_path / "last build's.pdf"
+    last.hardlink_to(pdf)
+    before = last.read_bytes()
+
+    source.write_text(source.read_text() + "More.\n")
+    compile_pdf(source, fonts)
+
+    assert last.read_bytes() == before
+    assert pdf.stat().st_ino != last.stat().st_ino
