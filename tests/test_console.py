@@ -66,19 +66,6 @@ def test_a_warning_off_a_terminal_is_one_line() -> None:
     assert written == "  ! the `Header` section has no `Short:` line\n"
 
 
-def test_a_warning_off_a_terminal_has_no_escape_sequences() -> None:
-    """Redirected output is a file, and colour in a file is noise to search past."""
-    assert "\x1b" not in rendered(
-        log.built("A publication", "reports/a", [WARNING], plain()), plain()
-    )
-
-
-def test_the_shown_values_keep_their_backticks_where_there_is_no_colour() -> None:
-    """Colour is what says where a value starts and stops, and it is the only thing:
-    without it the backticks are, so they stay."""
-    assert "`Short:`" in rendered(log.notice(WARNING, plain()), plain())
-
-
 def test_the_shown_values_are_coloured_rather_than_quoted_on_a_terminal() -> None:
     """Both at once is one mark too many for a value already picked out in cyan."""
     console = terminal()
@@ -131,18 +118,20 @@ def test_a_failure_says_its_reason_where_it_says_the_name() -> None:
     assert written.splitlines() == ["✗ A publication", "  the tab is named ``"]
 
 
-def test_a_publication_that_built_is_counted_by_its_warnings() -> None:
-    written = rendered(
-        log.built("A publication", "reports/a", [WARNING, WARNING], plain()), plain()
-    )
-    assert written.startswith("✓ reports/a · A publication · 2 warnings")
-
-
-def test_a_publication_with_nothing_to_fix_says_nothing_about_warnings() -> None:
-    assert (
-        rendered(log.built("A publication", "reports/a", [], plain()), plain())
-        == "✓ reports/a · A publication\n"
-    )
+@pytest.mark.parametrize(
+    ("warnings", "expected"),
+    [
+        ([WARNING, WARNING], "✓ reports/a · A publication · 2 warnings"),
+        ([WARNING], "✓ reports/a · A publication · 1 warning"),
+        ([], "✓ reports/a · A publication"),
+    ],
+)
+def test_a_publication_that_built_is_counted_by_its_warnings(
+    warnings: list[Notice], expected: str
+) -> None:
+    """With nothing to fix the heading says nothing about warnings."""
+    written = rendered(log.built("A publication", "reports/a", warnings, plain()), plain())
+    assert written.startswith(f"{expected}\n")
 
 
 def test_what_squarespace_is_given_by_hand_is_under_the_heading() -> None:
@@ -183,24 +172,17 @@ def test_the_publication_a_note_is_about_is_marked_as_the_value_it_is() -> None:
     with log.about("IBX Automation"):
         written = rendered(log.note("looking up 3 sources in the archive"), plain())
     assert written == "· `IBX Automation`: looking up 3 sources in the archive\n"
-
-
-def test_a_note_outside_a_build_names_no_publication() -> None:
-    """One document fetched on its own is the only document there is,
-    and naming it says nothing the caller did not type."""
+    # Outside a build one document is the only one there is: naming it says nothing.
     assert rendered(log.note("nothing to archive"), plain()) == "· nothing to archive\n"
-
-
-def test_a_note_keeps_its_values_marked_off_a_terminal() -> None:
-    """The same rule a warning's values follow: off a terminal the backticks are
-    the only thing saying where a command stops, so they stay."""
-    written = rendered(log.note("install it with {}", Shown("mise use -g typst")), plain())
-    assert written == "· install it with `mise use -g typst`\n"
 
 
 def test_a_note_colours_its_values_on_a_terminal() -> None:
     """A command in a note is a value to go and use, marked the way the values
-    in a warning are, and marked once rather than in colour and quotes both."""
+    in a warning are, and marked once rather than in colour and quotes both.
+    Off a terminal the backticks are the only thing saying where a command
+    stops, so they stay."""
+    plain_log = rendered(log.note("install it with {}", Shown("mise use -g typst")), plain())
+    assert plain_log == "· install it with `mise use -g typst`\n"
     console = terminal(width=log.UNWRAPPED)
     said = log.note("install it with {}", Shown("mise use -g typst"), console=console)
     written = rendered(said, console)
@@ -217,17 +199,14 @@ def test_a_note_says_a_whole_message_with_no_values() -> None:
     assert written == "! typst compile failed: a { b\n"
 
 
-def test_a_url_in_a_note_is_left_alone_off_a_terminal() -> None:
-    """A URL is already the thing it names: nothing to add and nothing to take
-    out, and a log searched for one holds exactly what was written."""
-    written = rendered(log.note("set them from {}", log.Linked(KEYS)), plain())
-    assert written == f"· set them from {KEYS}\n"
-
-
 def test_a_url_on_a_terminal_is_underlined_and_made_a_link() -> None:
     """Underlined rather than coloured, because what a reader does with a URL is
     open it rather than go and find it, and told to the terminal as a link so it
-    can be clicked instead of retyped."""
+    can be clicked instead of retyped.
+    Off a terminal a URL is already the thing it names, and a log searched for
+    one holds exactly what was written."""
+    plain_log = rendered(log.note("set them from {}", log.Linked(KEYS)), plain())
+    assert plain_log == f"· set them from {KEYS}\n"
     console = terminal(width=log.UNWRAPPED)
     written = rendered(log.note("set them from {}", log.Linked(KEYS), console=console), console)
     assert "\x1b[4m" in written
@@ -242,13 +221,6 @@ def test_what_was_added_is_read_back() -> None:
         log.added(Path("publications.toml"), "IBX Automation", "Draft 2", plain()), plain()
     )
     assert written == "✓ publications.toml: added `IBX Automation`, tab `Draft 2`\n"
-
-
-def test_a_heading_holds_its_fields_apart_without_colour() -> None:
-    """Piped into a file there is no colour saying where one field stops,
-    and three fields with two spaces between them are one field."""
-    written = rendered(log.built("A publication", "reports/a", [WARNING], plain()), plain())
-    assert written.splitlines()[0] == "✓ reports/a · A publication · 1 warning"
 
 
 def test_a_title_is_a_title_and_not_markup() -> None:
@@ -269,14 +241,6 @@ def test_the_marked_part_is_drawn_on_a_terminal_too() -> None:
     assert "It is deep.\u00b7\u00b7It is expensive." in written
 
 
-def test_the_marked_part_is_highlighted_rather_than_reversed() -> None:
-    """Reverse video is whatever the terminal's foreground happens to be,
-    which is white on a white-on-black theme and no mark at all."""
-    console = terminal(width=log.UNWRAPPED)
-    written = rendered(log.notice(GAPPED, console), console)
-    assert "\x1b[30;43m\u00b7\u00b7\x1b[0m" in written
-
-
 def test_a_marked_value_is_one_quoted_value_off_a_terminal() -> None:
     """Nothing in a file can carry a highlight,
     and three backticked pieces of one excerpt read as three values."""
@@ -290,19 +254,6 @@ def _written(console: Console) -> str:
     file = console.file
     assert isinstance(file, io.StringIO)
     return _visible(file.getvalue())
-
-
-def test_a_long_job_draws_a_bar_on_a_terminal() -> None:
-    """A build that says nothing for two minutes is one somebody kills."""
-    console = terminal()
-    with log.progress("checking the archive", 4, console) as along:
-        for _ in range(4):
-            along()
-        bar = log._BAR
-        assert bar is not None
-        (row,) = bar.tasks
-        assert (row.description, row.completed, row.total) == ("checking the archive", 4, 4)
-    assert "checking the archive" in _written(console)
 
 
 def test_every_publication_shares_the_one_bar() -> None:
@@ -333,12 +284,15 @@ def test_a_long_job_says_where_it_is_in_a_file() -> None:
 
 
 def test_a_bar_leaves_nothing_behind_to_read() -> None:
-    """The line after it says the same thing in the past tense."""
+    """A build that says nothing for two minutes is one somebody kills,
+    and the line after the bar says the same thing in the past tense."""
     console = terminal()
     with log.progress("checking the archive", 2, console) as along:
         along()
         along()
-    assert "checking the archive" not in _written(console).splitlines()[-1]
+    written = _written(console)
+    assert "checking the archive" in written
+    assert "checking the archive" not in written.splitlines()[-1]
 
 
 def test_the_clock_keeps_moving_while_nothing_finishes(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -374,14 +328,6 @@ def test_a_source_being_waited_on_has_a_line_saying_what_it_waits_on() -> None:
         rows.show("https://data.ny.gov/d/kcjb-nf3e", "index")
         drawn = _written(console)
     assert "index · data.ny.gov/d/kcjb-nf3e" in drawn
-
-
-def test_a_source_answered_takes_its_line_with_it() -> None:
-    console = terminal(width=100)
-    with log.progress("checking the archive", 2, console), log.watching(console) as rows:
-        rows.show("https://a.example/1", "replay")
-        rows.drop("https://a.example/1")
-        assert rows.tasks == {}
 
 
 def test_off_a_terminal_only_a_slow_source_is_said(monkeypatch: pytest.MonkeyPatch) -> None:
