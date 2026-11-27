@@ -145,9 +145,10 @@ Both are modes of `scripts/drafts-commit.sh`, and only the build check is a hook
 **On push, in CI:** `.github/workflows/drafts.yml` here starts `eta-drafts`'s `sync.yml` with the branch.
 It finds the code commits on the branch with no drafts commit yet,
 from the pin of the drafts branch's last commit, with `scripts/drafts-commit.sh missing`,
-and makes the drafts commit for the oldest, with that commit's code and its own build setup.
-A job can set up only once, so it then starts another run for the rest,
-and once there are none left, the deploy.
+and sets up with the oldest's own build setup.
+A job can set up only once, so it makes the drafts commits, each with its own commit's code,
+for the oldest and the ones after it up to the first whose build setup differs, 100 at most,
+then starts another run for the rest, and once there are none left, the deploy.
 Runs for a branch go one at a time, none cancelled once running,
 and each finds the commits afresh, so a run GitHub replaces while it waits leaves none out.
 This covers commits made where there's no `drafts/`, such as GitHub's web editor,
@@ -245,11 +246,11 @@ as two commit statuses, shown with the checks on each commit and pull request:
 
 - **`eta-drafts / sync`:** pending on the commit pushed, from `drafts.yml`,
   or failure if it couldn't start the sync, and error if its run was cancelled before starting it.
-  Each sync run sets it pending on the code commit it makes the drafts commit for, the oldest with none, linking the run,
-  then success on that one, once pushed,
+  Each sync run sets it pending on the code commits it makes the drafts commits for, linking the run,
+  then success on each of them, once pushed,
   or on the branch's last commit if none was missing,
-  and failure on that one if the run fails.
-  A refused push leaves it pending, for the next run to make again.
+  and failure on the one whose drafts commit failed, or on the oldest if the run fails otherwise before pushing.
+  A refused push leaves them pending, for the next run to make again.
 - **`eta-drafts / deploy`:** on the `eta-publish` commit a deploy pins,
   pending once the sync starts the deploy, and again once the deploy starts, linking the run,
   then success linking the site deployed, failure if it fails,
@@ -281,7 +282,7 @@ then every commit in the last one's history but not in that one's.
 That commit is where an earlier sweep settled everything before it,
 so this relies on every earlier sweep of the branch having run,
 `main`'s and any other branch's alike.
-It also takes the deploy's pin, and the commit the sync run set pending, in case a force-push has dropped them since.
+It also takes the deploy's pin, and the commits the sync run set pending, in case a force-push has dropped them since.
 Of each status still pending, by the run it links and that run's branch,
 since a commit can be on more than one branch:
 
