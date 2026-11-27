@@ -227,6 +227,10 @@ the same way this repository's Pages workflow does.
 It builds and uploads with `eta-publish drafts deploy --branch <branch>`,
 which refuses to run anywhere but GitHub Actions,
 and reads the Cloudflare token from `$CLOUDFLARE_API_TOKEN`.
+Like the Pages workflow, it restores `~/.cache/eta-publish`,
+with what the last deploy made from the pictures in it,
+and saves it once it has succeeded, for the next,
+so a deploy makes again only what changed.
 
 It reads the documents as the `eta-publish-ci` service account,
 signing in with Workload Identity Federation rather than a key,

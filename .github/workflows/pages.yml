@@ -42,8 +42,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # The tools, the fonts, the archive lookups and the sign-in,
+      # The tools, the cache, and the sign-in,
       # set up as `eta-drafts`'s deploy sets them up.
+      # The cache is saved when the job ends, so only from a build that was checked.
       - uses: ./.github/actions/build-setup
         with:
           workload-identity-provider: projects/635412927675/locations/global/workloadIdentityPools/github-actions/providers/eta-publish

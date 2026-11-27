@@ -24,6 +24,7 @@ from .build import (
     asset_base,
     check_code_block_size,
 )
+from .build_cache import prune_build_cache
 from .logo import write_logo
 from .naming import ASSET_DIR, PARTIAL, UNPUBLISHED_DIR, partial_name, squarespace_name
 from .published import write_published
@@ -173,6 +174,8 @@ def publish(
             site = write_site(publications, staging, options, read_from=outdir)
             install(site, staging, outdir, whole)
         host(site, outdir, listed or [], images, options.published_url)
+    # Once this build has said what it used, by using it, so all it removes is what nothing did.
+    prune_build_cache()
     summarize(site)
     return site
 

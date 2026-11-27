@@ -24,7 +24,7 @@ import shutil
 from pathlib import Path, PurePosixPath
 from urllib.parse import unquote
 
-from .build import UNWARNED, link_or_copy
+from .build import UNWARNED
 from .minify import MIN_ASSETS, is_min, min_name
 from .naming import (
     ASSET_DIR,
@@ -32,6 +32,7 @@ from .naming import (
     PUBLISHED_DIR,
     UNPUBLISHED_DIR,
     Kind,
+    link_or_copy,
     partial_name,
     path_kind,
 )

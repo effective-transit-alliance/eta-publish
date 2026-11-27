@@ -9,7 +9,6 @@ from collections.abc import Callable
 from dataclasses import dataclass, field, replace
 from pathlib import Path, PurePosixPath
 from typing import TypedDict, TypeIs, cast, get_type_hints
-lazy import os
 lazy import shutil
 lazy import subprocess
 
@@ -35,6 +34,7 @@ from .archive import (
     uncounted,
     write_archive_index,
 )
+from .build_cache import CacheKind, cache_bytes, cached_path, read_cached
 from .checks import check, check_charts, check_described, check_pages, plural
 from .docs_json import JsonObject
 from .embeds import (
@@ -62,7 +62,7 @@ from .naming import (
     LIVE_SITE,
     PRINT_DIR,
     VIDEO_DIR,
-    WEB_DIR,
+    link_or_copy,
     partial_name,
     replace_bytes,
     squarespace_name,
@@ -76,14 +76,13 @@ lazy from .assets import read
 lazy from .fetch import fetch
 lazy from .fonts import fonts, woff2s
 lazy from .images import (
-    PRINT_SOURCES,
     download,
     original_name,
     svg_description,
     write_print_copies,
     write_web_copies,
 )
-lazy from .pdf import PDF_RECORD, TypstMissing, compile_pdf, install_template, read_pdf_record
+lazy from .pdf import TypstMissing, compile_pdf, install_template
 lazy from .site import check_kind, publication_kind, publication_path
 lazy from .squarespace import squarespace_page
 
@@ -252,11 +251,8 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
     a new file in its place and leaves the last build's copy alone.
     The records are copied, since each is rewritten.
 
-    The print copies, with the record of what each was made from, are carried
-    the same way: `write_print_copies` makes again only those whose picture changed.
-    So are the PDFs, with theirs: `compile_pdf` compiles again only those
-    made from something that changed.
-    Not the posters or the outputs: every build writes those.
+    Not what the build makes from the pictures, which `build_cache` keeps in the cache,
+    nor the posters or the outputs: every build writes those.
     """
     if previous.resolve() == dest.resolve():
         return
@@ -275,39 +271,10 @@ def carry_over(previous: Path, dest: Path, doc: Document) -> None:
         files = [entry["file"] for entry in entries.values() if entry.get("file")]
         media += [f"{folder}/{name}" for name in files for folder in (IMAGE_DIR, VIDEO_DIR)]
     media += [f"{IMAGE_DIR}/{original_name(image)}" for image in doc.images if image.vector]
-    media += [f"{IMAGE_DIR}/{FOUND_JSON}"]
-    # The copies a page shows, with the record of what each was made from:
-    # `write_web_copies` keeps those still made from the same picture and
-    # removes the rest, so carrying all of them costs nothing and saves encoding.
-    web = previous / IMAGE_DIR / WEB_DIR
-    if web.is_dir():
-        media += [f"{IMAGE_DIR}/{WEB_DIR}/{copy.name}" for copy in web.iterdir()]
-    # Only the copies the record names: the posters share the folder.
-    printed = previous / PRINT_DIR
-    try:
-        recorded: dict[str, str] = json.loads((printed / PRINT_SOURCES).read_text())
-    except OSError, ValueError:
-        recorded = {}
-    if recorded:
-        media += [f"{PRINT_DIR}/{PRINT_SOURCES}"]
-        media += [f"{PRINT_DIR}/{name}" for name in recorded]
-    # Only the PDFs the record names, which are all a build compiles.
-    compiled = read_pdf_record(previous / PDF_RECORD)
-    if compiled:
-        media += [PDF_RECORD, *compiled]
     for name in media:
         if (previous / name).is_file():
             (dest / name).parent.mkdir(parents=True, exist_ok=True)
             link_or_copy(previous / name, dest / name)
-
-
-def link_or_copy(source: Path, dest: Path) -> None:
-    """`source` at `dest` as a second name for the same file, or a copy across filesystems."""
-    dest.unlink(missing_ok=True)
-    try:
-        os.link(source, dest)
-    except OSError:
-        shutil.copy2(source, dest)
 
 
 def fragment_emitter(
@@ -385,45 +352,25 @@ def write_image_index(
     """
     if not written and (dest / IMAGES_JSON).exists():
         return
-    recorded = _read_found(dest)
     code = _found_code()
-    keys = {path.name: _found_key(path, code) for path in written.values() if path.suffix != ".svg"}
-    # Unlike the print copies' record, this one needs no rewrite before computing:
-    # each entry keeps its key beside its fields, so a build stopped partway
-    # leaves only entries that still describe the bytes they were found in.
-    # Only the rasters this build wrote: an entry keyed `null`
-    # must not match a drawing, or a file it didn't write, by having no key either.
-    kept = {
-        name: entry
-        for name, entry in recorded.items()
-        if name in keys and entry["key"] == keys[name]
-    }
-    found = dict(kept)
     index: dict[str, JsonObject] = {}
     for object_id, path in sorted(written.items()):
-        if path.suffix == ".svg":
-            fields = _find(path)
-        elif path.name in kept:
-            fields = kept[path.name]["fields"]
-        else:
-            fields = _find(path)
-            found[path.name] = {"key": keys[path.name], "fields": fields}
+        fields = _find(path) if path.suffix == ".svg" else _found_fields(path, code)
         index[object_id] = {"file": path.name, **fields, **_description(path)}
     for object_id, why in (unpublished or {}).items():
         index[object_id] = {"unpublished": why}
     index = dict(sorted(index.items()))
     (dest / IMAGES_JSON).write_text(json.dumps(index, indent=2, sort_keys=True) + "\n")
-    _write_found(dest, found)
 
 
-FOUND_JSON = "found.json"
-"""What `write_image_index` found in each raster, kept in `IMAGE_DIR` beside the pictures.
+FOUND_KIND: CacheKind = "images/found"
+"""The folder in `build_cache_dir`
+what `write_image_index` found in each raster is kept in.
 
-Not committed, like them: `images.json` is, and is all that says what a build
-wrote; this only lets a rebuild that changed no picture skip decoding every one
+Not committed: `images.json` is, and is all that says what a build wrote;
+this only lets a rebuild that changed no picture skip decoding every one
 of them again (`_flatness` alone counts the colors of every pixel).
-Maps each file name to the key its fields were found under and the fields,
-and `carry_over` links it into a build's own directory like the pictures.
+Each file holds the fields found in a raster, under the key `_found_key` gives it.
 """
 
 
@@ -435,13 +382,6 @@ class Found(TypedDict, total=False):
     width: int
     height: int
     flatness: float
-
-
-class FoundEntry(TypedDict):
-    """A file's entry in `FOUND_JSON`: the key its fields were found under, and the fields."""
-
-    key: str
-    fields: Found
 
 
 FOUND_TYPES: dict[str, object] = get_type_hints(Found)
@@ -473,42 +413,30 @@ def _found_key(path: Path, code: str) -> str:
     return json.dumps(parts)
 
 
-def _read_found(dest: Path) -> dict[str, FoundEntry]:
-    """The record `_write_found` made, without any entry not shaped like a `FoundEntry`.
-
-    Empty if it is missing or unreadable.
-    """
-    try:
-        recorded: object = json.loads((dest / IMAGE_DIR / FOUND_JSON).read_text())
-    except OSError, ValueError:
-        return {}
-    if not isinstance(recorded, dict):
-        return {}
-    return {
-        name: entry
-        for name, entry in cast(dict[str, object], recorded).items()
-        if _is_found_entry(entry)
-    }
+def _found_fields(path: Path, code: str) -> Found:
+    """What `_find` finds in the raster `path`, as some build already found it if one did."""
+    kept = cached_path(FOUND_KIND, _found_key(path, code), ".json")
+    data = read_cached(kept)
+    if data is not None:
+        try:
+            recorded: object = json.loads(data)
+        except ValueError:
+            recorded = None
+        if _is_found(recorded):
+            return recorded
+    fields = _find(path)
+    cache_bytes(kept, (json.dumps(fields, indent=2, sort_keys=True) + "\n").encode())
+    return fields
 
 
-def _is_found_entry(entry: object) -> TypeIs[FoundEntry]:
-    """Whether `entry`, read back from JSON, is shaped like a `FoundEntry`."""
-    if not isinstance(entry, dict):
-        return False
-    entry = cast(dict[str, object], entry)
-    fields = entry.get("fields")
-    if not isinstance(entry.get("key"), str) or not isinstance(fields, dict):
+def _is_found(fields: object) -> TypeIs[Found]:
+    """Whether `fields`, read back from JSON, is shaped like a `Found`."""
+    if not isinstance(fields, dict):
         return False
     return all(
         name in FOUND_TYPES and type(value) is FOUND_TYPES[name]
         for name, value in cast(dict[str, object], fields).items()
     )
-
-
-def _write_found(dest: Path, found: dict[str, FoundEntry]) -> None:
-    """Replace the record, never rewrite it: it may be a hard link to the last build's."""
-    data = json.dumps(dict(sorted(found.items())), indent=2) + "\n"
-    replace_bytes(dest / IMAGE_DIR / FOUND_JSON, data.encode())
 
 
 def _digest(path: Path) -> Found:
@@ -829,7 +757,7 @@ def write_posters(doc: Document, dest: Path) -> list[Path]:
     written = []
     for kind in sorted({embed.warning_kind for embed in doc.embeds if embed.warning}):
         path = dest / warning_poster_name(kind)
-        # Replaced rather than rewritten: `dest` holds links to the last build's print copies.
+        # Replaced rather than rewritten: `dest` holds links to the print copies every build reuses.
         replace_bytes(path, warning_poster(LOGO.read_text(), kind).encode())
         written.append(path)
     return written
@@ -1343,10 +1271,6 @@ def build_one(
     )
     for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
         # From a build that published it, which this one may not.
-        # But for the PDF of one that still publishes and compiles it,
-        # which `compile_pdf` keeps if nothing it was compiled from has changed.
-        if publishes and not skipped_images and stale.name == f"{kind}.{UNWARNED}.pdf":
-            continue
         stale.unlink()
     if publishes:
         console.step("writing the outputs to publish")

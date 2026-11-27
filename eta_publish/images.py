@@ -19,8 +19,10 @@ import hashlib
 import io
 import json
 import os
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from concurrent.futures import ThreadPoolExecutor
+from importlib.metadata import version as distribution_version
+from inspect import getsource
 from pathlib import Path
 lazy import shutil
 lazy from xml.etree import ElementTree
@@ -29,7 +31,9 @@ lazy from xml.parsers import expat
 import requests
 lazy from PIL import Image as Pillow
 lazy from PIL import ImageChops, ImageStat
+lazy from PIL.features import version as library_version
 
+from .build_cache import CacheKind, cache_bytes, cache_file, cached_path, link_cached
 from .naming import (
     PNG_SIDE,
     WEB_DIR,
@@ -610,18 +614,6 @@ PRINT_QUALITY = 85
 """The JPEG quality the PDF's copies are written at."""
 
 
-PRINT_SOURCES = "sources.json"
-"""Which version of each picture the copies in `PRINT_DIR` were made from.
-
-Maps each copy's file name to the hash of the picture's bytes and the
-`PRINT_QUALITY` it was encoded at, so a changed picture or a changed quality
-makes a copy stale.
-Not committed, like the copies: it lets a rebuild that changed no picture skip
-encoding them all again.
-`write_posters` writes into the same folder and is not recorded here.
-"""
-
-
 def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
     """Write the PDF's copy of every image, returning object id to written path.
 
@@ -636,52 +628,45 @@ def write_print_copies(written: dict[str, Path], dest: Path) -> dict[str, Path]:
     saving. It is paid in the PDF only: `images/` keeps what the document
     holds, and that is what each picture in the PDF links to.
 
-    A copy already made from the same bytes at the same `PRINT_QUALITY` is
-    kept rather than made again, as `write_web_copies` does, and only the
-    rest are encoded. Other files in `dest`, the posters, are left alone.
-    Every file is written with `replace_bytes`, since `dest` may hold
-    hard links to the last build's copies.
+    A copy some build already made from the same bytes, in the same way,
+    is linked from `build_cache_dir` rather than made again,
+    under the key `_print_key` gives it, and only the rest are encoded.
+    Anything else in `dest` is removed, so a picture taken out of the document
+    takes its copy with it: the posters, which share the folder,
+    are written after this by every build.
     """
     dest.mkdir(parents=True, exist_ok=True)
     copies: dict[str, Path] = {}
-    try:
-        made: dict[str, str] = json.loads((dest / PRINT_SOURCES).read_text())
-    except OSError, ValueError:
-        made = {}
-    keys: dict[str, str] = {}
-    stale: list[tuple[str, Path]] = []
+    stale: list[tuple[Path, Path, Path]] = []
+    code = _print_code()
     for object_id, path in written.items():
-        name = print_href(path.name)
-        out = dest / name
+        out = dest / print_href(path.name)
         copies[object_id] = out
-        keys[name] = f"{hashlib.sha256(path.read_bytes()).hexdigest()}:{PRINT_QUALITY}"
-        if made.get(name) != keys[name] or not out.is_file():
-            stale.append((name, path))
+        key = _print_key(hashlib.sha256(path.read_bytes()).hexdigest(), code)
+        kept = cached_path(PRINT_KIND, key, out.suffix)
+        if not link_cached(kept, out):
+            stale.append((path, kept, out))
     if stale:
-        # Forgotten before any is rewritten: a build stopped partway would
-        # otherwise leave a record naming the old picture beside the new copy,
-        # which a later build of the old picture would then keep.
-        forgotten = {name for name, _ in stale}
-        kept = {name: key for name, key in sorted(made.items()) if name not in forgotten}
-        replace_bytes(dest / PRINT_SOURCES, (json.dumps(kept, indent=2) + "\n").encode())
         # Several at once, because Pillow lets go of the GIL while it decodes and
         # encodes, which is nearly all of the time a picture takes here.
         with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
-            encoded = pool.map(_for_print, [path for _, path in stale])
-            for (name, path), data in zip(stale, encoded, strict=True):
-                replace_bytes(dest / name, path.read_bytes() if data is None else data)
-    record = {name: key for name, key in sorted(keys.items())}
-    replace_bytes(dest / PRINT_SOURCES, (json.dumps(record, indent=2) + "\n").encode())
+            encoded = pool.map(_for_print, [path for path, _, _ in stale])
+            for (path, kept, out), data in zip(stale, encoded, strict=True):
+                if data is None:
+                    cache_file(kept, path)
+                else:
+                    cache_bytes(kept, data)
+                if not link_cached(kept, out):
+                    replace_bytes(out, path.read_bytes() if data is None else data)
+    wanted = {out.name for out in copies.values()}
+    for leftover in dest.iterdir():
+        if leftover.name not in wanted:
+            leftover.unlink()
     return copies
 
 
-WEB_SOURCES = "sources.json"
-"""Which version of each picture the copies in `WEB_DIR` were made from, by hash.
-
-Not committed, like the copies: it is what lets a rebuild that changed no
-picture skip encoding them all again, which is most of the time a build with
-the images spends.
-"""
+PRINT_KIND: CacheKind = "images/print"
+"""The folder in `build_cache_dir` the print copies are kept in."""
 
 
 def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
@@ -690,22 +675,25 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
 
     One per width in `web_widths` and format in `WEB_FORMATS`, named by
     `web_href`, and the PNG named by `png_href`.
-    A copy already made from the same bytes is kept rather than
-    encoded again, and anything else in `WEB_DIR` is removed, so a picture
+    A copy some build already made from the same bytes, in the same way, at the same width,
+    is linked from `build_cache_dir` rather than encoded again,
+    under the key `_web_key` gives it and the width,
+    and anything else in `WEB_DIR` is removed, so a picture
     taken out of the document takes its copies with it.
     """
     web = images / WEB_DIR
     web.mkdir(parents=True, exist_ok=True)
-    try:
-        made: dict[str, str] = json.loads((web / WEB_SOURCES).read_text())
-    except OSError, ValueError:
-        made = {}
-    wanted: dict[str, tuple[Path, int, str, str]] = {}
+    codes = {extension: _web_code(extension) for extension in ("png", *WEB_FORMATS)}
+    wanted: dict[str, tuple[Path, int, str, Path]] = {}
+
+    def want(name: str, path: Path, width: int, extension: str, digest: str) -> None:
+        key = json.dumps([_web_key(digest, extension, codes[extension]), width])
+        wanted[name] = (path, width, extension, cached_path(WEB_KIND, key, f".{extension}"))
+
     for path in written.values():
         if has_png(path.name):
             digest = hashlib.sha256(path.read_bytes()).hexdigest()
-            name = png_href(path.name).removeprefix(f"{WEB_DIR}/")
-            wanted[name] = (path, PNG_SIDE, "png", digest)
+            want(png_href(path.name).removeprefix(f"{WEB_DIR}/"), path, PNG_SIDE, "png", digest)
             continue
         if not has_web_copies(path.name):
             continue
@@ -715,19 +703,11 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
         for w in web_widths(width):
             for extension in WEB_FORMATS:
                 name = web_href(path.name, w, extension).removeprefix(f"{WEB_DIR}/")
-                wanted[name] = (path, w, extension, digest)
+                want(name, path, w, extension, digest)
     stale = [
-        (name, source)
-        for name, source in wanted.items()
-        if made.get(name) != source[3] or not (web / name).is_file()
+        (name, source) for name, source in wanted.items() if not link_cached(source[3], web / name)
     ]
     if stale:
-        # Forgotten before any is rewritten: a build stopped partway would
-        # otherwise leave a record naming the old picture beside the new copy,
-        # which a later build of the old picture would then keep.
-        forgotten = {name for name, _ in stale}
-        kept = {name: digest for name, digest in sorted(made.items()) if name not in forgotten}
-        replace_bytes(web / WEB_SOURCES, (json.dumps(kept, indent=2) + "\n").encode())
         # Several at once: Pillow lets go of the GIL while it encodes.
         with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
             encoded = pool.map(
@@ -736,14 +716,18 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
                 [source[1] for _, source in stale],
                 [source[2] for _, source in stale],
             )
-            for (name, _), data in zip(stale, encoded, strict=True):
-                replace_bytes(web / name, data)
+            for (name, source), data in zip(stale, encoded, strict=True):
+                cache_bytes(source[3], data)
+                if not link_cached(source[3], web / name):
+                    replace_bytes(web / name, data)
     for leftover in web.iterdir():
-        if leftover.name not in wanted and leftover.name != WEB_SOURCES:
+        if leftover.name not in wanted:
             leftover.unlink()
-    sources = {name: source[3] for name, source in sorted(wanted.items())}
-    replace_bytes(web / WEB_SOURCES, (json.dumps(sources, indent=2) + "\n").encode())
     return [web / name for name in sorted(wanted)]
+
+
+WEB_KIND: CacheKind = "images/web"
+"""The folder in `build_cache_dir` the page copies are kept in."""
 
 
 WEB_QUALITY = {"avif": {"quality": 60, "speed": 8}, "webp": {"quality": 80, "method": 4}}
@@ -810,3 +794,65 @@ def _for_print(path: Path) -> bytes | None:
             buffer, "JPEG", quality=PRINT_QUALITY, optimize=True, progressive=True
         )
         return buffer.getvalue()
+
+
+def _code_hash(*functions: Callable[..., object]) -> str:
+    """A hash of the source of `functions`, so editing any of them makes what they made again."""
+    source = "".join(getsource(function) for function in functions)
+    return hashlib.sha256(source.encode()).hexdigest()
+
+
+def _print_code() -> str:
+    """A hash of the code that decides a print copy's bytes."""
+    return _code_hash(_for_print)
+
+
+def _print_key(digest: str, code: str) -> str:
+    """What the print copy of a picture whose bytes hash to `digest` depends on.
+
+    Its bytes, Pillow and the JPEG library it encodes with, `PRINT_QUALITY`, and `code`.
+    The JPEG library by both the version of libjpeg it implements and, if it is libjpeg-turbo,
+    its own, which is the one that changes with each release.
+    """
+    jpeg = (library_version("jpg"), library_version("libjpeg_turbo"))
+    parts = (digest, Pillow.__version__, jpeg, PRINT_QUALITY, code)
+    return json.dumps(parts)
+
+
+def _web_code(extension: str) -> str:
+    """A hash of the code that decides the bytes of a page copy in `extension`.
+
+    A PNG is drawn from an SVG, so its code is also what sizes the SVG and draws it.
+    """
+    if extension == "png":
+        return _code_hash(_for_web, svg_size, _pixels, draw_svg)
+    return _code_hash(_for_web)
+
+
+def _web_key(digest: str, extension: str, code: str) -> str:
+    """What the page copy in `extension` of a picture whose bytes hash to `digest` depends on.
+
+    Its bytes, Pillow, `code`, and for a raster the library that encodes `extension`
+    and its `WEB_QUALITY`;
+    for an SVG's PNG, `resvg-py`, which draws it, the `zlib` Pillow compresses it with,
+    and `PNG_SIDE` and `PIXELS_PER`, which say how large it is drawn.
+    """
+    if extension == "png":
+        parts: tuple[object, ...] = (
+            digest,
+            Pillow.__version__,
+            library_version("zlib"),
+            distribution_version("resvg-py"),
+            PNG_SIDE,
+            PIXELS_PER,
+            code,
+        )
+    else:
+        parts = (
+            digest,
+            Pillow.__version__,
+            library_version(extension),
+            WEB_QUALITY[extension],
+            code,
+        )
+    return json.dumps(parts)
