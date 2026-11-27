@@ -145,9 +145,10 @@ Both are modes of `scripts/drafts-commit.sh`, and only the build check is a hook
 **On push, in CI:** `.github/workflows/drafts.yml` here starts `eta-drafts`'s `sync.yml` with the branch.
 It finds the code commits on the branch with no drafts commit yet,
 from the pin of the drafts branch's last commit, with `scripts/drafts-commit.sh missing`,
-and makes the drafts commit for the oldest, with that commit's code and its own build setup.
-A job can set up only once, so it then starts another run for the rest,
-and once there are none left, the deploy.
+and sets up with the oldest's own build setup.
+A job can set up only once, so it makes the drafts commits, each with its own commit's code,
+for the oldest and the ones after it up to the first whose build setup differs, 100 at most,
+then starts another run for the rest, and once there are none left, the deploy.
 Runs for a branch go one at a time, none cancelled once running,
 and each finds the commits afresh, so a run GitHub replaces while it waits leaves none out.
 This covers commits made where there's no `drafts/`, such as GitHub's web editor,
@@ -245,11 +246,11 @@ as two commit statuses, shown with the checks on each commit and pull request:
 
 - **`eta-drafts / sync`:** pending on the commit pushed, from `drafts.yml`,
   or failure if it couldn't start the sync, and error if its run was cancelled before starting it.
-  Every sync run sets it pending again on each code commit still with no drafts commit, linking the run,
-  then success on the one it made the drafts commit for, once pushed,
+  Each sync run sets it pending on the code commits it makes the drafts commits for, linking the run,
+  then success on each of them, once pushed,
   or on the branch's last commit if none was missing,
-  and failure on that one if the run fails.
-  A refused push leaves it pending, for the next run to make again.
+  and failure on the one whose drafts commit failed, or on the oldest if the run fails otherwise before pushing.
+  A refused push leaves them pending, for the next run to make again.
 - **`eta-drafts / deploy`:** on the `eta-publish` commit a deploy pins,
   pending once the sync starts the deploy, and again once the deploy starts, linking the run,
   then success linking the site deployed, failure if it fails,
@@ -275,7 +276,12 @@ When a sync or deploy run ends with anything but success,
 for when its own `sweep` never ran or didn't finish, as with a lost runner.
 It knows the run's branch from its title, `Sync <branch>` or `Deploy <branch>`.
 
-The sweep goes through the branch's commits,
+The sweep of a sync run that started the next one goes through only the branch's last commit,
+for the status `drafts.yml` set, and the commits the run set pending,
+so each run's sweep reads as many statuses as its batch has commits, however many are missing.
+Anything else pending is left to the other sweeps:
+of the sync run that starts the deploy or no other run, once for each chain of runs, of a deploy, and from `reconcile.yml`.
+Those go through the branch's commits,
 from its last back along first parents to the first commit with a final `eta-drafts / deploy` and nothing pending,
 then every commit in the last one's history but not in that one's.
 That commit is where an earlier sweep settled everything before it,
@@ -287,7 +293,7 @@ since a commit can be on more than one branch:
 
 - **`eta-drafts / sync`:** success once the commit has its drafts commit.
   Still with none, it's left to the run it links while that's going,
-  set pending on this run if this run started the next one,
+  left to the next sync run if this run started it, set pending on this run first if `drafts.yml` set it,
   left to a sync run of that branch that's going or waiting,
   and otherwise failure or error: nothing is left to make it.
   On a commit no longer on the branch: error, if it's this branch's run.
@@ -307,7 +313,7 @@ What can still leave a status pending:
 
 - **A run that's never swept:** if a run's `sweep` doesn't finish and `reconcile.yml` never runs for it either,
   as in an Actions outage, or fails itself,
-  what it left pending stays so until the branch's next run sweeps it,
+  what it left pending stays so until a later sweep of the branch that goes back through its commits,
   unless a commit behind it has been settled since, where sweeps stop.
 - **`drafts.yml`'s own jobs:** nothing reruns its `dropped` job,
   so if that job doesn't finish, what it would have settled stays pending.
