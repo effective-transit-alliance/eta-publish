@@ -187,6 +187,10 @@ uv run eta-publish add <google-doc-url> -p publications.toml
 # Every build does this first anyway.
 uv run eta-publish logo
 
+# Download the fonts into `~/.cache/eta-publish/fonts/`, any not there yet, before building offline.
+# Every build without `--offline` does this first anyway.
+uv run eta-publish fonts
+
 # Without the slowest question a build asks, when the counts can wait.
 uv run eta-publish all --no-comments
 
@@ -778,6 +782,13 @@ publication from the `doc.json` saved beside its outputs, which is the whole of 
 build apart from asking Google for the text. Offline cannot notice a document
 that changed, so it is for a change to this code rather than to a document,
 and it is not what the workflow runs.
+
+The PDF is set in Yaldevi, which a build downloads once, pinned by its checksum,
+into `~/.cache/eta-publish/fonts/`, as `eta_publish/fonts.py` says.
+An offline build downloads nothing,
+so on a machine that has not downloaded it, it writes the `.typ` and not the PDF,
+and a publication whose page links its PDF fails.
+`eta-publish fonts` downloads it without building anything.
 
 Publications are built several at a time, since a build is nearly all waiting,
 so a list takes about as long as its slowest document rather than as long as

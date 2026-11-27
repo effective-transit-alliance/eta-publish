@@ -1,12 +1,13 @@
 """`eta-publish`: Google Docs in, a publishable site out.
 
-Seven commands, because there are seven things to do:
+Eight commands, because there are eight things to do:
 
     eta-publish all             every publication in `publications.toml`, into `site/unpublished/`,
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the drafts' list
     eta-publish logo            write the logo charts carry from the logo as drawn
+    eta-publish fonts           download the fonts the publications are set in, if not yet cached
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
     eta-publish drafts preview  build the drafts site, and upload it as this branch's preview
     eta-publish drafts deploy   the same from CI, for any branch, `main` included
@@ -27,7 +28,7 @@ from pathlib import Path
 from typing import Annotated
 
 from rich.text import Text
-from typer import Argument, BadParameter, Option, Typer
+from typer import Argument, BadParameter, Exit, Option, Typer
 
 from . import console
 from .drafts import drafts
@@ -57,6 +58,9 @@ from .site import (
     load_hosts,
     load_publications,
 )
+
+# Only for `fonts`, so no other command loads `requests` for it.
+lazy from .fonts import FontDownloadFailed, FontMismatch, fonts
 
 # With nothing to do, each prints its help rather than that something is missing:
 # a command group has no action of its own, and nor does a command missing a required argument.
@@ -272,6 +276,25 @@ def logo() -> None:
     log = console.for_stream()
     changed = write_logo()
     console.write(Text(f"{'wrote' if changed else 'unchanged:'} {LOGO.relative_to(ROOT)}"), log)
+
+
+@app.command(name="fonts")
+def download_fonts() -> None:
+    """Download the fonts the publications are set in into the cache, any not there yet.
+
+    Every build without `--offline` does this first anyway;
+    this is for a machine about to build offline, which downloads nothing.
+    """
+    log = console.for_stream()
+    try:
+        directory = fonts()
+    except FontDownloadFailed as e:
+        console.write(console.failed("fonts", f"{e.url} could not be downloaded: {e.reason}"), log)
+        raise Exit(code=1) from e
+    except FontMismatch as e:
+        console.write(console.failed("fonts", str(e)), log)
+        raise Exit(code=1) from e
+    console.write(Text(f"fonts in {directory}"), log)
 
 
 def main() -> None:

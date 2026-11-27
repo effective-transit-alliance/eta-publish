@@ -74,6 +74,7 @@ from .parse import parse, read_review
 from .style import style
 lazy from .assets import read, read_bytes
 lazy from .fetch import fetch
+lazy from .fonts import FontDownloadFailed, FontNotCached, fonts
 lazy from .images import (
     PRINT_SOURCES,
     download,
@@ -1085,11 +1086,14 @@ def check_code_block_size(doc: Document, publication: Path) -> None:
         )
 
 
-def build_pdf(source: Path, outdir: Path, skipped_images: bool) -> Path | None:
+def build_pdf(source: Path, outdir: Path, skipped_images: bool, offline: bool) -> Path | None:
     """Compile the publication PDF, reporting rather than failing the whole build.
 
     The `.typ` is written either way,
-    so a missing `typst` or a compile error costs the PDF and nothing else.
+    so a missing `typst`, a font an offline build has not got, or a compile error
+    costs the PDF and nothing else.
+    A font that downloads as bytes other than the ones it is pinned to
+    stops the build, as that is this code to fix.
     """
     if skipped_images:
         console.write(
@@ -1102,7 +1106,26 @@ def build_pdf(source: Path, outdir: Path, skipped_images: bool) -> Path | None:
 
     install_template(outdir)
     try:
-        return compile_pdf(source)
+        return compile_pdf(source, fonts(offline))
+    except FontNotCached as e:
+        console.write(
+            console.note(
+                "{} has not been downloaded, and an offline build downloads nothing, "
+                "so the PDF was not built. A build without {} downloads it once. "
+                "The {} source has already been written.",
+                Shown(str(e)),
+                Shown("--offline"),
+                Shown(".typ"),
+            )
+        )
+    except FontDownloadFailed as e:
+        console.write(
+            console.warning(
+                "{} could not be downloaded, so the PDF was not built: {}",
+                console.Linked(e.url),
+                str(e.reason),
+            )
+        )
     except TypstMissing:
         # Said here rather than raised with the exception: the exception is
         # control flow, and a sentence with a command and a URL in it is
@@ -1163,7 +1186,7 @@ def write_outputs(
     typ = written.get(f"{stem}.typ")
     if typ is not None:
         console.step("compiling the PDF")
-        build_pdf(typ, dest, skipped_images)
+        build_pdf(typ, dest, skipped_images, options.offline)
     if options.split:
         write_split(
             doc, dest, images, linked, options.source_brackets, stem=stem, site_url=site_url
