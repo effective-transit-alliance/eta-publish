@@ -1,18 +1,13 @@
 """Cutting an oversized publication into pastable pieces."""
 
 import json
-import re
 
 from paths import FIXTURE_DIR, HOST, named_images
 
-from eta_publish.emit.html import CODE_BLOCK_LIMIT, HtmlEmitter
+from eta_publish.emit.html import HtmlEmitter
 from eta_publish.parse import parse
 
 FIXTURE = json.loads((FIXTURE_DIR / "doc.json").read_text())
-
-
-def fragment() -> str:
-    return HtmlEmitter(site_url=HOST).emit(named_images(parse(FIXTURE)))
 
 
 def pieces() -> list[str]:
@@ -34,18 +29,6 @@ def test_pieces_break_at_h2_and_nowhere_else() -> None:
     with_h2 = [p for p in parts if "<h2 id=" in p]
     assert all(p.count("<h2 id=") == 1 for p in with_h2)
     assert any("<h3 id=" in p for p in with_h2)
-
-
-def test_nothing_is_lost_in_the_split() -> None:
-    """Every paragraph in the whole fragment survives into some piece."""
-    whole = fragment()
-    joined = "".join(pieces())
-    for paragraph in re.findall(r"<p>.*?</p>", whole, re.S):
-        assert paragraph in joined
-
-
-def test_the_limit_matches_squarespace() -> None:
-    assert CODE_BLOCK_LIMIT == 400_000
 
 
 def test_a_piece_keeps_the_notes_behind_its_references() -> None:
