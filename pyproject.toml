@@ -32,6 +32,7 @@ dev = [
     "ty>=0.0.70",
     "types-requests>=2.32",
     "tinycss2>=1.5.1",
+    "pytest-xdist>=3.8.0",
 ]
 
 [build-system]

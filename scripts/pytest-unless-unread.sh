@@ -3,7 +3,7 @@
 # Run `pytest`, unless every file the commit changes is one no test reads,
 # or the tests already passed on its tree.
 #
-# The `pytest` hook is about 9 seconds of a commit's 10.5,
+# The `pytest` hook is most of a commit's time,
 # and the global `post-commit` hook runs it again on every commit
 # a rebase or cherry-pick makes, docs-only ones included.
 # A commit that changes only files no test reads can't change what the tests do,
@@ -71,7 +71,9 @@ if ((skip)); then
     echo "skipped: no test reads any of the ${#changed[@]} changed files"
     exit 0
 fi
-uv run pytest "$@"
+# On 4 workers: in a checkout with the pictures, the suite takes about 8 seconds rather than 14.5.
+# More are slower, since each worker makes the offline build in `tests/conftest.py` again.
+uv run pytest -n 4 "$@"
 
 # Only a run of the whole suite, as the hook runs it, says the tree passed.
 if (($# == 0)); then
