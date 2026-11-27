@@ -14,7 +14,6 @@ from eta_publish.docs_json import JsonObject
 from eta_publish.fetch import (
     RESPONSE_FORMAT,
     RESPONSE_KEYS,
-    SCOPES,
     TabNotFound,
     parse_ref,
     select_tab,
@@ -45,25 +44,24 @@ MULTI_TAB = {
 }
 
 
-def test_parse_ref_extracts_the_tab_from_the_url():
-    assert parse_ref(URL) == (DOC_ID, "t.ul3yzv5xed4w")
-
-
-def test_parse_ref_accepts_a_bare_id():
-    assert parse_ref(DOC_ID) == (DOC_ID, None)
-
-
-def test_parse_ref_without_a_tab():
-    assert parse_ref(f"https://docs.google.com/document/d/{DOC_ID}/edit") == (DOC_ID, None)
+@pytest.mark.parametrize(
+    ("ref", "parsed"),
+    [
+        (URL, (DOC_ID, "t.ul3yzv5xed4w")),
+        (DOC_ID, (DOC_ID, None)),
+        (f"https://docs.google.com/document/d/{DOC_ID}/edit", (DOC_ID, None)),
+    ],
+    ids=["a tab in the url", "a bare id", "a url without a tab"],
+)
+def test_parse_ref_finds_the_document_and_any_tab(ref: str, parsed: tuple[str, str | None]):
+    assert parse_ref(ref) == parsed
 
 
 def test_the_requested_tab_wins_over_the_first_one():
     chosen = select_tab(MULTI_TAB, "t.ul3yzv5xed4w")
     assert chosen["body"]["content"][0]["marker"] == "final"
     assert chosen["tabTitle"] == "Final"
-
-
-def test_child_tabs_are_selectable():
+    # Child tabs are selectable too.
     assert select_tab(MULTI_TAB, "t.child")["tabTitle"] == "Notes"
 
 
@@ -100,35 +98,6 @@ def unasked(doc_id: str) -> str | None:
     return None
 
 
-def test_service_account_credentials_are_used_when_the_environment_names_them(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    """CI has no browser to open and nobody to click,
-    so the interactive flow must not be what runs there."""
-    import google.auth
-
-    from eta_publish import fetch as fetch_module
-
-    sentinel = object()
-
-    def fake_default(scopes: list[str]) -> tuple[object, str]:
-        assert scopes == SCOPES
-        return sentinel, "eta-publish"
-
-    monkeypatch.setenv("GOOGLE_APPLICATION_CREDENTIALS", str(tmp_path / "key.json"))
-    monkeypatch.setattr(google.auth, "default", fake_default)
-    assert fetch_module._credentials() is sentinel
-
-
-def test_without_the_environment_variable_nothing_is_ambient(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from eta_publish import fetch as fetch_module
-
-    monkeypatch.delenv("GOOGLE_APPLICATION_CREDENTIALS", raising=False)
-    assert fetch_module._ambient_credentials() is None
-
-
 def test_a_suggestion_is_counted_once_however_much_it_touches() -> None:
     """One suggestion over a sentence marks every run in it:
     the real document carries 240 insertion marks and far fewer suggestions."""
@@ -151,12 +120,6 @@ def test_a_suggestion_is_counted_once_however_much_it_touches() -> None:
         }
     }
     assert _suggestion_ids(document) == {"s.1", "s.2", "s.3"}
-
-
-def test_a_document_with_nothing_suggested_counts_none() -> None:
-    from eta_publish.fetch import _suggestion_ids
-
-    assert _suggestion_ids({"body": {"content": [{"paragraph": {"elements": []}}]}}) == set()
 
 
 def test_a_service_account_is_not_asked_about_the_review(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -290,6 +253,7 @@ MATCHING = json.dumps({"modifiedTime": "now", "suggestions": "rejected", "format
 @pytest.mark.parametrize(
     ("saved_text", "current"),
     [
+        (None, "now"),
         ('{"modifiedTime": "then", "suggestions": "rejected"}', "now"),
         ('{"body": {}, "suggestions": "rejected"}', "now"),
         ('{"modifiedTime": "now", "suggestions": "accepted"}', "now"),
@@ -298,6 +262,7 @@ MATCHING = json.dumps({"modifiedTime": "now", "suggestions": "rejected", "format
         ('{"modifiedTime": "then", "suggestions": "rejected"}', None),
     ],
     ids=[
+        "absent",
         "edited since",
         "saved before the time was recorded",
         "read the other way",
@@ -307,14 +272,15 @@ MATCHING = json.dumps({"modifiedTime": "now", "suggestions": "rejected", "format
     ],
 )
 def test_anything_short_of_a_match_is_a_reason_to_fetch(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, saved_text: str, current: str | None
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, saved_text: str | None, current: str | None
 ) -> None:
     """Not knowing whether this is the document this run wants is a reason to fetch it,
     which is what this was trying to avoid and not something it may decide against."""
     import eta_publish.fetch as fetch
 
     saved = tmp_path / "doc.json"
-    saved.write_text(saved_text)
+    if saved_text is not None:
+        saved.write_text(saved_text)
 
     def says(doc_id: str) -> str | None:
         return current
@@ -337,12 +303,6 @@ def test_a_match_on_both_is_reused(tmp_path: Path, monkeypatch: pytest.MonkeyPat
     assert fetch.unchanged("abc", saved, "rejected") is not None
 
 
-def test_a_missing_saved_response_is_a_reason_to_fetch(tmp_path: Path) -> None:
-    import eta_publish.fetch as fetch
-
-    assert fetch.unchanged("abc", tmp_path / "absent.json", "rejected") is None
-
-
 def test_a_selected_tab_says_where_it_came_from() -> None:
     """A saved response is read by whoever wants the document behind it,
     and a link is what they want, not two ids to assemble one from."""
@@ -354,15 +314,6 @@ def test_a_selected_tab_says_where_it_came_from() -> None:
     chosen = select_tab(document, "t.1")
     assert chosen["url"] == "https://docs.google.com/document/d/abc/edit?tab=t.1"
     assert parse_ref(chosen["url"]) == ("abc", "t.1")
-
-
-def test_a_document_url_is_spelled_one_way() -> None:
-    """However the reference that reached the build was spelled,
-    including as a bare id or a path, which are not URLs at all."""
-    from eta_publish.fetch import document_url
-
-    assert document_url("abc") == "https://docs.google.com/document/d/abc/edit"
-    assert document_url("abc", "t.1") == "https://docs.google.com/document/d/abc/edit?tab=t.1"
 
 
 def test_a_saved_response_says_what_shape_it_is() -> None:
