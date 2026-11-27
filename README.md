@@ -783,11 +783,12 @@ build apart from asking Google for the text. Offline cannot notice a document
 that changed, so it is for a change to this code rather than to a document,
 and it is not what the workflow runs.
 
-The PDF is set in Yaldevi, which a build downloads once, pinned by its checksum,
+The pages and the PDF are set in Yaldevi, which a build downloads once as a `ttf`, pinned by its checksum,
 into `~/.cache/eta-publish/fonts/`, as `eta_publish/fonts.py` says.
+`typst` reads the `ttf`,
+and every build converts it to the `woff2` the pages load, `assets/fonts/Yaldevi.woff2`, which is not committed.
 An offline build downloads nothing,
-so on a machine that has not downloaded it, it writes the `.typ` and not the PDF,
-and a publication whose page links its PDF fails.
+so on a machine that has not downloaded it, every publication fails.
 `eta-publish fonts` downloads it without building anything.
 
 Publications are built several at a time, since a build is nearly all waiting,
@@ -918,7 +919,8 @@ which is what to read and commit.
 `site/unpublished/` is every publication, drafts included, committed:
 a publication at its published path with its `doc.json` and everything emitted from it,
 and `site/unpublished/assets/` holding the one copy of the stylesheets and script
-that every publication page links.
+that every publication page links,
+and the fonts each build makes, which are not committed.
 It is what GitHub Pages serves.
 
 `site/published/` is the part of it a live page needs:

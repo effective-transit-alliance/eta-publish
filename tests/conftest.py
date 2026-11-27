@@ -86,6 +86,12 @@ _build: _Build | None = None
 
 def pytest_collection_finish(session: pytest.Session) -> None:
     global _build
+    # Every build sets its pages and its PDF in the fonts in the cache, an offline one too,
+    # and fails without them, so they are downloaded here once on a machine without them,
+    # as on CI's test runner, before any build asks for them.
+    from eta_publish.fonts import fonts
+
+    fonts()
     if any(SITE_BUILD in getattr(item, "fixturenames", ()) for item in session.items):
         _build = _Build()
 

@@ -283,15 +283,13 @@ def download_fonts() -> None:
     """Download the fonts the publications are set in into the cache, any not there yet.
 
     Every build without `--offline` does this first anyway;
-    this is for a machine about to build offline, which downloads nothing.
+    this is for a machine about to build offline, which downloads nothing,
+    as `scripts/drafts-commit.sh` does before building the drafts.
     """
     log = console.for_stream()
     try:
         directory = fonts()
-    except FontDownloadFailed as e:
-        console.write(console.failed("fonts", f"{e.url} could not be downloaded: {e.reason}"), log)
-        raise Exit(code=1) from e
-    except FontMismatch as e:
+    except (FontDownloadFailed, FontMismatch) as e:
         console.write(console.failed("fonts", str(e)), log)
         raise Exit(code=1) from e
     console.write(Text(f"fonts in {directory}"), log)

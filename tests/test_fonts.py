@@ -1,19 +1,57 @@
-"""The fonts the PDF is set in are downloaded once, checked, and kept in the cache."""
+"""The fonts are downloaded once, checked, and kept in the cache, and made into `woff2`s."""
 
 from collections.abc import Mapping
 from hashlib import sha256
+from io import BytesIO
 from pathlib import Path
 from typing import override
 
 import pytest
 import requests
+from fontTools.fontBuilder import FontBuilder
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+from fontTools.ttLib import TTFont
 from requests.adapters import BaseAdapter
 
 from eta_publish import fonts
-from eta_publish.fonts import FontDownloadFailed, FontFile, FontMismatch, FontNotCached
+from eta_publish.assets import read
+from eta_publish.fonts import (
+    FONTS,
+    FontDownloadFailed,
+    FontFile,
+    FontMismatch,
+    FontNotCached,
+    woff2s,
+)
 
 URL = "https://fonts.test/Test.ttf"
-FONT = b"the font's bytes"
+
+
+def _font() -> bytes:
+    """A `ttf` with a square for `a` and nothing for a space."""
+    pen = TTGlyphPen(None)
+    pen.moveTo((100, 0))
+    pen.lineTo((100, 500))
+    pen.lineTo((400, 500))
+    pen.lineTo((400, 0))
+    pen.closePath()
+    builder = FontBuilder(1000, isTTF=True)
+    builder.setupGlyphOrder([".notdef", "space", "a"])
+    builder.setupCharacterMap({ord(" "): "space", ord("a"): "a"})
+    builder.setupGlyf(
+        {".notdef": TTGlyphPen(None).glyph(), "space": TTGlyphPen(None).glyph(), "a": pen.glyph()}
+    )
+    builder.setupHorizontalMetrics({".notdef": (500, 0), "space": (250, 0), "a": (500, 100)})
+    builder.setupHorizontalHeader(ascent=800, descent=-200)
+    builder.setupNameTable({"familyName": "Test", "styleName": "Regular"})
+    builder.setupOS2()
+    builder.setupPost()
+    out = BytesIO()
+    builder.save(out)
+    return out.getvalue()
+
+
+FONT = _font()
 
 
 class _Served(BaseAdapter):
@@ -98,3 +136,30 @@ def test_a_cached_font_that_changed_is_downloaded_again(tmp_path: Path) -> None:
         fonts.fonts(offline=True)
     fonts.fonts(http=_http(_Served(FONT)))
     assert cached.read_bytes() == FONT
+
+
+def test_the_pages_get_a_woff2_of_each_font_with_every_glyph() -> None:
+    converted = woff2s(fonts.fonts(http=_http(_Served(FONT))))
+    assert list(converted) == ["Test.woff2"]
+    woff2 = TTFont(BytesIO(converted["Test.woff2"]))
+    assert woff2.flavor == "woff2"
+    ttf = TTFont(BytesIO(FONT))
+    assert woff2.getBestCmap() == ttf.getBestCmap()
+    assert woff2.getGlyphOrder() == ttf.getGlyphOrder()
+
+
+def test_a_font_always_makes_the_same_woff2(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Every build of the site serves the same bytes, whenever it converted them."""
+    source = fonts.fonts(http=_http(_Served(FONT)))
+    # What `fontTools` stamps a font it saves with, unless told to keep the font's own.
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "1000000000")
+    first = woff2s(source)
+    monkeypatch.setattr(fonts, "_woff2", {})
+    monkeypatch.setenv("SOURCE_DATE_EPOCH", "2000000000")
+    assert woff2s(source) == first
+
+
+def test_the_pages_load_each_font_from_the_site() -> None:
+    css = read("page.css")
+    for font in FONTS:
+        assert f'url("fonts/{font.woff2}") format("woff2")' in css

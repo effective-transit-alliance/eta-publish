@@ -176,6 +176,14 @@ build() {
     if (($# > 0)); then
         into=(--into "$1")
     fi
+    # The fonts, downloaded first on a machine without them, as a fresh CI runner is,
+    # since an offline build downloads nothing and fails without them.
+    # Pinned by their checksums, so the build still writes the same files everywhere.
+    # Only with code that has them, and so has the command,
+    # as the branch's newest script also builds its older commits.
+    if [[ -f eta_publish/fonts.py ]]; then
+        uv run eta-publish fonts
+    fi
     uv run eta-publish all "$drafts/publications.toml" -o "$drafts/site" "${into[@]}" --offline --no-images
 }
 

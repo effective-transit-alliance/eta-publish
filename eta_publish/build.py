@@ -72,9 +72,9 @@ from .naming import (
 from .nodes import Document, Shown, Span
 from .parse import parse, read_review
 from .style import style
-lazy from .assets import read, read_bytes
+lazy from .assets import read
 lazy from .fetch import fetch
-lazy from .fonts import FontDownloadFailed, FontNotCached, fonts
+lazy from .fonts import fonts, woff2s
 lazy from .images import (
     PRINT_SOURCES,
     download,
@@ -731,16 +731,19 @@ SHARED_ASSETS = (
     "logo.svg",
 )
 
-SHARED_FONTS = ("fonts/Yaldevi.woff2", "fonts/OFL.txt")
-"""The typeface `page.css` sets the page in, and the license it is under,
-which asks that a copy of the font travel with it."""
+FONT_DIR = "fonts"
+"""Where in `ASSET_DIR` the `woff2` of each font in `fonts.FONTS` is, which `page.css` loads.
+Built from the cached `ttf` by every build, and not committed."""
 
 
-def write_assets(siteroot: Path, doc: Document) -> list[Path]:
+def write_assets(siteroot: Path, doc: Document, fonts_dir: Path) -> list[Path]:
     """The one copy of what every publication page links.
 
     Written as they are; `format.tree` lays out and checks the whole build
     afterwards, these among the rest.
+    The fonts are made from the ones in `fonts_dir`, as `fonts.fonts` returns it.
+    Each `woff2` carries the font's copyright and license in its `name` table,
+    as the `ttf` does, which is how the Open Font License lets a font travel.
     """
     dest = siteroot / ASSET_DIR
     dest.mkdir(parents=True, exist_ok=True)
@@ -749,10 +752,10 @@ def write_assets(siteroot: Path, doc: Document) -> list[Path]:
         path = dest / name
         path.write_text(read(name))
         written.append(path)
-    for name in SHARED_FONTS:
-        path = dest / name
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(read_bytes(name))
+    for name, data in woff2s(fonts_dir).items():
+        path = dest / FONT_DIR / name
+        path.parent.mkdir(exist_ok=True)
+        path.write_bytes(data)
         written.append(path)
     written += write_posters(doc, dest)
     return written
@@ -1086,14 +1089,12 @@ def check_code_block_size(doc: Document, publication: Path) -> None:
         )
 
 
-def build_pdf(source: Path, outdir: Path, skipped_images: bool, offline: bool) -> Path | None:
+def build_pdf(source: Path, outdir: Path, skipped_images: bool, fonts_dir: Path) -> Path | None:
     """Compile the publication PDF, reporting rather than failing the whole build.
 
     The `.typ` is written either way,
-    so a missing `typst`, a font an offline build has not got, or a compile error
-    costs the PDF and nothing else.
-    A font that downloads as bytes other than the ones it is pinned to
-    stops the build, as that is this code to fix.
+    so a missing `typst` or a compile error costs the PDF and nothing else.
+    `fonts_dir` is the fonts it is set in, as `fonts.fonts` returns them.
     """
     if skipped_images:
         console.write(
@@ -1106,26 +1107,7 @@ def build_pdf(source: Path, outdir: Path, skipped_images: bool, offline: bool) -
 
     install_template(outdir)
     try:
-        return compile_pdf(source, fonts(offline))
-    except FontNotCached as e:
-        console.write(
-            console.note(
-                "{} has not been downloaded, and an offline build downloads nothing, "
-                "so the PDF was not built. A build without {} downloads it once. "
-                "The {} source has already been written.",
-                Shown(str(e)),
-                Shown("--offline"),
-                Shown(".typ"),
-            )
-        )
-    except FontDownloadFailed as e:
-        console.write(
-            console.warning(
-                "{} could not be downloaded, so the PDF was not built: {}",
-                console.Linked(e.url),
-                str(e.reason),
-            )
-        )
+        return compile_pdf(source, fonts_dir)
     except TypstMissing:
         # Said here rather than raised with the exception: the exception is
         # control flow, and a sentence with a command and a URL in it is
@@ -1155,6 +1137,7 @@ def write_outputs(
     site_url: str,
     stem: str,
     skipped_images: bool,
+    fonts_dir: Path,
     page_url: str = "",
     banner: Banner | None = None,
 ) -> None:
@@ -1186,7 +1169,7 @@ def write_outputs(
     typ = written.get(f"{stem}.typ")
     if typ is not None:
         console.step("compiling the PDF")
-        build_pdf(typ, dest, skipped_images, options.offline)
+        build_pdf(typ, dest, skipped_images, fonts_dir)
     if options.split:
         write_split(
             doc, dest, images, linked, options.source_brackets, stem=stem, site_url=site_url
@@ -1334,7 +1317,10 @@ def build_one(
 
     # Written here rather than once per site, so that building a single
     # publication produces a page with everything it links.
-    write_assets(outdir, doc)
+    # Before the pages and the PDF are written, so a font that cannot be got
+    # fails the publication rather than leaving either set in another font.
+    fonts_dir = fonts(options.offline)
+    write_assets(outdir, doc, fonts_dir)
     write_posters(doc, dest / PRINT_DIR)
     console.step("writing the outputs")
     skipped_images = not options.images and bool(doc.images)
@@ -1346,6 +1332,7 @@ def build_one(
         options.unpublished_url,
         kind,
         skipped_images,
+        fonts_dir,
         banner=banner(doc) if banner is not None else None,
     )
     for stale in dest.glob(f"{kind}.{UNWARNED}.*"):
@@ -1361,6 +1348,7 @@ def build_one(
             options.published_url,
             f"{kind}.{UNWARNED}",
             skipped_images,
+            fonts_dir,
             f"{LIVE_SITE}{doc.slug}" if doc.slug else "",
         )
 

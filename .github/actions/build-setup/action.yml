@@ -50,7 +50,7 @@ runs:
     # `check-committed-site.sh` compares the same.
     #
     # `~/.cache/eta-publish` is where `platformdirs` puts it on Linux.
-    # The font the PDF is set in is downloaded there too, under `fonts/`,
+    # The fonts the publications are set in are downloaded there too, under `fonts/`,
     # so it comes back with the lookups rather than being downloaded every run.
     #
     # The key carries the run id so each run saves its own, and `restore-keys`
