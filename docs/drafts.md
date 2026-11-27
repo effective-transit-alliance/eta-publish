@@ -276,7 +276,12 @@ When a sync or deploy run ends with anything but success,
 for when its own `sweep` never ran or didn't finish, as with a lost runner.
 It knows the run's branch from its title, `Sync <branch>` or `Deploy <branch>`.
 
-The sweep goes through the branch's commits,
+The sweep of a sync run that started the next one goes through only the branch's last commit,
+for the status `drafts.yml` set, and the commits the run set pending,
+so each run's sweep reads as many statuses as its batch has commits, however many are missing.
+Anything else pending is left to the other sweeps:
+of the sync run that starts the deploy or no other run, once for each chain of runs, of a deploy, and from `reconcile.yml`.
+Those go through the branch's commits,
 from its last back along first parents to the first commit with a final `eta-drafts / deploy` and nothing pending,
 then every commit in the last one's history but not in that one's.
 That commit is where an earlier sweep settled everything before it,
@@ -308,7 +313,7 @@ What can still leave a status pending:
 
 - **A run that's never swept:** if a run's `sweep` doesn't finish and `reconcile.yml` never runs for it either,
   as in an Actions outage, or fails itself,
-  what it left pending stays so until the branch's next run sweeps it,
+  what it left pending stays so until a later sweep of the branch that goes back through its commits,
   unless a commit behind it has been settled since, where sweeps stop.
 - **`drafts.yml`'s own jobs:** nothing reruns its `dropped` job,
   so if that job doesn't finish, what it would have settled stays pending.
