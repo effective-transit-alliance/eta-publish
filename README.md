@@ -183,6 +183,11 @@ uv run eta-publish add <google-doc-url>
 # Or to the public list, `publications.toml`, on purpose.
 uv run eta-publish add <google-doc-url> -p publications.toml
 
+# Move a draft from `drafts/publications.toml` into `publications.toml`, once it is out,
+# by its name or its URL, with what its last build saved, as `automated` unless `--as manual`.
+# Commit both repositories after.
+uv run eta-publish publish <name>
+
 # Write `eta_publish/assets/logo.svg` from `logo.src.svg`, after editing the logo.
 # Every build does this first anyway.
 uv run eta-publish logo
@@ -278,6 +283,22 @@ rather than adding to the public list instead;
 `manual` when it is a page built by hand,
 and `draft` until it is out.
 It is required, and `add` writes `draft`.
+
+Once a draft is out, `eta-publish publish <name>`
+moves its entry from `drafts/publications.toml` to the end of `publications.toml`,
+in its own table, with its comments and fields, and `published` set to `automated`,
+since new publications should be automated, or to `manual` with `--as manual`.
+The draft can be named by its `name`, in any case, or by its URL.
+What the draft's last build saved for it moves too,
+from `drafts/site/unpublished/` to the same path in `site/unpublished/`:
+its `doc.json`, which an `--offline` build is built from,
+and the `images.json`, `archives.json`, and `embeds.json` every build reads back.
+It refuses a draft the drafts' list does not have, a name two drafts have,
+a document `publications.toml` already lists,
+and a path in `site/unpublished/` that something is at already.
+It only edits files:
+rebuild with `uv run eta-publish all`, then commit in `drafts/`, and then here,
+since `scripts/drafts-commit.sh head`, making this commit's drafts commit, refuses a `drafts/` with changes not committed.
 
 Putting a publication on the list is the act that says it is ready:
 nothing published is built from anything else.

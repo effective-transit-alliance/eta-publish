@@ -32,7 +32,14 @@ and refuses with no clone of `eta-drafts` there rather than adding it here;
 A manually published report becomes an automatically published one
 once its publishing is switched to the tool,
 by changing its `published` to `"automated"`, in one commit here.
-When a draft is published, it moves from `eta-drafts` into this repository.
+When a draft is published, it moves from `eta-drafts` into this repository,
+with `eta-publish publish <name>`, as `automated` unless `--as manual` says otherwise:
+its entry moves from `drafts/publications.toml` to `publications.toml`,
+and what its last build saved, `drafts/site/unpublished/<path>/`, moves to `site/unpublished/<path>/`,
+so this repository's offline build has its `doc.json`.
+It only edits files: rebuild with `uv run eta-publish all`,
+then commit in `drafts/` first, and then here,
+since `scripts/drafts-commit.sh head`, making the code commit's drafts commit, refuses a `drafts/` with changes not committed.
 
 The drafts already in this repository's history stay there:
 they've all been published since.

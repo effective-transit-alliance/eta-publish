@@ -25,6 +25,7 @@
 # is the step that gets them wrong, so `eta-publish add <url>`
 # writes an entry with the names read off the document itself,
 # into the drafts' `drafts/publications.toml` unless `-p publications.toml` says here.
+# `eta-publish publish <name>` moves a draft's entry here once it is out, as `automated` unless `--as manual`.
 #
 # `url` is the Docs URL including its `?tab=` id.
 # ETA documents have many tabs, several of them obsolete drafts,

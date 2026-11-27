@@ -19,6 +19,7 @@ the others are still built and the exit status still reports it.
 
 import json
 import re
+import shutil
 import tomllib
 from collections.abc import Callable, Iterable
 from concurrent.futures import ThreadPoolExecutor
@@ -47,6 +48,7 @@ from .naming import (
     KIND_DIRS,
     LIVE_SITE,
     REPOSITORY,
+    UNPUBLISHED_DIR,
     Kind,
     partial_name,
     path_kind,
@@ -262,7 +264,11 @@ def load_publications(path: Path = PUBLICATIONS) -> list[Publication]:
     Comments matter here: a list of documents is where someone needs to say
     "this one is the 2025 rewrite, not the original".
     """
-    text = path.read_text()
+    return publications_in(path.read_text(), path)
+
+
+def publications_in(text: str, path: Path) -> list[Publication]:
+    """The publications `text` lists, as `load_publications` reads them, with `path` for errors."""
     data = tomllib.loads(text)
     # Nothing is skipped silently: `[[reports]]` for `[[report]]` would otherwise
     # build a site without the publication, and no one would be told why.
@@ -371,6 +377,16 @@ def canonical(url: str) -> str:
     return document_url(doc_id, tab or "")
 
 
+def refuse_listed(url: str, publications: list[Publication], path: Path) -> None:
+    """Refuse a second entry for the document at `url`, already `canonical`.
+
+    Two entries for one document publish it twice to the same path,
+    and the second build silently overwrites the first.
+    """
+    if any(canonical(publication.url) == url for publication in publications):
+        raise ValueError(f"{path}: already lists {url}")
+
+
 def add_publication(url: str, path: Path = PUBLICATIONS) -> Publication:
     """Append the document at `url` to the publication list, named as it names itself.
 
@@ -381,15 +397,13 @@ def add_publication(url: str, path: Path = PUBLICATIONS) -> Publication:
     Which table it goes in is read off its `URL:` line the same way,
     so a document that does not say where it publishes cannot be added yet.
 
-    An entry whose `url` is already listed is refused rather than duplicated:
-    two entries for one document publish it twice to the same path,
-    and the second build silently overwrites the first.
+    An entry whose `url` is already listed is refused rather than duplicated,
+    as `refuse_listed` says.
 
     A document being added is a draft until someone says otherwise.
     """
     url = canonical(url)
-    if any(canonical(publication.url) == url for publication in load_publications(path)):
-        raise ValueError(f"{path}: already lists {url}")
+    refuse_listed(url, load_publications(path), path)
 
     document = load(url)
     name = str(document.get("title", ""))
@@ -403,6 +417,146 @@ def add_publication(url: str, path: Path = PUBLICATIONS) -> Publication:
     entry = entry_text(kind, url, name, tab, Published.DRAFT)
     path.write_text(path.read_text().rstrip("\n") + "\n" + entry)
     return Publication(url=url, name=name, tab=tab, kind=kind)
+
+
+@dataclass(frozen=True)
+class Promoted:
+    """A draft `publish_draft` moved into the public list, and what was saved for it."""
+
+    publication: Publication
+    """Its entry as the public list now has it."""
+
+    saved: tuple[Path, Path] | None
+    """Where what its last build saved was, and where it is now: `None` if nothing was."""
+
+
+def entry_lines(lines: list[str], header: int) -> tuple[int, int]:
+    """Where the entry whose `[[...]]` header is `lines[header]` starts and ends.
+
+    Every line up to the next header, but for the comments and blank lines just before it,
+    which are about that next one; and the comments right above its own header,
+    which are about this one, as "this one is the 2025 rewrite" is.
+    By lines rather than through `tomllib`, which would drop every comment in the file.
+    """
+    after = next(
+        (i for i in range(header + 1, len(lines)) if lines[i].lstrip().startswith("[")),
+        len(lines),
+    )
+    end = after
+    while end > header + 1 and (not lines[end - 1].strip() or comment(lines[end - 1])):
+        end -= 1
+    start = header
+    while start > 0 and comment(lines[start - 1]):
+        start -= 1
+    return start, end
+
+
+def comment(line: str) -> bool:
+    return line.lstrip().startswith("#")
+
+
+def take_entry(text: str, url: str) -> tuple[str, str]:
+    """`text` without the entry for `url`, and that entry, both as text, comments and all.
+
+    The blank lines above the entry are taken out with it,
+    and the ones below stay, to separate what came before it from what comes after.
+    """
+    lines = text.splitlines(keepends=True)
+    for header, line in enumerate(lines):
+        if not line.lstrip().startswith("[["):
+            continue
+        start, end = entry_lines(lines, header)
+        entry = "".join(lines[start:end])
+        listed = [value for values in tomllib.loads(entry).values() for value in values]
+        if [canonical(str(value.get("url", "")).strip()) for value in listed] != [url]:
+            continue
+        while start > 0 and not lines[start - 1].strip():
+            start -= 1
+        rest = "".join(lines[:start] + lines[end:])
+        return rest.rstrip("\n") + "\n", entry.rstrip("\n") + "\n"
+    raise ValueError(f"no entry for {url}")
+
+
+def republished(entry: str, published: Published) -> str:
+    """`entry` with its `published` line saying `published`, and every other line as it was."""
+    lines = entry.splitlines(keepends=True)
+    for i, line in enumerate(lines):
+        if not comment(line) and line.partition("=")[0].strip() == "published":
+            lines[i] = f"published = {json.dumps(str(published))}\n"
+    return "".join(lines)
+
+
+def publish_draft(
+    ref: str,
+    published: Published,
+    drafts: Path = DRAFTS / PUBLICATIONS,
+    public: Path = PUBLICATIONS,
+) -> Promoted:
+    """Move the draft `ref` names from `drafts` into `public`, as `published` says it is out.
+
+    `ref` is its `name`, in any case, or its URL, as `one` takes either.
+    The entry moves whole, in its own table,
+    with its comments and any field this does not read, only `published` rewritten.
+    Refused if the drafts' list does not have it, has more than one by that name,
+    or the public list already has its document, as `add` refuses that.
+
+    What its last build saved goes with it, from beside `drafts` to the same path beside `public`:
+    its `doc.json`, which an `--offline` build is built from, and the indexes beside it,
+    `images.json`, `archives.json`, and `embeds.json`, which every build reads back.
+    Without them the public list's offline build cannot build it at all,
+    and the next build there would ask the archive about every source again.
+    Refused if something is at that path already, as a publication there would be.
+
+    Both lists are read and checked before either is written,
+    so a refusal leaves everything as it was.
+    """
+    if published is Published.DRAFT:
+        raise ValueError(f"{ref}: a draft moved into `{public}` is published, so not `draft`")
+    listed = load_publications(drafts)
+    wanted = ref.strip().casefold()
+    matches = [
+        p
+        for p in listed
+        if (p.name or "").casefold() == wanted or canonical(p.url) == canonical(ref)
+    ]
+    if not matches:
+        raise ValueError(f"{drafts}: lists no draft named or at `{ref}`")
+    if len(matches) > 1:
+        tabs = ", ".join(f"`{p.tab}`" for p in matches)
+        raise ValueError(f"{drafts}: more than one draft is named `{ref}`, on tabs {tabs}")
+    [draft] = matches
+    url = canonical(draft.url)
+    public_listed = load_publications(public)
+    refuse_listed(url, public_listed, public)
+
+    rest, entry = take_entry(drafts.read_text(), url)
+    entry = republished(entry, published)
+    promoted = Publication(
+        url=draft.url, name=draft.name, tab=draft.tab, published=published, kind=draft.kind
+    )
+    public_text = public.read_text().rstrip("\n") + "\n\n" + entry
+    # The text edits checked against what they were meant to do,
+    # so a list laid out some way `take_entry` did not expect is refused rather than mangled.
+    if publications_in(rest, drafts) != [p for p in listed if p != draft]:
+        raise ValueError(f"{drafts}: could not take the entry for {url} out of it cleanly")
+    if publications_in(public_text, public) != [*public_listed, promoted]:
+        raise ValueError(f"{public}: could not add the entry for {url} to it cleanly")
+
+    built = drafts.parent / SITE / UNPUBLISHED_DIR
+    saved = saved_for(draft, saved_responses(built))
+    moved = None
+    if saved is not None:
+        destination = public.parent / SITE / UNPUBLISHED_DIR / saved.relative_to(built)
+        if destination.exists():
+            raise ValueError(f"`{destination}` is there already, so `{saved}` cannot move to it")
+        moved = (saved, destination)
+
+    public.write_text(public_text)
+    drafts.write_text(rest)
+    if moved is not None:
+        moved[1].parent.mkdir(parents=True, exist_ok=True)
+        shutil.move(moved[0], moved[1])
+    return Promoted(promoted, moved)
 
 
 def saved_responses(outdir: Path) -> dict[tuple[str, str], Path]:

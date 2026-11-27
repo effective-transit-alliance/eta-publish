@@ -638,6 +638,52 @@ def added(publications: Path, name: str, tab: str, console: Console) -> Text:
     return text
 
 
+def promoted(
+    drafts: Path,
+    public: Path,
+    name: str,
+    tab: str,
+    published: str,
+    saved: tuple[Path, Path] | None,
+    console: Console,
+) -> Group:
+    """What `eta-publish publish` moved, and the two commits it leaves to be made.
+
+    Every value back, as `added` gives them,
+    and what was saved for it, moved or not there to move,
+    since an offline build of the public list needs it.
+    """
+    heading = Text()
+    heading.append("✓ ", style="bold green")
+    heading.append_text(
+        _spans(
+            (
+                Shown(name),
+                ", tab ",
+                Shown(tab),
+                f": moved from {drafts} to {public} as ",
+                Shown(published),
+            ),
+            console,
+        )
+    )
+    if saved is None:
+        moved = note(
+            "nothing saved for it under {} to move", Shown(f"{drafts.parent}/"), console=console
+        )
+    else:
+        moved = note("moved {} to {}", Shown(str(saved[0])), Shown(str(saved[1])), console=console)
+    rebuild = note("rebuild with {}", Shown("uv run eta-publish all"), console=console)
+    # In that order because `scripts/drafts-commit.sh head`, making this repository's drafts commit,
+    # refuses a `drafts/` with changes not committed.
+    commit = note(
+        "then commit in both repositories: in {} first, then here",
+        Shown(f"{drafts.parent}/"),
+        console=console,
+    )
+    return Group(heading, moved, rebuild, commit)
+
+
 def summary(built_count: int, failed_count: int, warning_count: int) -> Text:
     """The one line to read if only one line is read.
 

@@ -4,6 +4,7 @@
                                 and in `drafts/publications.toml`, into `drafts/site/unpublished/`
     eta-publish one <doc>       one document, wherever you point it or by its listed name
     eta-publish add <url>       write that document's entry into the drafts' list
+    eta-publish publish <name>  move a draft's entry into the list, as published
     eta-publish logo            write the logo charts carry from the logo as drawn
     eta-publish fonts           download the fonts the publications are set in, if not yet cached
     eta-publish drafts site     build the drafts site, every publication labeled with its kind
@@ -22,6 +23,7 @@ Each publication lands under the path its own front matter gives it.
 """
 
 import signal
+from enum import StrEnum
 from pathlib import Path
 from typing import Annotated
 
@@ -51,10 +53,12 @@ from .site import (
     DRAFTS,
     PUBLICATIONS,
     SITE,
+    Published,
     add_publication,
     listed_publication,
     load_hosts,
     load_publications,
+    publish_draft,
 )
 
 # Only for `fonts`, so no other command loads `requests` for it.
@@ -263,6 +267,62 @@ def add(
     # and stdout is left for something a caller would want to read.
     log = console.for_stream()
     console.write(console.added(publications, added.name or "", added.tab or "", log), log)
+
+
+class PublishedAs(StrEnum):
+    """How a draft is out once it is published: every `Published` but `draft`."""
+
+    AUTOMATED = Published.AUTOMATED.value
+    MANUAL = Published.MANUAL.value
+
+
+@app.command(name="publish")
+def publish_listed_draft(
+    draft: Annotated[
+        str,
+        Argument(
+            metavar="DRAFT",
+            help="a draft's `name` in `drafts/publications.toml`, or its Google Doc URL",
+        ),
+    ],
+    published: Annotated[
+        PublishedAs,
+        Option(
+            "--as",
+            help="`automated` when the live page is its pasted `report.html`,"
+            " `manual` when it is a page built by hand",
+        ),
+    ] = PublishedAs.AUTOMATED,
+) -> None:
+    """Move a draft from `drafts/publications.toml` into `publications.toml`, as published.
+
+    Its entry moves whole, `published` set to `--as`,
+    `automated` unless it says `manual`, since new publications should be automated,
+    and what its last build saved beside it goes from `drafts/site/` to `site/`,
+    so the public list builds it offline as it did the drafts.
+
+    Files only: both repositories need a commit afterwards, after a rebuild,
+    `drafts/` first, since `scripts/drafts-commit.sh head`, making this one's drafts commit,
+    needs `drafts/` committed.
+    """
+    try:
+        promoted = publish_draft(draft, Published(published))
+    except (OSError, ValueError) as e:
+        raise BadParameter(str(e), param_hint="DRAFT") from e
+    log = console.for_stream()
+    entry = promoted.publication
+    console.write(
+        console.promoted(
+            DRAFTS / PUBLICATIONS,
+            PUBLICATIONS,
+            entry.name or "",
+            entry.tab or "",
+            str(entry.published),
+            promoted.saved,
+            log,
+        ),
+        log,
+    )
 
 
 @app.command()
