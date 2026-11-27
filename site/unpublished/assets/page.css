@@ -1,6 +1,7 @@
 /* The typeface etany.org sets its text in, served from the build's own
    `assets/fonts/` rather than from a font host, as the stylesheets are.
-   One file holds every weight from 200 to 700. */
+   One file holds every weight from 200 to 700.
+   Each build makes it from the `ttf` the PDF is set in; see `eta_publish/fonts.py`. */
 @font-face {
     font-family: Yaldevi;
     src: url("fonts/Yaldevi.woff2") format("woff2");

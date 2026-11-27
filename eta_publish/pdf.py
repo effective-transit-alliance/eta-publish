@@ -7,7 +7,6 @@ rather than failing everything for the sake of one output.
 
 import shutil
 import subprocess
-from importlib import resources
 from pathlib import Path
 
 from .assets import read
@@ -38,8 +37,12 @@ def install_template(outdir: Path) -> Path:
     return dest
 
 
-def compile_pdf(source: Path, dest: Path | None = None) -> Path:
-    """Run `typst compile` on `source`, returning the PDF path."""
+def compile_pdf(source: Path, fonts: Path, dest: Path | None = None) -> Path:
+    """Run `typst compile` on `source`, returning the PDF path.
+
+    `fonts` is the directory of fonts it is set in besides the machine's own,
+    which a build gets from `fonts.fonts`.
+    """
     typst = shutil.which("typst")
     if typst is None:
         # Nothing said here: what a build does about a missing `typst` is print
@@ -48,24 +51,21 @@ def compile_pdf(source: Path, dest: Path | None = None) -> Path:
         # the values they are rather than spelled into a string.
         raise TypstMissing("typst")
     dest = dest or source.with_suffix(".pdf")
-    # The typeface ships with the package, so the PDF is set in it on a machine
-    # that has never installed it.
-    with resources.as_file(resources.files("eta_publish.assets") / "fonts") as fonts:
-        result = subprocess.run(
-            [
-                typst,
-                "compile",
-                "--root",
-                str(source.parent),
-                "--font-path",
-                str(fonts),
-                str(source),
-                str(dest),
-            ],
-            capture_output=True,
-            text=True,
-            check=False,
-        )
+    result = subprocess.run(
+        [
+            typst,
+            "compile",
+            "--root",
+            str(source.parent),
+            "--font-path",
+            str(fonts),
+            str(source),
+            str(dest),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
     if result.returncode != 0:
         raise RuntimeError(f"typst compile failed:\n{result.stderr.strip()}")
     return dest

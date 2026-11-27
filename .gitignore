@@ -58,3 +58,6 @@ token.json
 
 # The npm packages `bun install` installs from `bun.lock`.
 /node_modules/
+
+# The `woff2` of each font, which every build makes from the `ttf` it downloads into the cache.
+/site/**/assets/fonts/

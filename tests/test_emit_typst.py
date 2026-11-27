@@ -51,6 +51,17 @@ def test_a_field_name_cannot_be_typst_code(doc: Document) -> None:
     assert "read(" not in TypstEmitter(site_url=HOST).emit(doc)
 
 
+def _no_fonts(tmp_path: Path) -> Path:
+    """A font directory with nothing in it, so a test downloads no font.
+
+    `typst` sets the text in the next font the template names, or its own,
+    which changes nothing a test here looks at.
+    """
+    fonts = tmp_path / "fonts"
+    fonts.mkdir()
+    return fonts
+
+
 @pytest.mark.skipif(shutil.which("typst") is None, reason="typst is not installed")
 def test_the_pdf_links_a_contributor_on_staff(doc: Document, tmp_path: Path) -> None:
     """The link survives into the PDF, and only for the name on staff."""
@@ -66,7 +77,7 @@ def test_the_pdf_links_a_contributor_on_staff(doc: Document, tmp_path: Path) -> 
 
     uris = [
         annot["/A"]["/URI"]
-        for page in PdfReader(compile_pdf(source)).pages
+        for page in PdfReader(compile_pdf(source, _no_fonts(tmp_path))).pages
         for annot in (a.get_object() for a in page.get("/Annots", []))
         if "/A" in annot and "/URI" in annot["/A"]
     ]
@@ -87,7 +98,7 @@ def test_the_emitted_source_compiles(doc: Document, tmp_path: Path) -> None:
     source.write_text(TypstEmitter(site_url=HOST).emit(doc))
     install_template(tmp_path)
 
-    pdf = compile_pdf(source)
+    pdf = compile_pdf(source, _no_fonts(tmp_path))
     assert pdf.exists()
     assert pdf.read_bytes().startswith(b"%PDF")
 
