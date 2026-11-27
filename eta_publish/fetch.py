@@ -31,6 +31,7 @@ from functools import cache
 from pathlib import Path
 from threading import Lock
 from urllib.parse import parse_qs, urlparse
+lazy import subprocess
 
 lazy import google.auth
 lazy from google.auth.credentials import Credentials
@@ -348,7 +349,7 @@ def _sign_in() -> Credentials:
     return creds
 
 
-def _ambient_credentials() -> Credentials | None:
+def _ambient_credentials(scopes: list[str] = SCOPES) -> Credentials | None:
     """Service account credentials, when the environment supplies them.
 
     `None` when it does not,
@@ -361,13 +362,60 @@ def _ambient_credentials() -> Credentials | None:
         return None
 
     try:
-        creds, _ = google.auth.default(scopes=SCOPES)
+        creds, _ = google.auth.default(scopes=scopes)
     except DefaultCredentialsError as e:
         raise FetchFailed(
             "$GOOGLE_APPLICATION_CREDENTIALS is set but the credentials it "
             f"names could not be loaded: {e}"
         ) from e
     return creds
+
+
+SERVICE_ACCOUNT = "eta-publish-ci@eta-publish.iam.gserviceaccount.com"
+"""Who writes into the documents: comments and suggestions are signed by it, not by a person."""
+
+WRITE_SCOPES = ["https://www.googleapis.com/auth/documents"]
+"""What writing comments and suggestions takes, and all it takes.
+
+Reading a document with its suggestions and comments in it needs no more,
+and nothing written into one goes through Drive.
+"""
+
+
+def service_account_credentials(scopes: list[str] = WRITE_SCOPES) -> Credentials:
+    """The service account's own credentials, for writing into documents as it.
+
+    In CI, what Workload Identity Federation's sign-in leaves in the environment,
+    as the build reads with. On a person's machine there is no key to read
+    (the organization forbids them), so `gcloud` acts as the account for whoever
+    is signed in to it and allowed to (see `docs/accounts.md`), and hands over a token.
+
+    The token is kept in memory and nowhere else, and lasts an hour,
+    which is longer than writing into every listed document takes.
+    """
+    ambient = _ambient_credentials(scopes)
+    if ambient is not None:
+        return ambient
+    command = [
+        "gcloud",
+        "auth",
+        "print-access-token",
+        f"--impersonate-service-account={SERVICE_ACCOUNT}",
+        f"--scopes={','.join(scopes)}",
+    ]
+    try:
+        done = subprocess.run(command, capture_output=True, text=True, check=False)
+    except FileNotFoundError as e:
+        raise FetchFailed(
+            f"no `gcloud` here to act as {SERVICE_ACCOUNT} with; install the Google Cloud CLI"
+        ) from e
+    if done.returncode != 0:
+        # Its last line is the one with the next step in it, `gcloud auth login` as often as not.
+        said = done.stderr.strip().splitlines()
+        raise FetchFailed(
+            f"`gcloud` could not act as {SERVICE_ACCOUNT}: {said[-1] if said else done.returncode}"
+        )
+    return UserCredentials(token=done.stdout.strip())
 
 
 def _granted_scopes() -> set[str]:

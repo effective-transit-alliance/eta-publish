@@ -39,6 +39,7 @@ from pypdf.errors import PyPdfError
 from requests.adapters import HTTPAdapter
 
 from . import PACKAGE_NAME, repository
+from .check_names import Check
 from .checks import plural
 from .console import Rows
 from .nodes import (
@@ -808,6 +809,7 @@ def check_pending(doc: Document) -> None:
         if archived is None or not archived.pending or archived.version:
             continue
         doc.warn(
+            Check.ARCHIVE_FAILED,
             "could not archive {} ({}); it publishes as not archived, "
             "and the next build that can asks again",
             Shown(url),

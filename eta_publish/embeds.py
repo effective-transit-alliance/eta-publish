@@ -22,9 +22,22 @@ import requests
 lazy from yt_dlp import YoutubeDL
 
 from . import console
+from .check_names import Check
 from .docs_json import JsonObject
 from .naming import CAPTIONS_LANGUAGE, IMAGE_DIR, VIDEO_DIR, media_stem, replace_bytes
-from .nodes import VIDEO_TYPES, Captions, Card, Cue, Document, Embed, Platform, Shown
+from .nodes import (
+    VIDEO_TYPES,
+    Captions,
+    Card,
+    Cue,
+    Document,
+    Embed,
+    Location,
+    Mark,
+    Platform,
+    Replace,
+    Shown,
+)
 lazy from .fetch import download_drive_file, drive_file_type
 
 EMBEDS_JSON = "embeds.json"
@@ -127,31 +140,43 @@ def check_embeds(doc: Document) -> None:
     for embed in doc.embeds:
         card = doc.cards.get(embed.url)
         if card is None:
-            doc.warn("nothing has looked up the embed {}; it shows as a link", Shown(embed.url))
+            doc.warn(
+                Check.EMBED_NOT_LOOKED_UP,
+                "nothing has looked up the embed {}; it shows as a link",
+                Shown(embed.url),
+            )
         elif card.error:
             doc.warn(
+                Check.EMBED_LOOKUP_FAILED,
                 "could not look up the embed {} ({}); it shows as a link",
                 Shown(embed.url),
                 card.error,
             )
         elif embed.platform is Platform.DRIVE and not is_video(card):
             doc.warn(
+                Check.EMBED_NOT_A_VIDEO,
                 "{} is a Drive file of type {}, not a video this can play; it shows as a link",
                 Shown(embed.url),
                 Shown(card.mime or "unknown"),
+                marks=[embed.location],
+                about=embed.url,
             )
         elif not doc.served_video(embed):
             # A platform's own player shows the platform's captions, and only those.
             if embed.captions:
                 doc.warn(
+                    Check.VIDEO_CAPTIONS_NOT_SHOWN,
                     "the video {} plays in its platform's player, which shows none of "
                     "the {} under it; add {} to its line for the site to serve it with them",
                     Shown(embed.url),
                     Shown("Captions:"),
                     Shown("Copy"),
+                    marks=[_made_copy(embed)],
+                    about=embed.url,
                 )
         elif embed.url not in doc.media_captions and not embed.uncaptioned:
             doc.warn(
+                Check.VIDEO_WITHOUT_CAPTIONS,
                 "the video {} has no captions; write them after a {} line under it, "
                 "each on a line of its own indented like {}, "
                 "or leave {} empty if nothing said in it matters",
@@ -159,7 +184,20 @@ def check_embeds(doc: Document) -> None:
                 Shown("Captions:"),
                 Shown("0:04\u20130:04.7 Jesus"),
                 Shown("Captions:"),
+                marks=[embed.location],
+                about=embed.url,
             )
+
+
+def _made_copy(embed: Embed) -> Mark | Location | None:
+    """Its `Video:` line made a `Video (Copy):` line, which the site serves itself.
+
+    Only where the label has no modifiers yet: where it has, `Copy` goes among them,
+    and those are already warned about as ones it does not take."""
+    if embed.label is None or embed.modifiers:
+        return embed.location
+    point = Location(embed.label.tab_id, embed.label.segment_id, embed.label.end, embed.label.end)
+    return Mark(embed.label, fix=(Replace(point, " (Copy)"),))
 
 
 def _describe(embed: Embed, http: requests.Session) -> Card:
@@ -293,7 +331,12 @@ def download(
                     )
                 )
                 continue
-            doc.warn("could not download what {} shows ({})", Shown(embed.url), str(e))
+            doc.warn(
+                Check.EMBED_DOWNLOAD_FAILED,
+                "could not download what {} shows ({})",
+                Shown(embed.url),
+                str(e),
+            )
             continue
         doc.media_files[embed.url] = file
         doc.media_hashes[embed.url] = sha256_file(dest / folder / file)
@@ -463,7 +506,12 @@ def _copied(embed: Embed, stem: str, outdir: Path, doc: Document) -> str:
         try:
             captions = _captions(ydl, info, outdir, stem)
         except Exception as e:
-            doc.warn("could not download the captions of {} ({})", Shown(embed.url), str(e))
+            doc.warn(
+                Check.VIDEO_CAPTIONS_DOWNLOAD_FAILED,
+                "could not download the captions of {} ({})",
+                Shown(embed.url),
+                str(e),
+            )
         else:
             if captions is not None:
                 doc.media_captions[embed.url] = captions
@@ -553,6 +601,7 @@ def unrolled(vtt: str) -> str:
 def _check_size(embed: Embed, size: int, doc: Document) -> None:
     if size > PAGES_FILE_LIMIT:
         doc.warn(
+            Check.VIDEO_TOO_LARGE,
             f"the video {{}} is {size:,} bytes, over the {PAGES_FILE_LIMIT:,} bytes "
             "GitHub Pages will publish; the deploy will fail until it is smaller",
             Shown(embed.url),

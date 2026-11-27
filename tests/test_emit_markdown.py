@@ -5,6 +5,7 @@ import json
 import pytest
 from paths import FIXTURE_DIR, named_images
 
+from eta_publish.check_names import Check
 from eta_publish.docs_json import JsonObject
 from eta_publish.emit.markdown import MarkdownEmitter
 from eta_publish.nodes import Document, Inline, Paragraph, Text
@@ -98,7 +99,7 @@ def test_a_value_holding_a_backtick_is_still_one_span() -> None:
     from eta_publish.nodes import Document, Shown
 
     doc = Document()
-    doc.warn("using {} and ignoring {}", Shown("a ` b"), Shown("c"))
+    doc.warn(Check.HEADER_FIELD_REPEATED, "using {} and ignoring {}", Shown("a ` b"), Shown("c"))
     rendered = MarkdownEmitter().warnings(doc)
     assert "using ``a ` b`` and ignoring `c`" in rendered
 

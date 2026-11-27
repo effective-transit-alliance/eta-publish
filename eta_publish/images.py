@@ -30,6 +30,7 @@ import requests
 lazy from PIL import Image as Pillow
 lazy from PIL import ImageChops, ImageStat
 
+from .check_names import Check
 from .naming import (
     PNG_SIDE,
     WEB_DIR,
@@ -202,19 +203,7 @@ def download(
         doc.image_files[image.object_id] = existing.name
 
     for image, content_type, body, live_failure, stale in _fetch_all(wanted, http):
-        if stale:
-            doc.warn(
-                "image {} differs from its source {}, which is what publishes; "
-                "paste the current file into the document so its editors see it too",
-                Shown(image.filename),
-                Shown(image.live_uri),
-            )
-        if live_failure:
-            doc.warn(
-                f"could not download image {{}} from its source ({live_failure}); "
-                "the copy in the document is published instead",
-                Shown(image.live_uri),
-            )
+        _said_of_source(image, live_failure, stale, doc)
         extension = EXTENSIONS.get(content_type)
         if extension is None:
             # Refused rather than saved under a bare stem.
@@ -234,14 +223,59 @@ def download(
     if missing:
         if no_uris:
             doc.warn(
+                Check.IMAGE_URIS_MISSING,
                 "this response carries no image URIs, because they expire and are "
-                "not saved; re-fetch the document to download its images"
+                "not saved; re-fetch the document to download its images",
             )
         else:
             for object_id in missing:
-                doc.warn("image {} has no source URI; not downloaded", Shown(object_id))
+                doc.warn(
+                    Check.IMAGE_WITHOUT_URI,
+                    "image {} has no source URI; not downloaded",
+                    Shown(object_id),
+                )
 
     return written
+
+
+def check_pictures(doc: Document, *, session: requests.Session | None = None) -> None:
+    """Warn what `download` warns of the pictures themselves, writing nothing.
+
+    That a live source differs from the document's copy, and that a crop leaves nothing,
+    which only the bytes can tell: see `download` for why nothing else says
+    whether a picture is still the one a file on disk was made from.
+    So only the rasters either is about are fetched, one with a live source or a crop,
+    and nothing else is.
+    """
+    wanted: list[tuple[Image, str]] = []
+    for image in doc.images:
+        uri = image.live_uri or image.source_uri
+        if image.vector is None and (image.live_uri or image.crop.trims) and uri:
+            wanted.append((image, uri))
+    for image, _, body, live_failure, stale in _fetch_all(wanted, session or requests.Session()):
+        _said_of_source(image, live_failure, stale, doc)
+        crop_to(image, body, doc)
+
+
+def _said_of_source(image: Image, live_failure: str, stale: bool, doc: Document) -> None:
+    """What `_fetch_image` found about an image's live source, as warnings."""
+    if stale:
+        doc.warn(
+            Check.IMAGE_DIFFERS_FROM_SOURCE,
+            "image {} differs from its source {}, which is what publishes; "
+            "paste the current file into the document so its editors see it too",
+            Shown(image.filename),
+            Shown(image.live_uri),
+            marks=[image.location],
+            about=image.filename,
+        )
+    if live_failure:
+        doc.warn(
+            Check.IMAGE_SOURCE_DOWNLOAD_FAILED,
+            f"could not download image {{}} from its source ({live_failure}); "
+            "the copy in the document is published instead",
+            Shown(image.live_uri),
+        )
 
 
 def _fetch_all(
@@ -410,6 +444,7 @@ def _fetch_vector(
     # not even for a vector it has no copy of.
     if not online and not original.exists():
         doc.warn(
+            Check.VECTOR_COPY_MISSING,
             "no copy of the vector {} to build offline from; "
             "the figure is published without a picture",
             Shown(vector.title or vector.uri),
@@ -428,6 +463,7 @@ def _fetch_vector(
                 raise FetchFailed("it is not an SVG")
         except (FetchFailed, OSError, requests.RequestException) as e:
             doc.warn(
+                Check.VECTOR_DOWNLOAD_FAILED,
                 f"could not download the vector {{}} ({e}); "
                 "the figure is published without a picture",
                 Shown(vector.title or vector.uri),
@@ -447,6 +483,7 @@ def _fetch_vector(
             cropped = image.crop
         except FetchFailed as e:
             doc.warn(
+                Check.VECTOR_CROP_FAILED,
                 f"could not crop the vector {{}} ({e}); it is published uncropped",
                 Shown(vector.title or vector.uri),
             )
@@ -455,6 +492,7 @@ def _fetch_vector(
             data = with_logo(data, downloaded, cropped, description)
         except FetchFailed as e:
             doc.warn(
+                Check.VECTOR_LOGO_FAILED,
                 f"could not put the ETA logo on the vector {{}} ({e}); it is published without it",
                 Shown(vector.title or vector.uri),
             )
@@ -594,7 +632,13 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
         with Pillow.open(io.BytesIO(data)) as opened:
             box = image.crop.box(opened.width, opened.height)
             if box[2] <= box[0] or box[3] <= box[1]:
-                doc.warn("image {} crops to nothing; left uncropped", Shown(image.object_id))
+                doc.warn(
+                    Check.IMAGE_CROPS_TO_NOTHING,
+                    "image {} crops to nothing; left uncropped",
+                    Shown(image.object_id),
+                    marks=[image.location],
+                    about=image.object_id,
+                )
                 return data
             trimmed = opened.crop(box)
             buffer = io.BytesIO()
@@ -602,7 +646,11 @@ def crop_to(image: Image, data: bytes, doc: Document) -> bytes:
             trimmed.save(buffer, format=opened.format)
             return buffer.getvalue()
     except OSError as e:
-        doc.warn(f"could not crop image {{}} ({e}); left uncropped", Shown(image.object_id))
+        doc.warn(
+            Check.IMAGE_CROP_FAILED,
+            f"could not crop image {{}} ({e}); left uncropped",
+            Shown(image.object_id),
+        )
         return data
 
 

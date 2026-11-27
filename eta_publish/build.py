@@ -35,6 +35,7 @@ from .archive import (
     uncounted,
     write_archive_index,
 )
+from .check_names import Check
 from .checks import check, check_charts, check_described, check_pages, plural
 from .docs_json import JsonObject
 from .embeds import (
@@ -777,7 +778,10 @@ def write_frames(doc: Document, dest: Path) -> None:
         ffmpeg = shutil.which("ffmpeg")
         if ffmpeg is None:
             doc.warn(
-                "{} is not on PATH, so {} has no frame for the PDF", Shown("ffmpeg"), Shown(file)
+                Check.FFMPEG_MISSING,
+                "{} is not on PATH, so {} has no frame for the PDF",
+                Shown("ffmpeg"),
+                Shown(file),
             )
             return
         frame.parent.mkdir(parents=True, exist_ok=True)
@@ -801,6 +805,7 @@ def write_frames(doc: Document, dest: Path) -> None:
         )
         if result.returncode != 0:
             doc.warn(
+                Check.VIDEO_FRAME_FAILED,
                 "{} could not take a frame from {}: {}",
                 Shown("ffmpeg"),
                 Shown(file),
@@ -1072,6 +1077,7 @@ def check_code_block_size(doc: Document, publication: Path) -> None:
     size = publication.stat().st_size
     if size > CODE_BLOCK_LIMIT:
         doc.warn(
+            Check.CODE_BLOCK_TOO_LARGE,
             f"{publication.name} is {size:,} bytes, over Squarespace's "
             f"{CODE_BLOCK_LIMIT:,} byte code block limit; "
             "split it at h2 boundaries with {}",
@@ -1079,9 +1085,10 @@ def check_code_block_size(doc: Document, publication: Path) -> None:
         )
     elif size > CODE_BLOCK_WARN:
         doc.warn(
+            Check.CODE_BLOCK_NEAR_LIMIT,
             f"{publication.name} is {size:,} bytes, within Squarespace's "
             f"{CODE_BLOCK_LIMIT:,} byte limit but large enough that the editor "
-            "may be slow to save it"
+            "may be slow to save it",
         )
 
 

@@ -13,9 +13,26 @@ rather than quietly making the publications agree.
 """
 
 import re
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
+from dataclasses import dataclass, field, replace
+from difflib import SequenceMatcher
 
-from .nodes import SPACE, Document, Highlighted, Shown, plain_text
+from .check_names import Check
+from .nodes import (
+    SPACE,
+    Document,
+    Highlighted,
+    Inline,
+    Location,
+    Mark,
+    Replace,
+    Shown,
+    Text,
+    locate,
+    plain_text,
+    utf16_length,
+)
+from .parse import clipped, labelled
 
 CONTEXT = 30
 """How much of the line to show on either side of what is being warned about.
@@ -42,6 +59,21 @@ def _excerpt(text: str, start: int, end: int) -> str:
     return f"{_before(text, start)}{text[start:end]}{_after(text, end)}"
 
 
+def _around(text: str, start: int, end: int) -> str:
+    """`text[start:end]` with the whole of each word it touches.
+
+    What a finding is about where it is itself too little to tell one from another,
+    such as a gap or an apostrophe.
+    """
+    first = start
+    while first and not text[first - 1].isspace():
+        first -= 1
+    last = end
+    while last < len(text) and not text[last].isspace():
+        last += 1
+    return text[first:last]
+
+
 PREFIX = "style: "
 """What every warning here opens with.
 
@@ -53,14 +85,182 @@ should be able to tell the two apart without reading to the end of the line.
 """
 
 
-def _warn(doc: Document, template: str, *values: Shown | Highlighted) -> None:
+def _warn(
+    doc: Document,
+    check: Check,
+    template: str,
+    *values: Shown | Highlighted,
+    marks: Iterable[Mark | None] = (),
+) -> None:
     """Warn about how something is written, said as one of these rather than
     as one of the document's other warnings."""
-    doc.warn(PREFIX + template, *values)
+    doc.warn(check, PREFIX + template, *values, marks=marks)
 
 
-def _prose(doc: Document) -> Iterator[str]:
-    """Every run of the document's own words, as one string each.
+def _kind(char: str) -> str:
+    """What a character is part of a piece as: a number, a word, or nothing but itself."""
+    if char.isdigit():
+        return "number"
+    return "word" if char.isalpha() else ""
+
+
+def _pieces(text: str) -> list[str]:
+    """`text` in pieces to compare by: each run of digits, each run of letters,
+    and every other character alone.
+
+    A number is one piece however many digits it has and a word is one however
+    many letters, so what two spellings share is a whole number or a whole word,
+    never half of one: `feet` and `ft` share nothing, though both end in `t`.
+    """
+    pieces: list[str] = []
+    for char in text:
+        if pieces and _kind(char) and _kind(char) == _kind(pieces[-1][0]):
+            pieces[-1] += char
+        else:
+            pieces.append(char)
+    return pieces
+
+
+def _edits(old: str, new: str) -> list[tuple[int, int, str]]:
+    """What of `old` becoming `new` is changed, one edit for each stretch:
+    where it starts and ends in `old`, and what is put there.
+
+    The pieces of the two, compared by `SequenceMatcher`, which takes the longest
+    run of pieces they share and then does the same either side of it. That is not
+    always the fewest edits, but these are a handful of pieces, where it is,
+    and what it leaves is whole numbers and words and the spaces between them.
+    A stretch with nothing of `old` in it is an insertion, where `start == end`.
+    Nothing at all where `new` is `old`.
+    """
+    before = _pieces(old)
+    after = _pieces(new)
+    at = [0]
+    for piece in before:
+        at.append(at[-1] + len(piece))
+    return [
+        (at[i1], at[i2], "".join(after[j1:j2]))
+        for tag, i1, i2, j1, j2 in SequenceMatcher(
+            None, before, after, autojunk=False
+        ).get_opcodes()
+        if tag != "equal"
+    ]
+
+
+@dataclass(frozen=True)
+class Prose:
+    """One run of the document's own words: what it says, and the inlines it is read from.
+
+    Every check reads `text` and says where in it a finding is,
+    and the inlines are how that is mapped back to where it is in the document.
+    """
+
+    text: str
+    inlines: list[Inline] = field(default_factory=list)
+    """What `text` is read from, or none where it is not from the document."""
+
+    at: int = 0
+    """Where `text` starts in `plain_text(inlines)`."""
+
+    def mark(
+        self, start: int, end: int, subject: str, replacement: str | None = None
+    ) -> Mark | None:
+        """A mark on `text[start:end]`, with `replacement` in its place as the fix.
+
+        `None` where the run has no location to put one at.
+
+        A suggestion is only for what changes: the numbers and words the finding
+        and its replacement share are left out of it, one `Replace` for each stretch
+        between them. `137 feet` for `137 ft` replaces `feet` alone, and the number
+        keeps whatever the document set it in, and a dash spaced on both sides
+        loses just the two spaces, as two edits, and keeps the dash.
+        The mark runs from the start of the first of them to the end of the last,
+        and each is exactly what it replaces,
+        so what is under it is what Docs strikes through.
+
+        Each of them has to be typed text. `plain_text` leaves out a Shift+Enter,
+        a footnote reference, and a picture, so a stretch with one inside runs over it
+        in the document, and a smart chip shows its name but is one unit, so a stretch
+        touching one is the whole chip: a replacement over either would delete what
+        the text does not say is there. What is left alone, between the edits,
+        is never deleted, so one there is no reason to withhold the suggestion.
+
+        Otherwise, and where there is no `replacement` because the check does not
+        know what to write, it is a comment on the whole finding.
+
+        `subject` is what the finding is about, which is what its key is made of:
+        the whole text being fixed, with whitespace run together and clipped
+        like a quoted line, whatever part of it is replaced.
+        """
+        whole = locate(self.inlines, self.at + start, self.at + end)
+        if whole is None:
+            return None
+        subject = clipped(" ".join(subject.split()))
+        if replacement is not None:
+            fix = self._fix(start, end, replacement)
+            if fix:
+                return Mark(fix[0].location.through(fix[-1].location), fix, subject=subject)
+        return Mark(whole, subject=subject)
+
+    def _fix(self, start: int, end: int, replacement: str) -> tuple[Replace, ...]:
+        """The edits that make `text[start:end]` the `replacement`, or none
+        where there is a stretch of them that is not typed text, or none to make."""
+        fix: list[Replace] = []
+        for first, last, new in _edits(self.text[start:end], replacement):
+            where = self._where(start + first, start + last, start)
+            if where is None:
+                return ()
+            fix.append(Replace(where, new))
+        return tuple(fix)
+
+    def _where(self, first: int, last: int, start: int) -> Location | None:
+        """Where `text[first:last]` is, if all of it is typed text, or `None`.
+
+        An empty stretch is an insertion, a point between two characters of
+        the finding, which starts at `start`: after the one before it, or before the first
+        one where it is at the very start. It is the neighbour that has to be typed,
+        and the point is its edge, so it is in the run it is beside and on the
+        side of a Shift+Enter that the finding's own characters are.
+        """
+        if first < last:
+            where = locate(self.inlines, self.at + first, self.at + last)
+            return where if where is not None and self._typed(first, last) else None
+        after = first == start
+        neighbour = (first, first + 1) if after else (first - 1, first)
+        beside = locate(self.inlines, self.at + neighbour[0], self.at + neighbour[1])
+        if beside is None or not self._typed(*neighbour):
+            return None
+        point = beside.start if after else beside.end
+        return replace(beside, start=point, end=point)
+
+    def _typed(self, start: int, end: int) -> bool:
+        """Whether `text[start:end]` is all text typed into the document, and nothing between."""
+        start += self.at
+        end += self.at
+        offset = 0
+        touched = False
+        between = False
+        for node in self.inlines:
+            if not isinstance(node, Text):
+                between = touched
+                continue
+            first, offset = offset, offset + len(node.text)
+            if offset <= start or not node.text:
+                continue
+            if first >= end:
+                break
+            # Docs counts a chip as one unit, though its name is longer.
+            if node.location is None or node.location.end - node.location.start != utf16_length(
+                node.text
+            ):
+                return False
+            if between:
+                return False
+            touched = True
+        return touched
+
+
+def _prose(doc: Document) -> Iterator[Prose]:
+    """Every run of the document's own words, as one `Prose` each.
 
     Footnotes included. They carry the publication's own prose as often as they
     carry a citation, and a citation copied from where it was published is
@@ -72,25 +272,47 @@ def _prose(doc: Document) -> Iterator[str]:
     would otherwise be the one piece of prose nothing here reads,
     and it is the piece that publishes as what a search result shows.
     The subtitle is taken out of the blocks the same way, so it is read here too.
+
+    A header value is read from the lines it was written on, not from `meta`,
+    where a value wrapped onto a second line is the two joined with a space:
+    the joined string has no one place in the document, and a line has.
+    A finding that would run from the end of one line into the start of the next,
+    such as a number and the unit after it, is not seen.
     """
-    yield from doc.meta.values()
-    yield plain_text(doc.subtitle)
+    for key in doc.meta:
+        for number, line in enumerate(doc.header_lines[key].lines):
+            yield _header_value(list(line), keyed=not number)
+    yield Prose(plain_text(doc.subtitle), doc.subtitle)
     for run, _ in doc.text_runs():
-        yield plain_text(run)
+        yield Prose(plain_text(run), run)
+
+
+def _header_value(line: list[Inline], *, keyed: bool) -> Prose:
+    """What a line of the header says, without its `Key:` and the spaces around the value.
+
+    The same text `meta` holds for a value written on one line,
+    read from the inlines so that where it starts in them is known.
+    `keyed` is whether the line opens with its `Key:`:
+    the first line of a value does, and one wrapped onto from it does not.
+    """
+    written = plain_text(line)
+    start = labelled(line).mark_at + 1 if keyed else 0
+    value = written[start:]
+    return Prose(value.strip(), line, start + len(value) - len(value.lstrip()))
 
 
 def style(doc: Document) -> None:
     """Warn about every line written against the house style."""
-    for text in _prose(doc):
-        _check_spacing(doc, text)
-        _check_dash_spacing(doc, text)
-        _check_ranges(doc, text)
-        _check_apostrophes(doc, text)
-        _check_organization_name(doc, text)
-        _check_street_names(doc, text)
-        _check_units(doc, text)
-        _check_hyphenated_units(doc, text)
-        _check_spelled_out_symbols(doc, text)
+    for prose in _prose(doc):
+        _check_spacing(doc, prose)
+        _check_dash_spacing(doc, prose)
+        _check_ranges(doc, prose)
+        _check_apostrophes(doc, prose)
+        _check_organization_name(doc, prose)
+        _check_street_names(doc, prose)
+        _check_units(doc, prose)
+        _check_hyphenated_units(doc, prose)
+        _check_spelled_out_symbols(doc, prose)
 
 
 GAP = re.compile(r"(?<=\S)(?P<gap>  +)(?=\S)")
@@ -111,7 +333,7 @@ and the paren is not what the spaces come after.
 """
 
 
-def _check_spacing(doc: Document, text: str) -> None:
+def _check_spacing(doc: Document, prose: Prose) -> None:
     """A gap of more than one space, described by what sits either side of it.
 
     Between sentences it is the typewriter habit, and mid-clause it is a
@@ -123,14 +345,30 @@ def _check_spacing(doc: Document, text: str) -> None:
     Squarespace never sees it, so nothing downstream publications either one
     and the Markdown archive keeps both forever.
     """
+    text = prose.text
     for match in GAP.finditer(text):
         gap = match.group("gap")
         start, end = match.span("gap")
         drawn = Highlighted(_before(text, start), SPACE * len(gap), _after(text, end))
+        # The gap, and the one space it should be, with the words either side
+        # as its subject: spaces say nothing, and how many there are is no key.
+        mark = prose.mark(start, end, _around(text, start, end), " ")
         if ENDS_A_SENTENCE.search(text[: match.start("gap")]):
-            _warn(doc, f"a sentence should end with 1 space, not {len(gap)}: {{}}", drawn)
+            _warn(
+                doc,
+                Check.EXTRA_SPACE_AFTER_SENTENCE,
+                f"a sentence should end with 1 space, not {len(gap)}: {{}}",
+                drawn,
+                marks=[mark],
+            )
         else:
-            _warn(doc, f"two words should be separated by 1 space, not {len(gap)}: {{}}", drawn)
+            _warn(
+                doc,
+                Check.EXTRA_SPACE_BETWEEN_WORDS,
+                f"two words should be separated by 1 space, not {len(gap)}: {{}}",
+                drawn,
+                marks=[mark],
+            )
 
 
 DASHES = "—–"
@@ -146,7 +384,7 @@ SPACED_DASH = re.compile(rf"(?: +(?P<before>[{DASHES}]) *|(?P<after>[{DASHES}]) 
 DASH_NAMES = {"\u2014": "an em dash", "\u2013": "an en dash"}
 
 
-def _check_dash_spacing(doc: Document, text: str) -> None:
+def _check_dash_spacing(doc: Document, prose: Prose) -> None:
     """A dash with a space on either side of it, where the house style has none.
 
     The publications already write it closed up, in every one of the fourteen
@@ -154,6 +392,7 @@ def _check_dash_spacing(doc: Document, text: str) -> None:
     from somewhere that sets them open, and the one paragraph set the other way
     is visible on the page next to the rest.
     """
+    text = prose.text
     for match in SPACED_DASH.finditer(text):
         dash = match.group("before") or match.group("after")
         start, end = match.span()
@@ -161,8 +400,11 @@ def _check_dash_spacing(doc: Document, text: str) -> None:
         drawn = match.group().replace(" ", SPACE)
         _warn(
             doc,
+            Check.SPACED_DASH,
             f"{DASH_NAMES[dash]} should not have spaces: {{}}",
             Highlighted(_before(text, start), drawn, _after(text, end)),
+            # The dash and its spaces, closed up to the dash alone.
+            marks=[prose.mark(start, end, _around(text, start, end), dash)],
         )
 
 
@@ -180,12 +422,13 @@ STREETS_AFTER = re.compile(r" (?:Sts|Avs)\b")
 """What follows the numbers in a station named for a span of streets, `47-50 Sts`."""
 
 
-def _check_ranges(doc: Document, text: str) -> None:
+def _check_ranges(doc: Document, prose: Prose) -> None:
     """A hyphen between two numbers, where the house style has an en dash.
 
     Docs does not turn one into the other as it does a quote,
     and the two look alike enough to slip past anyone reading the doc.
     """
+    text = prose.text
     for match in RANGE.finditer(text):
         start, end = match.span("hyphen")
         # A station named for the streets it spans, as the MTA writes it:
@@ -201,9 +444,12 @@ def _check_ranges(doc: Document, text: str) -> None:
             continue
         _warn(
             doc,
+            Check.HYPHEN_IN_RANGE,
             "a range should use an en dash, {}, not a hyphen: {}",
             Shown("\u2013"),
             Highlighted(_before(text, start), "-", _after(text, end)),
+            # The hyphen alone, with the whole range as what it is about.
+            marks=[prose.mark(start, end, match.group(), "\u2013")],
         )
 
 
@@ -215,19 +461,29 @@ and warning about every quote would bury the apostrophes it is after.
 """
 
 
-def _check_apostrophes(doc: Document, text: str) -> None:
+def _check_apostrophes(doc: Document, prose: Prose) -> None:
     """A straight `'` for an apostrophe, where the house style curls it: `’`.
 
     Docs curls it as it is typed, so a straight one arrives by pasting,
     and sits on the page beside the curled ones around it.
     """
+    text = prose.text
     for match in STRAIGHT_APOSTROPHE.finditer(text):
         _warn(
             doc,
+            Check.STRAIGHT_APOSTROPHE,
             "an apostrophe should be {}, not {}: {}",
             Shown("\u2019"),
             Shown("'"),
             Highlighted(_before(text, match.start()), match.group(), _after(text, match.end())),
+            marks=[
+                prose.mark(
+                    match.start(),
+                    match.end(),
+                    _around(text, match.start(), match.end()),
+                    "\u2019",
+                )
+            ],
         )
 
 
@@ -248,7 +504,7 @@ opening `The ETA` is the same mistake as one saying it mid-line.
 """
 
 
-def _check_organization_name(doc: Document, text: str) -> None:
+def _check_organization_name(doc: Document, prose: Prose) -> None:
     """`the ETA`, where the initials are written on their own.
 
     It is the name rather than a description of one, the way somebody writes
@@ -257,15 +513,26 @@ def _check_organization_name(doc: Document, text: str) -> None:
     Spelled out it does take the article, which is why this looks only at
     the initials.
     """
+    text = prose.text
     for match in ARTICLED.finditer(text):
         _warn(
             doc,
+            Check.ETA_WITH_ARTICLE,
             "{} is written {}; it is {} on its own, and {} spelled out: {}",
             Shown("ETA"),
             Shown(text[match.start() : match.end() + len("ETA")]),
             Shown("ETA"),
             Shown(SPELLED_OUT),
             Shown(_excerpt(text, match.start(), match.end() + len("ETA"))),
+            # The article and the space after it, struck out; the initials stay.
+            marks=[
+                prose.mark(
+                    match.start(),
+                    match.end(),
+                    text[match.start() : match.end() + len("ETA")],
+                    "",
+                )
+            ],
         )
 
 
@@ -488,13 +755,14 @@ def _named(words: list[tuple[str, int]], kind: int) -> int:
     return first
 
 
-def _check_street_names(doc: Document, text: str) -> None:
+def _check_street_names(doc: Document, prose: Prose) -> None:
     """A station or a street named some way other than the MTA's.
 
     The publications are about what the MTA builds, and a reader who goes looking
     for `125th Street` on a map finds `125 St`, which is the sign on the
     platform, the name in the app, and what the announcement says.
     """
+    text = prose.text
     words = _words(text)
     for i, (word, _) in enumerate(words):
         kind = _bare(word)
@@ -518,20 +786,35 @@ def _check_street_names(doc: Document, text: str) -> None:
         start = _at(*words[i - 1 if counted else first])
         written = f"{name} {kind}"
         named = _named_project(text, start)
+        stop = _at(*words[i]) + len(kind)
         if named is not None:
             # The whole phrase, so the warning is about the name the project
             # has rather than about the two words of it that are a street.
             written, correct = named
+            stop = start + len(written)
         else:
             correct = _mta(name, kind)
         if correct == written:
             continue
+        # Only where what the rule knows is the whole of it:
+        # a street numbered, which the MTA writes `125 St` on every sign,
+        # and the line, which this module names. A street named in words may be
+        # part of another agency's station, which is that agency's name to spell,
+        # as `Newark Broad Street` is in the saved `level-boarding` draft,
+        # so there the place is commented on and a person settles the name.
+        # And only where the document's text is exactly what was read,
+        # which it is not if the words are spaced or punctuated differently:
+        # a suggestion would replace something other than what was found.
+        sure = bool(counted) or named is not None
+        fix = correct if sure and text[start:stop] == written else None
         _warn(
             doc,
+            Check.STATION_OR_STREET_NAME,
             "{} should be {}: {}",
             Shown(written),
             Shown(correct),
             Highlighted(_before(text, start), written, _after(text, start + len(written))),
+            marks=[prose.mark(start, stop, written, fix)],
         )
 
 
@@ -706,7 +989,7 @@ def _defines(text: str, end: int, symbol: str) -> bool:
     return text.startswith(f" ({symbol})", end)
 
 
-def _check_units(doc: Document, text: str) -> None:
+def _check_units(doc: Document, prose: Prose) -> None:
     """A measurement whose unit is spelled out where the symbol is the style.
 
     These publications are full of them, and they are read against each other:
@@ -720,20 +1003,23 @@ def _check_units(doc: Document, text: str) -> None:
     which says the whole of what to write, `600 ft`:
     said here too, it would be `600-ft`, which that warning says is wrong.
     """
+    text = prose.text
     for start, end, amount, gap, unit in _measurements(text):
         symbol = UNITS.get(unit)
         if gap == "-" or symbol is None or unit in TIME_UNITS or _defines(text, end, symbol):
             continue
         _warn(
             doc,
+            Check.UNIT_NOT_ABBREVIATED,
             "{} should be {}: {}",
             Shown(text[start:end]),
             Shown(f"{amount}{gap}{symbol}"),
             Highlighted(_before(text, start), text[start:end], _after(text, end)),
+            marks=[prose.mark(start, end, text[start:end], f"{amount}{gap}{symbol}")],
         )
 
 
-def _check_hyphenated_units(doc: Document, text: str) -> None:
+def _check_hyphenated_units(doc: Document, prose: Prose) -> None:
     """A measurement hyphenated into the phrase it modifies.
 
     The hyphen is right, as English: `a 600 ft cavern` is one adjective.
@@ -746,15 +1032,19 @@ def _check_hyphenated_units(doc: Document, text: str) -> None:
     make, but here it's this one's alone, rather than leaving somebody to write
     `600 foot` and be told about it on the next build.
     """
+    text = prose.text
     for start, end, amount, gap, unit in _measurements(text):
         if gap != "-":
             continue
+        corrected = f"{amount} {unit if unit in TIME_UNITS else UNITS.get(unit, unit)}"
         _warn(
             doc,
+            Check.HYPHENATED_UNIT,
             "{} should be {}, with no hyphen: {}",
             Shown(text[start:end]),
-            Shown(f"{amount} {unit if unit in TIME_UNITS else UNITS.get(unit, unit)}"),
+            Shown(corrected),
             Highlighted(_before(text, start), text[start:end], _after(text, end)),
+            marks=[prose.mark(start, end, text[start:end], corrected)],
         )
 
 
@@ -805,7 +1095,7 @@ def _spelled_out_symbol(words: list[tuple[str, int]], first: int) -> tuple[str, 
     return None
 
 
-def _check_spelled_out_symbols(doc: Document, text: str) -> None:
+def _check_spelled_out_symbols(doc: Document, prose: Prose) -> None:
     """A percentage or a sum of money written as a word.
 
     These publications are an argument about costs, and the costs are read against
@@ -813,6 +1103,7 @@ def _check_spelled_out_symbols(doc: Document, text: str) -> None:
     reader compares at a glance, where the same numbers in words are prose to
     work through. The symbol is also what every figure in them already uses.
     """
+    text = prose.text
     words = _words(text)
     for i, (word, at) in enumerate(words):
         amount = _number(word)
@@ -827,12 +1118,15 @@ def _check_spelled_out_symbols(doc: Document, text: str) -> None:
         if money and not scale and dated:
             continue
         start = _at(word, at)
+        corrected = f"${amount}{scale}" if money else f"{amount}%"
         _warn(
             doc,
+            Check.SYMBOL_SPELLED_OUT,
             "{} should be {}: {}",
             Shown(text[start:end]),
-            Shown(f"${amount}{scale}" if money else f"{amount}%"),
+            Shown(corrected),
             Highlighted(_before(text, start), text[start:end], _after(text, end)),
+            marks=[prose.mark(start, end, text[start:end], corrected)],
         )
 
 

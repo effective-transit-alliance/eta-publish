@@ -125,7 +125,8 @@ renaming the team domain means updating them here too.
 
 The service account has no IAM roles.
 It reads a document only because the document,
-or a folder it's in, is shared with it as a Viewer.
+or a folder it's in, is shared with it as a Viewer,
+or as a Commenter for `eta-publish suggest` to write suggestions and comments into it.
 
 Clients: <https://console.cloud.google.com/auth/clients?project=eta-publish>.
 
@@ -145,6 +146,10 @@ the run trades the token GitHub signs for it for short-lived Google credentials.
 - **Grant:** each repository's runs have `roles/iam.workloadIdentityUser` on `eta-publish-ci`,
   as `principalSet://iam.googleapis.com/projects/635412927675/locations/global/workloadIdentityPools/github-actions/attribute.repository/effective-transit-alliance/<repository>`.
 - **Revoke:** disabling a provider stops its repository's sign-ins at once.
+
+`khybersen@etany.org` has `roles/iam.serviceAccountTokenCreator` on `eta-publish-ci`,
+so a local run can act as it, with no key, through `gcloud`, as `eta-publish suggest` does:
+`gcloud auth print-access-token --impersonate-service-account=eta-publish-ci@eta-publish.iam.gserviceaccount.com --scopes=<scopes>`.
 
 Pools: <https://console.cloud.google.com/iam-admin/workload-identity-pools?project=eta-publish>.
 

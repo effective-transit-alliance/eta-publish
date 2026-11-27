@@ -11,7 +11,7 @@ It carries what ETA publications use, not what a Google Doc can express.
 Anything the parser cannot place here becomes a warning rather than a silent drop.
 """
 
-from collections.abc import Iterator
+from collections.abc import Iterable, Iterator
 from dataclasses import dataclass, field, replace
 from datetime import date, datetime
 from enum import Enum
@@ -19,6 +19,73 @@ from pathlib import Path
 from string import ascii_letters
 from typing import override
 from urllib.parse import urlsplit
+
+from . import PACKAGE_NAME
+from .check_names import Check
+
+# ---- where in the document -----------------------------------------
+
+
+def utf16_length(text: str) -> int:
+    """How long `text` is in UTF-16 code units, which is how Docs counts.
+
+    Python counts code points, and the two differ for every character outside
+    the Basic Multilingual Plane, an emoji say, which is one code point and two units.
+    An index into a paragraph computed the Python way lands one unit short
+    for every such character before it.
+    """
+    return len(text.encode("utf-16-le")) // 2
+
+
+@dataclass(frozen=True)
+class Location:
+    """A stretch of the document, as Docs' own `Range` names one.
+
+    In UTF-16 code units, as Docs counts, and in the coordinates of the response
+    the build parsed. That response is read with open suggestions left out
+    (`PREVIEW_WITHOUT_SUGGESTIONS`), so wherever one is open the live document's
+    indices after it differ, by the length of each suggested insertion before
+    that point: whatever writes to the document at one of these has to map it
+    onto the live document first.
+
+    An empty one, `start == end`, is a point between two characters,
+    where something would be inserted.
+    """
+
+    tab_id: str
+    """The tab, or empty for a document with no tabs, which the API reads as its first."""
+
+    segment_id: str | None
+    """The footnote this is in, by its id, or `None` for the body."""
+
+    start: int
+    end: int
+
+    @property
+    def empty(self) -> bool:
+        """Whether this is a point rather than a stretch."""
+        return self.start == self.end
+
+    def part(self, text: str, start: int, end: int) -> Location:
+        """Where `text[start:end]` is, for this the location of exactly `text`.
+
+        `start` and `end` count code points, as Python indexes `text`.
+        A smart chip is one unit of the document whatever it shows,
+        a person's name or a date, so a location that is not as long as its text
+        is a chip, and any part of the text is in the whole of it.
+        """
+        if self.end - self.start != utf16_length(text):
+            return self
+        return replace(
+            self,
+            start=self.start + utf16_length(text[:start]),
+            end=self.start + utf16_length(text[:end]),
+        )
+
+    def through(self, last: Location) -> Location:
+        """From the start of this to the end of `last`."""
+        return replace(self, end=last.end)
+
 
 # ---- inline content ------------------------------------------------
 
@@ -132,6 +199,14 @@ class Text:
     sup: bool = False
     sub: bool = False
     href: str | None = None
+    written_href: str | None = field(default=None, compare=False, repr=False)
+    """The link as the document writes it, where that is not `href`:
+    an archived copy, of which `href` is the page. For changing the link in the document."""
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the run is in the document, or `None` where the response did not say.
+
+    Exactly this run's text, so a part of it is `location.part`,
+    or, for a smart chip, the one unit the chip is."""
 
 
 @dataclass(frozen=True)
@@ -156,6 +231,7 @@ class FootnoteRef:
 
     footnote_id: str
     number: int
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass(frozen=True)
@@ -246,6 +322,8 @@ class Image:
     source_uri: str | None = None
     crop: Crop = field(default_factory=lambda: Crop())
     vector: Vector | None = None
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the image is in the document: the one unit an inline object is."""
 
     live_uri: str = ""
     """Where the picture's own file is kept, when that is somewhere we keep things:
@@ -271,12 +349,69 @@ def plain_text(content: list[Inline]) -> str:
     return "".join(i.text for i in content if isinstance(i, Text))
 
 
+def sliced(run: Text, start: int, end: int | None = None) -> Text:
+    """`run` with only `run.text[start:end]` left, and its location moved to match."""
+    stop = len(run.text) if end is None else end
+    location = run.location
+    if location is not None:
+        location = location.part(run.text, start, stop)
+    return replace(run, text=run.text[start:stop], location=location)
+
+
+def locate(content: list[Inline], start: int, end: int) -> Location | None:
+    """Where `plain_text(content)[start:end]` is in the document.
+
+    `None` where a run it touches has no location, or where it would run
+    from one segment of the document into another.
+    """
+    runs: list[tuple[int, Text]] = []
+    offset = 0
+    for node in content:
+        if isinstance(node, Text) and node.text:
+            runs.append((offset, node))
+            offset += len(node.text)
+    if not runs or not 0 <= start <= end <= offset:
+        return None
+    # The run a stretch starts in, and the one it ends in. Where the stretch
+    # touches a boundary between two, it starts in the later and ends in the earlier.
+    first = next(
+        ((at, run) for at, run in runs if start < at + len(run.text)),
+        runs[-1],
+    )
+    last = next(((at, run) for at, run in runs if end <= at + len(run.text)), runs[-1])
+    if end == start:
+        last = first
+    if first[1].location is None or last[1].location is None:
+        return None
+    opened = first[1].location.part(first[1].text, start - first[0], start - first[0])
+    closed = last[1].location.part(last[1].text, end - last[0], end - last[0])
+    if (opened.tab_id, opened.segment_id) != (closed.tab_id, closed.segment_id):
+        return None
+    if end == start:
+        if opened.empty:
+            return opened
+        # A point beside a chip, which has no inside to put it in.
+        at_end = start - first[0] == len(first[1].text)
+        point = opened.end if at_end else opened.start
+        return replace(opened, start=point, end=point)
+    return replace(opened, end=closed.end)
+
+
+def span(content: list[Inline]) -> Location | None:
+    """Where the text of `content` is in the document, from its first character to its last."""
+    return locate(content, 0, len(plain_text(content)))
+
+
 # ---- block content -------------------------------------------------
 
 
 @dataclass
 class Paragraph:
     content: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Where the paragraph is in the document, its closing newline included.
+
+    Every block and list item has one, `None` where the response did not say."""
 
 
 @dataclass
@@ -289,6 +424,7 @@ class Heading:
     when an unrelated section is added elsewhere."""
 
     content: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 class ListKind(Enum):
@@ -300,12 +436,14 @@ class ListKind(Enum):
 class ListItem:
     content: list[Inline] = field(default_factory=list)
     children: list[ListItem] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
 class List:
     kind: ListKind
     items: list[ListItem] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass
@@ -322,6 +460,8 @@ class Figure:
     source: list[Inline] = field(default_factory=list)
     caption: list[Inline] = field(default_factory=list)
     credit: list[Inline] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The image's own paragraph; the lines around it carry their own runs' locations."""
 
 
 @dataclass
@@ -330,6 +470,8 @@ class Table:
     """Rows of cells; each cell holds blocks."""
 
     header: bool = False
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The whole table; the blocks in each cell carry their own."""
 
 
 class Platform(Enum):
@@ -393,6 +535,18 @@ class Embed:
 
     credit: list[Inline] = field(default_factory=list)
     """The `Credit:` line under it, as a figure has, or empty where there is none."""
+
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """Its `Video:` line's paragraph."""
+
+    label: Location | None = field(default=None, compare=False, repr=False)
+    """Where its `Video:` line's label is: the word `Video`, without its modifiers."""
+
+    modifiers: tuple[str, ...] = field(default=(), compare=False, repr=False)
+    """What its `Video:` line's label is modified by, as written: `Copy` of `Video (Copy):`.
+
+    Kept with `label`, for saying where on the line a modifier goes,
+    and compared as `label` is: `copy` is what the build reads of them."""
 
     @property
     def uncaptioned(self) -> bool:
@@ -462,11 +616,49 @@ Block = Paragraph | Heading | List | Figure | Table | Embed
 # ---- document ------------------------------------------------------
 
 
+@dataclass(frozen=True)
+class HeaderLine:
+    """One `Key: value` line of the `Header` section, as written, for saying where it is.
+
+    `meta` holds what the line says, and this where: the two are kept apart
+    because `meta` is read everywhere as the strings it is.
+    """
+
+    lines: tuple[tuple[Inline, ...], ...]
+    """The line, then each it wraps onto: a line naming no field continues the value above."""
+
+    key: Location | None = None
+    """Where the key is, without its colon."""
+
+    @property
+    def location(self) -> Location | None:
+        """The whole of it, from the key to the end of the last line it wraps onto."""
+        first = span(list(self.lines[0]))
+        last = span(list(self.lines[-1]))
+        if first is None or last is None:
+            return None
+        return first.through(last)
+
+    def find(self, text: str, start: int = 0, end: int | None = None) -> Location | None:
+        """Where `text[start:end]` is, for `text` written on one of its lines.
+
+        `None` where it is on none of them, which a value wrapped onto two is:
+        what `meta` holds of it is the two joined with a space."""
+        for line in self.lines:
+            at = plain_text(list(line)).find(text)
+            if at >= 0:
+                stop = len(text) if end is None else end
+                return locate(list(line), at + start, at + stop)
+        return None
+
+
 @dataclass
 class Footnote:
     footnote_id: str
     number: int
     content: list[Block] = field(default_factory=list)
+    location: Location | None = field(default=None, compare=False, repr=False)
+    """The footnote's whole segment, whose `segment_id` is `footnote_id`."""
 
 
 SLOT = "{}"
@@ -597,11 +789,149 @@ class Notice:
     it is what the log prints and what a test asserts against.
     """
 
+    check: Check
+    """Which check it is from, which stays the same however it is worded."""
+
     parts: tuple[Part, ...]
+
+    marks: tuple[Mark, ...] = ()
+    """Where in the document the warning is about, one mark to a place.
+
+    None for a warning about no place in it: a download that failed,
+    a tool missing from this machine, the editing still open on the tab."""
 
     @override
     def __str__(self) -> str:
         return "".join(_written(part) for part in self.parts)
+
+    @property
+    def categories(self) -> frozenset[Category]:
+        """What the warning can become in the document, by what its marks say.
+
+        `REPORT` alone for one with no marks, which is only ever reported."""
+        if not self.marks:
+            return frozenset({Category.REPORT})
+        return frozenset(mark.category for mark in self.marks)
+
+    def key(self, mark: Mark) -> str:
+        """What one of its marks is known by from one build to the next:
+        the check, then what the mark is about, if it says.
+
+        Nothing else, so rewording the warning or a number in it moving
+        leaves the key as it was. Whitespace is run together,
+        since the key is one line of a comment and a subject can be several.
+        """
+        subject = " ".join(mark.subject.split())
+        return f"{self.check}: {subject}" if subject else str(self.check)
+
+    @property
+    def keys(self) -> tuple[str, ...]:
+        """Each mark's key, in the order of its marks."""
+        return tuple(self.key(mark) for mark in self.marks)
+
+    def said_at(self, mark: Mark) -> str:
+        """What the warning says about one of its marks, as a comment there says it.
+
+        Its own words, written as the log writes them. Where the mark has a line
+        of its own, that line stands in for the warning's list: a comment on one
+        of seventeen links typed out is about that link, not the other sixteen.
+        """
+        if not mark.text:
+            return str(self)
+        return "".join(
+            _written(Listed(mark.text) if isinstance(part, Listed) else part) for part in self.parts
+        )
+
+
+KEY_LABEL = f"{PACKAGE_NAME}: "
+"""What opens the line of a comment saying which warning it is,
+as in `eta-publish: image-without-caption: bat-curve`.
+
+The line is how a later run finds the comment it left for a warning:
+to reword it, to resolve it once the warning is gone,
+and to reopen it where somebody resolved it and the warning is still there.
+"""
+
+
+def key_line(key: str) -> str:
+    """The line a comment ends with to say it is the one for `key`."""
+    return KEY_LABEL + key
+
+
+@dataclass(frozen=True)
+class Replace:
+    """`text` in place of what is at `location`.
+
+    An insertion where `location` is a point, and a deletion where `text` is empty."""
+
+    location: Location
+    text: str
+
+
+@dataclass(frozen=True)
+class Underline:
+    """The text at `location` underlined, or not."""
+
+    location: Location
+    underline: bool
+
+
+@dataclass(frozen=True)
+class Link:
+    """The text at `location` linked to `url`."""
+
+    location: Location
+    url: str
+
+
+@dataclass(frozen=True)
+class ParagraphStyle:
+    """The paragraph at `location` set in the named style Docs calls `style`: `NORMAL_TEXT`."""
+
+    location: Location
+    style: str
+
+
+type Edit = Replace | Underline | Link | ParagraphStyle
+"""One change to the document, as a fix is made of."""
+
+
+class Category(Enum):
+    """What a warning's mark can become in the document. Never stored: a mark says."""
+
+    SUGGESTION = "suggestion"
+    """A suggested edit: the code knows what the document should say instead."""
+
+    COMMENT = "comment"
+    """A comment on the place: what to write there is a person's to decide."""
+
+    REPORT = "report"
+    """Only reported, by a warning about no place in the document."""
+
+
+@dataclass(frozen=True)
+class Mark:
+    """One place a warning is about, and what to change there if the code knows."""
+
+    location: Location
+
+    fix: tuple[Edit, ...] = ()
+    """The edits that fix it, or none where only a person can."""
+
+    text: tuple[Span, ...] = ()
+    """What to say about this place, for a warning listing many:
+    the line its list gives this one. Empty where the warning's own words are it."""
+
+    subject: str = ""
+    """What the place is, by whatever names it the same from one build to the next:
+    the field, the image's file, the link's URL, the text the fix is for.
+
+    The second half of its key, after the check.
+    Empty where the check alone says what it is about, as for the one headline."""
+
+    @property
+    def category(self) -> Category:
+        return Category.SUGGESTION if self.fix else Category.COMMENT
 
 
 def _written(part: Part) -> str:
@@ -665,6 +995,10 @@ class Document:
     Zero where the fetch could not read them, which is not the same as none:
     the count is carried over from the last build that could."""
 
+    tab_id: str = ""
+    """The id of the tab this was read from, as every `Location` in it names it,
+    or empty for a document with no tabs."""
+
     tab_title: str = ""
     """What the tab this was read from is called.
 
@@ -682,6 +1016,13 @@ class Document:
     The two are different mistakes and want different things said about them:
     a missing section is usually one whose heading is styled as body text,
     where an empty one is a section nobody filled in."""
+
+    header: Location | None = None
+    """Where the `Header` section's heading is, where it has one."""
+
+    header_lines: dict[str, HeaderLine] = field(default_factory=dict)
+    """Where each of `meta`'s lines is, by the same keys:
+    the line a key's value was read from, which is the later of two with one key."""
 
     blocks: list[Block] = field(default_factory=list)
     footnotes: list[Footnote] = field(default_factory=list)
@@ -774,6 +1115,11 @@ class Document:
     """Embed URL to the captions its copied video came with, under `VIDEO_DIR`.
 
     Recorded in `embeds.json`, so an offline build writes the same `<track>`."""
+
+    def header_line(self, key: str) -> Location | None:
+        """Where the `Header` section's `key:` line is, where it has one."""
+        written = self.header_lines.get(key)
+        return None if written is None else written.location
 
     @property
     def embeds(self) -> list[Embed]:
@@ -1040,14 +1386,37 @@ class Document:
             return None
         return size[0] / size[1]
 
-    def warn(self, template: str, *values: Part) -> None:
-        """Warn, with `{}` in `template` wherever a value goes.
+    def warn(
+        self,
+        check: Check,
+        template: str,
+        *values: Part,
+        marks: Iterable[Mark | Location | None] = (),
+        about: str = "",
+    ) -> None:
+        """Warn of `check`, with `{}` in `template` wherever a value goes.
 
         The template is written here and the values come from the document,
         which is why they are handed over separately rather than formatted in:
         a value is never read as markup, whatever it happens to contain.
+
+        `marks` are the places in the document it is about. A bare `Location`
+        is a mark with no fix, and `None` is a place the response did not say
+        where it is, which is left out.
+
+        `about` is the subject of each mark that does not give its own:
+        what the warning is about, where it is about one thing.
         """
-        self.warnings.append(Notice(filled(template, values)))
+        placed = tuple(
+            Mark(mark, subject=about)
+            if isinstance(mark, Location)
+            else mark
+            if mark.subject
+            else replace(mark, subject=about)
+            for mark in marks
+            if mark is not None
+        )
+        self.warnings.append(Notice(check, filled(template, values), placed))
 
 
 # What a Docs date chip can render, most likely first.

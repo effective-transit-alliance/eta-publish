@@ -9,6 +9,7 @@ import pytest
 from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.build import emit
+from eta_publish.check_names import Check
 from eta_publish.naming import LIVE_SITE
 from eta_publish.nodes import Document
 from eta_publish.parse import parse
@@ -185,7 +186,7 @@ def test_a_build_writes_the_fragment_as_pasted_without_its_warnings(
 ) -> None:
     """The warnings are for whoever reviews a build, on `report.html`;
     the page as etany.org shows it has what is pasted there, which has none."""
-    doc.warn("something looked wrong")
+    doc.warn(Check.UNHANDLED_ELEMENT, "something looked wrong")
     emit(doc, tmp_path, site_url=HOST)
     page = (tmp_path / "report.squarespace.html").read_text()
     assert "something looked wrong" in (tmp_path / "report.html").read_text()

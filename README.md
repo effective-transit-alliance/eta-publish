@@ -228,6 +228,57 @@ Flags worth knowing:
 - `--suggestions accepted` previews the document with its open suggestions accepted
   instead of rejected.
 
+## Suggesting fixes in the documents
+
+```sh
+# Say what each listed publication's warnings would add to its document. Writes nothing.
+uv run eta-publish suggest
+
+# One document, by its name in `publications.toml` or `drafts/publications.toml`, or its URL;
+# `--apply` writes it.
+uv run eta-publish suggest 'IBX Automation' --apply
+```
+
+`suggest` turns a publication's warnings into suggestions and comments in its Google Doc,
+where the writers will see them, signed by the service account `eta-publish-ci`.
+A warning whose fix the code knows becomes a suggested edit at the place it is about.
+One only a person can fix becomes a comment there,
+saying what the warning says, with a last line naming it, as in `eta-publish: no-title`.
+A warning about no place in the document stays in the build's report.
+
+It is a command of its own, never part of a build, and only says what it would do
+(created, updated, reopened, resolved, deleted, or skipped, and why) until it is given `--apply`.
+Without a document, it goes through every publication in both lists; `-p` names other lists.
+
+A second run changes only what changed, and nothing when nothing did.
+It touches only its own threads, never a person's:
+
+- A comment whose warning now says something else is reworded.
+  One a person resolved while its warning is still there is reopened,
+  and a suggestion a person rejected is suggested again:
+  a wrong warning is fixed in `eta-publish`, not dismissed in the document.
+- A comment whose warning is gone is resolved, and a suggestion no warning asks for is deleted.
+- A comment whose text is gone from the document is deleted and made again where the warning now is.
+
+The warnings are worked out afresh from the document as it is,
+with what the last build recorded about its images, embeds, and sources.
+The pictures with a crop or a live source are downloaded again, written nowhere,
+to say whether one crops to nothing or differs from its source,
+since only their bytes say whether they are still the pictures the last build had.
+Every place is checked against the text as the build read it before anything is written there.
+A fix whose suggestion would overlap or touch someone else's open suggestion
+becomes a comment with the fix written out,
+and once theirs is out of the way, a later run suggests the fix and resolves the comment;
+`--overlap suggest` suggests it over theirs instead, and `--overlap skip` leaves it, saying so.
+A fix is never suggested over one of its own suggestions for another warning,
+since Docs merges overlapping suggestions by one author into one.
+
+Each document has to be shared with `eta-publish-ci@eta-publish.iam.gserviceaccount.com`
+as a **Commenter**, which is enough to suggest and comment, and not to edit.
+Locally it acts as that account through `gcloud`,
+which needs `roles/iam.serviceAccountTokenCreator` on it (see [`docs/accounts.md`](docs/accounts.md#workload-identity-federation));
+in CI, the Workload Identity Federation sign-in already is that account.
+
 ## Adding a publication
 
 Adding the next publication is an entry in a list and nothing else,
@@ -338,7 +389,8 @@ No other IAM roles are needed: access to the document comes from sharing it,
 not from a project role.
 
 Then share each publication with
-`eta-publish-ci@eta-publish.iam.gserviceaccount.com` as a **Viewer**.
+`eta-publish-ci@eta-publish.iam.gserviceaccount.com` as a **Viewer**,
+or as a **Commenter** for [`eta-publish suggest`](#suggesting-fixes-in-the-documents) to write into it.
 Sharing the folder a publication lives in is the better move:
 it covers the document, the images, and the Drive files
 the document links as `SVG:` charts in one action,
