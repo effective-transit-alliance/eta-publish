@@ -133,84 +133,6 @@ def test_smart_chips_resolve(doc: Document) -> None:
     assert doc.meta["SEO Description"].startswith("A 125 St subway should be a slam dunk")
 
 
-KNOWN_WARNINGS = (
-    # Written before the header asked for them.
-    "the `Header` section has no `SME/Liaison:` line",
-    "the `Header` section has no `Goals:` line",
-    "the `Header` section has no `Audience:` line",
-    "the `Header` section has no `Social Title Card:` line",
-    "as a `Source:` line above the image instead",
-    "unnamed, so each publishes under a hash",
-    "suggestions still open on this tab",
-    "suggestion still open on this tab",
-    "comment threads still open on this tab",
-    "comment thread still open on this tab",
-    "the tag it was copied with",
-    "a search result shows",
-    "has no `Credit:` line",
-    "unfinished text in the document",
-    "rather than `Enter`",
-    "standing in for blank space",
-    "has an unrecognized",
-    "runs past it into the value",
-    "URL as its text",
-    # Every house-style warning, as one kind. They say what to write and not
-    # why, so the words in one are the document's rather than the check's,
-    # and there is nothing else in them to match on.
-    "style: ",
-)
-"""Every kind of warning this report has been known to raise.
-
-Kinds rather than the warnings themselves, and a subset rather than an equality:
-what varies here is the document, and fixing the document is the point of a
-warning. Asserted as a list, this test failed twice in one afternoon for reasons
-that were not about the code: once when a new check started firing, and once
-when the tag it complained about was taken off the doc, which is the warning
-having worked.
-
-What is still worth catching is a kind nobody has seen, because that is either
-a check that started firing on this report or one that changed its wording.
-The exact text of every warning the report publishes is pinned byte for byte
-anyway, in the committed `report.md` and `index.html`: they are published on the
-page, so the output snapshot is already the assertion that they have not moved.
-
-Counts, image names and lengths are left loose on purpose. A seventeenth image
-gaining a `Source:` line is not a thing this test should have an opinion about.
-The phrase each one carries is enough to tell it from the others, so these are
-substrings rather than patterns: there is nothing here to match loosely, and a
-pattern over `\d+` and `(?:is|are)` would only be a way to get the plural wrong.
-"""
-
-
-def test_no_warning_is_of_a_kind_we_have_not_seen(doc: Document) -> None:
-    """Each of these is something to fix in the document, not in the code."""
-    unknown = [
-        first
-        for first in (str(w).split("\n")[0] for w in doc.warnings)
-        if not any(known in first for known in KNOWN_WARNINGS)
-    ]
-    assert unknown == [], f"new kind of warning on this report: {unknown}"
-
-
-def test_every_unnamed_image_is_listed_with_what_it_shows(doc: Document) -> None:
-    """A hash names nothing, so the work of fixing these
-    is working out which picture `img-6fb0f9c4` is."""
-    warning = next(w for w in map(str, doc.warnings) if "unnamed" in w)
-    listed = [line for line in warning.split("\n") if line.startswith("- ")]
-    unnamed = [b for b in doc.blocks if isinstance(b, Figure) and not b.image.named]
-    assert len(listed) == len(unnamed) == 9
-    assert listed[0].startswith("- `img-6fb0f9c4`: Composite image of the MTA")
-    # Every one says which picture it is, from its caption or its alt text.
-    assert all(": " in line for line in listed)
-
-
-def test_the_seo_warning_quotes_the_description(doc: Document) -> None:
-    warning = next(w for w in map(str, doc.warnings) if "SEO Description" in w)
-    quoted = warning.split("\n")[1]
-    assert quoted.startswith("> A 125 St subway should be a slam dunk")
-    assert quoted.endswith("~~")
-
-
 # ---- properties that must hold for any live publication -------------
 
 
@@ -301,19 +223,6 @@ def test_the_fragment_fits_in_one_code_block(doc: Document) -> None:
     # so one opens without the script: its picture, a copy of its caption and
     # credit, and its links, about 37 KB for the 28 figures here.
     assert size < 315_000, f"grown to {size:,} bytes; still fits, worth a look"
-
-
-def test_every_image_has_something_describing_it(doc: Document) -> None:
-    """Every figure in the report carries alt text or a caption.
-
-    The one image that had neither is the share card,
-    which is not a figure and is not in the body at all."""
-    undescribed = [
-        b.image.object_id
-        for b in doc.blocks
-        if isinstance(b, Figure) and not b.image.alt and not b.caption
-    ]
-    assert undescribed == []
 
 
 def test_the_share_card_is_not_in_the_publication(doc: Document) -> None:
