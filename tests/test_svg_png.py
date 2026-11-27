@@ -143,3 +143,31 @@ def test_a_build_stopped_while_encoding_does_not_leave_a_copy_recorded_as_anothe
         assert cast("tuple[int, int, int]", shown.convert("RGB").getpixel((0, 0)))[0] > 150
     write_print_copies(written, dest)
     assert calls == [first, second]
+
+
+def test_a_build_stopped_while_encoding_does_not_leave_a_page_copy_recorded_as_another_picture(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The record forgets a copy before it is rewritten, not after the last one is."""
+    first = _photo(tmp_path / "first.png", (200, 10, 10))
+    second = _photo(tmp_path / "second.png", (10, 200, 10))
+    written = {"io.1": first, "io.2": second}
+    copy = write_web_copies(written, tmp_path)[0]
+    assert copy.name.startswith("first")
+    _photo(first, (10, 10, 200))
+    _photo(second, (10, 10, 10))
+    real = images._for_web
+
+    def stopping(path: Path, width: int, extension: str) -> bytes:
+        if path == second:
+            raise KeyboardInterrupt
+        return real(path, width, extension)
+
+    monkeypatch.setattr(images, "_for_web", stopping)
+    with pytest.raises(KeyboardInterrupt):
+        write_web_copies(written, tmp_path)
+    monkeypatch.setattr(images, "_for_web", real)
+    _photo(first, (200, 10, 10))
+    write_web_copies(written, tmp_path)
+    with Pillow.open(copy) as shown:
+        assert cast("tuple[int, int, int]", shown.convert("RGB").getpixel((0, 0)))[0] > 150

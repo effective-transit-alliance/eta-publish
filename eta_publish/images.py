@@ -722,6 +722,12 @@ def write_web_copies(written: dict[str, Path], images: Path) -> list[Path]:
         if made.get(name) != source[3] or not (web / name).is_file()
     ]
     if stale:
+        # Forgotten before any is rewritten: a build stopped partway would
+        # otherwise leave a record naming the old picture beside the new copy,
+        # which a later build of the old picture would then keep.
+        forgotten = {name for name, _ in stale}
+        kept = {name: digest for name, digest in sorted(made.items()) if name not in forgotten}
+        replace_bytes(web / WEB_SOURCES, (json.dumps(kept, indent=2) + "\n").encode())
         # Several at once: Pillow lets go of the GIL while it encodes.
         with ThreadPoolExecutor(max_workers=min(len(stale), MAX_ENCODING_AT_ONCE)) as pool:
             encoded = pool.map(
