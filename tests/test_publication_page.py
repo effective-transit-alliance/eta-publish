@@ -67,14 +67,9 @@ def test_page_images_resolve_next_to_the_page(doc: Document, tmp_path: Path) -> 
         assert not src.startswith("http")
         assert (tmp_path / src).exists(), f"{src} does not resolve next to report.html"
 
-
-def test_the_published_fragment_points_beside_itself(doc: Document, tmp_path: Path) -> None:
-    """A build writes the images it references,
-    so the fragment names them where they were written.
-    Serving them from somewhere else is the emitter's `image_base`,
-    which is not something a build decides."""
-    (tmp_path / "images").mkdir()
-    emit(doc, tmp_path, site_url=HOST)
+    # A build writes the images it references, so the fragment names them where
+    # they were written. Serving them from elsewhere is the emitter's `image_base`,
+    # which is not something a build decides.
     fragment = (tmp_path / "report.partial.html").read_text()
     assert sources(fragment)[0] == "images/sas-west-036.png"
 
