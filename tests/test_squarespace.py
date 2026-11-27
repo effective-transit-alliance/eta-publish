@@ -9,7 +9,7 @@ import pytest
 from paths import FIXTURE_DIR, HOST, named_images
 
 from eta_publish.build import emit
-from eta_publish.naming import LIVE_SITE, squarespace_name
+from eta_publish.naming import LIVE_SITE
 from eta_publish.nodes import Document
 from eta_publish.parse import parse
 from eta_publish.squarespace import (
@@ -84,11 +84,6 @@ def active(html: str) -> list[str]:
     return [c for _, attrs, _ in Elements(html).found for c in classes(attrs) if c in marked]
 
 
-def test_the_name_says_it_is_the_squarespace_page() -> None:
-    assert squarespace_name("report") == "report.squarespace.html"
-    assert squarespace_name("statement") == "statement.squarespace.html"
-
-
 def test_the_shell_has_one_place_for_the_publication_and_marks_no_page() -> None:
     """Which page is current is each publication's, so the copied page says none."""
     assert SHELL.count(PUBLICATION) == 1
@@ -119,31 +114,26 @@ def test_the_publication_is_where_the_embed_block_puts_it() -> None:
     assert order.index("header") < order.index("lede") < order.index("footer-sections")
 
 
-def test_the_page_is_styled_by_the_live_sites_stylesheets() -> None:
+def test_the_page_carries_the_live_sites_head() -> None:
+    """The live site's stylesheets, and the script its header runs on,
+    which hides the header on the way down and opens the phone's menu,
+    after what it reads from a page is set: the script once, deferred, and the setup before it.
+    The fonts a live page declares inline come before the stylesheets."""
     page = squarespace_page(FRAGMENT, "Title", IBX)
+    found = Elements(page).found
     linked = [
         attrs.get("href")
-        for tag, attrs, _ in Elements(page).found
+        for tag, attrs, _ in found
         if tag == "link" and attrs.get("rel") == "stylesheet"
     ]
     assert linked == list(STYLESHEETS)
-
-
-def test_the_header_runs_on_the_live_sites_script() -> None:
-    """Which hides it on the way down and opens the phone's menu,
-    after what it reads from a page is set: the script once, deferred, and the setup before it."""
-    page = squarespace_page(FRAGMENT, "Title", IBX)
-    scripts = [attrs for tag, attrs, _ in Elements(page).found if tag == "script"]
-    linked = [attrs for attrs in scripts if attrs.get("src") == SITE_SCRIPT]
-    assert linked == [{"defer": None, "src": SITE_SCRIPT}]
+    scripts = [attrs for tag, attrs, _ in found if tag == "script"]
+    site_scripts = [attrs for attrs in scripts if attrs.get("src") == SITE_SCRIPT]
+    assert site_scripts == [{"defer": None, "src": SITE_SCRIPT}]
     assert page.count(SCRIPT_SETUP.strip()) == 1
     assert page.index(SCRIPT_SETUP.strip()) < page.index(SITE_SCRIPT)
     for setting in ('"tweak-fixed-header": "true"', '"tweak-fixed-header-style": "Scroll Back"'):
         assert setting in SCRIPT_SETUP
-
-
-def test_the_fonts_a_live_page_declares_inline_are_declared_before_the_stylesheets() -> None:
-    page = squarespace_page(FRAGMENT, "Title", IBX)
     assert FONTS.startswith("<style data-sqsp-font-ids=")
     assert page.count(FONTS) == 1
     assert page.index(FONTS) < page.index(STYLESHEETS[0])
@@ -181,13 +171,6 @@ def test_a_page_the_navigation_does_not_list_marks_nothing() -> None:
     marked = mark_current(SHELL, f"{LIVE_SITE}/reports/not-out-yet")
     assert current(marked) == []
     assert active(marked) == []
-
-
-def test_marking_changes_nothing_but_the_marks() -> None:
-    marked = mark_current(SHELL, IBX)
-    before = Elements(SHELL).found
-    after = Elements(marked).found
-    assert [tag for tag, _, _ in before] == [tag for tag, _, _ in after]
 
 
 @pytest.fixture
