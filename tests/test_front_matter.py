@@ -8,51 +8,11 @@ swallows all of it.
 """
 
 import pytest
+from docs_json import field, image, para, text_of
 
 from eta_publish.docs_json import JsonObject
-from eta_publish.nodes import Document, Figure, Inline, Paragraph, Text
+from eta_publish.nodes import Document, Figure, Paragraph, Text
 from eta_publish.parse import parse
-
-
-def _text(content: list[Inline]) -> str:
-    return "".join(i.text for i in content if isinstance(i, Text))
-
-
-def para(text: str, style: str = "NORMAL_TEXT") -> JsonObject:
-    return {
-        "paragraph": {
-            "paragraphStyle": {"namedStyleType": style},
-            "elements": [{"textRun": {"content": text + "\n", "textStyle": {}}}],
-        }
-    }
-
-
-def field(text: str, style: str = "NORMAL_TEXT") -> JsonObject:
-    """A paragraph whose labels are underlined, which is how the document writes one.
-
-    The name up to the first colon of each line: a label is a label because it
-    is underlined, so a test meaning one has to write it the way the doc does.
-    """
-    runs: list[JsonObject] = []
-    for n, line in enumerate(text.split("\v")):
-        if n:
-            runs.append({"textRun": {"content": "\v", "textStyle": {}}})
-        mark = min((line.find(c) for c in ":]" if c in line), default=-1)
-        if mark >= 0:
-            runs.append({"textRun": {"content": line[:mark], "textStyle": {"underline": True}}})
-        runs.append({"textRun": {"content": line[mark:] if mark >= 0 else line, "textStyle": {}}})
-    runs[-1]["textRun"]["content"] += "\n"
-    return {"paragraph": {"paragraphStyle": {"namedStyleType": style}, "elements": runs}}
-
-
-def image_para() -> JsonObject:
-    return {
-        "paragraph": {
-            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
-            "elements": [{"inlineObjectElement": {"inlineObjectId": "io.hero"}}],
-        }
-    }
-
 
 REAL_SHAPE: JsonObject = {
     "title": "SAS West Feasibility Response",
@@ -63,7 +23,7 @@ REAL_SHAPE: JsonObject = {
             field("URL: /reports/digging-out-deep-hole-sas-west"),
             field("MTA SAS West Feasibility Study: https://www.mta.info/document/196361"),
             para("Digging Out of a Very Deep Hole: Saving Billions on 125th Street", "TITLE"),
-            image_para(),
+            image("io.hero"),
             para("Composite image of the MTA's station diagram."),
             field("Credit: MTA, ETA (Blair Lorenzo)"),
             para("Addendum: clarifying text was added on August 21, 2026."),
@@ -111,8 +71,8 @@ def test_the_hero_image_survives(doc: Document) -> None:
 
 def test_the_hero_caption_and_credit_survive(doc: Document) -> None:
     figure = next(b for b in doc.blocks if isinstance(b, Figure))
-    assert _text(figure.caption) == "Composite image of the MTA's station diagram."
-    assert _text(figure.credit) == "Credit: MTA, ETA (Blair Lorenzo)"
+    assert text_of(figure.caption) == "Composite image of the MTA's station diagram."
+    assert text_of(figure.credit) == "Credit: MTA, ETA (Blair Lorenzo)"
 
 
 def test_the_addendum_stays_body_text(doc: Document) -> None:
@@ -156,7 +116,7 @@ def test_an_unstyled_headline_still_does_not_swallow_the_hero_image() -> None:
                 para("Header", "HEADING_2"),
                 field("URL: /reports/digging-out-deep-hole-sas-west"),
                 para("Digging Out of a Very Deep Hole: Saving Billions on 125th Street"),
-                image_para(),
+                image("io.hero"),
                 para("The Elephants in the Room", "HEADING_1"),
             ]
         },
@@ -503,7 +463,7 @@ def _picture_in_the_header(*after: JsonObject) -> Document:
                 "content": [
                     para("Header", "HEADING_2"),
                     field("URL: /reports/monthly-passes"),
-                    image_para(),
+                    image("io.hero"),
                     *after,
                     para("Bring Back the Monthly", "HEADING_1"),
                     para("When the MTA retired the MetroCard."),
@@ -531,7 +491,7 @@ def test_a_credit_under_a_picture_in_the_header_is_the_pictures() -> None:
     doc = _picture_in_the_header(field("Credit: Blair Lorenzo, ETA"))
     assert "Credit" not in doc.meta
     figure = next(b for b in doc.blocks if isinstance(b, Figure))
-    assert _text(figure.credit) == "Credit: Blair Lorenzo, ETA"
+    assert text_of(figure.credit) == "Credit: Blair Lorenzo, ETA"
 
 
 def test_the_subtitle_is_the_subtitle_styled_paragraph_under_the_headline() -> None:
