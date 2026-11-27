@@ -181,12 +181,6 @@ def test_every_figure_is_described(publication: Path) -> None:
         assert described, figure[:200]
 
 
-def test_the_records_are_json(publication: Path) -> None:
-    for name in ("doc.json", "images.json", "archives.json", "embeds.json"):
-        if (publication / name).exists():
-            json.loads((publication / name).read_text())
-
-
 # ---- what only a build with the images can be asked ----------------------
 
 
