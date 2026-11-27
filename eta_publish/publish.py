@@ -354,6 +354,10 @@ def install(site: Site, built: Path, outdir: Path, whole: bool) -> None:
         (outdir / entry.path).parent.mkdir(parents=True, exist_ok=True)
         (built / entry.path).rename(outdir / entry.path)
     for shared in (ASSET_DIR,):
+        if not (built / shared).exists():
+            # Each publication writes these as it builds,
+            # so with none built there is nothing to replace the last build's with.
+            continue
         shutil.rmtree(outdir / shared, ignore_errors=True)
         (built / shared).rename(outdir / shared)
     for name in ("index.html", minify.min_name("index.html"), "robots.txt", STAFF_JSON):
