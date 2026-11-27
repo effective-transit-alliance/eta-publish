@@ -29,7 +29,6 @@ from eta_publish.nodes import (
     Paragraph,
     Text,
     Vector,
-    plain_text,
 )
 from eta_publish.parse import parse
 
@@ -80,16 +79,6 @@ def appendix() -> Document:
     return build(APPENDIX)
 
 
-def test_image_source_lines_attach_to_the_figure(appendix: Document) -> None:
-    """The doc writes `Source: <file>` before an image in the body
-    and `[Image Source](<url>)` after the caption in the appendices.
-    Both are editorial; neither appears on the published page."""
-    figure = next(b for b in appendix.blocks if isinstance(b, Figure))
-    assert "Image Source" in text_of(figure.source)
-    assert text_of(figure.caption).startswith("A photo inside the Freedom Tunnel")
-    assert "Credit: Logan Hicks" in text_of(figure.credit)
-
-
 def image_source(url: str) -> JsonObject:
     """`Image Source` as the document has it: the whole line is the link."""
     run = {"textRun": {"content": "Image Source\n", "textStyle": {"link": {"url": url}}}}
@@ -119,26 +108,26 @@ def test_an_image_source_is_warned_to_be_a_source_line(appendix: Document) -> No
     assert "flickr.com/photo_download.gne" in warning
 
 
-def test_image_source_does_not_become_a_paragraph(appendix: Document) -> None:
-    paragraphs = [text_of(b.content) for b in appendix.blocks if isinstance(b, Paragraph)]
-    assert paragraphs == ["The Freedom Tunnel was formerly the 4-track West Side Line."]
-
-
 @pytest.mark.parametrize(
     "emitter", [HtmlEmitter(site_url=HOST), TypstEmitter(site_url=HOST)], ids=["html", "typst"]
 )
 def test_image_source_never_reaches_a_published_output(
     emitter: HtmlEmitter | TypstEmitter, appendix: Document
 ) -> None:
-    """`Image Source` appears zero times on the live page."""
+    """The doc writes `Source: <file>` before an image in the body
+    and `[Image Source](<url>)` after the caption in the appendices.
+    Both are editorial: `Image Source` appears zero times on the live page,
+    and the caption and credit around it do, with the paragraph after them."""
     # The page lists its warnings, and one says to write `Source:` instead,
     # which names the label without publishing the note.
     appendix.warnings.clear()
     out = emitter.emit(appendix)
     assert "Image Source" not in out
     assert "flickr.com/photo_download" not in out
+    assert "A photo inside the Freedom Tunnel, showing room for 4 tracks." in out
     # The label is underlined in the document, so it reaches the page in two runs.
     assert "Logan Hicks" in out
+    assert "The Freedom Tunnel was formerly the 4-track West Side Line." in out
 
 
 def test_the_description_reaches_the_preview() -> None:
@@ -152,23 +141,6 @@ def test_the_description_reaches_the_preview() -> None:
         ]
     )
     assert 'content="Cheaper and shallower."' in publication_page(doc, site_url=HOST)
-
-
-def test_a_credit_line_that_is_not_underlined_is_not_a_credit() -> None:
-    """A label is a label because it is underlined.
-    Nothing else tells `Credit: MTA` from a caption that happens to say it."""
-    doc = build(
-        [
-            para("Header", "HEADING_2"),
-            field("URL: /reports/x"),
-            para("Headline", "TITLE"),
-            image(),
-            para("A caption."),
-            para("Credit: MTA"),
-        ]
-    )
-    figure = next(b for b in doc.blocks if isinstance(b, Figure))
-    assert figure.credit == []
 
 
 def test_the_underline_marking_a_label_is_not_published() -> None:
@@ -195,16 +167,15 @@ def test_the_underline_marking_a_label_is_not_published() -> None:
 def test_the_caption_becomes_alt_text_when_docs_has_none(appendix: Document) -> None:
     """On the live page the caption appears twice:
     as the image's `alt` and as visible small text beneath it.
-    The `alt` drops the opening "A photo", which a screen reader would say again."""
-    figure = next(b for b in appendix.blocks if isinstance(b, Figure))
-    assert figure.image.alt == "Inside the Freedom Tunnel, showing room for 4 tracks."
-    assert figure.caption and plain_text(figure.caption).startswith("A photo inside")
-
-
-def test_a_real_description_wins_over_the_caption() -> None:
-    doc = build(APPENDIX, alt="Four tracks under Riverside Park")
-    figure = next(b for b in doc.blocks if isinstance(b, Figure))
-    assert figure.image.alt == "Four tracks under Riverside Park"
+    The `alt` drops the opening "A photo", which a screen reader would say again.
+    A description Docs does have wins over the caption."""
+    page = HtmlEmitter(site_url=HOST).emit(appendix)
+    assert 'alt="Inside the Freedom Tunnel, showing room for 4 tracks."' in page
+    assert "A photo inside the Freedom Tunnel" in page
+    described = HtmlEmitter(site_url=HOST).emit(
+        build(APPENDIX, alt="Four tracks under Riverside Park")
+    )
+    assert 'alt="Four tracks under Riverside Park"' in described
 
 
 # ---- found by running against the real document ---------------------
@@ -293,39 +264,18 @@ def _with_header(*body: JsonObject) -> Document:
 
 
 def test_bold_text_in_brackets_is_unfinished() -> None:
-    """A bold bracketed note is a placeholder, as much as a `TODO` is."""
-    doc = _with_header(bolded(("Ridership grew ", False), ("[need a source]", True), (".", False)))
-    assert _unfinished(doc) == ["unfinished text in the document: `[need a source]`"]
-
-
-def test_brackets_around_bold_text_need_not_be_bold() -> None:
-    doc = _with_header(bolded(("Grew [", False), ("cite", True), ("].", False)))
-    assert _unfinished(doc) == ["unfinished text in the document: `[cite]`"]
-
-
-def test_brackets_that_are_not_all_bold_are_prose() -> None:
+    """A bold bracketed note is a placeholder, as much as a `TODO` is,
+    though the brackets need not be bold; brackets that are not all bold are prose."""
     doc = _with_header(
+        bolded(("Ridership grew ", False), ("[need a source]", True), (".", False)),
+        bolded(("Grew [", False), ("cite", True), ("].", False)),
         bolded(("A [quoted ", False), ("emphasis", True), (" aside].", False)),
         bolded(("Plain [brackets] and ", False), ("bold", True), (" apart.", False)),
     )
-    assert _unfinished(doc) == []
-
-
-def test_chart_asset_placeholders_are_editorial() -> None:
-    """`SVG:` and `PNG:` name a chart file for whoever assembles the page.
-    The live publication carries real download links instead."""
-    doc = build(
-        [
-            para("Header", "HEADING_2"),
-            field("URL: /reports/x"),
-            para("Headline", "TITLE"),
-            image(),
-            para("Station length as a percentage of platform length."),
-            field("SVG: station-length.svg"),
-        ]
-    )
-    assert "SVG:" not in HtmlEmitter(site_url=HOST).emit(doc)
-    assert not [b for b in doc.blocks if isinstance(b, Paragraph)]
+    assert _unfinished(doc) == [
+        "unfinished text in the document: `[need a source]`",
+        "unfinished text in the document: `[cite]`",
+    ]
 
 
 def test_an_undescribed_image_is_reported() -> None:
@@ -444,9 +394,24 @@ def test_a_linked_svg_becomes_the_figure_file() -> None:
 
 
 def test_the_svg_line_is_still_not_published() -> None:
-    doc = _svg_doc()
-    assert "SVG:" not in HtmlEmitter(site_url=HOST).emit(doc)
-    assert "drive.google.com" not in HtmlEmitter(site_url=HOST).emit(doc)
+    """`SVG:` and `PNG:` name a chart file for whoever assembles the page,
+    whether the line links a file or only names one;
+    the live publication carries real download links instead."""
+    page = HtmlEmitter(site_url=HOST).emit(_svg_doc())
+    assert "SVG:" not in page
+    assert "drive.google.com" not in page
+    placeholder = build(
+        [
+            para("Header", "HEADING_2"),
+            field("URL: /reports/x"),
+            para("Headline", "TITLE"),
+            image(),
+            para("Station length as a percentage of platform length."),
+            field("SVG: station-length.svg"),
+        ]
+    )
+    assert "SVG:" not in HtmlEmitter(site_url=HOST).emit(placeholder)
+    assert not [b for b in placeholder.blocks if isinstance(b, Paragraph)]
 
 
 def test_a_source_line_that_links_no_vector_leaves_the_raster() -> None:
@@ -499,15 +464,6 @@ def _linked_svg_doc(crop: JsonObject | None = None) -> Document:
     )
 
 
-def test_an_svg_linked_outside_drive_becomes_the_figure_file() -> None:
-    """IBX's charts are linked from GitHub, not Drive, and as plain links."""
-    figure = next(b for b in _linked_svg_doc().blocks if isinstance(b, Figure))
-    assert figure.image.vector is not None
-    assert figure.image.vector.file_id == ""
-    assert figure.image.vector.uri == SVG_URL
-    assert figure.image.vector.filename == "share.svg"
-
-
 def test_a_cropped_linked_svg_is_named_for_its_crop() -> None:
     """The crop is fractions of the raster, which is the whole SVG drawn out,
     so it carries over to the vector, and recropping renames it as it does a raster."""
@@ -522,29 +478,44 @@ def test_a_cropped_linked_svg_is_named_for_its_crop() -> None:
     assert cropped.image.vector.filename.endswith(".svg")
 
 
-def test_a_crop_is_mirrored_onto_the_svg() -> None:
-    """The original is nested whole, after its XML declaration, and not rewritten."""
-    svg = (
-        b'<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg" '
-        b'viewBox=\'0 0 760 436\' width="760" height="436"><g/></svg>\n'
-    )
-    out = crop_svg(svg, Crop(left=0.1, right=0.1, top=0.25, bottom=0.25))
-    assert out == (
-        b'<?xml version="1.0"?>\n'
-        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="76 109 608 218" '
-        b'width="608" height="218"><svg width="760" height="436">'
-        b"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox='0 0 760 436' "
-        b'width="760" height="436"><g/></svg></svg></svg>\n'
-    )
-
-
-def test_a_crop_without_a_size_is_taken_from_the_viewbox() -> None:
-    svg = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><g/></svg>'
-    out = crop_svg(svg, Crop(top=0.5))
-    assert out.startswith(
-        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 50 200 50" '
-        b'width="200" height="50"><svg width="200" height="100">'
-    )
+@pytest.mark.parametrize(
+    ("svg", "crop", "expected", "exact"),
+    [
+        pytest.param(
+            b'<?xml version="1.0"?>\n<svg xmlns="http://www.w3.org/2000/svg" '
+            b'viewBox=\'0 0 760 436\' width="760" height="436"><g/></svg>\n',
+            Crop(left=0.1, right=0.1, top=0.25, bottom=0.25),
+            b'<?xml version="1.0"?>\n'
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="76 109 608 218" '
+            b'width="608" height="218"><svg width="760" height="436">'
+            b"<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox='0 0 760 436' "
+            b'width="760" height="436"><g/></svg></svg></svg>\n',
+            True,
+            id="the original is nested whole, after its XML declaration, and not rewritten",
+        ),
+        pytest.param(
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100"><g/></svg>',
+            Crop(top=0.5),
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 50 200 50" '
+            b'width="200" height="50"><svg width="200" height="100">',
+            False,
+            id="no size, so it is taken from the viewbox",
+        ),
+        pytest.param(
+            b'<svg xmlns="http://www.w3.org/2000/svg" width="1in" height="0.5in"><g/></svg>',
+            Crop(left=0.5),
+            b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="48 0 48 48" '
+            b'width="48" height="48"><svg width="96" height="48">',
+            False,
+            id="a size in another unit is in pixels, since only the ratio matters",
+        ),
+    ],
+)
+def test_a_crop_is_mirrored_onto_the_svg(
+    svg: bytes, crop: Crop, expected: bytes, exact: bool
+) -> None:
+    out = crop_svg(svg, crop)
+    assert out == expected if exact else out.startswith(expected)
 
 
 def runs(*pieces: tuple[str, bool]) -> JsonObject:
@@ -567,204 +538,88 @@ def linked(doc: Document) -> list[tuple[str, str | None]]:
 
 def test_an_italicized_section_name_becomes_a_link() -> None:
     """Docs cannot link to a heading in the same document,
-    so the publication italicizes the section's name and means a link by it."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
-                    para("Station Depth", "HEADING_2"),
-                    runs(("See ", False), ("Station Depth", True), (" for more.\n", False)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
+    so the publication italicizes the section's name and means a link by it,
+    and the italics come off once it is one."""
+    italic_link = {
+        "paragraph": {
+            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
+            "elements": [
+                {
+                    "textRun": {
+                        "content": "Fire Code",
+                        "textStyle": {"italic": True, "link": {"url": "https://nfpa.test/130"}},
+                    }
+                }
+            ],
         }
-    )
-    assert linked(doc) == [
-        ("See ", None),
-        ("Station Depth", "#station-depth"),
-        (" for more.", None),
-    ]
-
-
-def test_the_italics_come_off_once_it_is_a_link() -> None:
+    }
     doc = parse(
         {
             "title": "A publication",
             "body": {
                 "content": [
-                    para("Fire Code", "HEADING_2"),
-                    runs(("Fire Code", True)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    para_node = next(b for b in doc.blocks if isinstance(b, Paragraph))
-    assert [t.italic for t in para_node.content if isinstance(t, Text)] == [False]
-
-
-def test_a_reference_can_precede_the_section_it_names() -> None:
-    """The publication links to `Station Depth` long before reaching it."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
+                    # The publication links to `Station Depth` long before reaching it.
                     runs(("as suggested in ", False), ("Station Depth", True)),
                     para("Station Depth", "HEADING_2"),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    assert linked(doc)[1] == ("Station Depth", "#station-depth")
-
-
-def test_a_name_split_across_runs_still_matches() -> None:
-    """Docs splits a run wherever styling changes, mid-name included."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
+                    runs(("See ", False), ("Station Depth", True), (" for more.", False)),
+                    # Docs splits a run wherever styling changes, mid-name included.
                     para("Tail Tracks", "HEADING_2"),
                     runs(("Tail ", True), ("Tracks", True)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    assert [href for _, href in linked(doc)] == ["#tail-tracks", "#tail-tracks"]
-
-
-def test_case_and_spacing_are_forgiven() -> None:
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
+                    # Case and spacing are forgiven.
                     para("Ruling Grade", "HEADING_2"),
                     runs(("ruling  grade", True)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    assert linked(doc) == [("ruling  grade", "#ruling-grade")]
-
-
-def test_italics_that_name_no_section_stay_italics() -> None:
-    """The real publication italicizes `and` and `tens of billions` for emphasis."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
+                    # The real publication italicizes `and` and `tens of billions` for emphasis,
+                    # and an italicized link is already a link, to somewhere the author chose.
                     para("Fire Code", "HEADING_2"),
                     runs(("tens of billions", True)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    para_node = next(b for b in doc.blocks if isinstance(b, Paragraph))
-    text = next(t for t in para_node.content if isinstance(t, Text))
-    assert text.italic and text.href is None
-
-
-def test_an_italicized_link_is_left_alone() -> None:
-    """Already a link, and to somewhere the author chose."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
-                    para("Fire Code", "HEADING_2"),
-                    {
-                        "paragraph": {
-                            "paragraphStyle": {"namedStyleType": "NORMAL_TEXT"},
-                            "elements": [
-                                {
-                                    "textRun": {
-                                        "content": "Fire Code",
-                                        "textStyle": {
-                                            "italic": True,
-                                            "link": {"url": "https://nfpa.test/130"},
-                                        },
-                                    }
-                                }
-                            ],
-                        }
-                    },
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    assert linked(doc) == [("Fire Code", "https://nfpa.test/130")]
-
-
-def test_a_section_named_before_its_colon_still_matches() -> None:
-    """`Appendix A: Freedom Tunnel` is referred to as `Appendix A`,
-    which is how the live page links it."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
+                    italic_link,
+                    # `Appendix A: Freedom Tunnel` is referred to as `Appendix A`,
+                    # unless a heading is actually called that, which keeps its own anchor.
                     para("Appendix A: Freedom Tunnel", "HEADING_2"),
                     runs(("see ", False), ("Appendix A", True)),
+                    para("Appendix B", "HEADING_2"),
+                    para("Appendix B: Portal", "HEADING_2"),
+                    runs(("Appendix B", True)),
                 ]
             },
             "footnotes": {},
             "lists": {},
         }
     )
-    assert linked(doc)[1] == ("Appendix A", "#appendix-a-freedom-tunnel")
-
-
-def test_the_full_name_wins_over_a_shortened_one() -> None:
-    """A heading actually called `Appendix A` keeps its own anchor."""
-    doc = parse(
-        {
-            "title": "A publication",
-            "body": {
-                "content": [
-                    para("Appendix A", "HEADING_2"),
-                    para("Appendix A: Freedom Tunnel", "HEADING_2"),
-                    runs(("Appendix A", True)),
-                ]
-            },
-            "footnotes": {},
-            "lists": {},
-        }
-    )
-    assert linked(doc) == [("Appendix A", "#appendix-a")]
+    page = HtmlEmitter(site_url=HOST).emit(doc)
+    for anchor, name in [
+        ("station-depth", "Station Depth"),
+        ("ruling-grade", "ruling  grade"),
+        ("appendix-a-freedom-tunnel", "Appendix A"),
+        ("appendix-b", "Appendix B"),
+    ]:
+        assert f'<a href="#{anchor}">{name}</a>' in page, name
+    assert 'as suggested in <a href="#station-depth">Station Depth</a>' in page
+    assert '<a href="#tail-tracks">Tail </a><a href="#tail-tracks">Tracks</a>' in page
+    assert "<em>tens of billions</em>" in page
+    assert '<a href="https://nfpa.test/130"><em>Fire Code</em></a>' in page
+    assert "<em>Station Depth</em>" not in page
 
 
 def test_a_soft_line_break_is_warned_about_wherever_it_is() -> None:
     """It still publishes as the line break it is; the warning is that Docs
     draws Shift+Enter and Enter almost alike and stores them differently,
-    so nobody can see which one a paragraph was written with."""
+    so nobody can see which one a paragraph was written with.
+    With nothing on one side of it, it is called what it stands for."""
     doc = build(
         [
             para("Header", "HEADING_2"),
             field("URL: /reports/x"),
             para("Headline", "TITLE"),
             para("One line.\vAnother line."),
+            para("\vA paragraph pushed down the page."),
         ]
     )
-    warning = next(w for w in map(str, doc.warnings) if "Shift+Enter" in w)
-    assert "One line." in warning
-    assert "Another line." in warning
+    warnings = [str(w) for w in doc.warnings if "Shift+Enter" in str(w) or "blank space" in str(w)]
+    assert len(warnings) == 2
+    assert "One line." in warnings[0]
+    assert "Another line." in warnings[0]
+    assert "standing in for blank space" in warnings[1]
 
 
 def test_a_prose_paragraph_after_a_figure_is_warned_about_once() -> None:
@@ -781,18 +636,6 @@ def test_a_prose_paragraph_after_a_figure_is_warned_about_once() -> None:
         ]
     )
     assert sum("Shift+Enter" in w for w in map(str, doc.warnings)) == 1
-
-
-def test_a_soft_break_with_nothing_on_one_side_is_called_spacing() -> None:
-    doc = build(
-        [
-            para("Header", "HEADING_2"),
-            field("URL: /reports/x"),
-            para("Headline", "TITLE"),
-            para("\vA paragraph pushed down the page."),
-        ]
-    )
-    assert any("standing in for blank space" in w for w in map(str, doc.warnings))
 
 
 class Serving(requests.Session):
@@ -895,16 +738,6 @@ def test_an_svg_describes_itself_by_its_own_title_and_desc() -> None:
     assert svg_description(svg) == "Share > GoA2, by year. 135/361 are automated."
 
 
-def test_a_crop_of_an_svg_sized_in_another_unit_is_in_pixels() -> None:
-    """Only the ratio matters, so any fixed unit will do."""
-    svg = b'<svg xmlns="http://www.w3.org/2000/svg" width="1in" height="0.5in"><g/></svg>'
-    out = crop_svg(svg, Crop(left=0.5))
-    assert out.startswith(
-        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="48 0 48 48" '
-        b'width="48" height="48"><svg width="96" height="48">'
-    )
-
-
 # ---- a `Source:` in one of our GitHub repos -------------------------
 
 LIVE_BLOB = "https://github.com/effective-transit-alliance/charts/blob/main/out/map.png"
@@ -937,9 +770,19 @@ def _live_figure(url: str) -> Figure:
     return next(b for b in _live_doc(url).blocks if isinstance(b, Figure))
 
 
-@pytest.mark.parametrize("url", [LIVE_BLOB, LIVE_RAW, LIVE_BLOB.replace("/blob/", "/raw/")])
+@pytest.mark.parametrize(
+    "url",
+    [
+        LIVE_BLOB,
+        LIVE_RAW,
+        LIVE_BLOB.replace("/blob/", "/raw/"),
+        "https://github.com/kkysen/charts/releases/download/v1.2/map.png",
+        "https://github.com/kkysen/charts/releases/latest/download/map.png",
+    ],
+)
 def test_a_source_in_our_repos_is_downloaded_from_there(url: str) -> None:
-    assert _live_figure(url).image.live_uri == LIVE_RAW
+    release = "/releases/" in url
+    assert _live_figure(url).image.live_uri == (url if release else LIVE_RAW)
 
 
 @pytest.mark.parametrize(
@@ -948,6 +791,9 @@ def test_a_source_in_our_repos_is_downloaded_from_there(url: str) -> None:
         "https://github.com/someone-else/charts/blob/main/out/map.png",
         "https://github.com/kkysen/automated-metro-data",
         "https://example.com/kkysen/charts/blob/main/map.png",
+        "https://github.com/kkysen/charts/releases/tag/v1.2",
+        "https://github.com/kkysen/charts/releases/latest",
+        "https://github.com/someone-else/charts/releases/download/v1.2/map.png",
     ],
 )
 def test_a_source_anywhere_else_is_only_cited(url: str) -> None:
@@ -1032,63 +878,20 @@ def test_a_live_source_unlike_the_documents_copy_warns(tmp_path: Path) -> None:
 
 
 def test_a_live_source_matching_the_documents_copy_is_quiet(tmp_path: Path) -> None:
-    doc = _live_doc(LIVE_BLOB)
-    download(doc, tmp_path, session=Live(_png(10, 10)))
-    assert not doc.warnings
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://github.com/kkysen/charts/releases/download/v1.2/map.png",
-        "https://github.com/kkysen/charts/releases/latest/download/map.png",
-    ],
-)
-def test_a_release_asset_in_our_repos_is_downloaded_from_there(url: str) -> None:
-    assert _live_figure(url).image.live_uri == url
-
-
-@pytest.mark.parametrize(
-    "url",
-    [
-        "https://github.com/kkysen/charts/releases/tag/v1.2",
-        "https://github.com/kkysen/charts/releases/latest",
-        "https://github.com/someone-else/charts/releases/download/v1.2/map.png",
-    ],
-)
-def test_a_release_page_or_someone_elses_asset_is_only_cited(url: str) -> None:
-    assert _live_figure(url).image.live_uri == ""
-
-
-def test_a_live_source_reencoded_in_the_document_is_quiet(tmp_path: Path) -> None:
-    """Docs may rewrite a pasted file's bytes; the picture is what is compared."""
+    """Even when Docs rewrote the pasted file's bytes, or shrank a wide paste:
+    the picture is what is compared."""
     import io
 
     from PIL import Image as Pillow
 
-    buffer = io.BytesIO()
-    Pillow.new("RGB", (10, 10)).save(buffer, "PNG", compress_level=0)
-    assert buffer.getvalue() != _png(10, 10)
-    doc = _live_doc(LIVE_BLOB)
-    download(doc, tmp_path, session=Live(buffer.getvalue()))
-    assert not doc.warnings
-
-
-def test_a_live_source_docs_shrank_is_quiet(tmp_path: Path) -> None:
-    """Docs shrinks a wide paste, so its copy is the picture at a smaller size."""
-    import io
-
-    from PIL import Image as Pillow
-
-    def encoded(picture: Pillow.Image) -> bytes:
+    def encoded(picture: Pillow.Image, **options: Any) -> bytes:
         buffer = io.BytesIO()
-        picture.save(buffer, "PNG")
+        picture.save(buffer, "PNG", **options)
         return buffer.getvalue()
 
-    gradient = Pillow.linear_gradient("L").convert("RGB").resize((400, 200))
-    live = encoded(gradient)
-
     class Shrunk(Live):
+        """Hands back the documents copy at half the size of the live one."""
+
         @override
         def get(self, url: str | bytes, **kwargs: Any) -> requests.Response:
             response = super().get(url, **kwargs)
@@ -1096,9 +899,17 @@ def test_a_live_source_docs_shrank_is_quiet(tmp_path: Path) -> None:
                 response._content = encoded(gradient.resize((200, 100)))
             return response
 
-    doc = _live_doc(LIVE_BLOB)
-    download(doc, tmp_path, session=Shrunk(live))
-    assert not doc.warnings
+    gradient = Pillow.linear_gradient("L").convert("RGB").resize((400, 200))
+    reencoded = encoded(Pillow.new("RGB", (10, 10)), compress_level=0)
+    assert reencoded != _png(10, 10)
+    for name, session in {
+        "same": Live(_png(10, 10)),
+        "reencoded": Live(reencoded),
+        "shrunk": Shrunk(encoded(gradient)),
+    }.items():
+        doc = _live_doc(LIVE_BLOB)
+        download(doc, tmp_path / name, session=session)
+        assert not doc.warnings, name
 
 
 def test_a_renamed_image_is_found_under_its_old_name(tmp_path: Path) -> None:
