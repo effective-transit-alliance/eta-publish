@@ -97,12 +97,12 @@ h4 {
    gives it: 3.6vw and a rem on a window at least 768px wide or wider than it
    is tall, held to 80.8px where the site's 1800px stops growing; and on a
    phone held upright, a rem and 3.6% of the window's height, to 900px of it.
-   So it is 48.4px on a phone 900px tall, 40px on one 667px tall, 43.6px at
-   768px, 62.1px at 1280px, 70px at 1500px, and 80.8px from 1800px up. On a
-   window from 768px to 900px that is a little smaller than on a phone, as on
-   etany.org. */
+   So it is 48.4px on a phone 900px tall, 40px on one 667px tall, 62.1px at
+   1280px, 70px at 1500px, and 80.8px from 1800px up. Held to its 900px size
+   below that, as the other headings are: on a window from 768px to 900px,
+   etany.org's is a little smaller than on a phone. */
 h1 {
-    font-size: min(calc(3.6vw + 1rem), 80.8px);
+    font-size: clamp(3.025rem, 1rem + 3.6vw, 80.8px);
     font-weight: 500;
     line-height: 1.232;
     margin-bottom: 0.2em;
