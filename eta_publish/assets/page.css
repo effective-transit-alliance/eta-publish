@@ -1,12 +1,23 @@
+/* The typeface etany.org sets its text in, served from the build's own
+   `assets/fonts/` rather than from a font host, as the stylesheets are.
+   One file holds every weight from 200 to 700. */
+@font-face {
+    font-family: Yaldevi;
+    src: url("fonts/Yaldevi.woff2") format("woff2");
+    font-weight: 200 700;
+    font-display: swap;
+}
 :root {
     color-scheme: light dark;
-    --fg: #1a1a1a;
+    --fg: #000516;
     --bg: #fff;
+    --link: #253551;
 }
 @media (prefers-color-scheme: dark) {
     :root {
         --fg: #eaeaea;
         --bg: #141414;
+        --link: #a8bbe3;
     }
 }
 /* The masthead's band is the window's width, which counts a scrollbar the
@@ -14,41 +25,164 @@
 html {
     overflow-x: clip;
 }
+/* The column etany.org sets its text in, measured on its IBX Automation report:
+   from the 768px where its layout stops stacking, 62.4% of the window,
+   up to the 1196px it reaches at a 1915px one, and on a narrower window,
+   the window less a gutter of 6vw each side. The `width` is the column,
+   so the padding is only above and below it. */
 body {
     background: var(--bg);
     color: var(--fg);
-    max-width: 46rem;
+    width: calc(100% - 2 * max(1.25rem, 6vw));
+    max-width: 74.75rem;
     margin: 0 auto;
-    padding: 3rem 1.25rem 6rem;
+    padding: 3rem 0 6rem;
     font:
-        17px / 1.65 Georgia,
-        "Times New Roman",
+        300 1rem / 1.8 Yaldevi,
+        Georgia,
         serif;
 }
-/* The masthead's band starts at the top of the window, as the site's starts
-   under its own header, unless something is above it:
-   the banner, or a draft's phase on a page with none. */
-body > .eta-report:first-child > .masthead:first-child {
-    margin-top: -3rem;
+@media (min-width: 48rem) {
+    body {
+        width: 62.4%;
+    }
+}
+/* Light type is what the site's text is set in; what is bold in it is a
+   weight of its own, not the one step above the text that `bolder` would take. */
+strong,
+b {
+    font-weight: 700;
+}
+/* A list's items are half as far apart as paragraphs are, as on etany.org. */
+.eta-report li + li {
+    margin-top: 0.5rem;
+}
+/* A footnote's number at three quarters of the text and with no line height,
+   as etany.org sets it: with one of its own, it pushed its line a few pixels
+   further from the line above. */
+sup {
+    font-size: 75%;
+    line-height: 0;
+}
+/* The headings at the sizes etany.org sets: each is a rem and a share of the
+   window, which on etany.org grows from 900px to 1800px. Held between those
+   two sizes, as etany.org's are, except that on a window from 768px to 900px
+   its are a little smaller than on a phone, which these are not. */
+:root {
+    --h2-size: clamp(2.215rem, 1rem + 2.16vw, 3.43rem);
+    --h3-size: clamp(1.81rem, 1rem + 1.44vw, 2.62rem);
+    --h4-size: clamp(1.405rem, 1rem + 0.72vw, 1.81rem);
 }
 h1,
 h2,
 h3,
 h4 {
-    font-family: system-ui, sans-serif;
+    font-family: Yaldevi, Georgia, serif;
+    font-weight: 500;
     line-height: 1.25;
 }
+h2 {
+    font-size: var(--h2-size);
+    line-height: 1.3;
+}
+h3 {
+    font-size: var(--h3-size);
+    line-height: 1.333;
+}
+h4 {
+    font-size: var(--h4-size);
+    line-height: 1.366;
+}
+/* The headline at the size etany.org sets its own, by the rule its stylesheet
+   gives it: 3.6vw and a rem on a window at least 768px wide or wider than it
+   is tall, held to 80.8px where the site's 1800px stops growing; and on a
+   phone held upright, a rem and 3.6% of the window's height, to 900px of it.
+   So it is 48.4px on a phone 900px tall, 40px on one 667px tall, 62.1px at
+   1280px, 70px at 1500px, and 80.8px from 1800px up. Held to its 900px size
+   below that, as the other headings are: on a window from 768px to 900px,
+   etany.org's is a little smaller than on a phone. */
 h1 {
-    font-size: 2.1rem;
+    font-size: clamp(3.025rem, 1rem + 3.6vw, 80.8px);
+    font-weight: 500;
+    line-height: 1.232;
     margin-bottom: 0.2em;
 }
-h2 {
-    margin-top: 2.5em;
-    border-top: 1px solid currentColor;
-    padding-top: 0.8em;
+@media (max-width: 767px) and (orientation: portrait) {
+    h1 {
+        font-size: calc(0.036 * min(100vh, 900px) + 1rem);
+    }
 }
+/* A section opens with white space rather than a rule, more of it on a wider
+   window, and less before an `h3` and less again before an `h4`. Under its
+   heading, a section's words are a paragraph's space away on a phone and up
+   to 2.4 times that on a wide window; a subsection's and an `h4`'s, a
+   paragraph's. */
+h2 {
+    margin-top: clamp(3.5rem, 1.85rem + 7.8vw, 9rem);
+    margin-bottom: clamp(1rem, 0.5rem + 1.8vw, 2.4rem);
+}
+h3 {
+    margin-top: clamp(3.5rem, 2.5rem + 4.5vw, 6rem);
+    margin-bottom: 0.6rem;
+}
+h4 {
+    margin: 2rem 0 0.6rem;
+}
+/* A heading straight under another is as far from it as words would be. */
+:is(h2, h3) + :is(h3, h4) {
+    margin-top: 1rem;
+}
+/* The margins collapse, and the larger wins, so an `h2` that a subheading
+   follows gives up its wider space under it. */
+h2:has(+ :is(h3, h4)) {
+    margin-bottom: 1rem;
+}
+/* The underline a little under the words, as etany.org's own text sets it. */
 a {
     color: inherit;
+    text-underline-offset: 0.2em;
+}
+/* The header bar is across the window as the kind banner is, in the near-black
+   etany.org's own header is, at a third of its height and with none of its
+   navigation. It starts at the top of the window, as the masthead's band did,
+   unless something is above it: the banner, or a draft's phase on a page with
+   none. Not fixed, so it scrolls away, and not printed. */
+.site-header {
+    margin: 0 calc(50% - 50vw);
+    padding: 0 1.25rem;
+    height: 4rem;
+    display: flex;
+    align-items: center;
+    background: #000516;
+    color: #fff;
+}
+body > .site-header:first-child {
+    margin-top: -3rem;
+}
+.site-header a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: inherit;
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 500;
+    line-height: 1;
+}
+.site-header img {
+    display: block;
+}
+@media print {
+    .site-header {
+        display: none;
+    }
+}
+/* A paragraph's links in the navy etany.org sets its own in,
+   which a dark page cannot read, so there the same blue lifted to a light tint.
+   Only a paragraph's, as on etany.org, where the links in the outline, a list,
+   a caption, or the sources are in the text's color. */
+.eta-report p a {
+    color: var(--link);
 }
 .standfirst {
     font-size: 1.15rem;

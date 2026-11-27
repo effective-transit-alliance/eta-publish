@@ -61,6 +61,7 @@ from ..nodes import (
     Text,
     plain_text,
 )
+from ..squarespace import SITE_NAME
 from .base import (
     PLATFORM_NAMES,
     Emitter,
@@ -266,6 +267,29 @@ def banner_markup(banner: Banner, phase: str = "") -> str:
                 banner.says,
                 *([" ", tag.span(class_="kind-phase")[_phase_parts(phase)]] if phase else []),
             ],
+        ]
+    )
+
+
+SITE_URL = "https://www.etany.org/"
+"""Where the page's header bar links: the organization's own site."""
+
+
+def site_header_markup(asset_base: str) -> str:
+    """The bar above a preview page's headline that says whose publication it is:
+    the logo and the organization's name, linking to the organization's site.
+
+    Not the site's header, which carries its navigation and its donate button:
+    a preview is not a page of the site, and a link to one that goes nowhere is worse than none.
+    The name is text rather than part of a picture, so it is read, selected, and translated.
+    The picture is decoration beside it, with no text of its own.
+    """
+    return markup(
+        tag.header(class_="site-header")[
+            tag.a(href=SITE_URL)[
+                htpy.img(src=f"{asset_base}/logo.svg", alt="", width="32", height="32"),
+                tag.span["Effective Transit Alliance"],
+            ]
         ]
     )
 
@@ -1633,13 +1657,15 @@ def publication_page(
         # and these pages are served from a path under it.
         # Remove this, and `site/unpublished/robots.txt`, when the publications go out.
         htpy.meta(name="robots", content="noindex, nofollow"),
-        tag.title[doc.title],
+        # As etany.org titles its own pages, the site's name after the page's,
+        # so a tab of the preview reads as the page it previews.
+        tag.title[f"{doc.title} \N{EM DASH} {SITE_NAME}"],
         # Without one a browser shows whatever it last cached for the host, or nothing.
         htpy.link(rel="icon", type="image/svg+xml", href=f"{asset_base}/logo.svg"),
         htpy.meta(name="description", content=description),
         # What a link to the publication unfurls as, beside the card's picture.
         htpy.meta(property="og:type", content="article"),
-        htpy.meta(property="og:site_name", content="Effective Transit Alliance"),
+        htpy.meta(property="og:site_name", content=SITE_NAME),
         *([htpy.meta(property="og:url", content=page_url)] if page_url else []),
         htpy.meta(property="og:title", content=doc.title),
         htpy.meta(property="og:description", content=description),
@@ -1660,6 +1686,7 @@ def publication_page(
             if doc.phase
             else []
         ),
+        Markup(site_header_markup(asset_base)),
     ]
     # `<!doctype html>` is not an element and no builder emits one.
     return markup([Markup("<!doctype html>"), "\n", lines(head), "\n", Markup(body), "\n"])
